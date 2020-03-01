@@ -1,0 +1,347 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Scroller xmlns:fx="http://ns.adobe.com/mxml/2009" 
+			xmlns:s="library://ns.adobe.com/flex/spark" 
+			xmlns:mx="library://ns.adobe.com/flex/mx"
+			creationComplete="creationCompleteHandler(event)"  
+			xmlns:security="dmdd.dmddmx.com.security.*">
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+	</fx:Declarations>
+	<fx:Script>
+		<![CDATA[
+			import aks.aksas.utils.UtilTime;
+			
+			import dmdd.dmddas.common.system.ClientEnvironment;
+			import dmdd.dmddas.common.utils.UtilOperatorUser;
+			import dmdd.dmddas.dataaccess.bizobject.BOperatorUser;
+			import dmdd.dmddas.dataaccess.bizobject.BSysDictionaryItem;
+			
+			import mx.collections.ArrayCollection;
+			import mx.controls.Alert;
+			import mx.events.FlexEvent;
+			import mx.utils.StringUtil;
+			//	描述    begin
+			//	描述    end
+			
+			//	0	输入参数    begin		
+			[Bindable]
+			public var paramIo4operatorUser:BOperatorUser = null;
+			
+			[Bindable]
+			public var paramIn4editable:Boolean = true;				
+			//	0	输入参数    end
+			
+			//	1	输出参数    begin
+			//	1	输出参数    end
+			
+			//	2	本地变量    begin	
+			[Bindable]
+			private var prvVar4arr4dictGlobalYesNo:ArrayCollection = ClientEnvironment.getSysDictionaryItems("GLOBAL", "YESNO", false);			
+			//	2	本地变量    end			
+			
+			//	3	公共方法    begin	
+			public function pubFun4prepare4save():Boolean
+			{
+				var alert_title_hint:String = resourceManager.getString('alert','alert_title_hint');
+				var alert_msg:String = "";
+				
+				this.paramIo4operatorUser.loginName = StringUtil.trim( this.txtLoginName.text );
+				this.paramIo4operatorUser.password = StringUtil.trim( this.txtPassword.text ); // to do pwd需要检查和加密
+				this.paramIo4operatorUser.userName = StringUtil.trim( this.txtUserName.text );
+				this.paramIo4operatorUser.creatorName = ClientEnvironment.getOperatorUser().userName;
+				this.paramIo4operatorUser.createdTime = new Date( new Date().getTime() + ClientEnvironment.getTimeDifference() );
+				this.paramIo4operatorUser.userExpiryTime = this.dateFiledUserExpiryTime.selectedDate;
+				this.paramIo4operatorUser.pwdExpiryTime = this.dateFiledPwdExpiryTime.selectedDate;
+				this.paramIo4operatorUser.isValid = BSysDictionaryItem(this.comboBoxIsValid.selectedItem).value;
+				this.paramIo4operatorUser.position = StringUtil.trim( this.txtPosition.text );
+				this.paramIo4operatorUser.officeAddress = StringUtil.trim( this.txtOfficeAddress.text );
+				this.paramIo4operatorUser.homeAddress = StringUtil.trim( this.txtHomeAddress.text );
+				this.paramIo4operatorUser.telNo = StringUtil.trim( this.txtTelNo.text );
+				this.paramIo4operatorUser.mobileNo = StringUtil.trim( this.txtMobileNo.text );
+				this.paramIo4operatorUser.email = StringUtil.trim( this.txtEmail.text );
+				this.paramIo4operatorUser.comments = StringUtil.trim( this.txtComments.text );
+				
+				if( this.paramIo4operatorUser.loginName == null || this.paramIo4operatorUser.loginName == "" )
+				{
+					alert_msg = resourceManager.getString('alert','alert_msg_loginnameisnull11');
+					Alert.show( alert_msg, alert_title_hint );
+					return false;						
+				}
+				
+				if( this.paramIo4operatorUser.userName == null || this.paramIo4operatorUser.userName == "" )
+				{
+					alert_msg = resourceManager.getString('alert','alert_msg_usernameisnull11');
+					Alert.show( alert_msg, alert_title_hint );
+					return false;						
+				}	
+				
+				if( this.paramIo4operatorUser.password == null || this.paramIo4operatorUser.password == "" )
+				{
+					alert_msg = resourceManager.getString('alert','alert_msg_passwordisnull11');
+					Alert.show( alert_msg, alert_title_hint );
+					return false;						
+				}
+				
+				var pwdConfirm:String = StringUtil.trim( this.txtPasswordConfirm.text );
+				if( pwdConfirm == null || pwdConfirm != this.paramIo4operatorUser.password )
+				{
+					alert_msg = resourceManager.getString('alert','alert_msg_passwordconfirmunmatch11');
+					Alert.show( alert_msg, alert_title_hint );
+					return false;					
+				}	
+				
+				if( this.paramIo4operatorUser.userExpiryTime == null )
+				{
+					alert_msg = resourceManager.getString('alert','alert_msg_userexpirytimeisnull11');
+					Alert.show( alert_msg, alert_title_hint );
+					return false;						
+				}	
+				
+				if( this.paramIo4operatorUser.pwdExpiryTime == null )
+				{
+					alert_msg = resourceManager.getString('alert','alert_msg_pwdexpirytimeisnull11');
+					Alert.show( alert_msg, alert_title_hint );
+					return false;						
+				}				
+				
+				if( this.paramIo4operatorUser.loginName != 'sa' )
+				{
+					if( this.comOperatorUserField.paramIo4selectedOperatorUser == null )
+					{
+						alert_msg = resourceManager.getString('alert','alert_msg_superioroperatoruserisnull11');
+						Alert.show( alert_msg, alert_title_hint );	
+						return false;
+					}	
+					
+					if( this.comOperatorUserField.paramIo4selectedOperatorUser.id == this.paramIo4operatorUser.id )
+					{
+						alert_msg = resourceManager.getString('alert','alert_msg_superioroperatoruserisself11');
+						Alert.show( alert_msg, alert_title_hint );	
+						return false;					
+					}
+					
+					if( UtilOperatorUser.isAncestorOf( this.paramIo4operatorUser, this.comOperatorUserField.paramIo4selectedOperatorUser ) == true )
+					{
+						alert_msg = resourceManager.getString('alert','alert_msg_superioroperatoruserisdescendent11');
+						Alert.show( alert_msg, alert_title_hint );	
+						return false;					
+					}
+					this.paramIo4operatorUser.superiorOperatorUser = this.comOperatorUserField.paramIo4selectedOperatorUser;					
+				}
+				
+				return true;												
+			}			
+			
+			public function pubFun4setPasswordConfirm(_password:String):void
+			{
+				this.txtPasswordConfirm.text = _password;
+			}
+			//	3	公共方法    end		
+			
+			//	4	初始化方法    begin	
+			protected function creationCompleteHandler(event:FlexEvent):void
+			{
+				
+			}			
+			//	4	初始化方法    end				
+			
+			//	5	事件响应方法    begin
+			//	5	事件响应方法    end
+			
+			//	6	本地方法    begin				
+			//	6	本地方法   end				
+			
+			
+			
+		]]>
+	</fx:Script>
+	
+	<s:Group width="100%" height="100%" id="group">
+		<s:layout>
+			<s:VerticalLayout paddingLeft="10" paddingRight="10" paddingTop="10" paddingBottom="10"/>
+		</s:layout>
+		<mx:Grid width="100%" height="260">
+			<mx:GridRow width="100%" height="100%" verticalAlign="middle">
+				<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+					<s:Label text="{resourceManager.getString('note','loginName')}"/>
+				</mx:GridItem>
+				<mx:GridItem width="100%" height="100%" verticalAlign="middle">
+					<mx:TextInput id="txtLoginName" maxChars="16" width="100%" text="{this.paramIo4operatorUser.loginName}" editable="{this.paramIn4editable}"/>
+				</mx:GridItem>
+				<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+				</mx:GridItem>
+				<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+					<s:Label text="{resourceManager.getString('note','psw')}" visible="{this.paramIn4editable}"/>
+				</mx:GridItem>
+				<mx:GridItem width="100%" height="100%" verticalAlign="middle">
+					<mx:TextInput id="txtPassword" maxChars="16" width="100%" text="{this.paramIo4operatorUser.password}" displayAsPassword="true" editable="{this.paramIn4editable}" visible="{this.paramIn4editable}"/>
+				</mx:GridItem>
+				<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+				</mx:GridItem>
+				<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+					<s:Label text="{resourceManager.getString('note','pswConfirm')}" visible="{this.paramIn4editable}"/>
+				</mx:GridItem>
+				<mx:GridItem width="100%" height="100%" verticalAlign="middle">
+					<mx:TextInput id="txtPasswordConfirm" maxChars="16" width="100%" text="" displayAsPassword="true" editable="{this.paramIn4editable}" visible="{this.paramIn4editable}"/>
+				</mx:GridItem>
+			</mx:GridRow>
+			<mx:GridRow width="100%" height="100%" verticalAlign="middle">
+				<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+					<s:Label text="{resourceManager.getString('note','userName')}"/>
+				</mx:GridItem>
+				<mx:GridItem width="100%" height="100%" verticalAlign="middle">
+					<mx:TextInput id="txtUserName" maxChars="16" width="100%" text="{this.paramIo4operatorUser.userName}" editable="{this.paramIn4editable}"/>
+				</mx:GridItem>
+				<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+				</mx:GridItem>
+				<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+					<s:Label text="{resourceManager.getString('note','creater')}"/>
+				</mx:GridItem>
+				<mx:GridItem width="100%" height="100%" verticalAlign="middle">
+					<mx:TextInput id="txtCreatorName" maxChars="255" width="100%" text="{this.paramIo4operatorUser.creatorName}" enabled="false"/>
+				</mx:GridItem>
+				<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+				</mx:GridItem>
+				<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+					<s:Label text="{resourceManager.getString('note','createTime')}"/>
+				</mx:GridItem>
+				<mx:GridItem width="100%" height="100%" verticalAlign="middle">
+					<mx:TextInput id="txtCreatedTime" maxChars="255" width="100%" text="{UtilTime.formatDate(this.paramIo4operatorUser.createdTime, 'YYYY-MM-DD JJ:NN:SS')}" enabled="false"/>
+				</mx:GridItem>
+			</mx:GridRow>
+			<mx:GridRow width="100%" height="100%" verticalAlign="middle">
+				<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+					<s:Label text="{resourceManager.getString('note','userExpired')}"/>
+				</mx:GridItem>
+				<mx:GridItem width="100%" height="100%" verticalAlign="middle">
+					<mx:DateField id="dateFiledUserExpiryTime" width="100%" selectedDate="{this.paramIo4operatorUser.userExpiryTime}" enabled="{this.paramIn4editable}" editable="true" formatString="YYYY-MM-DD"/>
+				</mx:GridItem>
+				<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+				</mx:GridItem>
+				<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+					<s:Label text="{resourceManager.getString('note','pswExpired')}"/>
+				</mx:GridItem>
+				<mx:GridItem width="100%" height="100%" verticalAlign="middle">
+					<mx:DateField id="dateFiledPwdExpiryTime" width="100%" selectedDate="{this.paramIo4operatorUser.pwdExpiryTime}" enabled="{this.paramIn4editable}"  editable="true" formatString="YYYY-MM-DD"/>
+				</mx:GridItem>
+				<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+				</mx:GridItem>
+				<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+					<s:Label text="{resourceManager.getString('note','isValid')}"/>
+				</mx:GridItem>
+				<mx:GridItem width="100%" height="100%" verticalAlign="middle">
+					<s:ComboBox width="100%" id="comboBoxIsValid" dataProvider="{this.prvVar4arr4dictGlobalYesNo}" selectedIndex="{ClientEnvironment.getSysDictionaryItemIndexByValue(this.prvVar4arr4dictGlobalYesNo,this.paramIo4operatorUser.isValid)}" enabled="{this.paramIn4editable}"></s:ComboBox>
+				</mx:GridItem>
+			</mx:GridRow>
+			<mx:GridRow width="100%" height="100%" verticalAlign="middle">
+				<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+					<s:Label text="{resourceManager.getString('note','position')}"/>
+				</mx:GridItem>
+				<mx:GridItem width="100%" height="100%" verticalAlign="middle">
+					<mx:TextInput id="txtPosition" maxChars="255" width="100%" text="{this.paramIo4operatorUser.position}" editable="{this.paramIn4editable}"/>
+				</mx:GridItem>
+				<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+				</mx:GridItem>
+				<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+					<s:Label text="{resourceManager.getString('note','workAddress')}"/>
+				</mx:GridItem>
+				<mx:GridItem width="100%" height="100%" verticalAlign="middle">
+					<mx:TextInput id="txtOfficeAddress" maxChars="255" width="100%" text="{this.paramIo4operatorUser.officeAddress}" editable="{this.paramIn4editable}"/>
+				</mx:GridItem>
+				<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+				</mx:GridItem>
+				<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+					<s:Label text="{resourceManager.getString('note','homeAddress')}"/>
+				</mx:GridItem>
+				<mx:GridItem width="100%" height="100%" verticalAlign="middle">
+					<mx:TextInput id="txtHomeAddress" maxChars="255" width="100%" text="{this.paramIo4operatorUser.homeAddress}" editable="{this.paramIn4editable}"/>
+				</mx:GridItem>
+			</mx:GridRow>
+			<mx:GridRow width="100%" height="100%" verticalAlign="middle">
+				<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+					<s:Label text="{resourceManager.getString('note','telNO')}"/>
+				</mx:GridItem>
+				<mx:GridItem width="100%" height="100%" verticalAlign="middle">
+					<mx:TextInput id="txtTelNo" maxChars="255" width="100%" text="{this.paramIo4operatorUser.telNo}" editable="{this.paramIn4editable}"/>
+				</mx:GridItem>
+				<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+				</mx:GridItem>
+				<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+					<s:Label text="{resourceManager.getString('note','cellNO')}"/>
+				</mx:GridItem>
+				<mx:GridItem width="100%" height="100%" verticalAlign="middle">
+					<mx:TextInput id="txtMobileNo" maxChars="255" width="100%" text="{this.paramIo4operatorUser.mobileNo}" editable="{this.paramIn4editable}"/>
+				</mx:GridItem>
+				<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+				</mx:GridItem>
+				<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+					<s:Label text="{resourceManager.getString('note','email')}"/>
+				</mx:GridItem>
+				<mx:GridItem width="100%" height="100%" verticalAlign="middle">
+					<mx:TextInput id="txtEmail" maxChars="255" width="100%" text="{this.paramIo4operatorUser.email}" editable="{this.paramIn4editable}"/>
+				</mx:GridItem>
+			</mx:GridRow>	
+			<mx:GridRow width="100%" height="100%" verticalAlign="middle">
+				<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+					<s:Label text="{resourceManager.getString('note','supervisor')}"/>
+				</mx:GridItem>
+				<mx:GridItem width="100%" height="100%" verticalAlign="middle">
+					<security:Com_Security_OperatorUser_Field paramIo4selectedOperatorUser="{this.paramIo4operatorUser.superiorOperatorUser}" paramIn4enabled4btnOpenChooser="{this.paramIn4editable}" paramIn4enabled4btnClear="{this.paramIn4editable}" width="100%" id="comOperatorUserField">
+					</security:Com_Security_OperatorUser_Field>
+				</mx:GridItem>
+				<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+				</mx:GridItem>					
+				<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+					<s:Label text="{resourceManager.getString('note','remark')}"/>
+				</mx:GridItem>
+				<mx:GridItem width="100%" height="100%" verticalAlign="middle" colSpan="4">
+					<mx:TextInput id="txtComments" maxChars="255" width="100%" text="{this.paramIo4operatorUser.comments}" editable="{this.paramIn4editable}"/>
+				</mx:GridItem>					
+			</mx:GridRow>	
+			<mx:GridRow width="100%" height="100%" verticalAlign="middle">
+				<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+					<s:Label text="{resourceManager.getString('note','resentLoginTime')}"/>
+				</mx:GridItem>
+				<mx:GridItem width="100%" height="100%" verticalAlign="middle">
+					<mx:TextInput id="txtLoginTime" maxChars="255" width="100%" text="{UtilTime.formatDate(this.paramIo4operatorUser.loginTime, 'YYYY-MM-DD JJ:NN:SS')}" enabled="false"/>
+				</mx:GridItem>
+				<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+				</mx:GridItem>
+				<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+					<s:Label text="{resourceManager.getString('note','resentLogoffTime')}"/>
+				</mx:GridItem>
+				<mx:GridItem width="100%" height="100%" verticalAlign="middle">
+					<mx:TextInput id="txtLogoutTime" maxChars="255" width="100%" text="{UtilTime.formatDate(this.paramIo4operatorUser.logoutTime, 'YYYY-MM-DD JJ:NN:SS')}" enabled="false"/>
+				</mx:GridItem>
+				<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+				</mx:GridItem>
+				<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+					<s:Label text="{resourceManager.getString('note','loginTimes')}"/>
+				</mx:GridItem>
+				<mx:GridItem width="100%" height="100%" verticalAlign="middle">
+					<mx:TextInput id="txtLoginTimes" maxChars="255" width="100%" text="{this.paramIo4operatorUser.loginTimes}" enabled="false"/>
+				</mx:GridItem>
+			</mx:GridRow>		
+			<mx:GridRow width="100%" height="100%" verticalAlign="middle">
+				<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+					<s:Label text="{resourceManager.getString('note','isOnline')}"/>
+				</mx:GridItem>
+				<mx:GridItem width="100%" height="100%" verticalAlign="middle">
+					<mx:TextInput id="txtIsOnline" maxChars="255" width="100%" text="{ClientEnvironment.getSysDictionaryItemLocale('GLOBAL', 'YESNO', this.paramIo4operatorUser.isOnline)}" enabled="false"/>
+				</mx:GridItem>
+				<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+				</mx:GridItem>
+				<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+				</mx:GridItem>
+				<mx:GridItem width="100%" height="100%" verticalAlign="middle">
+				</mx:GridItem>
+				<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+				</mx:GridItem>
+				<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+				</mx:GridItem>
+				<mx:GridItem width="100%" height="100%" verticalAlign="middle">
+				</mx:GridItem>
+			</mx:GridRow>			
+		</mx:Grid>		
+	</s:Group>
+</s:Scroller>

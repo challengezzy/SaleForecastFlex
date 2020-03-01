@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Module xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		   xmlns:s="library://ns.adobe.com/flex/spark" 
+		   xmlns:mx="library://ns.adobe.com/flex/mx" layout="horizontal" width="100%" height="100%"
+		   creationComplete="creationCompleteHandler(event)">
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+	</fx:Declarations>
+	<fx:Metadata>
+		[ResourceBundle("mod_report")]
+	</fx:Metadata>
+	<fx:Script>
+		<![CDATA[
+			import dmdd.dmddas.common.constant.BizConst;
+			import dmdd.dmddas.common.system.ClientEnvironment;
+			
+			import mx.events.FlexEvent;
+			
+			
+			//	描述    begin
+			//	描述    end
+			
+			//	0	输入参数    begin						
+			//	0	输入参数    end
+			
+			//	1	输出参数    begin
+			//	1	输出参数    end
+			
+			//	2	本地变量    begin			
+			//	2	本地变量    end			
+			
+			//	3	公共方法    begin			
+			//	3	公共方法    end		
+			
+			//	4	初始化方法    begin	
+			protected function creationCompleteHandler(event:FlexEvent):void
+			{	
+				this.viewStack.removeAllElements();
+				this.viewStack.addElement( this.modloader_report_row );	
+				this.viewStack.addElement( this.modloader_report_column );	
+				this.viewStack.addElement( this.modloader_report_weight );	
+				
+				if( ClientEnvironment.checkIsPermission(BizConst.FUNPERMISSION_REPORT_REPORT_STATISTIC ))
+				{
+					this.viewStack.addElement( this.modloader_report_statistics );					
+				}
+				if( ClientEnvironment.checkIsPermission(BizConst.FUNPERMISSION_REPORT_REPORT_BREAKDOWN ))
+				{
+					this.viewStack.addElement( this.modloader_report_breakdown );					
+				}
+				if( ClientEnvironment.checkIsPermission(BizConst.FUNPERMISSION_REPORT_REPORT_EXPANSION ))
+				{
+					this.viewStack.addElement( this.modloader_report_expansion );					
+				}
+				if( ClientEnvironment.checkIsPermission(BizConst.FUNPERMISSION_REPORT_REPORT_HISTORYFORECAST ))
+				{
+					this.viewStack.addElement( this.modloader_report_historyforecast );					
+				}
+			}			
+			//	4	初始化方法    end				
+			
+			//	5	事件响应方法    begin
+			//	5	事件响应方法    end
+			
+			//	6	本地方法    begin
+			//	6	本地方法   end		
+			
+		]]>
+	</fx:Script>
+	
+	
+	
+	<mx:TabBar dataProvider="{viewStack}" direction="vertical" width="150"/> 
+	
+	<mx:ViewStack id="viewStack" 
+				  borderStyle="solid" width="100%" height="100%"> 
+		
+		
+		<mx:ModuleLoader url="dmdd/dmddmx/mod/report/Mod_Report_Row.swf" id="modloader_report_row" applicationDomain="{ApplicationDomain.currentDomain}" 
+						 label="{resourceManager.getString('mod_report','report_row')}" width="100%" height="100%">
+		</mx:ModuleLoader>		
+		<mx:ModuleLoader url="dmdd/dmddmx/mod/report/Mod_Report_Column.swf" id="modloader_report_column" applicationDomain="{ApplicationDomain.currentDomain}" 
+						 label="{resourceManager.getString('mod_report','report_column')}" width="100%" height="100%">
+		</mx:ModuleLoader>			
+		<mx:ModuleLoader url="dmdd/dmddmx/mod/report/Mod_Report_Weight.swf" id="modloader_report_weight" applicationDomain="{ApplicationDomain.currentDomain}" 
+						 label="{resourceManager.getString('mod_report','report_weight')}" width="100%" height="100%">
+		</mx:ModuleLoader>
+		<mx:ModuleLoader url="dmdd/dmddmx/mod/report/Mod_Report_Statistics.swf" id="modloader_report_statistics" applicationDomain="{ApplicationDomain.currentDomain}" 
+						 label="{resourceManager.getString('mod_report','report_statistics')}" width="100%" height="100%">
+		</mx:ModuleLoader>
+		<mx:ModuleLoader url="dmdd/dmddmx/mod/report/Mod_Report_BreakDown.swf" id="modloader_report_breakdown" applicationDomain="{ApplicationDomain.currentDomain}" 
+						 label="{resourceManager.getString('mod_report','report_breakdown')}" width="100%" height="100%">
+		</mx:ModuleLoader>
+		<mx:ModuleLoader url="dmdd/dmddmx/mod/report/Mod_Report_Expansion.swf" id="modloader_report_expansion" applicationDomain="{ApplicationDomain.currentDomain}" 
+						 label="{resourceManager.getString('mod_report','report_expansion')}" width="100%" height="100%">
+		</mx:ModuleLoader>
+		<mx:ModuleLoader url="dmdd/dmddmx/mod/report/Mod_Report_HistoryForecast.swf" id="modloader_report_historyforecast" applicationDomain="{ApplicationDomain.currentDomain}" 
+						 label="{resourceManager.getString('mod_report','report_historyforecast')}" width="100%" height="100%">
+		</mx:ModuleLoader>
+	</mx:ViewStack>
+	
+</mx:Module>

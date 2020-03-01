@@ -1,0 +1,561 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:BorderContainer xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		   xmlns:s="library://ns.adobe.com/flex/spark"
+		   xmlns:mx="library://ns.adobe.com/flex/mx" width="100%" height="100%" 
+		   creationComplete="creationCompleteHandler(event)" show="module_showHandler(event)" 
+		    xmlns:containers="aks.aksmx.containers.*" xmlns:homepage="dmdd.dmddmx.mod.homepage.*">
+	<s:layout>
+		<s:VerticalLayout gap="0" paddingLeft="10" paddingRight="10" paddingTop="0" paddingBottom="3" />
+	</s:layout>
+	<s:backgroundFill>
+		<s:SolidColor color="#F5F4F4" alpha="1"/>
+	</s:backgroundFill>
+	<fx:Declarations>
+		<s:RemoteObject endpoint="{ClientEnvironment.endpoint}" id="srvSystem" destination="SystemService" showBusyCursor="true">
+			<s:method name="getClientEnvironmentMainDatas" result="resultHandler4getClientEnvironmentDatas(event)" fault="faultHandler4getClientEnvironmentDatas(event)">
+			</s:method>
+		</s:RemoteObject>
+		<s:RemoteObject endpoint="{ClientEnvironment.endpoint}" id="srvSecurity" destination="SecurityService" showBusyCursor="true">
+			<s:method name="doLogout" result="resultHandler4doLogout(event)" fault="faultHandler4doLogout(event)">
+			</s:method>
+		</s:RemoteObject>
+		
+		<mx:ModuleLoader id="mod_homepage1" url="dmdd/dmddmx/mod/homepage/Mod_Homepage.swf" label="{resourceManager.getString('menu','workIndex')}" 
+						 applicationDomain="{ApplicationDomain.currentDomain}" width="100%" height="100%" icon="{this.imgCls4closed}">
+		</mx:ModuleLoader>
+		
+		
+		
+		<mx:ModuleLoader url="dmdd/dmddmx/mod/maindata/Mod_Maindata.swf" id="modloader_maindata" applicationDomain="{ApplicationDomain.currentDomain}" 
+						 label="{resourceManager.getString('menu','mainDataManage')}" width="100%" height="100%" icon="{this.imgCls4closed}">
+		</mx:ModuleLoader>			
+		<mx:ModuleLoader url="dmdd/dmddmx/mod/security/Mod_Security.swf" id="modloader_security" applicationDomain="{ApplicationDomain.currentDomain}" 
+						 label="{resourceManager.getString('menu','userManage')}" width="100%" height="100%" icon="{this.imgCls4closed}">
+		</mx:ModuleLoader>	
+		<mx:ModuleLoader url="dmdd/dmddmx/mod/price/Mod_Price.swf" id="modloader_price" applicationDomain="{ApplicationDomain.currentDomain}" 
+						 label="{resourceManager.getString('menu','priceManage')}" width="100%" height="100%" icon="{this.imgCls4closed}">
+		</mx:ModuleLoader>			
+		
+		<mx:ModuleLoader url="dmdd/dmddmx/mod/history/Mod_History.swf" id="modloader_history" applicationDomain="{ApplicationDomain.currentDomain}" 
+						 label="{resourceManager.getString('menu','historyManage')}" width="100%" height="100%" icon="{this.imgCls4closed}">
+		</mx:ModuleLoader>	
+		<mx:ModuleLoader url="dmdd/dmddmx/mod/forecast/Mod_Forecast.swf" id="modloader_forecast" applicationDomain="{ApplicationDomain.currentDomain}" 
+						 label="{resourceManager.getString('menu','forecastManage')}" width="100%" height="100%" icon="{this.imgCls4closed}">
+		</mx:ModuleLoader>
+		<mx:ModuleLoader url="dmdd/dmddmx/mod/replenish/Mod_Replenish.swf" id="modloader_replenish" applicationDomain="{ApplicationDomain.currentDomain}" 
+						 label="{resourceManager.getString('menu','replenishmentManage')}" width="100%" height="100%" icon="{this.imgCls4closed}">
+		</mx:ModuleLoader>
+		<mx:ModuleLoader url="dmdd/dmddmx/mod/report/Mod_Report.swf" id="modloader_report" applicationDomain="{ApplicationDomain.currentDomain}" 
+						 label="{resourceManager.getString('menu','reportCentre')}" width="100%" height="100%" icon="{this.imgCls4closed}">
+		</mx:ModuleLoader>	
+		<mx:ModuleLoader url="dmdd/dmddmx/mod/bulletin/Mod_Bulletin.swf" id="modloader_bulletin" applicationDomain="{ApplicationDomain.currentDomain}" 
+						 label="{resourceManager.getString('menu','announcementManage')}" width="100%" height="100%" icon="{this.imgCls4closed}">
+		</mx:ModuleLoader>	
+		<mx:ModuleLoader url="dmdd/dmddmx/mod/conversion/Mod_Conversion.swf" id="modloader_conversion" applicationDomain="{ApplicationDomain.currentDomain}" 
+						 label="{resourceManager.getString('menu','conversion')}" width="100%" height="100%" icon="{this.imgCls4closed}">
+		</mx:ModuleLoader>
+		
+		<s:HGroup height="30">
+			<mx:MenuBar height="100%" id="menuBar" labelField="namecn" 
+						iconField="icon" itemClick="menuBar_itemClickHandler(event)"/>
+			<s:Label id="menuLbl" />
+		</s:HGroup>
+		
+	</fx:Declarations>
+	<fx:Metadata>
+		[ResourceBundle("button")]
+		[ResourceBundle("menu")]
+		[ResourceBundle("label")]
+		[ResourceBundle("note")]
+		[ResourceBundle("alert")]
+	</fx:Metadata>		
+	<fx:Script>
+		<![CDATA[
+			import aks.aksas.controls.AksOptions;
+			import aks.aksas.utils.UtilUi;
+			import aks.aksmx.controls.AksWindowWait4LoadMainData;
+			
+			import com.cool.utils.MetadataTempletUtil;
+			import com.cool.vo.MetadataTempletVO;
+			import com.siloon.plugin.rightClick.RightClickManager;
+			
+			import dmdd.dmddas.common.constant.BizConst;
+			import dmdd.dmddas.common.constant.SysConst;
+			import dmdd.dmddas.common.system.ClientEnvironment;
+			import dmdd.dmddas.common.system.MenuItemVo;
+			import dmdd.dmddas.common.utils.UtilExceptionLocale;
+			import dmdd.dmddas.dataaccess.bizobject.BDistributionCenter;
+			import dmdd.dmddas.dataaccess.bizobject.BOperatorUser;
+			import dmdd.dmddas.dataaccess.bizobject.BOrganization;
+			import dmdd.dmddas.dataaccess.bizobject.BOrganizationCharacter;
+			import dmdd.dmddas.dataaccess.bizobject.BProduct;
+			import dmdd.dmddas.dataaccess.bizobject.BProductCharacter;
+			import dmdd.dmddas.dataaccess.bizobject.BSysPeriod;
+			
+			import mx.collections.ArrayCollection;
+			import mx.collections.XMLListCollection;
+			import mx.controls.Alert;
+			import mx.core.Application;
+			import mx.core.INavigatorContent;
+			import mx.events.CloseEvent;
+			import mx.events.FlexEvent;
+			import mx.events.MenuEvent;
+			import mx.managers.PopUpManager;
+			import mx.modules.Module;
+			import mx.rpc.events.FaultEvent;
+			import mx.rpc.events.ResultEvent;
+			
+			import spark.components.TitleWindow;
+			//	描述    begin
+			//	描述    end
+			
+			//	0	输入参数    begin				 
+			//	0	输入参数    end
+			
+			//	1	输出参数    begin
+			//	1	输出参数    end
+			
+			//	2	本地变量    begin		
+			[Embed(source="dmdd/dmddassets/icons/closed_new.png")]
+			[Bindable]
+			public var imgCls4closed:Class;	
+			
+			[Embed(source="dmdd/dmddassets/icons/opened_new.png")]
+			[Bindable]
+			public var imgCls4opened:Class;
+			
+			[Bindable]
+			private var arrMenuItem:ArrayCollection = null;
+			
+			[Bindable]
+			private var verinfo:String="";
+			[Bindable]
+			private var date_:Date = new Date();
+			
+			private var prvVar4WaitWindow:AksWindowWait4LoadMainData;
+			//	2	本地变量    end			
+			
+			//	3	公共方法    begin			
+			//	3	公共方法    end		
+			
+			//	4	初始化方法    begin	
+			protected function creationCompleteHandler(event:FlexEvent):void
+			{
+				RightClickManager.regist();
+				
+				//initMenu();
+			}	
+			
+			
+			
+			protected function module_showHandler(event:FlexEvent):void
+			{				
+				this.lbl_loginInfo.text=resourceManager.getString('main','heading')+" "+ClientEnvironment.getOperatorUser().userName+" "+date_.fullYear+"-"+(date_.getMonth()+1)+"-"+date_.getDate();
+				if(resourceManager.localeChain.toString()==SysConst.LOCALE_ZH )
+				{
+					this.comboBox4Locale.selectedIndex =0;
+				}	
+				else this.comboBox4Locale.selectedIndex =1;
+				//load maindatas 
+				var str:String = resourceManager.getString('main','text_wait');
+				this.prvVar4WaitWindow = new AksWindowWait4LoadMainData();
+				PopUpManager.addPopUp(prvVar4WaitWindow, this.parent, true);
+
+				this.srvSystem.getClientEnvironmentMainDatas();	
+			}
+			
+			public function pubFun4doInitialize():void
+			{				
+				this.viewStack.removeAllElements();
+				
+				//	期间滚动异常或期间滚动中，只显示期间滚动界面	begin
+				if( ClientEnvironment.systemStatus == BizConst.SYSTEM_STATUS_EXCEPTION_ROLLINGPERIOD 
+					|| ClientEnvironment.systemStatus == BizConst.SYSTEM_STATUS_ROLLINGPERIOD )
+				{
+					PopUpManager.removePopUp(this.prvVar4WaitWindow);
+					this.viewStack.addElement( this.modloader_forecast );	
+					return;
+				}
+					//	期间滚动异常或期间滚动中，只显示期间滚动界面	end
+					//	预测运行异常或预测运行中，只显示统计预测期界面	begin
+				else if( ClientEnvironment.systemStatus == BizConst.SYSTEM_STATUS_EXCEPTION_RUNNINGFORECAST 
+					|| ClientEnvironment.systemStatus == BizConst.SYSTEM_STATUS_RUNNINGFORECAST )
+				{
+					this.viewStack.addElement( this.modloader_forecast );	
+					return;
+				}
+				//	预测运行异常或预测运行中，只显示统计预测期界面	begin				
+				
+				//	正常情形	begin
+				//this.viewStack.addElement( this.mod_homepage );
+				
+				if( ClientEnvironment.checkIsPermission(BizConst.FUNPERMISSION_MAINDATA_UNIT_QUERY) ||
+					ClientEnvironment.checkIsPermission(BizConst.FUNPERMISSION_MAINDATA_UNIT_MANAGE) ||
+					
+					ClientEnvironment.checkIsPermission(BizConst.FUNPERMISSION_MAINDATA_PRODUCT_PRODUCT_QUERY) ||
+					ClientEnvironment.checkIsPermission(BizConst.FUNPERMISSION_MAINDATA_PRODUCT_PRODUCT_MANAGE) ||
+					ClientEnvironment.checkIsPermission(BizConst.FUNPERMISSION_MAINDATA_PRODUCT_PRODUCTLAYER_QUERY) ||
+					ClientEnvironment.checkIsPermission(BizConst.FUNPERMISSION_MAINDATA_PRODUCT_PRODUCTLAYER_MANAGE) ||
+					ClientEnvironment.checkIsPermission(BizConst.FUNPERMISSION_MAINDATA_PRODUCT_PRODUCTCHARACTER_QUERY) ||
+					ClientEnvironment.checkIsPermission(BizConst.FUNPERMISSION_MAINDATA_PRODUCT_PRODUCTCHARACTER_MANAGE) ||
+					ClientEnvironment.checkIsPermission(BizConst.FUNPERMISSION_MAINDATA_PRODUCT_PRODUCTCHARACTERLAYER_QUERY) ||
+					ClientEnvironment.checkIsPermission(BizConst.FUNPERMISSION_MAINDATA_PRODUCT_PRODUCTCHARACTERLAYER_MANAGE) ||
+					ClientEnvironment.checkIsPermission(BizConst.FUNPERMISSION_MAINDATA_PRODUCT_PRODUCT_IMPORT) ||
+					ClientEnvironment.checkIsPermission(BizConst.FUNPERMISSION_MAINDATA_PRODUCT_PRODUCTCHARACTER_IMPORT) ||
+					ClientEnvironment.checkIsPermission(BizConst.FUNPERMISSION_MAINDATA_PRODUCT_PRODUCTPROCHARACTER_IMPORT) ||
+					ClientEnvironment.checkIsPermission(BizConst.FUNPERMISSION_MAINDATA_ORGANIZATION_ORGANIZATION_QUERY) ||
+					ClientEnvironment.checkIsPermission(BizConst.FUNPERMISSION_MAINDATA_ORGANIZATION_ORGANIZATION_MANAGE) ||
+					ClientEnvironment.checkIsPermission(BizConst.FUNPERMISSION_MAINDATA_ORGANIZATION_ORGANIZATIONLAYER_QUERY) ||
+					ClientEnvironment.checkIsPermission(BizConst.FUNPERMISSION_MAINDATA_ORGANIZATION_ORGANIZATIONLAYER_MANAGE) ||
+					ClientEnvironment.checkIsPermission(BizConst.FUNPERMISSION_MAINDATA_ORGANIZATION_ORGANIZATIONCHARACTER_QUERY) ||
+					ClientEnvironment.checkIsPermission(BizConst.FUNPERMISSION_MAINDATA_ORGANIZATION_ORGANIZATIONCHARACTER_MANAGE) ||
+					ClientEnvironment.checkIsPermission(BizConst.FUNPERMISSION_MAINDATA_ORGANIZATION_ORGANIZATIONCHARACTERLAYER_QUERY) ||
+					ClientEnvironment.checkIsPermission(BizConst.FUNPERMISSION_MAINDATA_ORGANIZATION_ORGANIZATIONCHARACTERLAYER_MANAGE) ||
+					ClientEnvironment.checkIsPermission(BizConst.FUNPERMISSION_MAINDATA_ORGANIZATION_ORGANIZATION_IMPORT) ||
+					ClientEnvironment.checkIsPermission(BizConst.FUNPERMISSION_MAINDATA_ORGANIZATION_ORGANIZATIONCHARACTER_IMPORT) ||
+					ClientEnvironment.checkIsPermission(BizConst.FUNPERMISSION_MAINDATA_ORGANIZATION_ORGANIZATIONORGCHARACTER_IMPORT) ||					
+					
+					ClientEnvironment.checkIsPermission(BizConst.FUNPERMISSION_MAINDATA_BIZDATA_QUERY) ||
+					ClientEnvironment.checkIsPermission(BizConst.FUNPERMISSION_MAINDATA_BIZDATA_MANAGE) ||
+					
+					ClientEnvironment.checkIsPermission(BizConst.FUNPERMISSION_FORECAST_FORECASTMODEL_QUERY) ||
+					ClientEnvironment.checkIsPermission(BizConst.FUNPERMISSION_FORECAST_FORECASTMODEL_MANAGE) ||					
+					
+					ClientEnvironment.checkIsPermission(BizConst.FUNPERMISSION_FORECAST_FORECASTINST_QUERY) ||
+					ClientEnvironment.checkIsPermission(BizConst.FUNPERMISSION_FORECAST_FORECASTINST_MANAGE) 
+				)
+				{
+					this.viewStack.addElement( this.modloader_maindata );					
+				}	
+				
+				if( ClientEnvironment.checkIsPermission(BizConst.FUNPERMISSION_OPERATORUSER_QUERY) ||
+					ClientEnvironment.checkIsPermission(BizConst.FUNPERMISSION_OPERATORUSER_MANAGE) ||
+					ClientEnvironment.checkIsPermission(BizConst.FUNPERMISSION_OPERATORUSER_PASSWORD) 
+				)
+				{
+					this.viewStack.addElement( this.modloader_security );					
+				}	
+				
+				if( ClientEnvironment.checkIsPermission(BizConst.FUNPERMISSION_PRICE_PRICEDATA_QUERY) ||
+					ClientEnvironment.checkIsPermission(BizConst.FUNPERMISSION_PRICE_PRICEDATA_ADJUST) ||
+					ClientEnvironment.checkIsPermission(BizConst.FUNPERMISSION_PRICE_PRICEDATA_IMPORT)  
+				)
+				{
+					this.viewStack.addElement( this.modloader_price );					
+				}				
+				
+				if( ClientEnvironment.checkIsPermission(BizConst.FUNPERMISSION_HISTORY_HISTORYDATA_QUERY) ||
+					ClientEnvironment.checkIsPermission(BizConst.FUNPERMISSION_HISTORY_HISTORYDATA_ADJUST) ||
+					ClientEnvironment.checkIsPermission(BizConst.FUNPERMISSION_HISTORY_HISTORYDATA_IMPORT) ||
+					//	2010.12.11 by liuzhen 数据框架中去掉历史数据录入功能		begin
+					//	ClientEnvironment.checkIsPermission(BizConst.FUNPERMISSION_HISTORY_HISTORYDATA_INPUT) ||
+					//	2010.12.11 by liuzhen 数据框架中去掉历史数据录入功能		end
+					ClientEnvironment.checkIsPermission(BizConst.FUNPERMISSION_HISTORY_HISTORYADJUSTLOG_QUERY) 
+				)
+				{
+					this.viewStack.addElement( this.modloader_history );					
+				}	
+				
+				if( ClientEnvironment.checkIsPermission(BizConst.FUNPERMISSION_FORECAST_FORECASTDATA_QUERY) ||
+					ClientEnvironment.checkIsPermission(BizConst.FUNPERMISSION_FORECAST_FORECASTDATA_FCHAND) ||
+					ClientEnvironment.checkIsPermission(BizConst.FUNPERMISSION_FORECAST_FORECASTDATA_FCMODEL) ||
+					ClientEnvironment.checkIsPermission(BizConst.FUNPERMISSION_FORECAST_FORECASTDATA_AUDIT) ||
+					ClientEnvironment.checkIsPermission(BizConst.FUNPERMISSION_FORECAST_FORECASTMAKELOG_QUERY) ||
+					ClientEnvironment.checkIsPermission(BizConst.FUNPERMISSION_FORECAST_FORECASTERROR_QUERY) ||  
+					ClientEnvironment.checkIsPermission(BizConst.FUNPERMISSION_SYSTEM_PERIOD_ROLL) 
+				)
+				{
+					this.viewStack.addElement( this.modloader_forecast );					
+				}
+				
+				if( ClientEnvironment.checkIsPermission(BizConst.FUNPERMISSION_REPLENISH_MNG))
+				{
+					//补货计划菜单权限
+					this.viewStack.addElement( this.modloader_replenish );					
+				}
+				
+				
+				if( ClientEnvironment.checkIsPermission(BizConst.FUNPERMISSION_REPORT_REPORT_QUERY)	)
+				{
+					this.viewStack.addElement( this.modloader_report );					
+				}	
+				
+				if( ClientEnvironment.checkIsPermission(BizConst.FUNPERMISSION_BULLETIN_BULLETIN_QUERY)	||
+					ClientEnvironment.checkIsPermission(BizConst.FUNPERMISSION_BULLETIN_BULLETIN_MANAGE)	
+				)
+				{
+					this.viewStack.addElement( this.modloader_bulletin );					
+				}				
+				if( ClientEnvironment.checkIsPermission(BizConst.FUNPERMISSION_CONVERSION_UNIT_MANAGE))
+				{
+					this.viewStack.addElement( this.modloader_conversion );					
+				}
+				
+				//	正常情形	end
+//				var appXml:XML = NativeApplication.nativeApplication.applicationDescriptor;   
+//				var ns:Namespace = appXml.namespace();   
+//				verinfo ="client version:"+appXml.ns::version+"\n";
+				verinfo =verinfo+"server version:"+ClientEnvironment.version_server+"\n";
+				verinfo =verinfo+"database type:"+ClientEnvironment.database_type+"\n";
+				verinfo =verinfo+"database version:"+ClientEnvironment.version_database+"\n";
+				verinfo =verinfo+AksOptions.getConfigServerInfo()+"\n";
+				
+				
+				//	this.lbl_loginInfo.text=resourceManager.getString('main','heading')+" "+ClientEnvironment.getOperatorUser().userName+" "+date.fullYear+"-"+(date.getMonth()+1)+"-"+date.getDate();
+								
+				
+			}
+			
+			private function faultHandler4getClientEnvironmentDatas(event:FaultEvent):void
+			{
+				UtilUi.pubFun4RemoveWaitWindow();
+				Alert.show( UtilExceptionLocale.getExceptionMessageLocaleByFaultEvent( event ), resourceManager.getString('alert','alt_title_warn') );
+			}	
+			
+			private function resultHandler4getClientEnvironmentDatas(event:ResultEvent):void 
+			{
+				PopUpManager.removePopUp(this.prvVar4WaitWindow);
+				var alt_title_hint:String = resourceManager.getString('alert','alt_title_hint');
+				var alt_msg:String = resourceManager.getString('alert','alt_msg_fail4loadclientenvironmentdatas');	
+				if( event.result == null )
+				{
+					Alert.show( alt_msg, alt_title_hint );
+					return;							
+				}
+				
+				var arr4ClientEnvironmentData:ArrayCollection = ArrayCollection(event.result);
+				if( arr4ClientEnvironmentData.length <= 12 )
+				{
+					Alert.show( alt_msg, alt_title_hint );
+					return;														
+				}
+				//load all
+				ClientEnvironment.setSysParams( ArrayCollection( arr4ClientEnvironmentData.getItemAt(0) ) );	
+				
+				ClientEnvironment.arr4AllSysDictionaryItems = ArrayCollection(arr4ClientEnvironmentData.getItemAt(1));	
+				
+				ClientEnvironment.setSysPeriod( BSysPeriod( arr4ClientEnvironmentData.getItemAt(2) ) );
+				
+				ClientEnvironment.setProductTreeRoot( BProduct( arr4ClientEnvironmentData.getItemAt(3) ) );
+				
+				ClientEnvironment.setProductCharacterTreeRoot( BProductCharacter( arr4ClientEnvironmentData.getItemAt(4) ) );
+				
+				ClientEnvironment.setProductLayers( ArrayCollection(arr4ClientEnvironmentData.getItemAt(5)) );
+				
+				ClientEnvironment.setProductCharacterLayers( ArrayCollection( arr4ClientEnvironmentData.getItemAt(6) ) );
+				
+				ClientEnvironment.setOrganizationTreeRoot( BOrganization( arr4ClientEnvironmentData.getItemAt(7) ) );
+				
+				ClientEnvironment.setOrganizationCharacterTreeRoot( BOrganizationCharacter( arr4ClientEnvironmentData.getItemAt( 8 ) ) );
+				
+				ClientEnvironment.setOrganizationLayers( ArrayCollection( arr4ClientEnvironmentData.getItemAt(9) ) );
+				
+				ClientEnvironment.setOrganizationCharacterLayers(  ArrayCollection ( arr4ClientEnvironmentData.getItemAt(10) ) );
+				
+				ClientEnvironment.setUnitGroups(ArrayCollection(arr4ClientEnvironmentData.getItemAt(11)));
+				
+				//考虑没有升级补货补丁的情况
+				if(arr4ClientEnvironmentData.length >= 13)
+					ClientEnvironment.setDCTreeRoot( BDistributionCenter(arr4ClientEnvironmentData.getItemAt(12)));
+				
+				//主页面数据加载
+				//this.mod_homepage.pubFun4doInitialize();
+			}
+			
+			private function initMenu():void{
+				var menuMeta:MetadataTempletVO = MetadataTempletUtil.getInstance().getMetadataTempletVO("DMDD_SYSMENUTREE");
+				var menuXml:XML = menuMeta.contentXML;
+				
+				arrMenuItem = new ArrayCollection();
+				
+				for each(var itemXml:XML in menuXml.children()){
+					addMenuItemToTree(itemXml,null);
+				}
+				menuBar.dataProvider = arrMenuItem;
+			}
+			
+			private function addMenuItemToTree(itemXml:XML,parentMenuVo:MenuItemVo):void{
+				
+				var menuVo:MenuItemVo = new MenuItemVo();
+				menuVo.code = itemXml.@code;
+				menuVo.namecn = itemXml.@namecn;
+				menuVo.nameen = itemXml.@nameen;
+				menuVo.iscatalog = itemXml.@iscatalog;
+				menuVo.icon = null; //获取Icon对象
+				
+				if(itemXml.@iscatalog == "Y"){
+					for each(var subItemXml:XML in itemXml.menuitem){
+						addMenuItemToTree(subItemXml,menuVo);
+					}
+				}else{
+					menuVo.url = itemXml.@url;
+				}
+				
+				if(parentMenuVo == null){
+					arrMenuItem.addItem(menuVo);
+				}else{
+					if(parentMenuVo.children == null)
+						parentMenuVo.children = new ArrayCollection();
+						
+					parentMenuVo.children.addItem(menuVo);
+				}
+			}
+			
+			protected function menuBar_itemClickHandler(event:MenuEvent):void
+			{
+				// 获取选择的菜单项：
+				var menuItem:MenuItemVo = MenuItemVo(event.item);
+				
+				// 输出信息：
+				menuLbl.text = "所选择菜单项：" + menuItem.namecn + ", 位置：" + event.index + ";";
+			}
+			
+			private function onChange4viewstack4Work():void
+			{
+				var selectedObj:INavigatorContent = this.viewStack.selectedChild;
+				var i:int;
+				for( i=0; i<this.viewStack.numChildren; i=i+1 )
+				{
+					var tabObject:DisplayObject = this.viewStack.getChildAt(i);
+					if( tabObject is ModuleLoader )
+					{						
+						var tabObject4ModuleLoader:ModuleLoader = tabObject as ModuleLoader;
+						if( tabObject4ModuleLoader == selectedObj )
+						{
+							tabObject4ModuleLoader.icon = this.imgCls4opened;
+						}
+						else
+						{
+							tabObject4ModuleLoader.icon = this.imgCls4closed;
+						}						
+					}
+					else if(tabObject is Module)
+					{
+						var tabObject4Module:Module = tabObject as Module;
+						if(tabObject4Module==selectedObj)
+						{
+							tabObject4Module.icon = this.imgCls4opened;
+						}
+						else
+						{
+							tabObject4Module.icon = this.imgCls4closed;
+						}
+					}
+					
+				}
+			}			
+			//	4	初始化方法    end				
+			
+			//	5	事件响应方法    begin			
+			//	5	事件响应方法    end
+			
+			//	6	本地方法    begin
+			//	6	本地方法   end			
+
+			private function onChange4comboBox4Locale():void
+			{
+				if( this.comboBox4Locale.selectedIndex == 0 )
+				{
+					resourceManager.localeChain = [ SysConst.LOCALE_ZH ];
+					ClientEnvironment.locale = SysConst.LOCALE_ZH;
+				}
+				else if( comboBox4Locale.selectedIndex == 1 )
+				{
+					resourceManager.localeChain = [ SysConst.LOCALE_EN ];
+					ClientEnvironment.locale = SysConst.LOCALE_EN;
+					
+					menuBar.labelField = "nameen";
+				}
+			}
+			
+
+			protected function lkbtn_help_clickHandler(event:MouseEvent):void
+			{
+				//var url:String = "http://"+AksOptions.serverName+":"+AksOptions.serverPort+"/"+AksOptions.contextRoot+"/web/help/index.html";
+				var url:String = ClientEnvironment.webroot + "/web/help/index.html";
+				var urlReq:URLRequest = new URLRequest(url); 
+				navigateToURL(urlReq);
+			}
+			
+			protected function closingHandler(event:Event):void
+			{
+				//退出登录响应方法
+				var alert_title_hint:String = resourceManager.getString('alert','alt_title_hint');
+				var alert_msg_quitconfirm:String = resourceManager.getString('alert','alt_msg_quitconfirm');
+				
+				event.preventDefault();
+				
+				Alert.show( alert_msg_quitconfirm, alert_title_hint, Alert.OK | Alert.CANCEL, this, quitConfirmHandler, null, Alert.OK );								
+				
+			}				
+			
+			private function quitConfirmHandler(event:CloseEvent):void
+			{
+				if( event.detail == Alert.OK )
+				{
+					//	已经确认过，注销用户并关闭程序
+					if( ClientEnvironment.getOperatorUser() != null )
+					{
+						this.srvSecurity.doLogout( ClientEnvironment.getOperatorUser().loginName );
+					}
+				}
+			}
+			
+			private function closeIE():void{
+				var request:URLRequest = new URLRequest("javascript:window.close()");
+				navigateToURL(request,"_self");
+			}
+			
+			//增加了退出时的返回验证
+			private function faultHandler4doLogout(event:FaultEvent):void
+			{				
+				Alert.show( UtilExceptionLocale.getExceptionMessageLocaleByFaultEvent( event ), resourceManager.getString('alert','alt_title_warn') );
+			}	
+			
+			private function resultHandler4doLogout(event:ResultEvent):void 
+			{
+				closeIE();
+				
+			}
+			
+			private function fullScreenHandler():void{
+				
+				if(stage.displayState==StageDisplayState.NORMAL){
+					stage.displayState=StageDisplayState.FULL_SCREEN;
+				}else{
+					stage.displayState=StageDisplayState.NORMAL; 
+				} 
+			}
+
+		]]>
+	</fx:Script>
+
+	<containers:AksControlBar height="33" borderVisible="false">
+		<containers:backgroundFill> 
+			<s:SolidColor 
+				color="#F5F4F4" 
+				alpha="1"/> 
+		</containers:backgroundFill> 
+		<s:Image source="@Embed(source='dmdd/dmddassets/icons/logo_work.png')" toolTip="{this.verinfo}" buttonMode="true" click="fullScreenHandler()"/>		
+		<s:Label width="40%" id="lbl_loginInfo" textAlign="center">
+			<s:text>{resourceManager.getString('main','heading')} {ClientEnvironment.getOperatorUser().userName} {date_.getFullYear()}-{(date_.getMonth()+1)}-{date_.getDate()}</s:text>
+		</s:Label>
+		<mx:Spacer width="50%"/>
+		<mx:FormItem label="语言(Language)">
+			<s:ComboBox id="comboBox4Locale" change="onChange4comboBox4Locale()" width="70">				
+			</s:ComboBox>
+		</mx:FormItem>
+		<mx:LinkButton label="{resourceManager.getString('main','lkbtn_help')}" id="lkbtn_help" click="lkbtn_help_clickHandler(event)"/> 	
+		<mx:LinkButton label="{resourceManager.getString('main','lkbtn_quit')}" id="lkbtn_quit" click="closingHandler(event)"/>
+	</containers:AksControlBar>
+	
+	<mx:TabBar dataProvider="{viewStack}" width="100%"/> 
+	<mx:ViewStack id="viewStack" 
+				  borderStyle="solid" width="100%" height="100%" change="onChange4viewstack4Work()"> 
+		<!--
+		<homepage:Mod_Homepage id="mod_homepage" width="100%" height="100%" icon="{this.imgCls4closed}" 
+					label="{resourceManager.getString('menu','workIndex')}"/>
+		-->
+	</mx:ViewStack> 
+
+</s:BorderContainer>

@@ -1,0 +1,39 @@
+
+choosertitle=Select Scope
+
+permissionscope=Permission Scope
+product=Pro
+organization=SalesOrg
+productlayer=Pro Level
+organizationlayer=SalesOrg Level
+btn_refresh=Refresh
+productcharacter=Pro Chara
+organizationcharacter=SalesOrg Chara
+btn_movein=Move In
+productcodefilter=Pro ID
+productfilter=Pro Description
+organizationcodefilter=SalesOrg ID
+organizationfilter=SalesOrg Description
+btn_filter=Filter
+items=Selection
+btn_breakdown=BreakDown
+cb_containproduct=Including Sonproduct
+cb_containorganization=Including Sonsalesorg 
+rb_keepresult=Keep Result
+rb_inresult=Filter within Result
+
+btn_remove=Remove
+btn_ok=OK
+btn_cancel=Cancel
+
+alert_title_hint=Alert
+alert_msg_productlayerishigher=Product Layer is higher than the layer of Target Product!
+alert_msg_organizationlayerishigher=Org Layer is higher than the Layer of Target Org!
+alert_msg_noproductlayer=Please select product level!
+alert_msg_noorglayer=Please select salesorg level!
+alert_msg_noproductcharater=Please select product charact!
+alert_msg_noorgcharater=Please select salesorg charact!
+alert_msg_cannotroot=Cannot select root level!
+
+
+

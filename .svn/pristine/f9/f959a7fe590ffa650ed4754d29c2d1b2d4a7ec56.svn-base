@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:BorderContainer xmlns:fx="http://ns.adobe.com/mxml/2009" 
+				   xmlns:s="library://ns.adobe.com/flex/spark" 
+				   xmlns:mx="library://ns.adobe.com/flex/mx" width="400" height="300"
+				   creationComplete="creationCompleteHandler(event)" styleName="BC1">
+	<s:layout>
+		<s:VerticalLayout/>
+	</s:layout>
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+	</fx:Declarations>
+	<fx:Script>
+		<![CDATA[
+			import aks.aksas.charts.AksChartDataObject;
+			
+			import dmdd.dmddas.common.utils.UtilChartExport;
+			
+			import mx.charts.LinearAxis;
+			import mx.charts.series.ColumnSeries;
+			import mx.collections.ArrayCollection;
+			import mx.events.FlexEvent;
+			
+			//	描述		begin
+			//	描述		end
+			
+			//	0	输入参数    begin	
+			[Bindable]
+			public var paramIn4visible4legend:Boolean = true;
+			
+			[Bindable]
+			public var chartHeight:int = 100;
+			
+			[Bindable]
+			public var paramIn4dp4columnChart:ArrayCollection = new ArrayCollection();			
+			//	0	输入参数    end
+			
+			//	1	输出参数    begin	
+			//	1	输出参数    end
+			
+			//	2	本地变量    begin
+			//	2	本地变量    end			
+			
+			//	3	公共方法    begin
+			public function pubFun4setSeries( _arr4dispalyName:ArrayCollection, _arr4yFiled:ArrayCollection ):void
+			{
+				this.columnChart.series = new Array();
+				if( _arr4dispalyName == null || _arr4yFiled == null )
+				{
+					return;
+				}
+				
+				if( _arr4dispalyName.length != _arr4yFiled.length )
+				{
+					return;
+				}
+				
+				var i:int;
+				var columnSeries:ColumnSeries;
+				var num:int;
+				
+				if( _arr4dispalyName.length > AksChartDataObject.MAX_DATA_NUM )
+				{
+					num = AksChartDataObject.MAX_DATA_NUM;
+				}
+				else
+				{
+					num =  _arr4dispalyName.length;
+				}
+				
+				for( i=0; i<num; i=i+1 )
+				{
+					columnSeries = new ColumnSeries();
+					columnSeries.displayName = String( _arr4dispalyName.getItemAt(i) );
+					columnSeries.yField = String( _arr4yFiled.getItemAt(i) );
+					
+					this.columnChart.series.push( columnSeries );
+				}
+				
+				//add by zhangzy 重新设置Y轴，因为flex中坐标轴数值的自动调整有bug，不靠谱
+				var yAxis:LinearAxis = new LinearAxis();
+				//yAxis.baseAtZero = false;
+				columnChart.verticalAxis = yAxis;
+				
+			}				
+			//	3	公共方法    end		
+			
+			//	4	初始化方法    begin			
+			protected function creationCompleteHandler(event:FlexEvent):void
+			{
+				if( this.paramIn4visible4legend == false )
+				{
+					lineChartBorderContainer.removeElement( this.legend );
+				}	
+			}							
+			//	4	初始化方法    end				
+			
+			//	5	事件响应方法    begin					
+			//	5	事件响应方法    end
+			
+			//	6	本地方法    begin		
+			//	6	本地方法   end					
+			
+		]]>
+	</fx:Script>
+	<s:BorderContainer id= "lineChartBorderContainer" width="100%" height="100%" doubleClick="UtilChartExport.Instance.exportChart(this.lineChartBorderContainer);">
+		<s:layout>
+			<s:VerticalLayout/>
+		</s:layout>
+		<mx:ColumnChart id="columnChart" width="100%" height="100%" minHeight="{chartHeight}" dataProvider="{this.paramIn4dp4columnChart}" showDataTips="true">
+			<mx:horizontalAxis>
+				<mx:CategoryAxis categoryField="{AksChartDataObject.CATEGORYFIELD}">
+				</mx:CategoryAxis>
+			</mx:horizontalAxis>
+		</mx:ColumnChart>
+		<mx:Legend id="legend" dataProvider="{this.columnChart}" direction="horizontal" width="100%"/>
+	</s:BorderContainer>
+</s:BorderContainer>

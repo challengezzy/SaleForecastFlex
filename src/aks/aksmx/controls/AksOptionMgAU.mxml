@@ -1,0 +1,388 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:TitleWindow xmlns:fx="http://ns.adobe.com/mxml/2009" 
+			   xmlns:s="library://ns.adobe.com/flex/spark" 
+			   xmlns:mx="library://ns.adobe.com/flex/mx" width="600" height="460" close="onCancel()"
+			   creationComplete="creationCompleteHandler(event)" >
+	<s:layout>
+		<s:VerticalLayout paddingLeft="10" paddingRight="10" paddingTop="10" paddingBottom="10"/>
+	</s:layout>
+	<fx:Declarations>
+		
+	</fx:Declarations>
+	
+	<fx:Metadata>
+		[ResourceBundle("aks")]
+	</fx:Metadata>
+	
+	<fx:Script>
+		<![CDATA[
+			import aks.aksas.aidobject.AksOptionObj;
+			import aks.aksas.controls.AksOptions;
+			import aks.aksas.controls.AksOptionsSetting;
+			import aks.aksas.utils.UtilUi;
+			
+			import mx.collections.ArrayCollection;
+			import mx.controls.Alert;
+			import mx.events.FlexEvent;
+			import mx.events.ItemClickEvent;
+			import mx.managers.PopUpManager;
+			import mx.rpc.events.FaultEvent;
+			import mx.rpc.events.ResultEvent;
+			import mx.utils.StringUtil;
+			
+			import spark.events.IndexChangeEvent;
+			//	描述		begin
+			//	描述		end
+			
+			//	0	输入参数    begin		
+			private var paramIn4closeCallback4thisObject:Object = null;
+			private var paramIn4closeCallback4function:Function = null;
+			
+			//	0	输入参数    end
+			
+			//	1	输出参数    begin
+			private var paramOut4winCloseWay:int = UtilUi.WINDOW_CLOSEWAY_CANCEL;
+			
+			//	1	输出参数    end
+			
+			//	2	本地变量    begin
+			[Bindable]
+			private var prv4selectOption:AksOptionObj = new AksOptionObj();
+			[Bindable]
+			private var prv4arrOptions:ArrayCollection = new ArrayCollection();
+			private var prvVar4auWindow:AksOptionsAU = null;
+			//	2	本地变量    end			
+			
+			//	3	公共方法    begin	
+			//	构造函数
+			public function pubFun4constructor( _paramIn4closeCallback4thisObject:Object, _paramIn4closeCallback4function:Function ):void
+			{
+				this.pubFun4setParamIn4closeCallback( _paramIn4closeCallback4thisObject, _paramIn4closeCallback4function );
+			}	
+			
+			//	关闭回调函数参数													
+			public function pubFun4setParamIn4closeCallback( _thisObject:Object, _function:Function ):void
+			{
+				this.paramIn4closeCallback4thisObject = _thisObject;
+				this.paramIn4closeCallback4function = _function;	
+			}
+			//	关闭方式参数
+			public function pubFun4getParamOut4winCloseWay():int
+			{
+				return this.paramOut4winCloseWay;
+			}
+			//	关闭窗口
+			private function prvFun4close():void
+			{
+				PopUpManager.removePopUp( this );	
+				if( this.paramIn4closeCallback4thisObject != null && this.paramIn4closeCallback4function != null )
+				{
+					this.paramIn4closeCallback4function.call( this.paramIn4closeCallback4thisObject );
+				}
+			}				
+			
+			//	3	公共方法    end		
+			
+			//	4	初始化方法    begin			
+			private function creationCompleteHandler(event:FlexEvent):void
+			{
+				this.title =  resourceManager.getString('aks','title_optionsMg');;
+				this.x = 100;
+				this.y = 50;
+				
+				laodConfig();
+			}						
+			//	4	初始化方法    end				
+			
+			//	5	事件响应方法    begin		
+			private function onAdd():void
+			{
+				if( this.prvVar4auWindow == null )
+				{
+					this.prvVar4auWindow = AksOptionsAU(PopUpManager.createPopUp(this, AksOptionsAU, true));
+					this.prvVar4auWindow.pubFun4setParamIn4closeCallback( this, callbackFunction4auWinClose );
+				}
+				else
+				{
+					PopUpManager.addPopUp( this.prvVar4auWindow, this, true );
+				}	
+			}
+			
+			private function callbackFunction4auWinClose():void
+			{
+				if( this.prvVar4auWindow.pubFun4getParamOut4winCloseWay() == UtilUi.WINDOW_CLOSEWAY_OK )
+				{
+					this.prv4arrOptions = new ArrayCollection();
+					var setting:AksOptionsSetting = new AksOptionsSetting(AksOptions.getConfigFilePath());
+					var settings:XML = setting.setting;
+					var lst4options:XMLList = settings.option as XMLList;
+					var optionObj:AksOptionObj =null;
+					for each(var option:XML in lst4options)
+					{	
+						optionObj = new AksOptionObj();
+						optionObj.name = option.@name;
+						optionObj.serverName = option.servername ;
+						optionObj.serverPort = option.serverport;
+						optionObj.contextRoot = option.contextroot;
+						optionObj.updateServerName = option.updateservername;
+						optionObj.updateServerPort = option.updateserverport;
+						var pageSize:int = int(option.pagesize);
+						if(pageSize<0)
+						{
+							pageSize=20;
+						}
+						optionObj.pageSize = pageSize;	
+						prv4arrOptions.addItem(optionObj);
+					}			
+				}																	
+			}	
+			
+			private function onDel():void
+			{
+				if(this.prv4arrOptions.length<2)
+				{
+					var alt_title_hint:String = resourceManager.getString('aks','alt_title_hint');
+					var alt_msg:String = resourceManager.getString('aks','alert_msg_cantnotdel');
+					Alert.show( alt_msg, alt_title_hint );				
+					return;	
+				}
+				if(this.cblistoptions.selectedIndex>-1)
+				{
+					var index:int = this.cblistoptions.selectedIndex
+					this.prv4arrOptions.removeItemAt(index);
+					var setting:AksOptionsSetting = new AksOptionsSetting(AksOptions.getConfigFilePath());
+					var settings:XML = setting.setting;
+					settings = setting.deleteByIndex(settings,index);					
+					setting.setting = settings;
+					this.laodConfig();
+				}
+			}
+			
+			private function onOk():void
+			{				
+				if( this.prvFun4prepare4save() == true )
+				{
+					//保存
+					
+					this.paramOut4winCloseWay = UtilUi.WINDOW_CLOSEWAY_OK;
+					this.prvFun4close();
+					
+				}
+			}			
+			
+			private function onCancel():void
+			{
+				this.paramOut4winCloseWay = UtilUi.WINDOW_CLOSEWAY_CANCEL;
+				this.prvFun4close();
+			}	
+			
+			protected function cblistoptions_changeHandler(event:IndexChangeEvent):void
+			{
+				prv4selectOption = cblistoptions.selectedItem as AksOptionObj;
+			}
+
+			protected function btn_browse_clickHandler(event:MouseEvent):void
+			{
+//				var file:File =new  File(AksOptions.configDefaultFilePath);
+//				try
+//				{
+//					file.browseForDirectory(resourceManager.getString('aks','title_selectdirectory'));
+//					file.addEventListener(Event.SELECT, directorySelected);
+//				}
+//				catch (error:Error)
+//				{
+//					trace("Failed:", error.message);
+//				}					
+			}
+			
+			private function directorySelected(event:Event):void 
+			{
+//				var directory:File = event.target as File;
+//				var url:String = directory.url;
+//				if(url.indexOf("file:///")>-1)
+//					url = url.substr(url.indexOf("file:///")+8);
+//				var myPattern:RegExp = /\//g;
+//				url = url.replace(myPattern,"\\");
+//				url=url+"\\";
+//				txtConfigPath.text=url;
+//				AksOptions.configFilePath=url;
+//				//保存路径
+//				var file_updateServerOptions:File  = File.applicationStorageDirectory.resolvePath( AksOptions.getFileName4ConfigFilePath());
+//				var fs_UpdateServerOptoins:FileStream = new FileStream();
+//				
+//				fs_UpdateServerOptoins.open( file_updateServerOptions, FileMode.WRITE );
+//				fs_UpdateServerOptoins.writeUTFBytes(url);
+//				fs_UpdateServerOptoins.close();
+//				//读取
+//				laodConfig();
+			}
+
+			//	5	事件响应方法    end
+			
+			//	6	本地方法    begin
+			private function prvFun4prepare4save():Boolean
+			{
+				//	serverOption
+				
+				
+				
+				return true;
+			}					
+			
+			private function laodConfig():void
+			{
+				//读取配置：第一步找到存放地址
+//				var file_updateServerOptions:File  = File.applicationStorageDirectory.resolvePath( AksOptions.getFileName4ConfigFilePath());
+//				var configFilePath:String = "";
+//				var fs_UpdateServerOptoins:FileStream = new FileStream();
+//				if( file_updateServerOptions.exists )
+//				{
+//					fs_UpdateServerOptoins.open(file_updateServerOptions,FileMode.READ);
+//					configFilePath = fs_UpdateServerOptoins.readUTFBytes(fs_UpdateServerOptoins.bytesAvailable);
+//					fs_UpdateServerOptoins.close();	
+//				}
+//				else
+//				{
+//					configFilePath=AksOptions.configDefaultFilePath;
+//					fs_UpdateServerOptoins.open( file_updateServerOptions, FileMode.WRITE );
+//					fs_UpdateServerOptoins.writeUTFBytes(configFilePath);
+//					fs_UpdateServerOptoins.close();					
+//				}
+//				//第二部，读取配置				
+//				if(configFilePath==null||configFilePath=="")
+//				{
+//					var alt_title_hint:String = resourceManager.getString('aks','alt_title_hint');
+//					var alt_msg:String = resourceManager.getString('aks','alert_msg_noconfig');
+//					Alert.show( alt_msg, alt_title_hint );
+//					
+//					return;	
+//				}
+//				else
+//				{
+//					prv4arrOptions = new ArrayCollection();
+//					AksOptions.configFilePath=configFilePath;
+//					this.txtConfigPath.text=configFilePath;
+//					var setting:AksOptionsSetting = new AksOptionsSetting(AksOptions.getConfigFilePath());
+//					var settings:XML = setting.setting;
+//					var lst4options:XMLList = settings.option as XMLList;
+//					var optionObj:AksOptionObj =null;
+//					for each(var option:XML in lst4options)
+//					{	
+//						optionObj = new AksOptionObj();
+//						optionObj.name = option.@name;
+//						optionObj.serverName = option.servername ;
+//						optionObj.serverPort = option.serverport;
+//						optionObj.contextRoot = option.contextroot;
+//						optionObj.updateServerName = option.updateservername;
+//						optionObj.updateServerPort = option.updateserverport;
+//						var pageSize:int = int(option.pagesize);
+//						if(pageSize<0)
+//						{
+//							pageSize=20;
+//						}
+//						optionObj.pageSize = pageSize;	
+//						prv4arrOptions.addItem(optionObj);
+//					}					
+//				}
+//				if(prv4arrOptions.length>0)
+//				{
+//					prv4selectOption = prv4arrOptions.getItemAt(0) as AksOptionObj;
+//					this.cblistoptions.selectedIndex=0;
+//				}
+			}
+			//	6	本地方法   end								
+
+
+	
+
+		]]>
+	</fx:Script>
+
+	<mx:Grid width="100%">
+		<mx:GridRow width="100%" height="100%" verticalAlign="middle">
+			<mx:GridItem width="10%" height="100%" verticalAlign="middle">
+				<s:Label text="{resourceManager.getString('aks','configpath')}"/>
+			</mx:GridItem>
+			<mx:GridItem width="100%" height="100%" verticalAlign="middle">
+				<mx:TextInput id="txtConfigPath" width="100%" maxChars="255" editable="false"/>
+				<s:Button id="btn_browse" label="..." click="btn_browse_clickHandler(event)"/>
+			</mx:GridItem>
+		</mx:GridRow>
+		<mx:GridRow width="100%" height="100%" verticalAlign="middle">
+			<mx:GridItem width="10%" height="100%" verticalAlign="middle">
+				<s:Label text="{resourceManager.getString('aks','listoptions')}"/>
+			</mx:GridItem>
+			<mx:GridItem width="100%" height="100%" verticalAlign="middle">
+				<s:ComboBox id="cblistoptions" width="100%" dataProvider="{this.prv4arrOptions}" change="cblistoptions_changeHandler(event)"/>
+			</mx:GridItem>
+			<mx:GridItem width="100%" height="100%" verticalAlign="middle">
+				<s:Button id="btn_addoption" label="{resourceManager.getString('aks','btn_addconfig')}" click="onAdd()"/>
+				<s:Button id="btn_deloption" label="{resourceManager.getString('aks','btn_delconfig')}" click="onDel()"/>
+			</mx:GridItem>
+		</mx:GridRow>
+		<mx:GridRow width="100%" height="100%" verticalAlign="middle">
+			<mx:GridItem width="10%" height="100%" verticalAlign="middle">
+				<s:Label text="{resourceManager.getString('aks','configname')}"/>
+			</mx:GridItem>
+			<mx:GridItem width="100%" height="100%" verticalAlign="middle">
+				<mx:TextInput id="txtName" width="100%" maxChars="255" text="{this.prv4selectOption.name}" editable="false"/>
+			</mx:GridItem>
+		</mx:GridRow>
+		<mx:GridRow width="100%" height="100%" verticalAlign="middle">
+			<mx:GridItem width="10%" height="100%" verticalAlign="middle">
+				<s:Label text="{resourceManager.getString('aks','servername')}"/>
+			</mx:GridItem>
+			<mx:GridItem width="100%" height="100%" verticalAlign="middle">
+				<mx:TextInput id="txtServerName" width="100%" maxChars="255" text="{this.prv4selectOption.serverName}" editable="false"/>
+			</mx:GridItem>
+		</mx:GridRow>
+		<mx:GridRow width="100%" height="100%" verticalAlign="middle">
+			<mx:GridItem width="10%" height="100%" verticalAlign="middle">
+				<s:Label text="{resourceManager.getString('aks','serverport')}"/>
+			</mx:GridItem>
+			<mx:GridItem width="100%" height="100%" verticalAlign="middle">
+				<mx:TextInput id="txtServerPort" width="100%" maxChars="255" text="{this.prv4selectOption.serverPort}" editable="false"/>
+			</mx:GridItem>
+		</mx:GridRow>
+		<mx:GridRow width="100%" height="100%" verticalAlign="middle">
+			<mx:GridItem width="10%" height="100%" verticalAlign="middle">
+				<s:Label text="{resourceManager.getString('aks','contextroot')}"/>
+			</mx:GridItem>
+			<mx:GridItem width="100%" height="100%" verticalAlign="middle">
+				<mx:TextInput id="txtContextRoot" width="100%" maxChars="255" text="{this.prv4selectOption.contextRoot}" editable="false"/>
+			</mx:GridItem>
+		</mx:GridRow>	
+		<mx:GridRow width="100%" height="100%" verticalAlign="middle">
+			<mx:GridItem width="10%" height="100%" verticalAlign="middle">
+				<s:Label text="{resourceManager.getString('aks','updateservername')}"/>
+			</mx:GridItem>
+			<mx:GridItem width="100%" height="100%" verticalAlign="middle">
+				<mx:TextInput id="txtupdateservername" width="100%" maxChars="255" text="{this.prv4selectOption.updateServerName}" editable="false"/>
+			</mx:GridItem>
+		</mx:GridRow>
+		<mx:GridRow width="100%" height="100%" verticalAlign="middle">
+			<mx:GridItem width="10%" height="100%" verticalAlign="middle">
+				<s:Label text="{resourceManager.getString('aks','updateserverport')}"/>
+			</mx:GridItem>
+			<mx:GridItem width="100%" height="100%" verticalAlign="middle">
+				<mx:TextInput id="txtupdateserverport" width="100%" maxChars="255" text="{this.prv4selectOption.updateServerPort}" editable="false"/>
+			</mx:GridItem>
+		</mx:GridRow>
+		<mx:GridRow width="100%" height="100%" verticalAlign="middle">
+			<mx:GridItem width="10%" height="100%" verticalAlign="middle">
+				<s:Label text="{resourceManager.getString('aks','pagesize')}"/>
+			</mx:GridItem>
+			<mx:GridItem width="100%" height="100%" verticalAlign="middle">
+				<mx:TextInput id="txtPageSize" width="100%" maxChars="255" text="{this.prv4selectOption.pageSize}" editable="false"/>
+			</mx:GridItem>
+		</mx:GridRow>		
+	</mx:Grid>
+	<s:BorderContainer width="100%" height="25" borderColor="#E4ECF7">
+		<s:layout>
+			<s:HorizontalLayout horizontalAlign="center"/>
+		</s:layout>
+		<s:Button label="{resourceManager.getString('aks','btn_ok')}" click="onOk()"/>
+		<s:Button label="{resourceManager.getString('aks','btn_cancel')}" click="onCancel()"/>
+	</s:BorderContainer>
+	
+</s:TitleWindow>

@@ -1,0 +1,1735 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Module xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		   xmlns:s="library://ns.adobe.com/flex/spark" 
+		   xmlns:mx="library://ns.adobe.com/flex/mx" layout="vertical" width="100%" height="100%" 
+		   creationComplete="creationCompleteHandler(event)"
+		   xmlns:security="dmdd.dmddmx.com.security.*" xmlns:uirowdata="dmdd.dmddmx.com.uirowdata.*" 
+		   xmlns:forecast="dmdd.dmddmx.com.forecast.*"
+		   xmlns:controls="aks.aksmx.controls.*" xmlns:containers="aks.aksmx.containers.*" xmlns:charts="aks.aksmx.charts.*" xmlns:report="dmdd.dmddmx.com.report.*" >
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+		<s:RemoteObject endpoint="{ClientEnvironment.endpoint}" id="srvUiRowData" destination="UiRowDataService">	
+			<s:method name="getUiRowDatas" result="resultHandler4getUiRowDatas(event)" fault="faultHandler4getUiRowDatas(event)">
+			</s:method>
+		</s:RemoteObject>
+		<s:RemoteObject endpoint="{ClientEnvironment.endpoint}" id="srvUiRowDataDetail" destination="UiRowDataService">	
+			<s:method name="getUiRowDatas" result="resultHandler4getUiRowDatasDetail(event)" fault="faultHandler4getUiRowDatasDetail(event)">
+			</s:method>
+		</s:RemoteObject>
+		<s:RemoteObject endpoint="{ClientEnvironment.endpoint}" id="srvForecast" destination="ForecastService">
+			<s:method name="checkForecastDataStatusIsInactive" result="resultHandler4checkForecastDataStatusIsInactive(event)" fault="faultHandler4checkForecastDataStatusIsInactive(event)">
+			</s:method>
+			<s:method name="getForecastSettings" result="resultHandler4getForecastSettings(event)" fault="faultHandler4getForecastSettings(event)">
+			</s:method>
+			<s:method name="saveForecastDatas4AdjustUI" result="resultHandler4saveForecastDatas4AdjustUI(event)" fault="faultHandler4saveForecastDatas4AdjustUI(event)">
+			</s:method>
+		</s:RemoteObject>				
+	</fx:Declarations>
+	<fx:Script>
+		<![CDATA[
+			import aks.aksas.charts.AksChartDataObject;
+			import aks.aksas.collections.HashMap;
+			import aks.aksas.controls.AksLockDataGridObject;
+			import aks.aksas.utils.UtilUi;
+			
+			import dmdd.dmddas.common.constant.BizConst;
+			import dmdd.dmddas.common.constant.SysConst;
+			import dmdd.dmddas.common.constant.UIConst;
+			import dmdd.dmddas.common.system.ClientEnvironment;
+			import dmdd.dmddas.common.utils.UtilExceptionLocale;
+			import dmdd.dmddas.common.utils.UtilPeriod;
+			import dmdd.dmddas.common.utils.UtilStrKey;
+			import dmdd.dmddas.common.utils.UtilUiRowData;
+			import dmdd.dmddas.dataaccess.aidobject.ABForecastSetting;
+			import dmdd.dmddas.dataaccess.aidobject.ABProOrg;
+			import dmdd.dmddas.dataaccess.aidobject.ABUiRowData;
+			import dmdd.dmddas.dataaccess.bizobject.BBizData;
+			import dmdd.dmddas.dataaccess.bizobject.BBizDataDefItemKpi;
+			import dmdd.dmddas.dataaccess.bizobject.BForecastMakeLog;
+			import dmdd.dmddas.dataaccess.bizobject.BForecastMakeLogHfcItem;
+			import dmdd.dmddas.dataaccess.bizobject.BForecastMakeLogProOrg;
+			import dmdd.dmddas.dataaccess.bizobject.BSysDictionaryItem;
+			import dmdd.dmddas.dataaccess.bizobject.BUnit;
+			import dmdd.dmddas.dataaccess.bizobject.BUnitGroup;
+			
+			import mx.charts.AreaChart;
+			import mx.collections.ArrayCollection;
+			import mx.collections.IViewCursor;
+			import mx.controls.Alert;
+			import mx.controls.DataGrid;
+			import mx.controls.dataGridClasses.DataGridColumn;
+			import mx.events.CloseEvent;
+			import mx.events.CollectionEvent;
+			import mx.events.DataGridEvent;
+			import mx.events.FlexEvent;
+			import mx.events.IndexChangedEvent;
+			import mx.events.ListEvent;
+			import mx.rpc.events.FaultEvent;
+			import mx.rpc.events.ResultEvent;
+			import mx.utils.StringUtil;
+			
+			
+			
+			//	描述    begin
+			//	描述    end
+			
+			//	0	输入参数    begin						
+			//	0	输入参数    end
+			
+			//	1	输出参数    begin
+			//	1	输出参数    end
+			
+			//	2	本地变量    begin	
+			[Bindable]
+			private var prvVar4dp4comAdgUiRowDataEdit:ArrayCollection = new ArrayCollection();				
+			[Bindable]
+			private var prvVar4dp4comAdgUiRowDataEditDetail:ArrayCollection = new ArrayCollection();
+			[Bindable]
+			private var prvVar4dp4comAdgForecastMakeLogHfcItem:ArrayCollection = new ArrayCollection();						
+			
+			[Bindable]
+			private var prvVar4arrDictBizDataType:ArrayCollection = new ArrayCollection();	
+			
+			[Bindable]
+			private var prvVar4dp4chart4scale:ArrayCollection = new ArrayCollection();
+			
+			private var prvVar4arr4displayName4chart4scale:ArrayCollection = new ArrayCollection();
+			private var prvVar4arr4yField4chart4scale:ArrayCollection = new ArrayCollection();	
+			[Bindable]
+			private var prvVar4arr4editableLines:ArrayCollection = new ArrayCollection();
+			//	 显示设置		begin
+			[Bindable]
+			private var prvVar4blDispProduct:Boolean = true;
+			[Bindable]
+			private var prvVar4blDispProductCharacter:Boolean = false;
+			[Bindable]
+			private var prvVar4blDispOrganization:Boolean = true;
+			[Bindable]
+			private var prvVar4blDispOrganizationCharacter:Boolean = false;
+			
+			[Bindable]
+			private var prvVar4unitGroup:BUnitGroup = null;
+			private var prvVar4unit:BUnit = null;
+			
+			private var arr4checkedUiRowData4scale:ArrayCollection = new ArrayCollection();//记录选中的项
+
+			//	 显示设置		end
+			
+			
+			//	查询条件		begin
+			private var prvVar4qcondArrUiRowDataProOrgs:ArrayCollection = new ArrayCollection();
+			private var prvVar4qcondArrBizDatas:ArrayCollection = new ArrayCollection();
+			
+			private var prvVar4qcondPeriodBegin:int;
+			private var prvVar4qcondPeriodEnd:int;
+			
+			[Bindable]
+			private var prvVar4qcondForecastSetting:ABForecastSetting = null;	//	ProOrg内的预测设置
+			
+			private var prvVar4qcondEditPeriodLocBegin:int;	//	可以编辑的起始期间对prvVar4qcondPeriodBegin的相对位置 
+			private var prvVar4qcondEditPeriodLocEnd:int;	//	可以编辑的终止期间对prvVar4qcondPeriodBegin的相对位置
+			[Bindable]
+			private var prvVar4arrEditPeriods:ArrayCollection = new ArrayCollection();//记录可以编辑期间
+			//	查询条件		end
+			
+			//	2	本地变量    end			
+			
+			//	3	公共方法    begin			
+			//	3	公共方法    end		
+			
+			//	4	初始化方法    begin	
+			protected function creationCompleteHandler(event:FlexEvent):void
+			{
+				//	初始化界面参数	begin		
+				this.prvVar4arrDictBizDataType = new ArrayCollection();
+				
+				var arrDictBizDataType:ArrayCollection = ClientEnvironment.getBizDataTypeArr();
+				if( arrDictBizDataType != null )
+				{
+					var i:int;
+					var sysDictionaryItem:BSysDictionaryItem = null;
+					for( i=0; i<arrDictBizDataType.length; i=i+1 )
+					{
+						sysDictionaryItem = BSysDictionaryItem(arrDictBizDataType.getItemAt(i));
+						if( sysDictionaryItem.value == BizConst.GLOBAL_NULL_NULL ||
+							sysDictionaryItem.value == BizConst.BIZDATA_TYPE_FCHAND )
+						{
+							this.prvVar4arrDictBizDataType.addItem( sysDictionaryItem );
+						}
+					}
+				}					
+				//	初始化界面参数	end
+				
+				//	初始化默认显示维度	begin				
+				this.prvVar4blDispProduct = this.comProOrgBizDataPeriodScope.comProOrgDisplayOption.checkBoxProduct.selected;
+				this.prvVar4blDispProductCharacter = this.comProOrgBizDataPeriodScope.comProOrgDisplayOption.checkBoxProductCharacter.selected;
+				this.prvVar4blDispOrganization = this.comProOrgBizDataPeriodScope.comProOrgDisplayOption.checkBoxOrganization.selected;
+				this.prvVar4blDispOrganizationCharacter = this.comProOrgBizDataPeriodScope.comProOrgDisplayOption.checkBoxOrganizationCharacter.selected;				
+				this.comAdgUiRowDataEdit.setVisible4Dimension( this.prvVar4blDispProduct, this.prvVar4blDispProductCharacter, this.prvVar4blDispOrganization, this.prvVar4blDispOrganizationCharacter );
+				if( this.comAdgForecastMakeLogHfcItem != null )
+				{
+					this.comAdgForecastMakeLogHfcItem.setVisible4Dimension( this.prvVar4blDispProduct, this.prvVar4blDispProductCharacter, this.prvVar4blDispOrganization, this.prvVar4blDispOrganizationCharacter );
+				}
+				//	初始化默认显示维度	end
+				
+				//设置默认产品和组织选择层次  begin
+				this.comProOrgBizDataPeriodScope.comProOrgDisplayOption.comboBoxProductLayer.selectedIndex = this.comProOrgBizDataPeriodScope.comProOrgDisplayOption.comboBoxProductLayer.dataProvider.length-1;
+				this.comProOrgBizDataPeriodScope.comProOrgDisplayOption.comboBoxOrganizationLayer.selectedIndex = this.comProOrgBizDataPeriodScope.comProOrgDisplayOption.comboBoxOrganizationLayer.dataProvider.length-1;
+				//设置默认产品和组织选择层次  end.
+				
+				//	初始化默认显示期间	begin
+				this.comProOrgBizDataPeriodScope.comPeriodSpan.txtPeriodBegin.text =  String( UtilPeriod.getPeriod( ClientEnvironment.getSysPeriod().compilePeriod, -6) ); 
+				this.comProOrgBizDataPeriodScope.comPeriodSpan.txtPeriodEnd.text =  String( UtilPeriod.getPeriod( ClientEnvironment.getSysPeriod().compilePeriod, 2) );
+				//	初始化默认显示期间	end
+				
+				//	初始化编码名称显示设置	begin
+				//	初始化编码名称显示设置	end
+				//增加右键锁定模块 begin
+				var aksright_edit:AksLockDataGridObject = new AksLockDataGridObject(this.comAdgUiRowDataEdit);				
+				
+				//增加右键锁定模块 end
+				
+				//调整粘贴导入功能
+				comAdgUiRowDataEdit.pasteFunction = handleTextPaste;
+			}			
+			//	4	初始化方法    end				
+			
+			//	5	事件响应方法    begin	
+			private function callbackFunction4execute4comProOrgBizDataPeriodScope():void
+			{				
+				//	清除界面上原来查询的数据	begin
+				this.prvVar4dp4comAdgUiRowDataEdit = new ArrayCollection();
+				this.prvVar4dp4comAdgForecastMakeLogHfcItem = new ArrayCollection();
+				//	清除界面上原来查询的数据	end
+				
+				//	通过服务器检查ProOrg内IsManaging的FcHand数据是否 被审核冻结	begin
+				var alert_title_hint:String = resourceManager.getString('alert','alert_msg_hint');
+				var alert_msg:String = null;
+				
+				var arrBizDataFcHand:ArrayCollection = new ArrayCollection();
+				
+				var i:int;
+				var arrBizData:ArrayCollection = this.comProOrgBizDataPeriodScope.pubFun4getParamOut4arrBizDatas();
+				var bizData:BBizData = null;
+				for( i=0; i<arrBizData.length; i=i+1 )
+				{
+					bizData = BBizData( arrBizData.getItemAt(i) );
+					if( bizData.type == BizConst.BIZDATA_TYPE_FCHAND &&
+						ClientEnvironment.getBizDataIsManaging(bizData) == BizConst.GLOBAL_YESNO_YES )
+					{
+						arrBizDataFcHand.addItem( bizData );
+					}
+				}
+				if( arrBizDataFcHand.length <= 0 )
+				{ 
+					alert_msg = resourceManager.getString('alert','alert_msg_nomanagingbizdatafchand17');
+					Alert.show(alert_msg, alert_title_hint);
+					return;		
+				}
+				
+				UtilUi.pubFun4PopWaitWindow( this );
+				this.srvForecast.checkForecastDataStatusIsInactive( this.comProOrgBizDataPeriodScope.pubFun4getParamOut4arrProOrgs(), arrBizDataFcHand, ClientEnvironment.getSysPeriod() );					
+				//	通过服务器检查ProOrg内IsManaging的FcHand数据是否 被审核冻结	end				
+			}
+			
+			
+			private function faultHandler4checkForecastDataStatusIsInactive(event:FaultEvent):void
+			{
+				UtilUi.pubFun4RemoveWaitWindow();
+				Alert.show( UtilExceptionLocale.getExceptionMessageLocaleByFaultEvent( event ), resourceManager.getString('main','alt_title_warn') );
+			}	
+			
+			private function resultHandler4checkForecastDataStatusIsInactive(event:ResultEvent):void 
+			{
+				UtilUi.pubFun4RemoveWaitWindow();
+				
+				var blIsInactive:Boolean = Boolean(event.result);
+				
+				var alert_title_hint:String = resourceManager.getString('alert','alert_msg_hint');
+				var alert_msg:String = null;
+				
+				if( blIsInactive == true )
+				{
+					alert_msg = resourceManager.getString('alert','alert_msg_forecastdataisinactive17');
+					Alert.show(alert_msg, alert_title_hint);
+					return;							
+				}
+				
+				//	通过服务器获取 ForecastSetting 以便进行检查	begin 
+				UtilUi.pubFun4PopWaitWindow( this );
+				this.srvForecast.getForecastSettings( this.comProOrgBizDataPeriodScope.pubFun4getParamOut4arrProOrgs(), ClientEnvironment.getSysPeriod() );
+				//	通过服务器获取 ForecastSetting 以便进行检查	end				
+			}
+			
+			
+			private function faultHandler4getForecastSettings(event:FaultEvent):void
+			{
+				UtilUi.pubFun4RemoveWaitWindow();
+				Alert.show( UtilExceptionLocale.getExceptionMessageLocaleByFaultEvent( event ), resourceManager.getString('main','alt_title_warn') );
+			}	
+			
+			private function resultHandler4getForecastSettings(event:ResultEvent):void 
+			{
+				UtilUi.pubFun4RemoveWaitWindow();
+				//	检查  ForecastSetting		begin
+				var arrForecastSetting:ArrayCollection = ArrayCollection( event.result );
+				
+				var alert_title_hint:String = resourceManager.getString('alert','alert_title_hint');
+				var alert_msg:String = null;
+				
+				if( arrForecastSetting == null || arrForecastSetting.length == 0 )
+				{
+					alert_msg = resourceManager.getString('alert','alert_msg_fail_forecastsetting17');
+					Alert.show(alert_msg, alert_title_hint);
+					return;						
+				}
+				
+				if( arrForecastSetting.length > 1 )
+				{
+					alert_msg = resourceManager.getString('alert','alert_msg_multi_forecastsetting17');
+					Alert.show(alert_msg, alert_title_hint);
+					return;						
+				}
+				
+				this.prvVar4qcondForecastSetting = ABForecastSetting(arrForecastSetting.getItemAt(0));
+				//	检查  ForecastSetting		end	
+				
+				//	从 comProOrgBizDataPeriodScope中取得显示设置	begin
+				this.prvVar4blDispProduct = this.comProOrgBizDataPeriodScope.pubFun4getParamIo4blDisplayProduct();
+				this.prvVar4blDispProductCharacter = this.comProOrgBizDataPeriodScope.pubFun4getParamIo4blDisplayProductCharacter();
+				this.prvVar4blDispOrganization = this.comProOrgBizDataPeriodScope.pubFun4getParamIo4blDisplayOrganization();
+				this.prvVar4blDispOrganizationCharacter = this.comProOrgBizDataPeriodScope.pubFun4getParamIo4blDisplayOrganizationCharacter();
+				
+				this.prvVar4unitGroup = this.comProOrgBizDataPeriodScope.pubFun4getParamOut4unitGroup();
+				this.prvVar4unit = this.comProOrgBizDataPeriodScope.pubFun4getParamOut4unit();
+				//	this.comUiRowDataDisplayControlBar.comboBoxUnit.selectedItem 的丢失问题	begin
+				/*
+				*	this.prvVar4unitGroup = this.comProOrgBizDataPeriodScope.pubFun4getParamOut4unitGroup(); 的执行，因为
+				*	this.prvVar4unitGroup 被绑定到了 this.comUiRowDataDisplayControlBar 的参数上，
+				*	使得this.comUiRowDataDisplayControlBar.comboBoxUnit.selectedItem 自动取得了一个值，
+				*	如果这个值 与 this.prvVar4unit一样的话， this.comUiRowDataDisplayControlBar.comboBoxUnit.selectedItem = this.prvVar4unit; 的执行效果没有，
+				*	从而到后来还是认为 this.comUiRowDataDisplayControlBar.comboBoxUnit.selectedItem 是 undefined
+				*	所以，加上了 this.comUiRowDataDisplayControlBar.comboBoxUnit.selectedItem = null; 来强制其变化，使下面一句代码有效
+				*/
+				this.comUiRowDataDisplayControlBar.comboBoxUnit.selectedItem = null;
+				//	this.comUiRowDataDisplayControlBar.comboBoxUnit.selectedItem 的丢失问题	end				
+				this.comUiRowDataDisplayControlBar.comboBoxUnit.selectedItem = this.prvVar4unit;
+				//	从 comProOrgBizDataPeriodScope中取得显示设置	end
+				
+				
+				//	从 comProOrgBizDataPeriodScope中取得查询条件	begin
+				this.prvVar4qcondArrUiRowDataProOrgs = this.comProOrgBizDataPeriodScope.pubFun4getParamOut4arrUiRowDataProOrgs();
+				this.prvVar4qcondArrBizDatas = this.comProOrgBizDataPeriodScope.pubFun4getParamOut4arrBizDatas();
+				//	从 comProOrgBizDataPeriodScope中取得查询条件	end
+				
+				//	从 comPeriodSpan 取得查询期间	并求得可编辑期间	begin
+				this.prvVar4qcondPeriodBegin = this.comProOrgBizDataPeriodScope.pubFun4getParamOut4periodBegin();
+				this.prvVar4qcondPeriodEnd = this.comProOrgBizDataPeriodScope.pubFun4getParamOut4periodEnd();
+				var editPeriodBegin:int = UtilPeriod.getPeriod( ClientEnvironment.getSysPeriod().forecastRunPeriod, this.prvVar4qcondForecastSetting.fzPeriodNum );
+				var editPeriodEnd:int = UtilPeriod.getPeriod( ClientEnvironment.getSysPeriod().forecastRunPeriod, this.prvVar4qcondForecastSetting.fcPeriodNum - 1 );
+				
+				if( editPeriodBegin < this.prvVar4qcondPeriodBegin )
+				{
+					this.prvVar4qcondEditPeriodLocBegin = 0;
+				}
+				else
+				{
+					this.prvVar4qcondEditPeriodLocBegin = UtilPeriod.getPeriodDifference( this.prvVar4qcondPeriodBegin, editPeriodBegin );
+				}
+				if( editPeriodEnd > this.prvVar4qcondPeriodEnd )
+				{
+					this.prvVar4qcondEditPeriodLocEnd = UtilPeriod.getPeriodDifference( this.prvVar4qcondPeriodBegin, this.prvVar4qcondPeriodEnd );
+				}
+				else
+				{
+					this.prvVar4qcondEditPeriodLocEnd = UtilPeriod.getPeriodDifference( this.prvVar4qcondPeriodBegin, editPeriodEnd );
+				}
+				//	从 comPeriodSpan 取得查询期间	并求得可编辑期间	end
+				
+				this.comAdgUiRowDataEdit.setVisible4Dimension( this.prvVar4blDispProduct, this.prvVar4blDispProductCharacter, this.prvVar4blDispOrganization, this.prvVar4blDispOrganizationCharacter );
+				this.comAdgUiRowDataEdit.setPeriodBeginEnd( this.prvVar4qcondPeriodBegin, this.prvVar4qcondPeriodEnd, false );
+				var periodLoc:int;
+				this.prvVar4arrEditPeriods = new ArrayCollection();
+				for( periodLoc=this.prvVar4qcondEditPeriodLocBegin; periodLoc <= this.prvVar4qcondEditPeriodLocEnd; periodLoc = periodLoc + 1 )
+				{
+					this.comAdgUiRowDataEdit.pubFun4setDataColumnEditable( UtilPeriod.getPeriod( this.prvVar4qcondPeriodBegin, periodLoc ), true );
+					this.prvVar4arrEditPeriods.addItem(String(UtilPeriod.getPeriod( this.prvVar4qcondPeriodBegin, periodLoc )));
+				}
+				
+				if( this.comAdgForecastMakeLogHfcItem != null )
+				{
+					this.comAdgForecastMakeLogHfcItem.setVisible4Dimension( this.prvVar4blDispProduct, this.prvVar4blDispProductCharacter, this.prvVar4blDispOrganization, this.prvVar4blDispOrganizationCharacter );
+				}
+				
+				
+				var blPageProOrg:Boolean = this.comProOrgBizDataPeriodScope.pubFun4getParamOut4blPageProOrg();
+				if( blPageProOrg == true )
+				{	
+					//	初始化数据表格控制板
+					this.comAksDataGridControlBar.pubFun4setResultParams( true, this.prvVar4qcondArrUiRowDataProOrgs.length, ClientEnvironment.getSysParamPageSize() );
+					
+					//	去执行第一页查询
+					this.prvFun4pageQueryForecastDatas( 1 );
+				}
+				else
+				{	
+					//	初始化数据表格控制板					
+					this.comAksDataGridControlBar.pubFun4setResultParams( false, this.prvVar4qcondArrUiRowDataProOrgs.length, this.prvVar4qcondArrUiRowDataProOrgs.length );
+					
+					//	不分页查询
+					UtilUi.pubFun4PopWaitWindow( this );
+					
+					this.prvVar4dp4comAdgUiRowDataEdit = new ArrayCollection();
+					this.prvVar4dp4comAdgForecastMakeLogHfcItem = new ArrayCollection();
+					
+					this.srvUiRowData.getUiRowDatas( this.prvVar4qcondArrUiRowDataProOrgs, this.prvVar4qcondPeriodBegin, this.prvVar4qcondPeriodEnd, this.prvVar4qcondArrBizDatas, ClientEnvironment.getSysPeriod()  );
+				}						
+				this.prvVar4dp4comAdgUiRowDataEditDetail = new ArrayCollection();
+				this.comreportproorg.btn_showdata.enabled = false;
+			}				
+			
+			//	分页查询相关		begin			
+			private function prvFun4pageQueryForecastDatas( _pageIndex:int ):void
+			{
+				UtilUi.pubFun4PopWaitWindow( this );
+				var arrUiRowDataProOrgs:ArrayCollection = new ArrayCollection();
+				var i:int;
+				var pageSize:int = ClientEnvironment.getSysParamPageSize();
+				var indexBegin:int = pageSize * (_pageIndex-1);
+				var indexEnd:int = pageSize * _pageIndex;
+				if( indexEnd > this.prvVar4qcondArrUiRowDataProOrgs.length )
+				{
+					indexEnd = this.prvVar4qcondArrUiRowDataProOrgs.length;
+				}
+				//	分页查询,根据pageIndex计算需要传递给服务器的查询条件
+				for( i=indexBegin; i<indexEnd; i=i+1 )
+				{
+					arrUiRowDataProOrgs.addItem( this.prvVar4qcondArrUiRowDataProOrgs.getItemAt(i) );	
+				}
+				
+				this.prvVar4dp4comAdgUiRowDataEdit = new ArrayCollection();
+				this.prvVar4dp4comAdgForecastMakeLogHfcItem = new ArrayCollection();
+				
+				this.srvUiRowData.getUiRowDatas( arrUiRowDataProOrgs, this.prvVar4qcondPeriodBegin, this.prvVar4qcondPeriodEnd, this.prvVar4qcondArrBizDatas, ClientEnvironment.getSysPeriod()  );					
+			}			
+			//	分页查询相关		end		
+			
+			private function faultHandler4getUiRowDatas(event:FaultEvent):void
+			{
+				UtilUi.pubFun4RemoveWaitWindow();
+				Alert.show( UtilExceptionLocale.getExceptionMessageLocaleByFaultEvent( event ), resourceManager.getString('main','alt_title_warn') );
+			}	
+			
+			private function resultHandler4getUiRowDatas(event:ResultEvent):void 
+			{
+				this.btnRefreshChart.enabled = true;
+				
+				this.prvVar4dp4comAdgUiRowDataEdit = new ArrayCollection();
+				this.prvVar4dp4comAdgForecastMakeLogHfcItem = new ArrayCollection();
+				
+				
+				var arrRstABUiRowData:ArrayCollection = ArrayCollection(event.result);
+				if( arrRstABUiRowData == null )
+				{
+					UtilUi.pubFun4RemoveWaitWindow();
+					return;
+				}
+				
+				var selectedUnit:BUnit = BUnit(this.comUiRowDataDisplayControlBar.comboBoxUnit.selectedItem);
+				
+				var i:int;
+				var uiRowData:ABUiRowData = null;
+				
+				if( selectedUnit != null && selectedUnit.isBase ==BizConst.GLOBAL_YESNO_NO )
+				{
+					for( i=0; i<arrRstABUiRowData.length; i=i+1 )
+					{
+						uiRowData = ABUiRowData(arrRstABUiRowData.getItemAt(i));
+						uiRowData.exchangeUnit( 1, selectedUnit.exchangeRate );
+						
+						this.prvVar4dp4comAdgUiRowDataEdit.addItem( uiRowData );
+					}											
+				}
+				else
+				{
+					this.prvVar4dp4comAdgUiRowDataEdit.addAll( arrRstABUiRowData );
+				}
+								
+				UtilUi.pubFun4RemoveWaitWindow();
+			}				
+			
+			private function callbackFunction4onChange4comUiRowDataDisplayControlBar():void
+			{
+				//	单位变化	begin
+				var selectedUnit:BUnit = BUnit(this.comUiRowDataDisplayControlBar.comboBoxUnit.selectedItem)
+				var i:int;
+
+				var uiRowData:ABUiRowData = null;
+				var forecastMakeLogHfcItem:BForecastMakeLogHfcItem = null;
+				if( selectedUnit != null && this.prvVar4unit != null && selectedUnit.id != this.prvVar4unit.id )
+				{					
+					if( this.prvVar4dp4comAdgUiRowDataEdit != null )
+					{
+						for( i=0; i<this.prvVar4dp4comAdgUiRowDataEdit.length; i=i+1 )
+						{
+							uiRowData = ABUiRowData(this.prvVar4dp4comAdgUiRowDataEdit.getItemAt(i));
+							uiRowData.exchangeUnit( this.prvVar4unit.exchangeRate, selectedUnit.exchangeRate );
+						}
+					}	
+					
+					if( this.prvVar4dp4comAdgForecastMakeLogHfcItem != null )
+					{
+						for( i=0; i<this.prvVar4dp4comAdgForecastMakeLogHfcItem.length; i=i+1 )
+						{
+							forecastMakeLogHfcItem = BForecastMakeLogHfcItem(this.prvVar4dp4comAdgForecastMakeLogHfcItem.getItemAt(i)); 
+							forecastMakeLogHfcItem.exchangeUnit( this.prvVar4unit.exchangeRate, selectedUnit.exchangeRate );
+						}
+					}
+					
+					this.prvVar4unit = selectedUnit;
+				}
+				//	单位变化	end
+				
+				//	显示列变化		begin
+				this.comAdgUiRowDataEdit.columnProductCode.visible = this.prvVar4blDispProduct && this.comUiRowDataDisplayControlBar.checkBoxProductCode.selected;
+				this.comAdgUiRowDataEdit.columnProductName.visible = this.prvVar4blDispProduct && this.comUiRowDataDisplayControlBar.checkBoxProductName.selected;
+				
+				this.comAdgUiRowDataEdit.columnProductCharacterCode.visible = this.prvVar4blDispProductCharacter && this.comUiRowDataDisplayControlBar.checkBoxProductCharacterCode.selected;
+				this.comAdgUiRowDataEdit.columnProductCharacterName.visible = this.prvVar4blDispProductCharacter && this.comUiRowDataDisplayControlBar.checkBoxProductCharacterName.selected;
+				
+				this.comAdgUiRowDataEdit.columnOrganizationCode.visible = this.prvVar4blDispOrganization && this.comUiRowDataDisplayControlBar.checkBoxOrganizationCode.selected;
+				this.comAdgUiRowDataEdit.columnOrganizationName.visible = this.prvVar4blDispOrganization && this.comUiRowDataDisplayControlBar.checkBoxOrganizationName.selected;
+				
+				this.comAdgUiRowDataEdit.columnOrganizationCharacterCode.visible = this.prvVar4blDispOrganizationCharacter && this.comUiRowDataDisplayControlBar.checkBoxOrganizationCharacterCode.selected;
+				this.comAdgUiRowDataEdit.columnOrganizationCharacterName.visible = this.prvVar4blDispOrganizationCharacter && this.comUiRowDataDisplayControlBar.checkBoxOrganizationCharacterName.selected;
+				
+				if( this.comAdgForecastMakeLogHfcItem != null )
+				{
+					this.comAdgForecastMakeLogHfcItem.columnProductCode.visible = this.prvVar4blDispProduct && this.comUiRowDataDisplayControlBar.checkBoxProductCode.selected;
+					this.comAdgForecastMakeLogHfcItem.columnProductName.visible = this.prvVar4blDispProduct && this.comUiRowDataDisplayControlBar.checkBoxProductName.selected;
+					
+					this.comAdgForecastMakeLogHfcItem.columnProductCharacterCode.visible = this.prvVar4blDispProductCharacter && this.comUiRowDataDisplayControlBar.checkBoxProductCharacterCode.selected;
+					this.comAdgForecastMakeLogHfcItem.columnProductCharacterName.visible = this.prvVar4blDispProductCharacter && this.comUiRowDataDisplayControlBar.checkBoxProductCharacterName.selected;
+					
+					this.comAdgForecastMakeLogHfcItem.columnOrganizationCode.visible = this.prvVar4blDispOrganization && this.comUiRowDataDisplayControlBar.checkBoxOrganizationCode.selected;
+					this.comAdgForecastMakeLogHfcItem.columnOrganizationName.visible = this.prvVar4blDispOrganization && this.comUiRowDataDisplayControlBar.checkBoxOrganizationName.selected;
+					
+					this.comAdgForecastMakeLogHfcItem.columnOrganizationCharacterCode.visible = this.prvVar4blDispOrganizationCharacter && this.comUiRowDataDisplayControlBar.checkBoxOrganizationCharacterCode.selected;
+					this.comAdgForecastMakeLogHfcItem.columnOrganizationCharacterName.visible = this.prvVar4blDispOrganizationCharacter && this.comUiRowDataDisplayControlBar.checkBoxOrganizationCharacterName.selected;
+				}
+				//	显示列变化		end
+			}
+			
+			private function onAddScale():void
+			{
+				if( this.comAdgUiRowDataEdit.selectedItem == null )
+				{
+					return;
+				}
+				
+				var scaleValue:Number = Number(this.txtScale.text);
+				if( this.checkScaleValue(scaleValue) == false )
+				{
+					return;
+				}
+				
+				var selectedUiRowData:ABUiRowData = ABUiRowData(this.comAdgUiRowDataEdit.selectedItem);
+				var i:int;
+				
+				for( i=this.prvVar4qcondEditPeriodLocBegin; i<=this.prvVar4qcondEditPeriodLocEnd; i=i+1 )
+				{
+					var oldValue:Number = selectedUiRowData.pubFun4getPeriodDataValue(i);
+					var newValue:Number = oldValue+scaleValue;
+					selectedUiRowData.pubFun4setPeriodDataValue( i, newValue );
+				}
+			}
+			private function onSubScale():void
+			{
+				if( this.comAdgUiRowDataEdit.selectedItem == null )
+				{
+					return;
+				}
+				
+				var scaleValue:Number = Number(this.txtScale.text);
+				if( this.checkScaleValue(scaleValue) == false )
+				{
+					return;
+				}
+				
+				var selectedUiRowData:ABUiRowData = ABUiRowData(this.comAdgUiRowDataEdit.selectedItem);
+				var i:int;
+				
+				for( i=this.prvVar4qcondEditPeriodLocBegin; i<=this.prvVar4qcondEditPeriodLocEnd; i=i+1 )
+				{
+					var oldValue:Number = selectedUiRowData.pubFun4getPeriodDataValue(i);
+					var newValue:Number = oldValue-scaleValue;
+					if( newValue < 0 )
+					{
+						newValue = 0;
+					}
+					selectedUiRowData.pubFun4setPeriodDataValue( i, newValue );
+				}
+			}	
+			private function onSetScale():void
+			{
+				if( this.comAdgUiRowDataEdit.selectedItem == null )
+				{
+					return;
+				}
+				
+				var scaleValue:Number = Number(this.txtScale.text);
+				if( this.checkScaleValue(scaleValue) == false )
+				{
+					return;
+				}
+				
+				var selectedUiRowData:ABUiRowData = ABUiRowData(this.comAdgUiRowDataEdit.selectedItem);
+				var i:int;
+				
+				for( i=this.prvVar4qcondEditPeriodLocBegin; i<=this.prvVar4qcondEditPeriodLocEnd; i=i+1 )
+				{
+					selectedUiRowData.pubFun4setPeriodDataValue( i, scaleValue );
+				}
+			}			
+			
+			private function onAddPercent():void
+			{
+				if( this.comAdgUiRowDataEdit.selectedItem == null )
+				{
+					return;
+				}
+				var percentValue:Number = Number(this.txtPercent.text);
+				if( this.checkPercentValue(percentValue) == false )
+				{
+					return;
+				}
+				
+				var selectedUiRowData:ABUiRowData = ABUiRowData(this.comAdgUiRowDataEdit.selectedItem);
+				var i:int;
+				
+				for( i=this.prvVar4qcondEditPeriodLocBegin; i<=this.prvVar4qcondEditPeriodLocEnd; i=i+1 )
+				{
+					var oldValue:Number = selectedUiRowData.pubFun4getPeriodDataValue(i);
+					var newValue:Number = Math.round( oldValue + oldValue*percentValue*0.01 );
+					selectedUiRowData.pubFun4setPeriodDataValue( i, newValue );
+				}			
+			}	
+			private function onSubPercent():void
+			{
+				if( this.comAdgUiRowDataEdit.selectedItem == null )
+				{
+					return;
+				}
+				var percentValue:Number = Number(this.txtPercent.text);
+				if( this.checkPercentValue(percentValue) == false )
+				{
+					return;
+				}
+				
+				var selectedUiRowData:ABUiRowData = ABUiRowData(this.comAdgUiRowDataEdit.selectedItem);
+				var i:int;
+				
+				for( i=this.prvVar4qcondEditPeriodLocBegin; i<=this.prvVar4qcondEditPeriodLocEnd; i=i+1 )
+				{
+					var oldValue:Number = selectedUiRowData.pubFun4getPeriodDataValue(i);
+					var newValue:Number = Math.round( oldValue - oldValue*percentValue*0.01 );
+					if( newValue < 0 )
+					{
+						newValue = 0;
+					}
+					selectedUiRowData.pubFun4setPeriodDataValue( i, newValue );
+				}			
+			}				
+			
+			/**
+			 * 根据FcHand in edit数据的变化情况，对(FcComb FcFinal Kpi) in view 数据进行变化，并处理ForecastMakeLogHfcItem
+			 */ 
+			private function onCompute():void
+			{
+				var selectedUnit:BUnit = BUnit(this.comUiRowDataDisplayControlBar.comboBoxUnit.selectedItem);				
+				
+				var i:int;
+								
+				//	处理	forecastMakeLogHfcItem	begin
+				//	把 forecastMakeLogHfcItem 放到  hashmap 中，方便使用	begin
+				var hmap_forecastMakeLogHfcItem:HashMap = new HashMap();
+				var strKey4forecastMakeLogHfcItem:String = null;
+				var forecastMakeLogHfcItem:BForecastMakeLogHfcItem = null;
+				for( i=0; i<this.prvVar4dp4comAdgForecastMakeLogHfcItem.length; i=i+1 )
+				{
+					forecastMakeLogHfcItem = BForecastMakeLogHfcItem(this.prvVar4dp4comAdgForecastMakeLogHfcItem.getItemAt(i));
+					strKey4forecastMakeLogHfcItem = UtilStrKey.getStrKey4PPcOOcPB(	forecastMakeLogHfcItem.product,
+						forecastMakeLogHfcItem.productCharacter,
+						forecastMakeLogHfcItem.organization,
+						forecastMakeLogHfcItem.organizationCharacter,
+						forecastMakeLogHfcItem.period,
+						forecastMakeLogHfcItem.bizData																						
+					);
+					hmap_forecastMakeLogHfcItem.put( strKey4forecastMakeLogHfcItem, forecastMakeLogHfcItem );
+				}
+				//	把 forecastMakeLogHfcItem 放到  hashmap 中，方便使用	end
+				
+				var periodLoc:int;
+				var uiRowData_edit:ABUiRowData = null;
+				var period:int;
+				var value:Number;
+				for( i=0; i<this.prvVar4dp4comAdgUiRowDataEdit.length; i=i+1 )
+				{
+					uiRowData_edit = ABUiRowData( this.prvVar4dp4comAdgUiRowDataEdit.getItemAt(i) );
+					
+					for( periodLoc=this.prvVar4qcondEditPeriodLocBegin; periodLoc <= this.prvVar4qcondEditPeriodLocEnd; periodLoc=periodLoc+1 )
+					{
+						period = UtilPeriod.getPeriod( this.prvVar4qcondPeriodBegin, periodLoc );
+						strKey4forecastMakeLogHfcItem = UtilStrKey.getStrKey4PPcOOcPB(	uiRowData_edit.product,
+							uiRowData_edit.productCharacter,
+							uiRowData_edit.organization,
+							uiRowData_edit.organizationCharacter,
+							period,
+							uiRowData_edit.bizData
+						);
+						forecastMakeLogHfcItem = BForecastMakeLogHfcItem(hmap_forecastMakeLogHfcItem.getValue( strKey4forecastMakeLogHfcItem ));
+						
+						value = uiRowData_edit.pubFun4getPeriodDataValue(periodLoc);
+						if( isNaN(value) )
+						{
+							value = 0;
+							uiRowData_edit.pubFun4setPeriodDataValue( periodLoc, 0 );
+						}
+						
+						if( Math.round(value*selectedUnit.exchangeRate) != uiRowData_edit.pubFun4getPeriodDataValueBak(periodLoc) )
+						{
+							//	值变化								
+							if( forecastMakeLogHfcItem != null )
+							{
+								//	更新
+								forecastMakeLogHfcItem.newValue = value;
+							}
+							else
+							{
+								//	新建		
+								forecastMakeLogHfcItem = new BForecastMakeLogHfcItem();
+								forecastMakeLogHfcItem.product = uiRowData_edit.product;
+								forecastMakeLogHfcItem.productCharacter = uiRowData_edit.productCharacter;
+								forecastMakeLogHfcItem.organization = uiRowData_edit.organization;
+								forecastMakeLogHfcItem.organizationCharacter = uiRowData_edit.organizationCharacter;
+								forecastMakeLogHfcItem.bizData = uiRowData_edit.bizData;
+								forecastMakeLogHfcItem.period = period;
+								forecastMakeLogHfcItem.oldValue = uiRowData_edit.pubFun4getPeriodDataValueBak(periodLoc)*1.0/selectedUnit.exchangeRate;
+								
+								forecastMakeLogHfcItem.newValue = value;
+								
+								hmap_forecastMakeLogHfcItem.put( strKey4forecastMakeLogHfcItem, forecastMakeLogHfcItem );
+							}
+						}
+						else
+						{
+							//	值不变化
+							if( forecastMakeLogHfcItem != null )
+							{
+								//	值恢复的情形
+								//	删除
+								hmap_forecastMakeLogHfcItem.remove( strKey4forecastMakeLogHfcItem );
+							}
+						}
+					}
+				}
+				
+				//收集层次查询中的数值
+				for( i=0; i<this.prvVar4dp4comAdgUiRowDataEditDetail.length; i=i+1 )
+				{
+					uiRowData_edit = ABUiRowData( this.prvVar4dp4comAdgUiRowDataEditDetail.getItemAt(i) );
+					
+					for( periodLoc=this.prvVar4qcondEditPeriodLocBegin; periodLoc <= this.prvVar4qcondEditPeriodLocEnd; periodLoc=periodLoc+1 )
+					{
+						period = UtilPeriod.getPeriod( this.prvVar4qcondPeriodBegin, periodLoc );
+						strKey4forecastMakeLogHfcItem = UtilStrKey.getStrKey4PPcOOcPB(	uiRowData_edit.product,
+							uiRowData_edit.productCharacter,
+							uiRowData_edit.organization,
+							uiRowData_edit.organizationCharacter,
+							period,
+							uiRowData_edit.bizData
+						);
+						forecastMakeLogHfcItem = BForecastMakeLogHfcItem(hmap_forecastMakeLogHfcItem.getValue( strKey4forecastMakeLogHfcItem ));
+						
+						value = uiRowData_edit.pubFun4getPeriodDataValue(periodLoc);
+						if( isNaN(value) )
+						{
+							value = 0;
+							uiRowData_edit.pubFun4setPeriodDataValue( periodLoc, 0 );
+						}
+						
+						if( Math.round(value*selectedUnit.exchangeRate) != uiRowData_edit.pubFun4getPeriodDataValueBak(periodLoc) )
+						{
+							//	值变化								
+							if( forecastMakeLogHfcItem != null )
+							{
+								//	更新
+								forecastMakeLogHfcItem.newValue = value;
+							}
+							else
+							{
+								//	新建		
+								forecastMakeLogHfcItem = new BForecastMakeLogHfcItem();
+								forecastMakeLogHfcItem.product = uiRowData_edit.product;
+								forecastMakeLogHfcItem.productCharacter = uiRowData_edit.productCharacter;
+								forecastMakeLogHfcItem.organization = uiRowData_edit.organization;
+								forecastMakeLogHfcItem.organizationCharacter = uiRowData_edit.organizationCharacter;
+								forecastMakeLogHfcItem.bizData = uiRowData_edit.bizData;
+								forecastMakeLogHfcItem.period = period;
+								forecastMakeLogHfcItem.oldValue = uiRowData_edit.pubFun4getPeriodDataValueBak(periodLoc)*1.0/selectedUnit.exchangeRate;
+								
+								forecastMakeLogHfcItem.newValue = value;
+								
+								hmap_forecastMakeLogHfcItem.put( strKey4forecastMakeLogHfcItem, forecastMakeLogHfcItem );
+							}
+						}
+						else
+						{
+							//	值不变化
+							if( forecastMakeLogHfcItem != null )
+							{
+								//	值恢复的情形
+								//	删除
+								hmap_forecastMakeLogHfcItem.remove( strKey4forecastMakeLogHfcItem );
+							}
+						}
+					}
+				}
+				
+				//	从 hashmap 取回	begin
+				this.prvVar4dp4comAdgForecastMakeLogHfcItem = hmap_forecastMakeLogHfcItem.getValues();
+				//	从 hashmap 取回	end
+				//	处理	forecastMakeLogHfcItem	end
+			}			
+			
+			private function onSave():void
+			{
+				this.tabNav4forecastAdjust.selectedChild = this.tab4forecastMakeLog; // 跳到logTab页，避免该tab页出现从没被初始化而出错
+				this.tabNav4forecastAdjust_changeHandler( null );
+				
+				var alert_title_hint:String = resourceManager.getString('alert','alert_title_hint');
+				var alert_msg:String = "";
+				
+				if( this.prvVar4dp4comAdgForecastMakeLogHfcItem.length == 0 )
+				{					
+					alert_msg = resourceManager.getString('alert','alert_msg_noadjust17');
+					Alert.show(alert_msg, alert_title_hint);
+					return;					
+				}				
+				
+				alert_msg = resourceManager.getString('alert','alert_msg_saveconfirm17');
+				Alert.show( alert_msg, alert_title_hint, Alert.OK | Alert.CANCEL, this, saveConfirmHandler, null, Alert.OK );				
+			}
+			
+			private function saveConfirmHandler(event:CloseEvent):void
+			{
+				if( event.detail == Alert.OK )
+				{
+					UtilUi.pubFun4PopWaitWindow( this );
+					
+					var selectedUnit:BUnit = BUnit(this.comUiRowDataDisplayControlBar.comboBoxUnit.selectedItem);									
+					
+					var i:int;
+					var uiRowData_edit:ABUiRowData = null;
+					var value:Number;
+					var period:int;
+					var periodLoc:int;
+					
+					//	收集 uiRowData	begin
+					var arrUiRowData4save:ArrayCollection = new ArrayCollection();
+					var uiRowData4save:ABUiRowData = null;
+					for( i=0; i<this.prvVar4dp4comAdgUiRowDataEdit.length; i=i+1 )
+					{
+						uiRowData_edit = ABUiRowData( this.prvVar4dp4comAdgUiRowDataEdit.getItemAt(i) );
+						for( periodLoc=this.prvVar4qcondEditPeriodLocBegin; periodLoc <= this.prvVar4qcondEditPeriodLocEnd; periodLoc=periodLoc+1 )
+						{
+							period = UtilPeriod.getPeriod( this.prvVar4qcondPeriodBegin, periodLoc );							
+							value = uiRowData_edit.pubFun4getPeriodDataValue(periodLoc);
+							
+							if( Math.round(value*selectedUnit.exchangeRate) != uiRowData_edit.pubFun4getPeriodDataValueBak(periodLoc) )
+							{
+								//	值变化
+								uiRowData4save = new ABUiRowData();
+								uiRowData4save.copyDeep( uiRowData_edit );
+								if( selectedUnit.isBase == BizConst.GLOBAL_YESNO_NO )
+								{
+									uiRowData4save.exchangeUnit( selectedUnit.exchangeRate, 1 );
+								}
+								arrUiRowData4save.addItem( uiRowData4save );
+								break;
+							}
+						}
+					}
+					for( i=0; i<this.prvVar4dp4comAdgUiRowDataEditDetail.length; i=i+1 )
+					{
+						uiRowData_edit = ABUiRowData( this.prvVar4dp4comAdgUiRowDataEditDetail.getItemAt(i) );
+						for( periodLoc=this.prvVar4qcondEditPeriodLocBegin; periodLoc <= this.prvVar4qcondEditPeriodLocEnd; periodLoc=periodLoc+1 )
+						{
+							period = UtilPeriod.getPeriod( this.prvVar4qcondPeriodBegin, periodLoc );							
+							value = uiRowData_edit.pubFun4getPeriodDataValue(periodLoc);
+							
+							if( Math.round(value*selectedUnit.exchangeRate) != uiRowData_edit.pubFun4getPeriodDataValueBak(periodLoc) )
+							{
+								//	值变化
+								uiRowData4save = new ABUiRowData();
+								uiRowData4save.copyDeep( uiRowData_edit );
+								if( selectedUnit.isBase == BizConst.GLOBAL_YESNO_NO )
+								{
+									uiRowData4save.exchangeUnit( selectedUnit.exchangeRate, 1 );
+								}
+								arrUiRowData4save.addItem( uiRowData4save );
+								break;
+							}
+						}
+					}
+					//	收集 uiRowData	end
+					
+					//	收集 forecastMakeLog	begin
+					var forecastMakeLog4save:BForecastMakeLog = new BForecastMakeLog();
+					forecastMakeLog4save.compilePeriod = ClientEnvironment.getSysPeriod().compilePeriod;
+					forecastMakeLog4save.submitTime = new Date( new Date().getTime() + ClientEnvironment.getTimeDifference() );
+					forecastMakeLog4save.submitter = ClientEnvironment.getOperatorUser().userName;
+					forecastMakeLog4save.operatorUser = ClientEnvironment.getOperatorUser();
+					forecastMakeLog4save.description = StringUtil.trim( this.txtDescription.text );
+					forecastMakeLog4save.actionType = BizConst.FORECASTMAKELOG_ACTIONTYPE_HFC;
+					
+					forecastMakeLog4save.forecastMakeLogProOrgs = new ArrayCollection();
+					forecastMakeLog4save.forecastMakeLogHfcItems = new ArrayCollection();
+					
+					var arrProOrgs:ArrayCollection = this.comProOrgBizDataPeriodScope.pubFun4getParamOut4arrProOrgs();
+					var proOrg:ABProOrg = null;
+					var forecastMakeLogProOrg4save:BForecastMakeLogProOrg = null;
+					for( i=0; i<arrProOrgs.length; i=i+1 )
+					{
+						proOrg = ABProOrg( arrProOrgs.getItemAt(i) );
+						
+						forecastMakeLogProOrg4save = new BForecastMakeLogProOrg();
+						forecastMakeLogProOrg4save.product = proOrg.product;
+						forecastMakeLogProOrg4save.organization = proOrg.organization;
+						forecastMakeLogProOrg4save.forecastMakeLog = forecastMakeLog4save;
+						forecastMakeLog4save.forecastMakeLogProOrgs.addItem( forecastMakeLogProOrg4save );
+					}
+					
+					var forecastMakeLogHfcItem:BForecastMakeLogHfcItem = null;
+					var forecastMakeLogHfcItem4save:BForecastMakeLogHfcItem = null;
+					for( i=0; i<this.prvVar4dp4comAdgForecastMakeLogHfcItem.length; i=i+1 )
+					{
+						forecastMakeLogHfcItem = BForecastMakeLogHfcItem( this.prvVar4dp4comAdgForecastMakeLogHfcItem.getItemAt( i ) );
+						
+						forecastMakeLogHfcItem4save = new BForecastMakeLogHfcItem();
+						forecastMakeLogHfcItem4save.copyDeep( forecastMakeLogHfcItem );
+						if( selectedUnit.isBase == BizConst.GLOBAL_YESNO_NO )
+						{
+							forecastMakeLogHfcItem4save.exchangeUnit( selectedUnit.exchangeRate, 1 );
+						}
+						forecastMakeLogHfcItem4save.forecastMakeLog = forecastMakeLog4save;
+						forecastMakeLog4save.forecastMakeLogHfcItems.addItem( forecastMakeLogHfcItem4save );
+					}
+					//	收集 forecastMakeLog	end					
+					
+					this.srvForecast.saveForecastDatas4AdjustUI( arrUiRowData4save, forecastMakeLog4save, this.prvVar4qcondForecastSetting, ClientEnvironment.getSysPeriod() );
+				}
+			}			
+			
+			private function faultHandler4saveForecastDatas4AdjustUI(event:FaultEvent):void
+			{
+				UtilUi.pubFun4RemoveWaitWindow();
+				
+				Alert.show( UtilExceptionLocale.getExceptionMessageLocaleByFaultEvent( event ), resourceManager.getString('main','alt_title_warn') );			
+			}
+			
+			private function resultHandler4saveForecastDatas4AdjustUI(event:ResultEvent):void 
+			{
+				UtilUi.pubFun4RemoveWaitWindow();
+				
+				var alert_title_hint:String = resourceManager.getString('alert','alert_title_hint');
+				var alert_msg:String = resourceManager.getString('alert','alert_msg_savesucceed17');
+				
+				Alert.show( alert_msg, alert_title_hint, Alert.OK, this, saveOkConfirmHandler, null, Alert.OK );
+			}
+				
+			private function saveOkConfirmHandler(event:CloseEvent):void
+			{					
+				this.txtDescription.text = "";
+				this.tabNav4forecastAdjust.selectedChild = this.tab4forecastAdjust;
+				
+				//	重新查询当前页数据
+				var blPageProOrg:Boolean = this.comProOrgBizDataPeriodScope.pubFun4getParamOut4blPageProOrg();
+				if( blPageProOrg == true )
+				{						
+					//	查询当前页
+					this.prvFun4pageQueryForecastDatas( this.comAksDataGridControlBar.pubFun4geParamOut4pageIndex() );
+				}
+				else
+				{	
+					//	不分页查询
+					UtilUi.pubFun4PopWaitWindow( this );
+					this.srvUiRowData.getUiRowDatas( this.prvVar4qcondArrUiRowDataProOrgs, this.prvVar4qcondPeriodBegin, this.prvVar4qcondPeriodEnd, this.prvVar4qcondArrBizDatas, ClientEnvironment.getSysPeriod()  );
+				}
+				this.prvVar4dp4comAdgUiRowDataEditDetail = new ArrayCollection();
+			}				
+			
+			
+			protected function tabNav4forecastAdjust_changeHandler(event:IndexChangedEvent):void
+			{
+				if( this.tabNav4forecastAdjust.selectedChild == this.tab4forecastMakeLog )
+				{
+					if( this.comAdgForecastMakeLogHfcItem != null )
+					{
+						this.comAdgForecastMakeLogHfcItem.setVisible4Dimension( this.prvVar4blDispProduct, this.prvVar4blDispProductCharacter, this.prvVar4blDispOrganization, this.prvVar4blDispOrganizationCharacter );
+						
+						this.comAdgForecastMakeLogHfcItem.columnProductCode.visible = this.prvVar4blDispProduct && this.comUiRowDataDisplayControlBar.checkBoxProductCode.selected;
+						this.comAdgForecastMakeLogHfcItem.columnProductName.visible = this.prvVar4blDispProduct && this.comUiRowDataDisplayControlBar.checkBoxProductName.selected;
+						
+						this.comAdgForecastMakeLogHfcItem.columnProductCharacterCode.visible = this.prvVar4blDispProductCharacter && this.comUiRowDataDisplayControlBar.checkBoxProductCharacterCode.selected;
+						this.comAdgForecastMakeLogHfcItem.columnProductCharacterName.visible = this.prvVar4blDispProductCharacter && this.comUiRowDataDisplayControlBar.checkBoxProductCharacterName.selected;
+						
+						this.comAdgForecastMakeLogHfcItem.columnOrganizationCode.visible = this.prvVar4blDispOrganization && this.comUiRowDataDisplayControlBar.checkBoxOrganizationCode.selected;
+						this.comAdgForecastMakeLogHfcItem.columnOrganizationName.visible = this.prvVar4blDispOrganization && this.comUiRowDataDisplayControlBar.checkBoxOrganizationName.selected;
+						
+						this.comAdgForecastMakeLogHfcItem.columnOrganizationCharacterCode.visible = this.prvVar4blDispOrganizationCharacter && this.comUiRowDataDisplayControlBar.checkBoxOrganizationCharacterCode.selected;
+						this.comAdgForecastMakeLogHfcItem.columnOrganizationCharacterName.visible = this.prvVar4blDispOrganizationCharacter && this.comUiRowDataDisplayControlBar.checkBoxOrganizationCharacterName.selected;						
+					}
+					this.onCompute();
+				}
+			}
+									
+			private function onRefreshChart():void
+			{
+				var i:int;
+				var uiRowData:ABUiRowData = null;
+				
+				//	收集被勾选的 uiRowData	begin
+				arr4checkedUiRowData4scale = new ArrayCollection();
+				
+				if( this.prvVar4dp4comAdgUiRowDataEdit != null )
+				{
+					for( i=0; i<this.prvVar4dp4comAdgUiRowDataEdit.length; i=i+1 )
+					{
+						uiRowData = ABUiRowData(this.prvVar4dp4comAdgUiRowDataEdit.getItemAt(i));
+						if( uiRowData.isChecked == true )
+						{
+							arr4checkedUiRowData4scale.addItem( uiRowData );
+						}
+					}
+				}
+				
+				if(this.prvVar4dp4comAdgUiRowDataEditDetail !=null )
+				{
+					for(i=0;i<this.prvVar4dp4comAdgUiRowDataEditDetail.length;i++)
+					{
+						uiRowData = ABUiRowData(this.prvVar4dp4comAdgUiRowDataEditDetail.getItemAt(i));
+						if( uiRowData.isChecked == true )
+						{
+							arr4checkedUiRowData4scale.addItem( uiRowData );
+						}
+					}
+				}
+				
+				var alert_title_hint:String = resourceManager.getString('alert','alert_title_hint');
+				var alert_msg:String = "";			
+				
+				if( arr4checkedUiRowData4scale.length > SysConst.CHART_MAX_NUM )
+				{
+					alert_msg = resourceManager.getString('alert','alert_msg_chartexceedmaxnum_scale17');
+					Alert.show( alert_msg, alert_title_hint);					
+				}
+				//	收集被勾选的 uiRowData	begin
+				
+				//	收集displayName 和 yFieldName	begin
+				var displayName:String = null;
+				var yFieldName:String = null;	
+				this.prvVar4arr4editableLines = new ArrayCollection();
+				this.prvVar4arr4displayName4chart4scale = new ArrayCollection();
+				this.prvVar4arr4yField4chart4scale = new ArrayCollection();
+
+				for( i=0; i<arr4checkedUiRowData4scale.length; i=i+1 )
+				{
+					uiRowData = ABUiRowData( arr4checkedUiRowData4scale.getItemAt(i) );
+					
+					displayName = UtilUiRowData.getDisplayName4Chart( this.prvVar4blDispProduct, uiRowData.product,
+						this.prvVar4blDispProductCharacter, uiRowData.productCharacter,
+						this.prvVar4blDispOrganization, uiRowData.organization,
+						this.prvVar4blDispOrganizationCharacter, uiRowData.organizationCharacter,
+						true, uiRowData.bizData );
+					
+					yFieldName = AksChartDataObject.getFiledName(i);
+					
+					this.prvVar4arr4displayName4chart4scale.addItem( displayName );
+					this.prvVar4arr4yField4chart4scale.addItem( yFieldName );	
+					if(uiRowData.bizData.type==BizConst.BIZDATA_TYPE_FCHAND &&
+						ClientEnvironment.getBizDataIsManaging(uiRowData.bizData) == BizConst.GLOBAL_YESNO_YES)
+					{
+						this.prvVar4arr4editableLines.addItem(i);
+					}
+				}	
+				
+				//	收集displayName 和 yFieldName	begin			
+				
+				//	刷新Chart基本信息	begin
+				this.tabNav4chart_changeHandler( null );			
+				//	刷新Chart基本信息	end					
+				
+				
+				// 收集chart 数据源    begin
+				this.prvVar4dp4chart4scale = new ArrayCollection();
+				
+				var periodDiff:int = UtilPeriod.getPeriodDifference( this.prvVar4qcondPeriodBegin, this.prvVar4qcondPeriodEnd );
+				if( periodDiff == SysConst.PERIOD_DIFF_NULL )
+				{
+					return;
+				}
+				
+				var periodLoc:int;
+				
+				var aksChartDataObject:AksChartDataObject = null;
+				for( periodLoc=0; periodLoc<=periodDiff; periodLoc=periodLoc+1 )
+				{
+					aksChartDataObject = new AksChartDataObject();
+					aksChartDataObject.categoryFieldValue = String( UtilPeriod.getPeriod( this.prvVar4qcondPeriodBegin, periodLoc ) );
+					for( i=0; i<arr4checkedUiRowData4scale.length; i=i+1 )
+					{
+						uiRowData = ABUiRowData( arr4checkedUiRowData4scale.getItemAt(i) );
+						aksChartDataObject.setData( i, uiRowData.pubFun4getPeriodDataValue(periodLoc) );
+					}
+					this.prvVar4dp4chart4scale.addItem( aksChartDataObject );
+				}
+				
+				// 收集chart 数据源    end				
+				
+			}
+			
+			protected function tabNav4chart_changeHandler(event:IndexChangedEvent):void
+			{
+				if( this.tabNav4chart.selectedChild == this.tab4aksLineChart4scale )
+				{
+					this.aksLineChart4scale.pubFun4setSeries( this.prvVar4arr4displayName4chart4scale, this.prvVar4arr4yField4chart4scale );
+				}
+				else if( this.tabNav4chart.selectedChild == this.tab4aksColumnChart4scale )
+				{
+					this.aksColunmnChart4scale.pubFun4setSeries( this.prvVar4arr4displayName4chart4scale, this.prvVar4arr4yField4chart4scale );
+				}
+
+			}			
+			
+			private function onExport():void
+			{				
+				var TSVString:String = this.exportCSV( this.comAdgUiRowDataEdit ) ;
+				
+				// Copy the TSV string to the clipboard
+				System.setClipboard(TSVString);					
+			}
+			
+			private function handleTextPaste( event:TextEvent ):void
+			{
+				var str:String = event.text;
+				getImProductsFromText(str);	
+			}
+			
+			protected function comAdgUiRowDataEdit_keyDownHandler(event:KeyboardEvent):void
+			{
+				if(event.ctrlKey == true  )
+				{
+//					if(event.keyCode == 86)
+//					{
+//						var str:String = Clipboard.generalClipboard.getData(ClipboardFormats.TEXT_FORMAT) as String;
+//						getImProductsFromText(str);	
+//					}
+				}
+				
+			} 
+			
+			private function callbackFunction4SetNewuiRowData():void
+			{	
+				var dataindex:int = this.aksLineChart4scale.pubFun4getDataIndex();
+				var valueindex:int = this.aksLineChart4scale.pubFun4getValueIndex();
+				var newY:Number = this.aksLineChart4scale.pubFun4getNewValue();
+				
+				var uiRowData:ABUiRowData  = ABUiRowData(this.arr4checkedUiRowData4scale.getItemAt(dataindex));
+				var strKey:String = UtilStrKey.getStrKey4PPcOOcB(uiRowData.product,uiRowData.productCharacter,
+					uiRowData.organization,uiRowData.organizationCharacter,uiRowData.bizData);
+				var _uiRowData:ABUiRowData;
+				for(var i:int = 0;i<this.prvVar4dp4comAdgUiRowDataEdit.length;i++)
+				{
+					_uiRowData=ABUiRowData(this.prvVar4dp4comAdgUiRowDataEdit.getItemAt(i));
+					if( UtilStrKey.getStrKey4PPcOOcB(_uiRowData.product,_uiRowData.productCharacter,
+						_uiRowData.organization,_uiRowData.organizationCharacter,_uiRowData.bizData) == strKey)
+					{
+						_uiRowData.pubFun4setPeriodDataValue(valueindex,newY);
+					}
+				}
+			}
+			
+			private function callbackFunction4execute4comReportProOrgPeriodScope():void
+			{	
+				this.comAdgUiRowData.setVisible4Dimension( comreportproorg.pubFun4getParamIo4blDisplayProduct(), comreportproorg.pubFun4getParamIo4blDisplayProductCharacter(), comreportproorg.pubFun4getParamIo4blDisplayOrganization(), comreportproorg.pubFun4getParamIo4blDisplayOrganizationCharacter() );
+				this.comAdgUiRowData.setPeriodBeginEnd( this.prvVar4qcondPeriodBegin, this.prvVar4qcondPeriodEnd, false );
+				var periodLoc:int;
+				this.prvVar4arrEditPeriods = new ArrayCollection();
+				for( periodLoc=this.prvVar4qcondEditPeriodLocBegin; periodLoc <= this.prvVar4qcondEditPeriodLocEnd; periodLoc = periodLoc + 1 )
+				{
+					this.comAdgUiRowData.pubFun4setDataColumnEditable( UtilPeriod.getPeriod( this.prvVar4qcondPeriodBegin, periodLoc ), true );
+					//this.prvVar4arrEditPeriods.addItem(String(UtilPeriod.getPeriod( this.prvVar4qcondPeriodBegin, periodLoc )));
+				}
+				this.srvUiRowDataDetail.getUiRowDatas( this.comreportproorg.pubFun4getParamOut4arrUiRowDataProOrgs(), this.prvVar4qcondPeriodBegin, this.prvVar4qcondPeriodEnd, this.prvVar4qcondArrBizDatas, ClientEnvironment.getSysPeriod()  );		
+				this.comreportproorg.btn_percent.enabled = true;
+			}
+			
+			private function faultHandler4getUiRowDatasDetail(event:FaultEvent):void
+			{
+				UtilUi.pubFun4RemoveWaitWindow();
+				Alert.show( UtilExceptionLocale.getExceptionMessageLocaleByFaultEvent( event ), resourceManager.getString('main','alt_title_warn') );
+			}	
+			
+			private function resultHandler4getUiRowDatasDetail(event:ResultEvent):void 
+			{
+				this.btnRefreshChart.enabled = true;
+				
+				this.prvVar4dp4comAdgUiRowDataEditDetail = new ArrayCollection();
+			//	this.prvVar4dp4comAdgForecastMakeLogHfcItem = new ArrayCollection();
+				
+				
+				var arrRstABUiRowData:ArrayCollection = ArrayCollection(event.result);
+				if( arrRstABUiRowData == null )
+				{
+					UtilUi.pubFun4RemoveWaitWindow();
+					return;
+				}
+				
+				var selectedUnit:BUnit = BUnit(this.comUiRowDataDisplayControlBar.comboBoxUnit.selectedItem);
+				
+				var i:int;
+				var uiRowData:ABUiRowData = null;
+				
+				if( selectedUnit != null && selectedUnit.isBase ==BizConst.GLOBAL_YESNO_NO )
+				{
+					for( i=0; i<arrRstABUiRowData.length; i=i+1 )
+					{
+						uiRowData = ABUiRowData(arrRstABUiRowData.getItemAt(i));
+						uiRowData.exchangeUnit( 1, selectedUnit.exchangeRate );
+						//uiRowData.exchangeBakUnit(1,selectedUnit.exchangeRate );
+						this.prvVar4dp4comAdgUiRowDataEditDetail.addItem( uiRowData );
+					}											
+				}
+				else
+				{
+					this.prvVar4dp4comAdgUiRowDataEditDetail.addAll( arrRstABUiRowData );
+				}
+				
+				UtilUi.pubFun4RemoveWaitWindow();
+			}	
+			
+			protected function comAdgUiRowDataEdit_changeHandler(event:ListEvent):void
+			{
+				this.comreportproorg.btn_showdata.enabled = false;
+				if(this.comAdgUiRowDataEdit.selectedIndex>-1)
+				{
+					
+					this.comreportproorg.btn_showdata.enabled = true;					
+				}
+			}
+			
+			private function callbackFunction4exp():void
+			{				
+				var TSVString:String = this.exportCSV( this.comAdgUiRowData ) ;
+				
+				// Copy the TSV string to the clipboard
+				System.setClipboard(TSVString);					
+			}
+			
+			private function callbackFunction4percent():void
+			{
+				var uiRowData:ABUiRowData = null;
+				if(this.comAdgUiRowDataEdit.selectedItem != null)
+				{
+					uiRowData = ABUiRowData(this.comAdgUiRowDataEdit.selectedItem);
+					var diff:int = UtilPeriod.getPeriodDifference(this.prvVar4qcondPeriodBegin,this.prvVar4qcondPeriodEnd);
+					var periodLoc:int;
+					for( periodLoc=0; periodLoc <= diff; periodLoc = periodLoc + 1 )
+					{
+						var totalvalue:Number = uiRowData.pubFun4getPeriodDataValue(periodLoc);
+						var value:Number;
+						var rowData:ABUiRowData = null;
+						for(var i:int=0;i<this.prvVar4dp4comAdgUiRowDataEditDetail.length;i++)
+						{
+							rowData = ABUiRowData(prvVar4dp4comAdgUiRowDataEditDetail.getItemAt(i));
+							value = rowData.pubFun4getPeriodDataValue(periodLoc);
+							value = value/totalvalue*100;
+							value = Number(value.toFixed(2)); 
+							if(isNaN(value))
+							{
+								rowData.pubFun4setPeriodDataValue(periodLoc,0);
+							}
+							else
+							{
+								rowData.pubFun4setPeriodDataValue(periodLoc,value);
+							}
+						}	
+						//去掉编辑
+						this.comAdgUiRowData.pubFun4setDataColumnEditable(UtilPeriod.getPeriod( this.prvVar4qcondPeriodBegin, periodLoc ),false);
+					}
+				}
+				this.comreportproorg.btn_percent.enabled = false;
+				
+			}
+			
+			//	5	事件响应方法    end
+			
+			//	6	本地方法    begin
+			
+			
+			private function checkScaleValue( _scaleValue:Number ):Boolean
+			{
+				var alert_title_hint:String = resourceManager.getString('alert','alert_title_hint');	
+				var alert_msg:String = alert_msg = resourceManager.getString('alert','alert_msg_scale17');				
+				
+				if( isNaN(_scaleValue) )
+				{
+					Alert.show(alert_msg, alert_title_hint);
+					return false;							
+				}
+				
+				if( Math.floor( _scaleValue ) != _scaleValue )
+				{
+					Alert.show(alert_msg, alert_title_hint);
+					return false;								
+				}
+				
+				if( _scaleValue < 0 || _scaleValue > 999999999 )
+				{
+					Alert.show(alert_msg, alert_title_hint);
+					return false;					
+				}
+				
+				return true;
+			}
+			
+			private function checkPercentValue( _percentValue:Number ):Boolean
+			{
+				var alert_title_hint:String = resourceManager.getString('alert','alert_title_hint');	
+				var alert_msg:String = alert_msg = resourceManager.getString('alert','alert_msg_percent17');				
+				
+				if( isNaN(_percentValue) )
+				{
+					Alert.show(alert_msg, alert_title_hint);
+					return false;							
+				}
+				
+				if( Math.floor( _percentValue ) != _percentValue )
+				{
+					Alert.show(alert_msg, alert_title_hint);
+					return false;								
+				}
+				
+				if( _percentValue < 0 || _percentValue > 999 )
+				{
+					Alert.show(alert_msg, alert_title_hint);
+					return false;					
+				}
+				
+				return true;
+			}			
+			
+			private function exportCSV(dg:DataGrid, csvSeparator:String="\t", lineSeparator:String="\n"):String
+			{
+				var data:String = "";
+				var columns:Array = dg.columns;
+				var columnCount:int = columns.length;
+				var column:DataGridColumn;
+				var header:String = "";
+				var headerGenerated:Boolean = false;
+				var dataProvider:Object = dg.dataProvider;
+				var rowCount:int = dataProvider.length;
+				var dp:Object = null;
+				
+				var cursor:IViewCursor = dataProvider.createCursor ();
+				var j:int = 0;
+				
+				//loop through rows
+				while (!cursor.afterLast)
+				{
+					var obj:Object = null;
+					obj = cursor.current;
+					
+					//loop through all columns for the row
+					for(var k:int = 1; k < columnCount; k++)
+					{
+						column = columns[k];
+						//Exclude column data which is invisible (hidden)
+						if(!column.visible)
+						{
+							continue;
+						}
+						
+						data += "\""+ column.itemToLabel(obj)+ "\"";
+						if(k < (columnCount -1))
+						{
+							data += csvSeparator;
+						}
+						//generate header of CSV, only if it's not genereted yet
+						if (!headerGenerated)
+						{
+							header += "\"" + column.headerText + "\"";
+							if (k < columnCount - 1)
+							{
+								header += csvSeparator;
+							}
+						}
+						
+						
+					}
+					
+					headerGenerated = true;
+					if (j < (rowCount - 1))
+					{
+						data += lineSeparator;
+					}
+					j++;
+					cursor.moveNext ();
+				}
+				
+				//set references to null:
+				dataProvider = null;
+				columns = null;
+				column = null;
+				
+				return (header + "\r\n" + data);
+			} 
+
+			private function getImProductsFromText(text:String):void   
+			{     
+				var alert_title_hint:String = resourceManager.getString('alert','alert_title_hint');
+				var alert_msg:String = null;  
+				
+				var rstArrayImHistoryData:Array = new Array();
+				var rows:Array = text.split("\n");
+				
+				var StrError:String = "";
+				
+				if( rows == null )
+				{
+					alert_msg = resourceManager.getString('alert','alert_msg_nodata17');
+					Alert.show( alert_msg, alert_title_hint );	
+					return;	
+				}     
+				if (!rows[rows.length - 1])
+				{       
+					rows.pop();
+				}     
+				
+				if( rows.length <= 1 )
+				{
+					alert_msg = resourceManager.getString('alert','alert_msg_nodata17');
+					Alert.show( alert_msg, alert_title_hint );						
+					return;
+				}
+				
+				var num:int = this.getShowNumber();
+				var strKey:String = "";
+				
+				var rwHeader:String = rows[0];
+				var fieldsHeader:Array = rwHeader.split( "\t" );
+				if(!(fieldsHeader[fieldsHeader.length-1]))
+				{
+					fieldsHeader.pop();
+				} 								
+				if(fieldsHeader.length<(num+prvVar4qcondEditPeriodLocEnd))
+				{
+					alert_msg = resourceManager.getString('alert','alert_msg_errorcolumnheader17');
+					Alert.show( alert_msg, alert_title_hint );						
+					return;		
+				}
+				
+				var rowIdx:int;				
+				var row:String = null;
+				var fields:Array = null;
+				
+				//对列头做比较
+				var diff:int=this.prvVar4qcondEditPeriodLocEnd-this.prvVar4qcondEditPeriodLocBegin;
+				for(var periodLoc:int=this.prvVar4qcondEditPeriodLocBegin; periodLoc <= this.prvVar4qcondEditPeriodLocEnd; periodLoc = periodLoc + 1,diff--)
+				{
+					var period:int = UtilPeriod.getPeriod( this.prvVar4qcondPeriodBegin, periodLoc );
+					if( period !=fieldsHeader[num+prvVar4qcondEditPeriodLocEnd-diff])
+					{
+						alert_msg = resourceManager.getString('alert','alert_msg_errorcolumnheader17');
+						Alert.show( alert_msg, alert_title_hint );						
+						return;	
+					}
+				}
+				
+				//检查数据是否重复
+				var arr4check:ArrayCollection = new ArrayCollection();
+				for( rowIdx=1; rowIdx<rows.length; rowIdx=rowIdx+1 )
+				{					
+					row = rows[rowIdx];
+					fields = row.split("\t");
+					strKey = "";
+					
+					for( var i:int = 0; i<num; i++)
+					{
+						strKey = strKey + fields[i];
+					}
+					if(arr4check.contains(strKey))
+					{
+						alert_msg = resourceManager.getString('alert','alert_msg_imperrorrepet17');
+						Alert.show( alert_msg, alert_title_hint );						
+						return;	
+					}
+					arr4check.addItem(strKey);
+				}
+				
+				for( rowIdx=1; rowIdx<rows.length; rowIdx=rowIdx+1 )
+				{					
+					row = rows[rowIdx];
+					fields = row.split("\t");
+					strKey = "";
+					
+					for( var j:int = 0; j<num; j++)
+					{
+						strKey = strKey + fields[j];
+					}
+					
+					var index:int = getIndexInEditRowByStrKey(strKey);
+					if(index==-1)
+					{
+						StrError = StrError+ (rowIdx+1)+",";
+						continue;
+					}
+					var uiRowData:ABUiRowData = this.prvVar4dp4comAdgUiRowDataEdit.getItemAt(index) as ABUiRowData;
+					
+					for(var periodLoc_:int=this.prvVar4qcondEditPeriodLocBegin; periodLoc_ <= this.prvVar4qcondEditPeriodLocEnd; periodLoc_ = periodLoc_ + 1 )
+					{
+						uiRowData.pubFun4setPeriodDataValue(periodLoc_,Number(fields[i+periodLoc_]));
+					}	
+				}
+				
+				if(StrError=="")
+				{
+					alert_msg = resourceManager.getString('alert','alert_msg_impresult17');
+					Alert.show( alert_msg, alert_title_hint );						
+					return;	
+				}
+				else
+				{
+					alert_msg = resourceManager.getString('alert','alert_msg_imperrorresult17')+"\n"+StrError;
+					Alert.show( alert_msg, alert_title_hint );						
+					return;
+				}
+			}   
+			
+			private function getShowNumber():int
+			{
+				var num:int = 0;
+				if(this.comAdgUiRowDataEdit.columnProductCode.visible==true)
+				{
+					num++;
+				}
+				if(this.comAdgUiRowDataEdit.columnProductName.visible==true)
+				{
+					num++;
+				}
+				if(this.comAdgUiRowDataEdit.columnProductCharacterCode.visible==true)
+				{
+					num++;
+				}
+				if(this.comAdgUiRowDataEdit.columnProductCharacterName.visible==true)
+				{
+					num++;
+				}
+				if(this.comAdgUiRowDataEdit.columnOrganizationCode.visible==true)
+				{
+					num++;
+				}
+				if(this.comAdgUiRowDataEdit.columnOrganizationName.visible==true)
+				{
+					num++;
+				}
+				if(this.comAdgUiRowDataEdit.columnOrganizationCharacterCode.visible==true)
+				{
+					num++;
+				}
+				if(this.comAdgUiRowDataEdit.columnOrganizationCharacterName.visible==true)
+				{
+					num++;
+				}
+				if(this.comAdgUiRowDataEdit.columnBizData.visible==true)
+				{
+					num++;
+				}
+				
+				return num;
+				
+			}
+			
+			private function getIndexInEditRowByStrKey(strKey:String):int
+			{
+				var count:int = prvVar4dp4comAdgUiRowDataEdit.length;
+				for(var i:int = 0;i<count;i++)
+				{
+					if(strKey == getStrKeyInIndex(i))
+					{
+						return i;
+					}					
+				}
+				
+				return -1;
+				
+			}
+			
+			
+			private function getStrKeyInIndex(index:int ):String
+			{
+				var strKey:String = "";
+				var uiRowData:ABUiRowData = this.prvVar4dp4comAdgUiRowDataEdit.getItemAt(index) as ABUiRowData;
+				if(this.comAdgUiRowDataEdit.columnProductCode.visible==true)
+				{
+					strKey = strKey+uiRowData.product.code;
+				}
+				if(this.comAdgUiRowDataEdit.columnProductName.visible==true)
+				{
+					strKey = strKey+uiRowData.product.name;
+				}
+				if(this.comAdgUiRowDataEdit.columnProductCharacterCode.visible==true)
+				{
+					if(uiRowData.productCharacter!=null)
+						strKey = strKey+uiRowData.productCharacter.code;
+				}
+				if(this.comAdgUiRowDataEdit.columnProductCharacterName.visible==true)
+				{
+					if(uiRowData.productCharacter!=null)
+						strKey = strKey+uiRowData.productCharacter.name;
+				}
+				if(this.comAdgUiRowDataEdit.columnOrganizationCode.visible==true)
+				{
+					strKey = strKey+uiRowData.organization.code;
+				}
+				if(this.comAdgUiRowDataEdit.columnOrganizationName.visible==true)
+				{
+					strKey = strKey+uiRowData.organization.name;
+				}
+				if(this.comAdgUiRowDataEdit.columnOrganizationCharacterCode.visible==true)
+				{
+					if(uiRowData.organizationCharacter!=null)
+						strKey = strKey+uiRowData.organizationCharacter.code;
+				}
+				if(this.comAdgUiRowDataEdit.columnOrganizationCharacterName.visible==true)
+				{
+					if(uiRowData.organizationCharacter!=null)
+						strKey = strKey+uiRowData.organizationCharacter.name;
+				}
+				if(this.comAdgUiRowDataEdit.columnBizData.visible==true)
+				{
+					strKey = strKey+uiRowData.bizData.toString();
+				}
+				
+				return strKey;
+			}
+			//	6	本地方法   end	
+
+
+		]]>
+	</fx:Script>
+	
+	<mx:VDividedBox width="100%" height="1600">
+		<containers:AksAdvancedPanel paramIn4expandable="true" width="100%" height="430" minHeight="30" title="{resourceManager.getString('menu','queryCond')}">
+			<containers:layout>
+				<s:VerticalLayout/>
+			</containers:layout>
+			<security:Com_Security_ProOrg_BizData_Period_Scope id="comProOrgBizDataPeriodScope" 
+															   paramIn4uiCode="{UIConst.UICODE_FORECASTDATA_FORECASTHANDQUICK}" 
+															   width="100%" height="100%" 
+															   paramIn4arrDictBizDataType="{this.prvVar4arrDictBizDataType}" 
+															   paramIn4blOnlyIsManagingBizData="true" 
+															   paramIn4blAllowMultipleSelectionBizData="false" 
+															   paramIn4executeCallback4thisObject="{this}" 
+															   paramIn4executeCallback4function="{this.callbackFunction4execute4comProOrgBizDataPeriodScope}"
+															   paramIn4visible4forecast4periodspan="true" 
+															   paramIn4fcPeriodNum4periodSpan="{this.prvVar4qcondForecastSetting.fcPeriodNum}" 
+															   paramIn4fzPeriodNum4periodSpan="{this.prvVar4qcondForecastSetting.fzPeriodNum}">
+			</security:Com_Security_ProOrg_BizData_Period_Scope>
+		</containers:AksAdvancedPanel>
+		<containers:AksAdvancedPanel paramIn4expandable="true" width="100%" height="60%" minHeight="30" title="{resourceManager.getString('menu','forecastData')}">
+			<containers:layout>
+				<s:VerticalLayout/>
+			</containers:layout>
+			<controls:AksDataGridControlBar id="comAksDataGridControlBar" paramIn4enabled4BtnSetColumns="false" paramIn4callback4thisObject="{this}" paramIn4callback4queryFunction="{this.prvFun4pageQueryForecastDatas}">
+			</controls:AksDataGridControlBar>
+			<uirowdata:Com_UiRowData_UiRowData_DisplayControlBar id="comUiRowDataDisplayControlBar" paramIn4change4Callback4thisObject="{this}" 
+					paramIn4changeCallback4function="{this.callbackFunction4onChange4comUiRowDataDisplayControlBar}" 
+					paramIn4unitGroup="{this.prvVar4unitGroup}" paramIn4enabled4Product="{this.prvVar4blDispProduct}" 
+					paramIn4enabled4ProductCharacter="{this.prvVar4blDispProductCharacter}"  paramIn4enabled4Organization="{this.prvVar4blDispOrganization}" 
+					paramIn4enabled4OrganizationCharacter="{this.prvVar4blDispOrganizationCharacter}" paramIn4save4Callback4thisObject="{this}" paramIn4save4Callback4function="{this.onSave}" paramIn4saveButton4Visable="true">
+			</uirowdata:Com_UiRowData_UiRowData_DisplayControlBar>	
+			<!--<containers:AksControlBar height="25">
+				<s:Button label="{resourceManager.getString('mod_forecast_forecastdata_forecasthandquick','btn_save')}" click="onSave()"/>	
+			</containers:AksControlBar>	-->	
+			<mx:TabNavigator width="100%" height="100%" id="tabNav4forecastAdjust" change="tabNav4forecastAdjust_changeHandler(event)" 
+							 paddingBottom="0" paddingTop="2" tabOffset="10">
+				<s:NavigatorContent label="{resourceManager.getString('menu','forecastAdjust')}" id="tab4forecastAdjust" width="100%" height="100%">
+					<s:layout>
+						<s:VerticalLayout paddingTop="0" paddingLeft="0" paddingBottom="0"/>
+					</s:layout>
+					<containers:AksControlBar>
+						<s:Button label="{resourceManager.getString('button','addscale')}" click="onAddScale()" enabled="{this.comAdgUiRowDataEdit.selectedItem}"/>
+						<s:Button label="{resourceManager.getString('button','subscale')}" click="onSubScale()" enabled="{this.comAdgUiRowDataEdit.selectedItem}"/>
+						<s:Button label="{resourceManager.getString('button','setscale')}" click="onSetScale()" enabled="{this.comAdgUiRowDataEdit.selectedItem}"/>			
+						<s:TextInput width="100" maxChars="9" id="txtScale"/>
+						<mx:Spacer width="20"/>
+						<s:Button label="{resourceManager.getString('button','addpercent')}" click="onAddPercent()" enabled="{this.comAdgUiRowDataEdit.selectedItem}"/>
+						<s:Button label="{resourceManager.getString('button','subpercent')}" click="onSubPercent()" enabled="{this.comAdgUiRowDataEdit.selectedItem}"/>
+						<s:TextInput width="50" maxChars="3" id="txtPercent"/>
+						<mx:Spacer width="50"/>
+						<s:Button label="{resourceManager.getString('button','compute')}" click="onCompute()" visible="false"/>								
+						<mx:Spacer width="20"/>
+						<s:Button label="{resourceManager.getString('button','export')}" click="onExport()"/>
+					</containers:AksControlBar>
+					<uirowdata:Com_UiRowData_UiRowData_AdvancedDataGrid id="comAdgUiRowDataEdit" dataProvider="{this.prvVar4dp4comAdgUiRowDataEdit}" editable="true" width="100%" height="100%"  keyDown="comAdgUiRowDataEdit_keyDownHandler(event)" change="comAdgUiRowDataEdit_changeHandler(event)"/>										
+				</s:NavigatorContent>
+				<s:NavigatorContent label="{resourceManager.getString('menu','adjustComment')}" id="tab4forecastMakeLog" width="100%" height="100%">
+					<s:layout>
+						<s:VerticalLayout/>
+					</s:layout>
+					<s:Label text="{resourceManager.getString('note','overallComment')}"/>
+					<s:TextArea width="100%" maxChars="255" id="txtDescription" heightInLines="4"/>
+					<s:Label text="{resourceManager.getString('note','adjustDetail')}"/>
+					<forecast:Com_Forecast_ForecastMakeLogHfcItem_AdvancedDataGrid id="comAdgForecastMakeLogHfcItem" dataProvider="{this.prvVar4dp4comAdgForecastMakeLogHfcItem}" editable="true" width="100%" height="100%"/>
+				</s:NavigatorContent>
+			</mx:TabNavigator>
+			
+		</containers:AksAdvancedPanel>
+		<containers:AksAdvancedPanel paramIn4expandable="true" width="100%" height="60%" minHeight="30" title="{resourceManager.getString('menu','showLayerConfig')}">
+			<containers:layout>
+				<s:VerticalLayout/>
+			</containers:layout>
+			<report:Com_Report_ProOrg_DisplayOption id="comreportproorg" paramIn4executeCallback4thisObject="{this}" paramIn4executeCallback4function="{this.callbackFunction4execute4comReportProOrgPeriodScope}" paramIn4selectedUiRowData="{ABUiRowData(this.comAdgUiRowDataEdit.selectedItem)}" paramIn4expCallback4function="{this.callbackFunction4exp}" paramIn4expCallback4thisObject="{this}" paramIn4percentCallback4function="{this.callbackFunction4percent}" paramIn4percentCallback4thisObject="{this}">				
+			</report:Com_Report_ProOrg_DisplayOption>
+			<uirowdata:Com_UiRowData_UiRowData_AdvancedDataGrid id="comAdgUiRowData" dataProvider="{this.prvVar4dp4comAdgUiRowDataEditDetail}" editable="true" width="100%" height="100%"/>										
+		</containers:AksAdvancedPanel>		
+		<containers:AksAdvancedPanel paramIn4expandable="true" width="100%" height="40%" minHeight="30" title="{resourceManager.getString('menu','dataChart')}">
+			<containers:layout>
+				<s:VerticalLayout/>
+			</containers:layout>
+			<containers:AksControlBar>
+				<s:Button id="btnRefreshChart" enabled="false" label="{resourceManager.getString('button','refresh')}" click="onRefreshChart()"/>
+			</containers:AksControlBar>
+			<mx:TabNavigator width="100%" height="100%" id="tabNav4chart" change="tabNav4chart_changeHandler(event)">
+				<s:NavigatorContent label="{resourceManager.getString('menu','lineChart')}" width="100%" height="100%" id="tab4aksLineChart4scale">
+					<s:layout>
+						<s:VerticalLayout/>
+					</s:layout>
+					<charts:AksLineChart id="aksLineChart4scale" width="100%" height="100%" paramIn4dp4lineChart="{this.prvVar4dp4chart4scale}" paramIn4visible4legend="true" paramIn4arr4EditableLinesNumber="{this.prvVar4arr4editableLines}" paramIn4executeCallback4function="{this.callbackFunction4SetNewuiRowData}" paramIn4executeCallback4thisObject="{this}" paramIn4arr4Editables="{this.prvVar4arrEditPeriods}">
+					</charts:AksLineChart>					
+				</s:NavigatorContent>
+				<s:NavigatorContent label="{resourceManager.getString('menu','barChart')}" width="100%" height="100%" id="tab4aksColumnChart4scale" >
+					<s:layout>
+						<s:VerticalLayout/>
+					</s:layout>
+					<charts:AksColumnChart id="aksColunmnChart4scale" width="100%" height="100%" paramIn4dp4columnChart="{this.prvVar4dp4chart4scale}" paramIn4visible4legend="false">
+					</charts:AksColumnChart>					
+				</s:NavigatorContent>
+			</mx:TabNavigator>				
+		</containers:AksAdvancedPanel>		
+		
+	</mx:VDividedBox>
+	
+</mx:Module>

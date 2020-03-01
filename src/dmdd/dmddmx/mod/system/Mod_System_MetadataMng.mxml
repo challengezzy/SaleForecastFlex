@@ -1,0 +1,309 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Module xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		   xmlns:s="library://ns.adobe.com/flex/spark" 
+		   xmlns:mx="library://ns.adobe.com/flex/mx" 
+		   creationComplete="creationCompleteHandler(event)"
+		   layout="vertical" width="100%" height="100%" paddingLeft="10" paddingRight="10"
+		   >
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+		<s:RemoteObject endpoint="{ClientEnvironment.endpoint}" id="srvMetadata" destination="MetadataTempletService">	
+			
+			<s:method name="saveOrUpdateMetadataTemplet" result="resultHandler4SaveOrUpdateMetadata(event)" fault="faultHandler4SaveOrUpdateMetadata(event)">
+			</s:method>
+			<s:method name="deleteMetadataTempletVo" result="resultHandler4DeleteMetadata(event)" fault="faultHandler4DeleteMetadata(event)">
+			</s:method>
+			<s:method name="clearCache" result="resultHandler4ClearServerCache(event)" fault="faultHandler4ClearServerCache(event)">
+			</s:method>
+		</s:RemoteObject>
+		
+		<s:RemoteObject endpoint="{ClientEnvironment.endpoint}" id="srvCool" destination="CoolFormService">
+			<s:method name="exportXmlToMDFile" result="exportXmlToMDFileHandler(event)" fault="faultHandler(event)" />
+		</s:RemoteObject>
+	</fx:Declarations>
+	
+	<fx:Script>
+		<![CDATA[
+			import aks.aksas.utils.UtilUi;
+			
+			import com.cool.assets.CoolAssetsFile;
+			import com.cool.components.FileUploadPanel;
+			import com.cool.constant.DataViewConst;
+			import com.cool.events.MetadataTempletUtilEvent;
+			import com.cool.utils.AlertUtil;
+			import com.cool.utils.MetadataTempletUtil;
+			import com.cool.vo.MetadataTempletVO;
+			import com.cool.vo.XMLExportObject;
+			
+			import dmdd.dmddas.common.system.ClientEnvironment;
+			import dmdd.dmddas.common.utils.UtilDataGridColumnLabelFunction;
+			
+			import mx.collections.ArrayCollection;
+			import mx.effects.Effect;
+			import mx.events.FlexEvent;
+			import mx.events.ListEvent;
+			import mx.managers.PopUpManager;
+			import mx.messaging.channels.SecureAMFChannel;
+			import mx.rpc.events.FaultEvent;
+			import mx.rpc.events.ResultEvent;
+			
+			import org.efflex.mx.viewStackEffects.CoverFlowPapervision3D;
+			import org.osmf.metadata.Metadata;
+			
+			[Bindable]
+			public var switchEffect:Effect;
+			
+			[Bindable]
+			private var arrMetadataVo:ArrayCollection;
+			
+			[Bindable]
+			private var selectedMetaVo:MetadataTempletVO;
+			
+			[Bindable]
+			private var cardLabelWidth:Number = 100;
+			[Bindable]
+			private var cardTextWidth:Number = 150;
+			
+			[Bindable]
+			private var isNewState:Boolean = false;//是否是新建状态
+			
+			private var xmlExpObj:XMLExportObject;
+			
+			private var metaUtil:MetadataTempletUtil = MetadataTempletUtil.getInstance();
+			
+			private var isNeedReturn:Boolean = false;
+			
+			protected function creationCompleteHandler(event:FlexEvent):void
+			{
+				registerClassAlias("com.cool.common.vo.MetadataTempletVO",MetadataTempletVO);
+				
+				arrMetadataVo = metaUtil.getMetadataVos();
+				switchEffect = new CoverFlowPapervision3D();
+			}
+			
+			private function getEnabled4BtnManage( _selectedItem:Object ):Boolean{
+				if( _selectedItem == null )
+				{
+					return false;
+				}
+				return true;
+			}
+			
+			private function onNew():void{
+				isNewState = true;
+				mainStack.selectedChild = cardBox;
+				
+				selectedMetaVo = new MetadataTempletVO();
+				selectedMetaVo.modifier = ClientEnvironment.getOperatorUser().loginName;
+			}
+			
+			private function onEdit():void{
+				mainStack.selectedChild = cardBox;
+				selectedMetaVo = MetadataTempletVO( dgMetadata.selectedItem);
+				isNewState = false;
+			}
+			
+			private function onDelete():void{
+				srvMetadata.deleteMetadataTempletVo(selectedMetaVo.code);
+				
+				if(selectedMetaVo.type == 0){
+					AlertUtil.show("系统元数据，不能删除!");
+					return;
+				}
+			}
+			
+			protected function resultHandler4DeleteMetadata(event:ResultEvent):void{
+				metaUtil.removeMetadataVo(selectedMetaVo.code);
+				arrMetadataVo = metaUtil.getMetadataVos();
+				AlertUtil.show("元数据删除成功！");
+				
+			}
+			
+			protected function faultHandler4DeleteMetadata(event:FaultEvent):void{
+				AlertUtil.show("元数据删除失败！",AlertUtil.MESSAGE_ERROR,event.fault.faultString);
+				
+			}
+			
+			private function onSaveAndReturn():void{
+				onSave();
+				isNeedReturn = true;
+			}
+			
+			
+			private function onReturn():void{
+				isNewState = false;
+				mainStack.selectedChild = listBox;
+			}
+			
+			private function onSave():void{
+				
+				selectedMetaVo.code = txtCode.text;
+				selectedMetaVo.name = txtName.text;
+				selectedMetaVo.type = Number(txtType.text);
+				selectedMetaVo.scope = txtScope.text;
+				selectedMetaVo.content = txtAreaContent.text;
+				
+				if(selectedMetaVo.code == null || selectedMetaVo.name == null){
+					AlertUtil.show("名称或编码不能为空");
+					return;
+				}
+				
+				isNeedReturn = false;
+				srvMetadata.saveOrUpdateMetadataTemplet(selectedMetaVo);
+			}
+			
+			private function resultHandler4SaveOrUpdateMetadata(event:ResultEvent):void 
+			{
+				AlertUtil.show("元数据保存成功！");
+				
+				//刷新客户端缓存
+				metaUtil.flushMetadataTempletVOByMtcode(selectedMetaVo.code,ClientEnvironment.endpoint);
+				metaUtil.addEventListener(MetadataTempletUtilEvent.FLUSH_MTCODE_COMPLETE,flushMetadataCashHandler);
+				
+				if(isNeedReturn){
+					onReturn();
+				}
+			}
+			
+			private function flushMetadataCashHandler(event:MetadataTempletUtilEvent):void{
+				arrMetadataVo = metaUtil.getMetadataVos();
+			}
+			
+			private function faultHandler4SaveOrUpdateMetadata(event:FaultEvent):void{
+				AlertUtil.show("元数据保存失败！",AlertUtil.MESSAGE_ERROR,event.fault.faultString);
+			}
+			
+			private function flushClientCache():void
+			{
+				metaUtil.addEventListener(MetadataTempletUtilEvent.INIT_GLOBAL_COMPLETE,initGlobalMetadataTempletCacheComplete);
+				
+				metaUtil.initGlobalMetadataTempletVOCache(ClientEnvironment.endpoint);
+			}
+			
+			private function initGlobalMetadataTempletCacheComplete(event:MetadataTempletUtilEvent):void{
+				metaUtil.removeEventListener(MetadataTempletUtilEvent.INIT_GLOBAL_COMPLETE,initGlobalMetadataTempletCacheComplete);
+				arrMetadataVo = metaUtil.getMetadataVos();
+				AlertUtil.show("客户端缓存刷新成功");
+			}
+			
+			protected function flushServerCache():void
+			{
+				srvMetadata.clearCache();
+			}
+			
+			protected function resultHandler4ClearServerCache(event:ResultEvent):void{
+				AlertUtil.show("刷新服务端缓存成功！");
+				
+			}
+			
+			protected function faultHandler4ClearServerCache(event:FaultEvent):void{
+				AlertUtil.show("刷新服务端缓存失败！",AlertUtil.MESSAGE_ERROR,event.fault.faultString);
+				
+			}
+			
+			protected function dgMetadata_changeHandler(event:ListEvent):void
+			{
+				if(dgMetadata.selectedItem != null)
+					selectedMetaVo = MetadataTempletVO( dgMetadata.selectedItem);
+				else
+					selectedMetaVo = null;
+				
+			}
+			
+			public function onImport():void{
+				var fup:FileUploadPanel = new FileUploadPanel();
+				fup.datasource = DataViewConst.DATASOURCE_DEFAULT;
+				fup.flagName = "meta";
+				fup.endpoint = ClientEnvironment.endpoint;
+				
+				PopUpManager.addPopUp(fup,this,true);
+				PopUpManager.centerPopUp(fup);
+			}
+			
+			public function onExport():void
+			{
+				xmlExpObj = new XMLExportObject();
+				xmlExpObj.tableName="pub_metadata_templet";
+				xmlExpObj.pkName="id";
+				xmlExpObj.visiblePkName="code";
+				xmlExpObj.datasource = DataViewConst.DATASOURCE_DEFAULT;
+				
+				var sql:String = "select name,code,modifier,scope,content,type from pub_metadata_templet ";
+				
+				xmlExpObj.fetchSql = sql;
+				
+				UtilUi.pubFun4PopWaitWindow(this);
+				srvCool.exportXmlToMDFile([xmlExpObj],"metadata.md","meta");
+				
+			}
+			
+			private function faultHandler(event:FaultEvent):void{
+				UtilUi.pubFun4RemoveWaitWindow();
+				AlertUtil.show('导出失败',AlertUtil.MESSAGE_ERROR,event.fault.faultString );
+			}
+			
+			private function exportXmlToMDFileHandler(event:ResultEvent):void{
+				var url:String = event.result as String;
+				navigateToURL(new URLRequest(url), "_blank");
+				UtilUi.pubFun4RemoveWaitWindow();
+			}
+			
+		]]>
+	</fx:Script>
+	
+	<mx:ViewStack width="100%" height="100%" id="mainStack" creationPolicy="all" paddingTop="10" paddingBottom="10" >
+		<mx:VBox id="listBox" height="100%" width="100%" showEffect="{switchEffect}" hideEffect="{switchEffect}">
+			<mx:HBox width="100%" >
+				<s:Button label="{resourceManager.getString('button','new')}"  click="onNew()" icon="{CoolAssetsFile.newIcon}" />
+				<s:Button label="{resourceManager.getString('button','edit')}" click="onEdit()" icon="{CoolAssetsFile.editIcon}" enabled="{getEnabled4BtnManage(dgMetadata.selectedItem)}" />
+				<s:Button label="{resourceManager.getString('button','del')}" click="onDelete()" icon="{CoolAssetsFile.deleteIcon}" enabled="{getEnabled4BtnManage(dgMetadata.selectedItem)}" />
+				<s:Spacer width="20" />
+				<s:Button label="刷新客户端缓存" click="flushClientCache()" icon="{CoolAssetsFile.refresh2Icon}"/>
+				<s:Button label="刷新服务端缓存" click="flushServerCache()" icon="{CoolAssetsFile.refresh2Icon}"/>
+				<s:Spacer width="20"/>
+				<s:Button label="导出元数据" click="onExport()" icon="{CoolAssetsFile.exportIcon}" />
+				<s:Button label="导入元数据" click="onImport()" icon="{CoolAssetsFile.importIcon}" />
+			</mx:HBox>
+			<mx:DataGrid id="dgMetadata" width="100%" height="100%" change="dgMetadata_changeHandler(event)"  dataProvider="{arrMetadataVo}" doubleClickEnabled="true" editable="false" itemDoubleClick="onEdit()">
+				<mx:columns>
+					<mx:DataGridColumn dataField="name" width="140" headerText="名称" />
+					<mx:DataGridColumn dataField="code" width="140" headerText="编码" />
+					<mx:DataGridColumn dataField="type" width="100" headerText="类型" />
+					<mx:DataGridColumn dataField="scope" width="100" headerText="应用模块" />
+					<mx:DataGridColumn dataField="modifier" width="100" headerText="更新人" />
+					<mx:DataGridColumn dataField="updateTime" width="150" headerText="更新时间" labelFunction="UtilDataGridColumnLabelFunction.getDateTimeStr" />
+				</mx:columns>
+			</mx:DataGrid>
+		</mx:VBox>
+		<mx:VBox id="cardBox" height="100%" width="100%" paddingLeft="40" showEffect="{switchEffect}" hideEffect="{switchEffect}" >
+			<s:HGroup>
+				<s:Button id="returnButton" label="返回" toolTip="返回列表" click="onReturn()" icon="{CoolAssetsFile.returnIcon}"/>
+				<s:Button id="saveAndReturnButton" label="保存并返回" click="onSaveAndReturn()" icon="{CoolAssetsFile.savereturnIcon}"/>
+				<s:Button id="cardSaveButton" label="保存" toolTip="保存当前信息" click="onSave()" icon="{CoolAssetsFile.saveIcon}"/>
+			</s:HGroup>
+			<s:VGroup paddingTop="10">
+				<s:HGroup>
+					<s:Label text="名称" width="{cardLabelWidth}"/>
+					<s:TextInput id="txtName" text="{selectedMetaVo.name}" width="{cardTextWidth}" editable="true"/>
+					<s:Spacer width="60" />
+					<s:Label text="编码" width="{cardLabelWidth}"/>
+					<s:TextInput id="txtCode" text="{selectedMetaVo.code}" width="{cardTextWidth}" editable="{isNewState}"/>
+				</s:HGroup>
+				<s:HGroup>
+					<s:Label text="类型" width="{cardLabelWidth}"/>
+					<s:TextInput id="txtType" text="{selectedMetaVo.type}" width="{cardTextWidth}" editable="{isNewState}"/>
+					<s:Spacer width="60" />
+					<s:Label text="应用模块" width="{cardLabelWidth}"/>
+					<s:TextInput id="txtScope" text="{selectedMetaVo.scope}" width="{cardTextWidth}" editable="true"/>
+				</s:HGroup>
+				<s:HGroup>
+					<s:Label text="元数据内容" width="{cardLabelWidth}"/>
+					<s:TextArea id="txtAreaContent" height="400" width="600" text="{selectedMetaVo.content}"/>
+				</s:HGroup>
+			</s:VGroup>
+		</mx:VBox>
+		
+	</mx:ViewStack>
+	
+	
+</mx:Module>

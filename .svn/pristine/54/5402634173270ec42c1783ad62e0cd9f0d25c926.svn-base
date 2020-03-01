@@ -1,0 +1,286 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Module xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		   xmlns:s="library://ns.adobe.com/flex/spark" 
+		   xmlns:mx="library://ns.adobe.com/flex/mx" layout="vertical" width="100%" height="100%" paddingLeft="10" paddingRight="10"
+		   creationComplete="creationCompleteHandler(event)"  
+		   xmlns:common="dmdd.dmddmx.com.common.*"
+		   xmlns:containers="aks.aksmx.containers.*" xmlns:organization="dmdd.dmddmx.com.organization.*">
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+		<s:RemoteObject endpoint="{ClientEnvironment.endpoint}" id="srvOrganization" destination="OrganizationService">		
+			<s:method name="getAllOrganizationCharacterLayers" result="resultHandler4getAllOrganizationCharacterLayers(event)" fault="faultHandler4getAllOrganizationCharacterLayers(event)">
+			</s:method>
+			<s:method name="delOrganizationCharacterLayer" result="resultHandler4delOrganizationCharacterLayer(event)" fault="faultHandler4delOrganizationCharacterLayer(event)">
+			</s:method>			
+		</s:RemoteObject>		
+	</fx:Declarations>
+
+	<fx:Script>
+		<![CDATA[
+			import aks.aksas.utils.UtilUi;
+			
+			import dmdd.dmddas.common.constant.BizConst;
+			import dmdd.dmddas.common.constant.FunPermiConst;
+			import dmdd.dmddas.common.system.ClientEnvironment;
+			import dmdd.dmddas.common.utils.UtilExceptionLocale;
+			import dmdd.dmddas.dataaccess.bizobject.BOrganizationCharacterLayer;
+			import dmdd.dmddmx.com.organization.Com_Organization_OrganizationCharacterLayer_AU;
+			import dmdd.dmddas.common.constant.SkinConst;
+			import com.cool.assets.CoolAssetsFile;
+			
+			import mx.collections.ArrayCollection;
+			import mx.controls.Alert;
+			import mx.events.CloseEvent;
+			import mx.events.FlexEvent;
+			import mx.managers.PopUpManager;
+			import mx.events.MenuEvent;
+			import mx.rpc.events.FaultEvent;
+			import mx.rpc.events.ResultEvent;
+			
+			//	描述    begin
+			//	描述    end
+			
+			//	0	输入参数    begin						
+			//	0	输入参数    end
+			
+			//	1	输出参数    begin
+			//	1	输出参数    end
+			
+			//	2	本地变量    begin	
+			private var prvVar4auWindow:Com_Organization_OrganizationCharacterLayer_AU = null;
+			
+			[Bindable]
+			private var prvVar4blFunPermission4manage:Boolean = true;
+			[Bindable]
+			private var prvVar4blFunPermission4query:Boolean = true;			
+			//	2	本地变量    end			
+			
+			//	3	公共方法    begin			
+			//	3	公共方法    end		
+			
+			//	4	初始化方法    begin	
+			protected function creationCompleteHandler(event:FlexEvent):void
+			{
+				this.prvVar4blFunPermission4manage = ClientEnvironment.checkIsPermission( FunPermiConst.MAINDATA_ORGANIZATIONCHARACTERLAYER_MANAGE );
+				
+				
+				var rightClickMenuItems:Array = [];
+				
+				if(prvVar4blFunPermission4manage){
+					rightClickMenuItems.push({label:resourceManager.getString('button','new'),keyname:"new"});
+					rightClickMenuItems.push({label:resourceManager.getString('button','del'),keyname:"del"});
+					rightClickMenuItems.push({label:resourceManager.getString('button','edit'),keyname:"edit"});
+				}
+				if(prvVar4blFunPermission4query){
+					rightClickMenuItems.push({label:resourceManager.getString('button','refresh'),keyname:"refresh"});
+				}
+				
+				comAdgOrganizationCharacterLayer.setRightClickMenuItems(rightClickMenuItems);
+				comAdgOrganizationCharacterLayer.rightClickMenu.addEventListener(MenuEvent.ITEM_CLICK,orgCharaLayerRightMenuClicked);
+						
+
+			}			
+			//	4	初始化方法    end				
+			
+			//	5	事件响应方法    begin
+			private function orgCharaLayerRightMenuClicked(event:MenuEvent):void{
+				var item:Object = event.item;
+				if(item == null)
+					return;
+				
+				if(item.keyname == "refresh"){
+					onQuery();
+					return;
+				}
+				
+				if( comAdgOrganizationCharacterLayer != null && comAdgOrganizationCharacterLayer.selectedItem == null ){
+					Alert.show("Please select one item !");
+					return ;
+				}
+				
+				if(item.keyname == "new"){
+					onNew();
+				}else if(item.keyname == "del"){
+					onDel();
+				}else if(item.keyname == "edit"){
+					onUpd();
+				}
+				
+			}
+			
+			private function onQuery():void
+			{	
+				//	不分页查询
+				UtilUi.pubFun4PopWaitWindow( this );
+				this.srvOrganization.getAllOrganizationCharacterLayers();				
+			}	
+			
+			
+			private function faultHandler4getAllOrganizationCharacterLayers(event:FaultEvent):void
+			{
+				UtilUi.pubFun4RemoveWaitWindow();
+				Alert.show( UtilExceptionLocale.getExceptionMessageLocaleByFaultEvent( event ), resourceManager.getString('alert','alt_title_warn') );
+			}	
+			
+			private function resultHandler4getAllOrganizationCharacterLayers(event:ResultEvent):void 
+			{
+				ClientEnvironment.setOrganizationCharacterLayers( ArrayCollection(event.result) );
+				UtilUi.pubFun4RemoveWaitWindow();
+			}					
+			
+			
+			private function onNew():void
+			{
+				if( this.prvVar4auWindow == null )
+				{
+					this.prvVar4auWindow = Com_Organization_OrganizationCharacterLayer_AU(PopUpManager.createPopUp(this, Com_Organization_OrganizationCharacterLayer_AU, true));
+					this.prvVar4auWindow.pubFun4setParamIn4closeCallback( this, callbackFunction4auWinClose );
+				}
+				else
+				{
+					PopUpManager.addPopUp( this.prvVar4auWindow, this, true );
+				}	
+				
+				this.prvVar4auWindow.title = resourceManager.getString('menu','newOrgCharLayer');
+				
+				// 这里的代码须如此：先准备好后再设置给 auWindow
+				// 如果直接设置一个新建对象给auWindow，然后再操作其准备其内容，则可能不能触发auWindow内部的相关绑定动作
+				var currentMaxOrganizationCharacterLayer:BOrganizationCharacterLayer = ClientEnvironment.getOrganizationCharacterLayerWithMaxValue();
+				
+				var newOrganizationCharacterLayer:BOrganizationCharacterLayer = new BOrganizationCharacterLayer();					
+				newOrganizationCharacterLayer.value = currentMaxOrganizationCharacterLayer.value + 1;
+				
+				this.prvVar4auWindow.pubFun4setParamIo4organizationCharacterLayer( newOrganizationCharacterLayer, UtilUi.AUWINDOW_USE_NEW );								
+			} 
+			
+			private function onUpd():void
+			{
+				var selectedOrganizationCharacterLayer:BOrganizationCharacterLayer = BOrganizationCharacterLayer( this.comAdgOrganizationCharacterLayer.selectedItem );
+				// 不必检查，这个方法被调用的前提已经保证 
+				
+				if( this.prvVar4auWindow == null )
+				{
+					this.prvVar4auWindow = Com_Organization_OrganizationCharacterLayer_AU(PopUpManager.createPopUp(this, Com_Organization_OrganizationCharacterLayer_AU, true));
+					this.prvVar4auWindow.pubFun4setParamIn4closeCallback( this, callbackFunction4auWinClose );	
+				}
+				else
+				{
+					PopUpManager.addPopUp( this.prvVar4auWindow, this, true );
+				}	
+				
+				this.prvVar4auWindow.title = resourceManager.getString('menu','orgCharLayerMaintain');
+				
+				// 这里的代码须如此：先准备好后再设置给 auWindow
+				// 如果直接设置一个新建对象给auWindow，然后再操作其准备其内容，则可能不能触发auWindow内部的相关绑定动作	
+				var updOrganizationCharacterLayer:BOrganizationCharacterLayer = new BOrganizationCharacterLayer();	
+				updOrganizationCharacterLayer.copyDeep( selectedOrganizationCharacterLayer );			
+				this.prvVar4auWindow.pubFun4setParamIo4organizationCharacterLayer( updOrganizationCharacterLayer, UtilUi.AUWINDOW_USE_UPD );							 
+				
+			} 
+			
+			private function callbackFunction4auWinClose():void
+			{
+				if( this.prvVar4auWindow.pubFun4getParamOut4winCloseWay() == UtilUi.WINDOW_CLOSEWAY_OK )
+				{
+					this.onQuery();
+				}
+				//this.prvVar4auWindow = null;														
+			}			
+			
+			
+			private function onDel():void
+			{
+				var alert_title_hint:String = resourceManager.getString('alert','alert_title_hint');
+				var alert_msg:String = "";
+				
+				var selectedOrganizationCharacterLayer:BOrganizationCharacterLayer = BOrganizationCharacterLayer(this.comAdgOrganizationCharacterLayer.selectedItem);	
+				
+				if( selectedOrganizationCharacterLayer.id != ClientEnvironment.getOrganizationCharacterLayerWithMaxValue().id )
+				{
+					alert_msg = resourceManager.getString('alert','alert_msg_deletenomax4');
+					Alert.show( alert_msg , alert_title_hint);
+					return;						
+				}
+				else if( selectedOrganizationCharacterLayer.value == 0 )
+				{
+					alert_msg = resourceManager.getString('alert','alert_msg_deletezero4');
+					Alert.show( alert_msg , alert_title_hint);
+					return;						
+				}
+				
+				alert_msg = resourceManager.getString('alert','alert_msg_deleteconfirm4');
+				
+				Alert.show( alert_msg, alert_title_hint, Alert.OK | Alert.CANCEL, this, deleteConfirmHandler, null, Alert.OK );
+				
+			}				
+			
+			private function deleteConfirmHandler(event:CloseEvent):void
+			{
+				if( event.detail == Alert.OK )
+				{
+					// 相关检查都已在 prvFun4getEnabled4BtnDel中执行，此处不再检查    begin
+					var selectedOrganizationCharacterLayer:BOrganizationCharacterLayer = BOrganizationCharacterLayer(this.comAdgOrganizationCharacterLayer.selectedItem);
+					// 相关检查都已在 prvFun4getEnabled4BtnDel中执行，此处不再检查    end					
+					UtilUi.pubFun4PopWaitWindow( this );
+					this.srvOrganization.delOrganizationCharacterLayer( selectedOrganizationCharacterLayer );										
+				}
+			}	
+			
+			private function faultHandler4delOrganizationCharacterLayer(event:FaultEvent):void
+			{
+				UtilUi.pubFun4RemoveWaitWindow();
+				Alert.show( UtilExceptionLocale.getExceptionMessageLocaleByFaultEvent( event ), resourceManager.getString('alert','alt_title_warn') );
+			}	
+			
+			private function resultHandler4delOrganizationCharacterLayer(event:ResultEvent):void 
+			{
+				UtilUi.pubFun4RemoveWaitWindow();
+				var alert_title_hint:String = resourceManager.getString('alert','alert_title_hint');
+				var alert_msg:String = null;
+				
+				var blSucceed:Boolean = Boolean(event.result);
+				if( blSucceed == true )
+				{
+					alert_msg = resourceManager.getString('alert','alert_msg_succeed');
+					Alert.show(alert_msg, alert_title_hint);
+					this.onQuery();					
+				}
+				else
+				{
+					alert_msg = resourceManager.getString('alert','alert_msg_fail');
+					Alert.show(alert_msg, alert_title_hint);
+				}				
+			}			
+			//	5	事件响应方法    end
+			
+			//	6	本地方法    begin
+			private function prvFun4getEnabled4BtnManage( _selectedItem:Object ):Boolean
+			{
+				// todo
+				if( _selectedItem == null )
+				{
+					return false;
+				}
+				
+				if( this.prvVar4blFunPermission4manage == false )
+				{
+					return false;
+				}
+				
+				return true;
+			}
+			//	6	本地方法   end	
+			
+		]]>
+	</fx:Script>	
+	<common:LabelBoundary paddingTop="5" labelText="{resourceManager.getString('menu','orgCharLayer')}" />
+
+	<containers:AksControlBar>
+		<s:Button label="{resourceManager.getString('button','refresh')}" icon="{CoolAssetsFile.refresh3Icon}" 	enabled="{this.prvVar4blFunPermission4query}" click="onQuery()" />
+		<s:Button label="{resourceManager.getString('button','new')}"  icon="{CoolAssetsFile.newIcon}" 	enabled="{this.prvVar4blFunPermission4manage}" click="onNew()"/>
+		<s:Button label="{resourceManager.getString('button','edit')}"  icon="{CoolAssetsFile.editIcon}" 	enabled="{this.prvFun4getEnabled4BtnManage(this.comAdgOrganizationCharacterLayer.selectedItem)}" click="onUpd()"/>
+		<s:Button label="{resourceManager.getString('button','del')}"  icon="{CoolAssetsFile.deleteIcon}" 	enabled="{this.prvFun4getEnabled4BtnManage(this.comAdgOrganizationCharacterLayer.selectedItem)}" click="onDel()"/>			
+	</containers:AksControlBar>
+	<organization:Com_Organization_OrganizationCharacterLayer_AdvancedDataGrid doubleClickEnabled="true" itemDoubleClick="onUpd()" id="comAdgOrganizationCharacterLayer" dataProvider="{ClientEnvironment.getOrganizationCharacterLayers()}" width="100%" height="100%"/>
+
+</mx:Module>

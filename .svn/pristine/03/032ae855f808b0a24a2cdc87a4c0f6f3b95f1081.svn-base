@@ -1,0 +1,364 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:AdvancedDataGrid xmlns:fx="http://ns.adobe.com/mxml/2009" 
+					 xmlns:s="library://ns.adobe.com/flex/spark" 
+					 xmlns:mx="library://ns.adobe.com/flex/mx" horizontalScrollPolicy="on" styleName="adv1">
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+	</fx:Declarations>
+	<fx:Script>
+		<![CDATA[
+			import dmdd.dmddas.common.system.ClientEnvironment;
+			import dmdd.dmddas.common.system.UiConfigVo;
+			import dmdd.dmddas.common.utils.UtilDataGridColumnLabelFunction;
+			import dmdd.dmddas.dataaccess.bizobject.BForecastMakeLogHfcItem;
+			
+			import mx.resources.ResourceManager;
+
+			
+			//	描述    begin
+			//	描述    end
+			
+			//	0	输入参数    begin	
+			[Bindable]
+			public var showProCode:Boolean = true;
+			[Bindable]
+			public var showProName:Boolean = true;
+			[Bindable]
+			public var showOrgCode:Boolean = true;
+			[Bindable]
+			public var showOrgName:Boolean = true;
+			[Bindable]
+			public var showProCharCode:Boolean = true;
+			[Bindable]
+			public var showProCharName:Boolean = false;
+			[Bindable]
+			public var showOrgCharCode:Boolean = true;
+			[Bindable]
+			public var showOrgCharName:Boolean = false;		
+			//	0	输入参数    end
+			
+			//	1	输出参数    begin
+			//	1	输出参数    end
+			
+			//	2	本地变量    begin	
+			[Bindable]
+			private var uiconfig:UiConfigVo = ClientEnvironment.uiConfig;
+			//	2	本地变量    end			
+			
+			//	3	公共方法    begin					
+			public function setVisible4Dimension( _visible4Product:Boolean, _visible4ProductCharacter:Boolean, _visible4Organization:Boolean, _visible4OrganizationCharacter:Boolean ):void
+			{
+				showProCode = _visible4Product && uiconfig.showProCode;
+				showProName = _visible4Product && uiconfig.showProName;
+				
+				showProCharCode = _visible4ProductCharacter && uiconfig.showProCharCode;
+				showProCharName = _visible4ProductCharacter && uiconfig.showProCharName;
+				
+				showOrgCode = _visible4Organization && uiconfig.showOrgCode;
+				showOrgName = _visible4Organization && uiconfig.showOrgName;
+				showOrgCharCode = _visible4OrganizationCharacter && uiconfig.showOrgCharCode;
+				showOrgCharName = _visible4OrganizationCharacter && uiconfig.showOrgCharName;						
+			}
+			
+			/** 个性化定义显示字段 */
+			public function setColumnVisible(_showProCode:Boolean,_showProName:Boolean, _showProCharCode:Boolean,_showProCharName:Boolean,
+											_showOrgCode:Boolean, _showOrgName:Boolean, _showOrgCharCode:Boolean,_showOrgCharName:Boolean):void{
+				showProCode = _showProCode;
+				showProName = _showProName;
+				showProCharCode = _showProCharCode;
+				showProCharName = _showProCharName;
+				
+				showOrgCode = _showOrgCode;
+				showOrgName = _showOrgName;
+				showOrgCharCode = _showOrgCharCode;
+				showOrgCharName = _showOrgCharName;
+			}
+			//	3	公共方法    end		
+			
+			//	4	初始化方法    begin				
+			//	4	初始化方法    end				
+			
+			//	5	事件响应方法    begin
+			//	5	事件响应方法    end
+			
+			//	6	本地方法    begin
+			private function sortCompareFunction4ProductCode(obj1:BForecastMakeLogHfcItem, obj2:BForecastMakeLogHfcItem):int
+			{
+				if( obj1 == null )
+				{
+					return -1;
+				}
+				
+				if( obj2 == null )
+				{
+					return 1;
+				}
+				
+				var rstCompare:int = obj1.product.code.localeCompare( obj2.product.code )
+				if( rstCompare < 0 )
+				{
+					return -1;
+				}
+				else if( rstCompare > 0 )
+				{
+					return 1;
+				}
+				else
+				{
+					return 0;
+				}
+			}			
+			
+			private function sortCompareFunction4ProductName(obj1:BForecastMakeLogHfcItem, obj2:BForecastMakeLogHfcItem):int
+			{
+				if( obj1 == null )
+				{
+					return -1;
+				}
+				
+				if( obj2 == null )
+				{
+					return 1;
+				}
+				
+				var rstCompare:int = obj1.product.name.localeCompare( obj2.product.name )
+				if( rstCompare < 0 )
+				{
+					return -1;
+				}
+				else if( rstCompare > 0 )
+				{
+					return 1;
+				}
+				else
+				{
+					return 0;
+				}
+			}		
+			
+			private function sortCompareFunction4ProductCharacterCode(obj1:BForecastMakeLogHfcItem, obj2:BForecastMakeLogHfcItem):int
+			{
+				if( obj1 == null )
+				{
+					return -1;
+				}
+				
+				if( obj2 == null )
+				{
+					return 1;
+				}
+				
+				var rstCompare:int = obj1.productCharacter.code.localeCompare( obj2.productCharacter.code )
+				if( rstCompare < 0 )
+				{
+					return -1;
+				}
+				else if( rstCompare > 0 )
+				{
+					return 1;
+				}
+				else
+				{
+					return 0;
+				}
+			}			
+			
+			private function sortCompareFunction4ProductCharacterName(obj1:BForecastMakeLogHfcItem, obj2:BForecastMakeLogHfcItem):int
+			{
+				if( obj1 == null )
+				{
+					return -1;
+				}
+				
+				if( obj2 == null )
+				{
+					return 1;
+				}
+				
+				var rstCompare:int = obj1.productCharacter.name.localeCompare( obj2.productCharacter.name )
+				if( rstCompare < 0 )
+				{
+					return -1;
+				}
+				else if( rstCompare > 0 )
+				{
+					return 1;
+				}
+				else
+				{
+					return 0;
+				}
+			}				
+			
+			private function sortCompareFunction4OrganizationCode(obj1:BForecastMakeLogHfcItem, obj2:BForecastMakeLogHfcItem):int
+			{
+				if( obj1 == null )
+				{
+					return -1;
+				}
+				
+				if( obj2 == null )
+				{
+					return 1;
+				}
+				
+				var rstCompare:int = obj1.organization.code.localeCompare( obj2.organization.code )
+				if( rstCompare < 0 )
+				{
+					return -1;
+				}
+				else if( rstCompare > 0 )
+				{
+					return 1;
+				}
+				else
+				{
+					return 0;
+				}
+			}			
+			
+			private function sortCompareFunction4OrganizationName(obj1:BForecastMakeLogHfcItem, obj2:BForecastMakeLogHfcItem):int
+			{
+				if( obj1 == null )
+				{
+					return -1;
+				}
+				
+				if( obj2 == null )
+				{
+					return 1;
+				}
+				
+				var rstCompare:int = obj1.organization.name.localeCompare( obj2.organization.name )
+				if( rstCompare < 0 )
+				{
+					return -1;
+				}
+				else if( rstCompare > 0 )
+				{
+					return 1;
+				}
+				else
+				{
+					return 0;
+				}
+			}		
+			
+			private function sortCompareFunction4OrganizationCharacterCode(obj1:BForecastMakeLogHfcItem, obj2:BForecastMakeLogHfcItem):int
+			{
+				if( obj1 == null )
+				{
+					return -1;
+				}
+				
+				if( obj2 == null )
+				{
+					return 1;
+				}
+				
+				var rstCompare:int = obj1.organizationCharacter.code.localeCompare( obj2.organizationCharacter.code )
+				if( rstCompare < 0 )
+				{
+					return -1;
+				}
+				else if( rstCompare > 0 )
+				{
+					return 1;
+				}
+				else
+				{
+					return 0;
+				}
+			}			
+			
+			private function sortCompareFunction4OrganizationCharacterName(obj1:BForecastMakeLogHfcItem, obj2:BForecastMakeLogHfcItem):int
+			{
+				if( obj1 == null )
+				{
+					return -1;
+				}
+				
+				if( obj2 == null )
+				{
+					return 1;
+				}
+				
+				var rstCompare:int = obj1.organizationCharacter.name.localeCompare( obj2.organizationCharacter.name )
+				if( rstCompare < 0 )
+				{
+					return -1;
+				}
+				else if( rstCompare > 0 )
+				{
+					return 1;
+				}
+				else
+				{
+					return 0;
+				}
+			}				
+			
+			private function sortCompareFunction4BizData(obj1:BForecastMakeLogHfcItem, obj2:BForecastMakeLogHfcItem):int
+			{
+				if( obj1 == null )
+				{
+					return -1;
+				}
+				
+				if( obj2 == null )
+				{
+					return 1;
+				}
+				
+				var rstCompare:int = obj1.bizData.toString().localeCompare( obj2.bizData.toString() )
+				if( rstCompare < 0 )
+				{
+					return -1;
+				}
+				else if( rstCompare > 0 )
+				{
+					return 1;
+				}
+				else
+				{
+					return 0;
+				}
+			}								
+			//	6	本地方法   end					
+		]]>
+	</fx:Script>
+	<mx:columns>		
+		<mx:AdvancedDataGridColumn id="columnProductCode"					headerText="{ResourceManager.getInstance().getString('label','proCode')}" 					
+								   dataField="product" 					labelFunction="UtilDataGridColumnLabelFunction.getProductCode"					
+								   editable="false" width="{uiconfig.proCodeWidth}" visible="{showProCode}" 					sortCompareFunction="sortCompareFunction4ProductCode"/>
+		<mx:AdvancedDataGridColumn id="columnProductName"					headerText="{ResourceManager.getInstance().getString('label','proName')}" 					
+								   dataField="product" 					labelFunction="UtilDataGridColumnLabelFunction.getProductName"					
+								   editable="false" width="{uiconfig.proNameWidth}" visible="{showProName}" 					sortCompareFunction="sortCompareFunction4ProductName"/>
+		<mx:AdvancedDataGridColumn id="columnProductCharacterCode"			headerText="{ResourceManager.getInstance().getString('label','proCharCode')}" 		
+								   dataField="productCharacter" 			labelFunction="UtilDataGridColumnLabelFunction.getProductCharacterCode"			
+								   editable="false" width="{uiconfig.proCodeCharWidth}" visible="{showProCharCode}" 			sortCompareFunction="sortCompareFunction4ProductCharacterCode"/>
+		<mx:AdvancedDataGridColumn id="columnProductCharacterName"			headerText="{ResourceManager.getInstance().getString('label','proCharName')}" 		
+								   dataField="productCharacter" 			labelFunction="UtilDataGridColumnLabelFunction.getProductCharacterName"			
+								   editable="false" width="{uiconfig.proNameCharWidth}" visible="{showProCharName}" 			sortCompareFunction="sortCompareFunction4ProductCharacterName"/>
+		<mx:AdvancedDataGridColumn id="columnOrganizationCode"				headerText="{ResourceManager.getInstance().getString('label','orgCode')}" 			
+								   dataField="organization" 				labelFunction="UtilDataGridColumnLabelFunction.getOrganizationCode"				
+								   editable="false" width="{uiconfig.orgCodeWidth}" visible="{showOrgCode}" 				sortCompareFunction="sortCompareFunction4OrganizationCode"/>
+		<mx:AdvancedDataGridColumn id="columnOrganizationName"				headerText="{ResourceManager.getInstance().getString('label','orgName')}" 			
+								   dataField="organization" 				labelFunction="UtilDataGridColumnLabelFunction.getOrganizationName"				
+								   editable="false" width="{uiconfig.orgNameWidth}" visible="{showOrgName}"				sortCompareFunction="sortCompareFunction4OrganizationName"/>
+		<mx:AdvancedDataGridColumn id="columnOrganizationCharacterCode"		headerText="{ResourceManager.getInstance().getString('label','orgCharCode')}" 	
+								   dataField="organizationCharacter" 		labelFunction="UtilDataGridColumnLabelFunction.getOrganizationCharacterCode"	
+								   editable="false" width="{uiconfig.orgCodeCharWidth}" visible="{showOrgCharCode}" 	sortCompareFunction="sortCompareFunction4OrganizationCharacterCode"/>
+		<mx:AdvancedDataGridColumn id="columnOrganizationCharacterName"		headerText="{ResourceManager.getInstance().getString('label','orgCharName')}" 	
+								   dataField="organizationCharacter" 		labelFunction="UtilDataGridColumnLabelFunction.getOrganizationCharacterName"	
+								   editable="false" width="{uiconfig.orgNameCharWidth}" visible="{showOrgCharName}" 	sortCompareFunction="sortCompareFunction4OrganizationCharacterName"/>								
+		<mx:AdvancedDataGridColumn id="columnBizData"						headerText="{ResourceManager.getInstance().getString('label','busData')}" 						
+								   dataField="bizData" 	editable="false" width="{uiconfig.bizdataWidth}" visible="true" sortCompareFunction="sortCompareFunction4BizData"/>		
+		
+		<mx:AdvancedDataGridColumn headerText="{ResourceManager.getInstance().getString('label','period')}"		dataField="period"			editable="false"/>
+		<mx:AdvancedDataGridColumn headerText="{ResourceManager.getInstance().getString('label','originalValue')}"	dataField="oldValue" 		editable="false"/>
+		<mx:AdvancedDataGridColumn headerText="{ResourceManager.getInstance().getString('label','adjustedValue')}"	dataField="newValue" 		editable="false"/>
+		<mx:AdvancedDataGridColumn headerText="{ResourceManager.getInstance().getString('label','adjustProportion')}"	dataField="changeratio" labelFunction="UtilDataGridColumnLabelFunction.getRationStr"	editable="false"/>
+		<mx:AdvancedDataGridColumn headerText="{ResourceManager.getInstance().getString('label','adjustDesc')}" dataField="description" 	editable="true"/>
+	</mx:columns>	
+</mx:AdvancedDataGrid>

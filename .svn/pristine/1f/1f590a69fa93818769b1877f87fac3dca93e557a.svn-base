@@ -1,0 +1,18 @@
+
+title=Save
+
+code=ID
+name=Description
+description=Long Description
+comments=Comments
+
+
+btn_save=Save
+btn_cancel=Cancel
+
+alert_title_hint=Alert
+alert_msg_codeisnull=ID is missing!
+alert_msg_nameisnull=Name is missing!
+
+
+

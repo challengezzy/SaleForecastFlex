@@ -1,0 +1,54 @@
+﻿autitle_new=New Distribution Rule
+autitle_edit=Edit Distribution Rule
+setperiod=Setting Period
+rbt_naturalmonth=By Calendar Month
+
+period=Period
+isConnected=Partial Week
+week1=1st Week
+week2=2nd Week
+week3=3rd Week
+week4=4th Week
+week5=5th Week
+week6=6th Week
+comments=Comments
+
+code=Code
+name=Short Description
+type=Type
+description=Long Description
+comments=Comments
+beginperiod=Start From
+endperiod=End On
+
+basic_settings=Basic Setting
+rule_settings=Rule Setting
+
+btn_setrule=Setting
+btn_addrule=AddWeek
+btn_delrule=DelSelected
+btn_seq=Sort
+btn_ok=OK
+btn_cancel=Cancel
+
+label_calendarweek=CalendarWeek
+label_workweek=WorkingWeek
+
+dayNames=[S, M, T, W, T, F, S]
+
+alert_title_hint=Remind
+alert_msg_inputerror=Please input integer Number!
+alert_msg_inputnum=Please input Number between 0-100!
+alert_msg_period=Period:
+alert_msg_inputover100=Total of ratios is not equal to 100%, please check you setting!
+alert_msg_resetrule=Starting period and ending period is changed, please reset distribution rule!
+alert_msg_error_period=Please don't exceed 18 months!
+alert_msg_error_choosetype=Please select type!
+alert_msg_error_period_format=Please input correct period!
+alert_msg_error_period_refer=Start period cann't exceed ending period!
+alert_msg_ok=Successfully!
+alert_msg_input_code=Please input ID
+alert_msg_input_name=Please input Description
+alert_msg_period_changed=Distribution rule is not consistent with start and ending period, please reset!
+alert_msg_week_code_error=ID of Week needs to be unique
+alert_msg_period_nextdayerror=Periods need to be continued!

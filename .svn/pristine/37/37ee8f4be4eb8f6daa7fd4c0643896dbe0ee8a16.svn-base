@@ -1,0 +1,34 @@
+﻿
+pricedata=Price Data
+btn_load=LoadData
+btn_save=Save
+btn_clear=Remove
+btn_export=FailedExport
+text_date=Loading Period(YYYYMM)
+btn_del=Remove
+btn_value=Mutiple
+
+unitgroup=UOM Group
+unit=Unit
+
+alert_title_hint=Alert
+alert_msg_nounitgroup=Please set UOM group!
+alert_msg_nounit=Please set unit!
+
+alert_msg_nodatatosave=No data needs to save!
+
+alert_msg_nopricedata=No data can be pasted!
+alert_msg_nopricedatacolumen=Price data (from the 3rd column) is missing!
+alert_msg_errorpricedatacolumnheader=Format of head should be YYYYMM!
+alert_msg_pricedatacolumnheaderperiodnotsucceed=Format of head should be series period!
+
+alter_msg_perioddiffover=The number of period exceeds the maximum columns!
+
+alert_msg_totalnum=Total records:
+alert_msg_failnum=Failed records:
+
+alert_msg_inputdate=Input loading period!
+alert_msg_inputdate_err=Period format is not correct!
+alert_msg_waitforgetdata=Data is loading, takes several minutes, continue?
+alert_msg_inputerr=Input valid number!
+alert_msg_handpercent=Do you want to mutiple?

@@ -1,0 +1,11 @@
+
+title=Title
+summary=Abstract
+ispublish=Publish
+createtimebegin=Created After
+createtimeend=Created Before
+
+chkbox_like=Wild Card
+chkbox_pagequery=Page Query
+
+btn_query=Go

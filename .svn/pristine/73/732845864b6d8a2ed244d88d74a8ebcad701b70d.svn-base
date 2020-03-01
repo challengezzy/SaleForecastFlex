@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:AdvancedDataGrid xmlns:fx="http://ns.adobe.com/mxml/2009" 
+					 xmlns:s="library://ns.adobe.com/flex/spark" 
+					 xmlns:mx="library://ns.adobe.com/flex/mx" horizontalScrollPolicy="on" styleName="adv1">
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+	</fx:Declarations>
+
+	<fx:Script>
+		<![CDATA[
+			import dmdd.dmddas.common.utils.UtilDataGridColumnLabelFunction;
+			
+			import mx.resources.ResourceManager;
+			
+		]]>
+	</fx:Script>
+	<mx:columns>
+		<mx:AdvancedDataGridColumn width="300" headerText="{ResourceManager.getInstance().getString('label','busData')}" dataField="itemBizData" editable="false"/>
+	</mx:columns>	
+</mx:AdvancedDataGrid>

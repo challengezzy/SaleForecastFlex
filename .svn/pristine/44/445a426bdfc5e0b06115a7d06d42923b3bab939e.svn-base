@@ -1,0 +1,23 @@
+﻿period=Period
+isconnected=Partial Week
+beginperiod=Start From
+endperiod=End on
+week1=1st Week
+week2=2nd Week
+week3=3rd Week
+week4=4th Week
+week5=5th Week
+week6=6th Week
+comments=Comments
+num_week=No.of Weeks
+
+code=Code
+name=Short Description
+type=Type
+description=Long Description
+comments=Comments
+
+weekcode=Week ID
+begindate=Start From
+enddate=End On
+proportion=Ratio

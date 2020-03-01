@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:BorderContainer xmlns:fx="http://ns.adobe.com/mxml/2009" 
+				   xmlns:s="library://ns.adobe.com/flex/spark" 
+				   xmlns:mx="library://ns.adobe.com/flex/mx" width="100%" height="30"
+				   creationComplete="creationCompleteHandler(event)" >
+	<s:layout>
+		<s:HorizontalLayout paddingLeft="10" paddingRight="10" verticalAlign="middle" paddingBottom="0" paddingTop="0"/>
+	</s:layout>
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+	</fx:Declarations>
+	<fx:Script>
+		<![CDATA[
+			import com.cool.assets.CoolAssetsFile;
+			
+			import dmdd.dmddas.common.system.ClientEnvironment;
+			import dmdd.dmddas.dataaccess.bizobject.BUnit;
+			import dmdd.dmddas.dataaccess.bizobject.BUnitGroup;
+			
+			import mx.collections.ArrayCollection;
+			import mx.events.FlexEvent;
+
+			//	描述		begin
+			//	描述		end
+			
+			//	0	输入参数    begin	
+			public var paramIn4change4Callback4thisObject:Object = null;
+			public var paramIn4changeCallback4function:Function = null;			
+			
+			[Bindable]
+			public var paramIn4unitGroup:Number = -1;
+			[Bindable]
+			public var paramIn4enabled4Product:Boolean = true;
+			[Bindable]
+			public var paramIn4enabled4ProductCharacter:Boolean = false;			
+			[Bindable]
+			public var paramIn4enabled4Organization:Boolean = true;
+			[Bindable]
+			public var paramIn4enabled4OrganizationCharacter:Boolean = false;		
+			//控制保存按钮是否需要
+			[Bindable]
+			public var paramIn4saveButton4Visable:Boolean = false;
+			
+			public var paramIn4save4Callback4thisObject:Object = null;
+			public var paramIn4save4Callback4function:Function = null;	
+			//	0	输入参数    end
+			
+			//	1	输出参数    begin	
+			//	1	输出参数    end
+			
+			//	2	本地变量    begin
+			[Bindable]
+			private var prv4SetShowMainData:Boolean = true;
+			[Bindable]
+			private var prv4arrUnits:ArrayCollection = new ArrayCollection();
+			//	2	本地变量    end			
+			
+			//	3	公共方法    begin			
+			public function pub4setUnit(unitId:Number):void
+			{
+				prv4arrUnits = ClientEnvironment.getUnitGroup(unitId).units;
+				var unit:BUnit =null;
+				for(var i:int=0;i<prv4arrUnits.length;i++)
+				{
+					unit = BUnit(prv4arrUnits.getItemAt(i));
+					if(unit.id == unitId)
+					{	
+						this.comboBoxUnit.selectedIndex = i; 
+						this.comboBoxUnit.selectedItem = unit;
+						break;
+					}
+				}
+			}
+			
+			public function pub4getUnitExchange(unitId:Number):int
+			{
+				var unit:BUnit =null;
+				for(var i:int=0;i<prv4arrUnits.length;i++)
+				{
+					unit = BUnit(prv4arrUnits.getItemAt(i));
+					if(unit.id == unitId)
+						return unit.exchangeRate;
+				}
+				return 1;
+			}
+			//	3	公共方法    end		
+			
+			//	4	初始化方法    begin			
+			protected function creationCompleteHandler(event:FlexEvent):void
+			{
+				if(this.paramIn4saveButton4Visable)
+				{
+					
+				}
+				else
+				{
+					this.removeElement(btn_save);
+				}
+			}				
+			//	4	初始化方法    end				
+			
+			//	5	事件响应方法    begin
+			private function onChange4comboBoxUnit():void
+			{
+				this.paramIn4changeCallback4function.call( this.paramIn4change4Callback4thisObject );
+			}
+			
+			private function onSave():void				
+			{
+				if(this.paramIn4save4Callback4thisObject !=null)
+				{
+					this.paramIn4save4Callback4function.call( this.paramIn4save4Callback4thisObject );
+				}
+			}
+			public function pub4setShowManDate(show:Boolean):void
+			{
+				this.prv4SetShowMainData  = show;
+			}
+			//	5	事件响应方法    end
+			
+			//	6	本地方法    begin
+			//	6	本地方法   end
+
+		]]>
+	</fx:Script>
+	<s:Button id="btn_save" label="{resourceManager.getString('button','save')}" click="onSave()" icon="{CoolAssetsFile.save_allIcon}"/>
+	<s:Label text="{resourceManager.getString('note','unit')}" id="lbUnit"/>
+	<s:ComboBox id="comboBoxUnit" dataProvider="{prv4arrUnits}" change="onChange4comboBoxUnit()"/>
+	<mx:Spacer width="50"/>
+	<s:CheckBox id="checkBoxProductCode" visible="{this.prv4SetShowMainData}" enabled="true" selected="{this.paramIn4enabled4Product}" click="onChange4comboBoxUnit()" label="{resourceManager.getString('note','proCode')}"/>
+	<s:CheckBox id="checkBoxProductName"  visible="{this.prv4SetShowMainData}" enabled="true" selected="{this.paramIn4enabled4Product}" click="onChange4comboBoxUnit()" label="{resourceManager.getString('note','proName')}"/>
+	<mx:Spacer width="20"/>		
+	<s:CheckBox id="checkBoxProductCharacterCode"  visible="{this.prv4SetShowMainData}" enabled="true" selected="{this.paramIn4enabled4ProductCharacter}" click="onChange4comboBoxUnit()" label="{resourceManager.getString('note','proCharCode')}"/>
+	<s:CheckBox id="checkBoxProductCharacterName"  visible="{this.prv4SetShowMainData}" enabled="true" selected="{this.paramIn4enabled4ProductCharacter}" click="onChange4comboBoxUnit()" label="{resourceManager.getString('note','proCharName')}"/>
+	<mx:Spacer width="20"/>
+	<s:CheckBox id="checkBoxOrganizationCode"  visible="{this.prv4SetShowMainData}" enabled="true" selected="{this.paramIn4enabled4Organization}" click="onChange4comboBoxUnit()" label="{resourceManager.getString('note','orgCode')}"/>
+	<s:CheckBox id="checkBoxOrganizationName"  visible="{this.prv4SetShowMainData}" enabled="true" selected="{this.paramIn4enabled4Organization}" click="onChange4comboBoxUnit()" label="{resourceManager.getString('note','orgName')}"/>
+	<mx:Spacer width="20"/>
+	<s:CheckBox id="checkBoxOrganizationCharacterCode"  visible="{this.prv4SetShowMainData}" enabled="true" click="onChange4comboBoxUnit()" selected="{this.paramIn4enabled4OrganizationCharacter}" label="{resourceManager.getString('note','orgCharCode')}"/>
+	<s:CheckBox id="checkBoxOrganizationCharacterName"  visible="{this.prv4SetShowMainData}" enabled="true" click="onChange4comboBoxUnit()" selected="{this.paramIn4enabled4OrganizationCharacter}" label="{resourceManager.getString('note','orgCharName')}"/>
+</s:BorderContainer>

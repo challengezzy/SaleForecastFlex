@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:BorderContainer xmlns:fx="http://ns.adobe.com/mxml/2009" 
+				   xmlns:s="library://ns.adobe.com/flex/spark" 
+				   xmlns:mx="library://ns.adobe.com/flex/mx" width="240" height="30"
+				   creationComplete="creationCompleteHandler(event)"   borderVisible="false">
+	<s:layout>
+		<s:HorizontalLayout verticalAlign="middle" gap="0"/>
+	</s:layout>
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+	</fx:Declarations>
+	<fx:Script>
+		<![CDATA[
+			import aks.aksas.utils.UtilUi;
+			
+			import com.cool.assets.CoolAssetsFile;
+			
+			import dmdd.dmddas.common.system.ClientEnvironment;
+			import dmdd.dmddas.dataaccess.bizobject.BOrganizationCharacter;
+			
+			import mx.events.FlexEvent;
+			import mx.managers.PopUpManager;
+			//	描述		begin
+			//	描述		end
+			
+			//	0	输入参数    begin
+			public var paramIn4selectChangeCallback4thisObject:Object = null;
+			public var paramIn4selectChangeCallback4function:Function = null;
+			
+			[Bindable]
+			public var paramIn4enabled4btnOpenChooser:Boolean = true;
+			
+			[Bindable]
+			public var paramIn4enabled4btnClear:Boolean = true;	
+			//	0	输入参数    end
+			
+			//	1	输出参数    begin
+			[Bindable]
+			public var paramIo4selectedOrganizationCharacter:BOrganizationCharacter = null;
+			//	1	输出参数    end
+			
+			//	2	本地变量    begin
+			private var prvVar4chooserWindow:Com_Organization_OrganizationCharacter_Chooser = null;	
+			//	2	本地变量    end			
+			
+			//	3	公共方法    begin	
+			//	3	公共方法    end		
+			
+			//	4	初始化方法    begin			
+			protected function creationCompleteHandler(event:FlexEvent):void
+			{
+			}						
+			//	4	初始化方法    end				
+			
+			//	5	事件响应方法    begin
+			private function onOpenChooser():void
+			{
+				if( this.prvVar4chooserWindow ==  null )
+				{
+					this.prvVar4chooserWindow = Com_Organization_OrganizationCharacter_Chooser(PopUpManager.createPopUp(ClientEnvironment.modWork, Com_Organization_OrganizationCharacter_Chooser, true));
+					this.prvVar4chooserWindow.pubFun4setParamIn4closeCallback( this, callbackFunction4ChooserWinClose );
+				}
+				else
+				{
+					PopUpManager.addPopUp( this.prvVar4chooserWindow, ClientEnvironment.modWork, true );
+				}
+				PopUpManager.centerPopUp(prvVar4chooserWindow);
+			}	
+
+			private function callbackFunction4ChooserWinClose():void
+			{
+				if( this.prvVar4chooserWindow.pubFun4getParamOut4winCloseWay() == UtilUi.WINDOW_CLOSEWAY_OK )
+				{
+					var selectedOrganizationCharacter:BOrganizationCharacter = this.prvVar4chooserWindow.pubFun4getParamOut4selectedOrganizationCharacter();
+					if( selectedOrganizationCharacter != null )
+					{
+						this.paramIo4selectedOrganizationCharacter = selectedOrganizationCharacter;
+						//	选中对象变化时,执行回调函数	begin
+						if( this.paramIn4selectChangeCallback4thisObject != null && this.paramIn4selectChangeCallback4function != null )
+						{
+							this.paramIn4selectChangeCallback4function.call( this.paramIn4selectChangeCallback4thisObject );	
+						}
+						//	选中对象变化时,执行回调函数	end						
+					}
+				}
+				//this.prvVar4auWindow = null;														
+			}			
+			
+			private function onClear():void
+			{
+				this.paramIo4selectedOrganizationCharacter = null;
+				//	选中对象变化时,执行回调函数	begin
+				if( this.paramIn4selectChangeCallback4thisObject != null && this.paramIn4selectChangeCallback4function != null )
+				{
+					this.paramIn4selectChangeCallback4function.call( this.paramIn4selectChangeCallback4thisObject );	
+				}
+				//	选中对象变化时,执行回调函数	end				
+			}													
+			//	5	事件响应方法    end
+			
+			//	6	本地方法    begin
+			private function prvFun4getEnabled4btnClear( _selectedOrganizationCharacter:BOrganizationCharacter, _blEnabled4btnClear:Boolean ):Boolean
+			{
+				if( _selectedOrganizationCharacter == null )
+				{
+					return false;
+				}	
+				if( _blEnabled4btnClear == false )
+				{
+					return false;
+				}
+				return true;
+			}			
+			//	6	本地方法   end				
+		]]>
+	</fx:Script>
+	
+	<s:TextInput width="100%" editable="false" text="{this.paramIo4selectedOrganizationCharacter.toString()}"/>
+	<s:Button icon="{CoolAssetsFile.findIcon}" width="20" click="onOpenChooser()" enabled="{this.paramIn4enabled4btnOpenChooser}" />
+	<s:Button icon="{CoolAssetsFile.deleteIcon}" width="20"  click="onClear()"
+			 visible="{this.prvFun4getEnabled4btnClear(this.paramIo4selectedOrganizationCharacter, this.paramIn4enabled4btnClear)}"/>
+</s:BorderContainer>

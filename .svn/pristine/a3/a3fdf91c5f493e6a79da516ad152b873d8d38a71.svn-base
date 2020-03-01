@@ -1,0 +1,52 @@
+﻿choosertitle=Select Forecast Model
+
+modellist=Model List
+btn_addforecastmodelm=Add
+btn_delforecastmodelm=Remove
+btn_ok=Select
+btn_cancel=Cancel
+
+modelparam=Model Parameter
+btn_setparam=Parameter Setting
+btn_simulate=Simulate
+
+
+
+modelsimulator=Forecast Simulation
+historydatadispperiodnum=Display for History Periods
+outlieranalyzeperiodnum=Ex-Post Periods
+hitorybizdata=History Data
+btn_refreshsimulator=Refresh
+
+modelsimulator_error=Error Analysis
+modelsimulator_chart=Simulation Chart
+chart_historydata=History Data
+######
+forecastmodelm_code=Model ID
+forecastmodelm_name=Model Description
+totalerror=Total Error
+mad=MAD
+mse=MSE
+mape=MAPE
+
+
+###
+alert_title_hint=Alert
+
+alert_msg_proorgisnull=Scope for product org is missing!
+alert_msg_runorganizationlayerisnull=Forecast Level-Sales Org is missing!
+alert_msg_runproductlayerisnull=Forecast Level-Product is missing!
+
+alert_msg_historybizdataisnull=History Data is missing!
+alert_msg_outlieranalyzeperiodnum=Number of Ex-Post Period shoule be positive integer!
+alert_msg_historydatadispperiodnum=Number of Display for History Period shoule be positive integer!
+alert_msg_historydatadispperiodnum_lt_outlieranalyzeperiodnum=History Horizon cannot be less than Ex-Post Period!
+alert_msg_fcperiodnum=Forecast Horizon shoule be positive integer!
+alert_msg_historyandfc_exceed_maxperiodnum=Number of Display for History Period plusing Number of Forecast Horizon exceeds maximum number allowed by system!
+
+alert_msg_detailproorgisnull=Scope for product org is missing!
+alter_msg_unitgroupisnull=Detail unit group is missing!
+alter_msg_multiunitgroup=Scope for product org crosses several unit groups! 
+
+alert_msg_chartexceedmaxnum=Lines exceed maximum allowed by system, system can not diagrame all chart!
+

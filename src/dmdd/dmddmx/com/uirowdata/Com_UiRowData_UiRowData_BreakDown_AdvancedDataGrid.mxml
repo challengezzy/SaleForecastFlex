@@ -1,0 +1,1110 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:DataGrid xmlns:fx="http://ns.adobe.com/mxml/2009" 
+			 xmlns:s="library://ns.adobe.com/flex/spark" 
+			 xmlns:mx="library://ns.adobe.com/flex/mx"
+			 creationComplete="creationCompleteHandler(event)"   styleName="dg1" horizontalScrollPolicy="on" xmlns:datagrid="com.cool.components.datagrid.*">
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+	</fx:Declarations>
+
+	<fx:Script>
+		<![CDATA[
+			import aks.aksas.collections.HashMap;
+			import aks.aksas.utils.UtilUi;
+			
+			import dmdd.dmddas.common.constant.BizConst;
+			import dmdd.dmddas.common.constant.SysConst;
+			import dmdd.dmddas.common.system.ClientEnvironment;
+			import dmdd.dmddas.common.system.UiConfigVo;
+			import dmdd.dmddas.common.utils.UtilDataGridColumnLabelFunction;
+			import dmdd.dmddas.common.utils.UtilPeriod;
+			import dmdd.dmddas.dataaccess.aidobject.ABUiRowData;
+			import dmdd.dmddas.dataaccess.bizobject.BBreakDownRuleDefItem;
+			import dmdd.dmddas.dataaccess.bizobject.BBreakDownRuleFinancialDefItem;
+			
+			import mx.collections.ArrayCollection;
+			import mx.collections.Sort;
+			import mx.collections.SortField;
+			import mx.controls.Alert;
+			import mx.events.FlexEvent;
+			import mx.managers.PopUpManager;
+			import mx.resources.ResourceManager;
+			
+			//	描述    begin
+			//	描述    end
+			
+			//	0	输入参数    begin
+			public var visibleProduct:Boolean = true;
+			public var visibleProductChar:Boolean = false;
+			public var visibleOrganization:Boolean = true;
+			public var visibleOrganizationChar:Boolean = false;
+			
+			[Bindable]
+			private var showProCode:Boolean = true;
+			[Bindable]
+			private var showProName:Boolean = true;
+			[Bindable]
+			private var showOrgCode:Boolean = true;
+			[Bindable]
+			private var showOrgName:Boolean = true;
+			[Bindable]
+			private var showProCharCode:Boolean = false;
+			[Bindable]
+			private var showProCharName:Boolean = false;
+			[Bindable]
+			private var showOrgCharCode:Boolean = false;
+			[Bindable]
+			private var showOrgCharName:Boolean = false;
+			
+			private var paramIo4periodBegin:int = SysConst.PERIOD_NULL;
+			private var paramIo4periodEnd:int = SysConst.PERIOD_NULL;
+			//	0	输入参数    end
+			
+			//	1	输出参数    begin
+			private var paramOut4arrDataColumns:ArrayCollection = new ArrayCollection();
+			//	1	输出参数    end
+			
+			//	2	本地变量    begin	
+			[Bindable]
+			private var uiconfig:UiConfigVo = ClientEnvironment.uiConfig;
+			
+			/** 列显示设置窗口 */
+			private var columnSetWindow:Com_UiRowData_ColumnSet;
+			//	2	本地变量    end			
+			
+			//	3	公共方法    begin	
+			/** 设置显示维度，考虑系统设置 */
+			public function setVisible4Dimension( _visible4Product:Boolean, _visible4ProductCharacter:Boolean, _visible4Organization:Boolean, _visible4OrganizationCharacter:Boolean ):void
+			{
+				visibleProduct = _visible4Product;
+				visibleProductChar = _visible4ProductCharacter;
+				visibleOrganization = _visible4Organization;
+				visibleOrganizationChar = _visible4OrganizationCharacter;
+				
+				showProCode = _visible4Product && uiconfig.showProCode;
+				showProName = _visible4Product && uiconfig.showProName;
+				
+				showProCharCode = _visible4ProductCharacter && uiconfig.showProCharCode;
+				showProCharName = _visible4ProductCharacter && uiconfig.showProCharName;
+				
+				showOrgCode = _visible4Organization && uiconfig.showOrgCode;
+				showOrgName = _visible4Organization && uiconfig.showOrgName;
+				showOrgCharCode = _visible4OrganizationCharacter && uiconfig.showOrgCharCode;
+				showOrgCharName = _visible4OrganizationCharacter && uiconfig.showOrgCharName;
+			}
+			
+			/** 个性化定义显示字段 */
+			public function setColumnVisible(_showProCode:Boolean,_showProName:Boolean, _showProCharCode:Boolean,_showProCharName:Boolean,
+																  _showOrgCode:Boolean, _showOrgName:Boolean, _showOrgCharCode:Boolean,_showOrgCharName:Boolean):void{
+				showProCode = _showProCode;
+				showProName = _showProName;
+				showProCharCode = _showProCharCode;
+				showProCharName = _showProCharName;
+				
+				showOrgCode = _showOrgCode;
+				showOrgName = _showOrgName;
+				showOrgCharCode = _showOrgCharCode;
+				showOrgCharName = _showOrgCharName;
+			}
+			
+			/** 列字段显示设置
+			 * @param _refAdg 需要同步的Adg
+			 * */
+			public function onColumnSet():void
+			{
+				if (columnSetWindow == null){
+					columnSetWindow = new Com_UiRowData_ColumnSet();
+					columnSetWindow.onOkFunction = onColumnSetOk;
+				}
+				PopUpManager.addPopUp(columnSetWindow,this);
+				PopUpManager.centerPopUp(columnSetWindow);
+				
+				//设置初始状态
+				columnSetWindow.isProCode = showProCode;
+				columnSetWindow.isProName = showProName;
+				columnSetWindow.isProCharCode = showProCharCode;
+				columnSetWindow.isProCharName = showProCharName;
+				columnSetWindow.isOrgCode = showOrgCode;
+				columnSetWindow.isOrgName = showOrgName;
+				columnSetWindow.isOrgCharCode = showOrgCharCode;
+				columnSetWindow.isOrgCharName = showOrgCharName;
+				
+				columnSetWindow.checkProCode.enabled = visibleProduct;
+				columnSetWindow.checkProName.enabled = visibleProduct;
+				columnSetWindow.checkProCharCode.enabled = visibleProductChar;
+				columnSetWindow.checkProCharName.enabled = visibleProductChar;
+				columnSetWindow.checkOrgCode.enabled = visibleOrganization;
+				columnSetWindow.checkOrgName.enabled = visibleOrganization;
+				columnSetWindow.checkOrgCharCode.enabled = visibleOrganizationChar;
+				columnSetWindow.checkOrgCharName.enabled = visibleOrganizationChar;
+				
+			}
+			
+			private function onColumnSetOk():void{
+				//更新显示列设置
+				showProCode = columnSetWindow.isProCode;
+				showProName = columnSetWindow.isProName;
+				showProCharCode = columnSetWindow.isProCharCode;
+				showProCharName = columnSetWindow.isProCharName;
+				showOrgCode = columnSetWindow.isOrgCode;
+				showOrgName = columnSetWindow.isOrgName;
+				showOrgCharCode = columnSetWindow.isOrgCharCode;
+				showOrgCharName = columnSetWindow.isOrgCharName;
+				
+			}
+			
+			public function pubFun4setParamIo4periodBeginEnd( _periodBegin:int, _periodEnd:int, _editable:Boolean ):void
+			{
+				this.paramIo4periodBegin = _periodBegin;
+				this.paramIo4periodEnd = _periodEnd;
+				
+				// 执行两次，强制界面刷新 
+				var times:int;
+				for( times=0; times<1; times=times+1 )
+				{
+//					var distributedWidth:Number = 0;
+//					
+//					if( this.columnIsChecked.visible == true )
+//					{
+//						this.columnIsChecked.width = 50;
+//						distributedWidth = distributedWidth + 50;
+//					}	
+//					
+//					if( this.columnProductCode.visible == true )
+//					{
+//						this.columnProductCode.width = 100;
+//						distributedWidth = distributedWidth + 100;
+//					}
+//					if( this.columnProductName.visible == true )
+//					{
+//						this.columnProductName.width = 100;
+//						distributedWidth = distributedWidth + 100;
+//					}					
+//					if( this.columnProductCharacterCode.visible == true )
+//					{
+//						this.columnProductCharacterCode.width = 100;
+//						distributedWidth = distributedWidth + 100;
+//					}
+//					if( this.columnProductCharacterName.visible == true )
+//					{
+//						this.columnProductCharacterName.width = 100;
+//						distributedWidth = distributedWidth + 100;
+//					}										
+//					
+//					if( this.columnOrganizationCode.visible == true )
+//					{
+//						this.columnOrganizationCode.width = 100;
+//						distributedWidth = distributedWidth + 100;
+//					}
+//					if( this.columnOrganizationName.visible == true )
+//					{
+//						this.columnOrganizationName.width = 100;
+//						distributedWidth = distributedWidth + 100;
+//					}					
+//					if( this.columnOrganizationCharacterCode.visible == true )
+//					{
+//						this.columnOrganizationCharacterCode.width = 100;
+//						distributedWidth = distributedWidth + 100;
+//					}
+//					if( this.columnOrganizationCharacterName.visible == true )
+//					{
+//						this.columnOrganizationCharacterName.width = 100;
+//						distributedWidth = distributedWidth + 100;
+//					}	
+//					
+//					this.columnBizData.width = 100;
+//					distributedWidth = distributedWidth + 100;
+//					
+//					var totalWidth4DataColumn:Number = this.width - distributedWidth;	
+//					if( totalWidth4DataColumn < 0 )
+//					{
+//						totalWidth4DataColumn = 0;
+//					}	
+					
+					
+					var periodDiff:Number = UtilPeriod.getPeriodDifference( this.paramIo4periodBegin, this.paramIo4periodEnd );
+					if( periodDiff == SysConst.PERIOD_DIFF_NULL )
+					{
+						for(var i:int=0; i<this.paramOut4arrDataColumns.length; i=i+1)
+						{
+							DataGridColumn( this.paramOut4arrDataColumns.getItemAt(i) ).visible = false;
+						}
+						return;
+					}
+					
+					//var widthPerDataCloumn:Number = Math.round( totalWidth4DataColumn/(periodDiff+1) );
+					
+					var k:int;
+					var dgclm:DataGridColumn = null;
+					for(k=0; k<=periodDiff && k<this.paramOut4arrDataColumns.length; k=k+1)
+					{
+						dgclm = DataGridColumn( this.paramOut4arrDataColumns.getItemAt(k) );
+						dgclm.visible = true;
+						dgclm.headerText = UtilPeriod.getHeaderTextPeriod( this.paramIo4periodBegin, k ); 
+						dgclm.editable = _editable;
+						dgclm.width = 50;						
+					}
+					
+					for(; k<this.paramOut4arrDataColumns.length; k=k+1)
+					{
+						DataGridColumn( this.paramOut4arrDataColumns.getItemAt(k) ).visible = false; 					
+					}						
+					
+					this.validateSize( true );
+					this.validateNow();							
+				}				
+			}
+			
+			public function pubFun4setParamIo4periodStatistics( _periodBegin:int, _periodEnd:int, _editable:Boolean ,_period:int):void
+			{
+				this.paramIo4periodBegin = _periodBegin;
+				this.paramIo4periodEnd = _periodEnd;
+				
+				// 执行两次，强制界面刷新 
+				var times:int;
+				for( times=0; times<2; times=times+1 )
+				{
+					var distributedWidth:Number = 0;
+					
+					if( this.columnIsChecked.visible == true )
+					{
+						this.columnIsChecked.width = 50;
+						distributedWidth = distributedWidth + 50;
+					}	
+					
+					if( this.columnProductCode.visible == true )
+					{
+						this.columnProductCode.width = 100;
+						distributedWidth = distributedWidth + 100;
+					}
+					if( this.columnProductName.visible == true )
+					{
+						this.columnProductName.width = 100;
+						distributedWidth = distributedWidth + 100;
+					}					
+					if( this.columnProductCharacterCode.visible == true )
+					{
+						this.columnProductCharacterCode.width = 100;
+						distributedWidth = distributedWidth + 100;
+					}
+					if( this.columnProductCharacterName.visible == true )
+					{
+						this.columnProductCharacterName.width = 100;
+						distributedWidth = distributedWidth + 100;
+					}										
+					
+					if( this.columnOrganizationCode.visible == true )
+					{
+						this.columnOrganizationCode.width = 100;
+						distributedWidth = distributedWidth + 100;
+					}
+					if( this.columnOrganizationName.visible == true )
+					{
+						this.columnOrganizationName.width = 100;
+						distributedWidth = distributedWidth + 100;
+					}					
+					if( this.columnOrganizationCharacterCode.visible == true )
+					{
+						this.columnOrganizationCharacterCode.width = 100;
+						distributedWidth = distributedWidth + 100;
+					}
+					if( this.columnOrganizationCharacterName.visible == true )
+					{
+						this.columnOrganizationCharacterName.width = 100;
+						distributedWidth = distributedWidth + 100;
+					}	
+					
+					this.columnBizData.width = 100;
+					distributedWidth = distributedWidth + 100;
+					
+					var totalWidth4DataColumn:Number = this.width - distributedWidth;	
+					if( totalWidth4DataColumn < 0 )
+					{
+						totalWidth4DataColumn = 0;
+					}	
+					
+					var periodDiff:Number = UtilPeriod.getPeriodDifference( this.paramIo4periodBegin, this.paramIo4periodEnd );
+					var diff:int = (periodDiff+1)/_period;
+					if( periodDiff == SysConst.PERIOD_DIFF_NULL )
+					{
+						for(var i:int=0; i<this.paramOut4arrDataColumns.length; i=i+1)
+						{
+							DataGridColumn( this.paramOut4arrDataColumns.getItemAt(i) ).visible = false;
+						}
+						return;
+					}
+					
+					var widthPerDataCloumn:Number = Math.round( totalWidth4DataColumn/(diff+2) );
+					
+					var k:int;
+					var dgclm:DataGridColumn = null;
+					for(k=0; k<diff && k<this.paramOut4arrDataColumns.length; k=k+1)
+					{
+						dgclm = DataGridColumn( this.paramOut4arrDataColumns.getItemAt(k) );
+						dgclm.visible = true;
+						dgclm.headerText = UtilPeriod.getPeriod( this.paramIo4periodBegin, k*_period )+"-"+UtilPeriod.getPeriod( this.paramIo4periodBegin, (k+1)*_period-1 ); 
+						dgclm.editable = _editable;
+						dgclm.width = widthPerDataCloumn;						
+					}
+					//增加个汇总列
+					
+					dgclm = DataGridColumn( this.paramOut4arrDataColumns.getItemAt(k) );
+					dgclm.visible = true;
+					dgclm.headerText = ResourceManager.getInstance().getString('label','total'); 
+					dgclm.editable = _editable;
+					dgclm.width = widthPerDataCloumn;
+					k=k+1
+					for(; k<this.paramOut4arrDataColumns.length; k=k+1)
+					{
+						DataGridColumn( this.paramOut4arrDataColumns.getItemAt(k) ).visible = false; 					
+					}						
+					
+					this.validateSize( true );
+					this.validateNow();							
+				}
+			}
+			
+			public function pubFun4setParamIo4periodBreakdown( _periodBegin:int, _periodEnd:int, _editable:Boolean ,_hm4BreakDownRuleDefItem:HashMap):void
+			{
+				this.paramIo4periodBegin = _periodBegin;
+				this.paramIo4periodEnd = _periodEnd;
+				
+				// 执行两次，强制界面刷新 
+				var times:int;
+				for( times=0; times<2; times=times+1 )
+				{
+					var distributedWidth:Number = 0;
+					
+					if( this.columnIsChecked.visible == true )
+					{
+						this.columnIsChecked.width = 50;
+						distributedWidth = distributedWidth + 50;
+					}	
+					
+					if( this.columnProductCode.visible == true )
+					{
+						this.columnProductCode.width = 100;
+						distributedWidth = distributedWidth + 100;
+					}
+					if( this.columnProductName.visible == true )
+					{
+						this.columnProductName.width = 100;
+						distributedWidth = distributedWidth + 100;
+					}					
+					if( this.columnProductCharacterCode.visible == true )
+					{
+						this.columnProductCharacterCode.width = 100;
+						distributedWidth = distributedWidth + 100;
+					}
+					if( this.columnProductCharacterName.visible == true )
+					{
+						this.columnProductCharacterName.width = 100;
+						distributedWidth = distributedWidth + 100;
+					}										
+					
+					if( this.columnOrganizationCode.visible == true )
+					{
+						this.columnOrganizationCode.width = 100;
+						distributedWidth = distributedWidth + 100;
+					}
+					if( this.columnOrganizationName.visible == true )
+					{
+						this.columnOrganizationName.width = 100;
+						distributedWidth = distributedWidth + 100;
+					}					
+					if( this.columnOrganizationCharacterCode.visible == true )
+					{
+						this.columnOrganizationCharacterCode.width = 100;
+						distributedWidth = distributedWidth + 100;
+					}
+					if( this.columnOrganizationCharacterName.visible == true )
+					{
+						this.columnOrganizationCharacterName.width = 100;
+						distributedWidth = distributedWidth + 100;
+					}	
+					
+					this.columnBizData.width = 100;
+					distributedWidth = distributedWidth + 100;
+					
+					var totalWidth4DataColumn:Number = this.width - distributedWidth;	
+					if( totalWidth4DataColumn < 0 )
+					{
+						totalWidth4DataColumn = 0;
+					}	
+					var periodDiff:Number = UtilPeriod.getPeriodDifference( this.paramIo4periodBegin, this.paramIo4periodEnd );					
+					if( periodDiff == SysConst.PERIOD_DIFF_NULL )
+					{
+						for(var i:int=0; i<this.paramOut4arrDataColumns.length; i=i+1)
+						{
+							DataGridColumn( this.paramOut4arrDataColumns.getItemAt(i) ).visible = false;
+						}
+						return;
+					}
+					
+					var widthPerDataCloumn:Number = Math.round( totalWidth4DataColumn/(periodDiff*5+2) );
+					
+					var k:int=0;
+					var dgclm:DataGridColumn = null;
+					var num_week:int = 0;
+					//					var arrPeriods:ArrayCollection = new ArrayCollection(_periodSet.getKeys());
+					//					//将期间排序
+					//					var numericDataSort:Sort = new Sort(); 
+					//					numericDataSort.fields = [new SortField(null, true)];
+					//					arrPeriods.sort = numericDataSort;
+					//					arrPeriods.refresh();
+					
+					var period:int;
+					var breakDownRuleItem:BBreakDownRuleDefItem ;
+					for(var m:int = 0;m<=periodDiff;m++)
+					{
+						period = UtilPeriod.getPeriod(this.paramIo4periodBegin,m);
+						breakDownRuleItem = BBreakDownRuleDefItem(_hm4BreakDownRuleDefItem.getValue(period));
+						num_week = breakDownRuleItem.num_week;
+						var j:int =1;
+						if(breakDownRuleItem.isConnected == BizConst.GLOBAL_YESNO_YES && k>0)
+						{  
+							j=2;
+						}
+						for(;j<=num_week && k<this.paramOut4arrDataColumns.length;j++)
+						{
+							
+							dgclm = DataGridColumn( this.paramOut4arrDataColumns.getItemAt(k) );
+							dgclm.visible = true;
+							dgclm.headerText = period+"-"+(k+1); 
+							dgclm.editable = _editable;
+							dgclm.width = widthPerDataCloumn;		
+							k++;
+						}
+					}
+					
+					for(; k<this.paramOut4arrDataColumns.length; k=k+1)
+					{
+						DataGridColumn( this.paramOut4arrDataColumns.getItemAt(k) ).visible = false; 					
+					}						
+					
+					this.validateSize( true );
+					this.validateNow();							
+				}
+			}
+			
+			public function pubFun4setParamIo4periodBreakdownFinacil( _periodBegin:int, _periodEnd:int, _editable:Boolean ,breakdownfinacilDefItems:ArrayCollection):void
+			{
+				this.paramIo4periodBegin = _periodBegin;
+				this.paramIo4periodEnd = _periodEnd;
+				
+				// 执行两次，强制界面刷新 
+				var times:int;
+				for( times=0; times<2; times=times+1 )
+				{
+					var distributedWidth:Number = 0;
+					
+					if( this.columnIsChecked.visible == true )
+					{
+						this.columnIsChecked.width = 50;
+						distributedWidth = distributedWidth + 50;
+					}	
+					
+					if( this.columnProductCode.visible == true )
+					{
+						this.columnProductCode.width = 100;
+						distributedWidth = distributedWidth + 100;
+					}
+					if( this.columnProductName.visible == true )
+					{
+						this.columnProductName.width = 100;
+						distributedWidth = distributedWidth + 100;
+					}					
+					if( this.columnProductCharacterCode.visible == true )
+					{
+						this.columnProductCharacterCode.width = 100;
+						distributedWidth = distributedWidth + 100;
+					}
+					if( this.columnProductCharacterName.visible == true )
+					{
+						this.columnProductCharacterName.width = 100;
+						distributedWidth = distributedWidth + 100;
+					}										
+					
+					if( this.columnOrganizationCode.visible == true )
+					{
+						this.columnOrganizationCode.width = 100;
+						distributedWidth = distributedWidth + 100;
+					}
+					if( this.columnOrganizationName.visible == true )
+					{
+						this.columnOrganizationName.width = 100;
+						distributedWidth = distributedWidth + 100;
+					}					
+					if( this.columnOrganizationCharacterCode.visible == true )
+					{
+						this.columnOrganizationCharacterCode.width = 100;
+						distributedWidth = distributedWidth + 100;
+					}
+					if( this.columnOrganizationCharacterName.visible == true )
+					{
+						this.columnOrganizationCharacterName.width = 100;
+						distributedWidth = distributedWidth + 100;
+					}	
+					
+					this.columnBizData.width = 100;
+					distributedWidth = distributedWidth + 100;
+					
+					var totalWidth4DataColumn:Number = this.width - distributedWidth;	
+					if( totalWidth4DataColumn < 0 )
+					{
+						totalWidth4DataColumn = 0;
+					}	
+					var periodDiff:Number =breakdownfinacilDefItems.length;		
+					if( periodDiff == SysConst.PERIOD_DIFF_NULL )
+					{
+						for(var i:int=0; i<this.paramOut4arrDataColumns.length; i=i+1)
+						{
+							DataGridColumn( this.paramOut4arrDataColumns.getItemAt(i) ).visible = false;
+						}
+						return;
+					}
+					
+					var widthPerDataCloumn:Number = Math.round( totalWidth4DataColumn/(periodDiff*5+2) );
+					
+					var k:int=0;
+					var dgclm:DataGridColumn = null;
+					var num_week:int = 0;
+					//					var arrPeriods:ArrayCollection = new ArrayCollection(_periodSet.getKeys());
+					//					//将期间排序
+					//					var numericDataSort:Sort = new Sort(); 
+					//					numericDataSort.fields = [new SortField(null, true)];
+					//					arrPeriods.sort = numericDataSort;
+					//					arrPeriods.refresh();
+					var periodLoc_:int = 0;
+					var period:int;
+					var periodDiff_:int = UtilPeriod.getPeriodDifference( _periodBegin,_periodEnd );
+					for( periodLoc_ = 0; periodLoc_ <= periodDiff_; periodLoc_ = periodLoc_ + 1 )
+					{
+						
+						period= UtilPeriod.getPeriod(_periodBegin,periodLoc_);
+						var istrue:Boolean = false;
+						var breakDownRuleItem:BBreakDownRuleFinancialDefItem ;
+						for(var m:int = 0;m<periodDiff;m++)
+						{	
+							breakDownRuleItem = BBreakDownRuleFinancialDefItem(breakdownfinacilDefItems.getItemAt(m));
+							if(period == breakDownRuleItem.period)
+							{
+								if(k>79)
+								{
+									return ;											
+								}
+								dgclm = DataGridColumn( this.paramOut4arrDataColumns.getItemAt(k) );
+								dgclm.visible = true;
+								dgclm.headerText = breakDownRuleItem.weekCode; 
+								dgclm.editable = _editable;
+								dgclm.width = 50;		
+								k++;
+								istrue = true;
+								
+							}
+							else if(istrue==true)
+							{
+								break;
+							}
+						}
+					}
+					for(; k<this.paramOut4arrDataColumns.length; k=k+1)
+					{
+						DataGridColumn( this.paramOut4arrDataColumns.getItemAt(k) ).visible = false; 					
+					}						
+					
+					this.validateSize( true );
+					this.validateNow();							
+				}
+			}
+			
+			public function pubFun4setDataColumnEditable( _period:int, _editable:Boolean ):void
+			{
+				var periodDiff:int = UtilPeriod.getPeriodDifference( this.paramIo4periodBegin, this.paramIo4periodEnd );	
+				if( periodDiff == SysConst.PERIOD_DIFF_NULL  )
+				{
+					return;	
+				}
+				
+				var periodLoc:int = UtilPeriod.getPeriodDifference( this.paramIo4periodBegin, _period );
+				if( periodLoc == SysConst.PERIOD_DIFF_NULL  )
+				{
+					return;	
+				}
+				
+				if( periodLoc <= periodDiff )
+				{
+					var dgclm:DataGridColumn = DataGridColumn( this.paramOut4arrDataColumns.getItemAt(periodLoc) );
+					dgclm.editable = _editable;					
+				}
+			}
+			
+			
+			
+			//	3	公共方法    end		
+			
+			//	4	初始化方法    begin	
+			protected function creationCompleteHandler(event:FlexEvent):void
+			{
+				this.paramOut4arrDataColumns = new ArrayCollection();
+				this.paramOut4arrDataColumns.addItem( this.columnPeriodDataValue00 );
+				this.paramOut4arrDataColumns.addItem( this.columnPeriodDataValue01 );
+				this.paramOut4arrDataColumns.addItem( this.columnPeriodDataValue02 );
+				this.paramOut4arrDataColumns.addItem( this.columnPeriodDataValue03 );
+				this.paramOut4arrDataColumns.addItem( this.columnPeriodDataValue04 );
+				this.paramOut4arrDataColumns.addItem( this.columnPeriodDataValue05 );
+				this.paramOut4arrDataColumns.addItem( this.columnPeriodDataValue06 );
+				this.paramOut4arrDataColumns.addItem( this.columnPeriodDataValue07 );
+				this.paramOut4arrDataColumns.addItem( this.columnPeriodDataValue08 );
+				this.paramOut4arrDataColumns.addItem( this.columnPeriodDataValue09 );
+				this.paramOut4arrDataColumns.addItem( this.columnPeriodDataValue10 );
+				this.paramOut4arrDataColumns.addItem( this.columnPeriodDataValue11 );
+				this.paramOut4arrDataColumns.addItem( this.columnPeriodDataValue12 );
+				this.paramOut4arrDataColumns.addItem( this.columnPeriodDataValue13 );
+				this.paramOut4arrDataColumns.addItem( this.columnPeriodDataValue14 );
+				this.paramOut4arrDataColumns.addItem( this.columnPeriodDataValue15 );
+				this.paramOut4arrDataColumns.addItem( this.columnPeriodDataValue16 );			
+				this.paramOut4arrDataColumns.addItem( this.columnPeriodDataValue17 );
+				this.paramOut4arrDataColumns.addItem( this.columnPeriodDataValue18 );
+				this.paramOut4arrDataColumns.addItem( this.columnPeriodDataValue19 );
+				this.paramOut4arrDataColumns.addItem( this.columnPeriodDataValue20 );
+				this.paramOut4arrDataColumns.addItem( this.columnPeriodDataValue21 );
+				this.paramOut4arrDataColumns.addItem( this.columnPeriodDataValue22 );
+				this.paramOut4arrDataColumns.addItem( this.columnPeriodDataValue23 );
+				this.paramOut4arrDataColumns.addItem( this.columnPeriodDataValue24 );
+				this.paramOut4arrDataColumns.addItem( this.columnPeriodDataValue25 );
+				this.paramOut4arrDataColumns.addItem( this.columnPeriodDataValue26 );			
+				this.paramOut4arrDataColumns.addItem( this.columnPeriodDataValue27 );
+				this.paramOut4arrDataColumns.addItem( this.columnPeriodDataValue28 );
+				this.paramOut4arrDataColumns.addItem( this.columnPeriodDataValue29 );		
+				
+				this.paramOut4arrDataColumns.addItem( this.columnPeriodDataValue30 );
+				this.paramOut4arrDataColumns.addItem( this.columnPeriodDataValue31 );
+				this.paramOut4arrDataColumns.addItem( this.columnPeriodDataValue32 );
+				this.paramOut4arrDataColumns.addItem( this.columnPeriodDataValue33 );
+				this.paramOut4arrDataColumns.addItem( this.columnPeriodDataValue34 );
+				this.paramOut4arrDataColumns.addItem( this.columnPeriodDataValue35 );
+				this.paramOut4arrDataColumns.addItem( this.columnPeriodDataValue36 );			
+				this.paramOut4arrDataColumns.addItem( this.columnPeriodDataValue37 );
+				this.paramOut4arrDataColumns.addItem( this.columnPeriodDataValue38 );
+				this.paramOut4arrDataColumns.addItem( this.columnPeriodDataValue39 );
+				
+				this.paramOut4arrDataColumns.addItem( this.columnPeriodDataValue40 );
+				this.paramOut4arrDataColumns.addItem( this.columnPeriodDataValue41 );
+				this.paramOut4arrDataColumns.addItem( this.columnPeriodDataValue42 );
+				this.paramOut4arrDataColumns.addItem( this.columnPeriodDataValue43 );
+				this.paramOut4arrDataColumns.addItem( this.columnPeriodDataValue44 );
+				this.paramOut4arrDataColumns.addItem( this.columnPeriodDataValue45 );
+				this.paramOut4arrDataColumns.addItem( this.columnPeriodDataValue46 );			
+				this.paramOut4arrDataColumns.addItem( this.columnPeriodDataValue47 );
+				this.paramOut4arrDataColumns.addItem( this.columnPeriodDataValue48 );
+				this.paramOut4arrDataColumns.addItem( this.columnPeriodDataValue49 );				
+				
+				this.paramOut4arrDataColumns.addItem( this.columnPeriodDataValue50 );
+				this.paramOut4arrDataColumns.addItem( this.columnPeriodDataValue51 );
+				this.paramOut4arrDataColumns.addItem( this.columnPeriodDataValue52 );
+				this.paramOut4arrDataColumns.addItem( this.columnPeriodDataValue53 );
+				this.paramOut4arrDataColumns.addItem( this.columnPeriodDataValue54 );
+				this.paramOut4arrDataColumns.addItem( this.columnPeriodDataValue55 );
+				this.paramOut4arrDataColumns.addItem( this.columnPeriodDataValue56 );			
+				this.paramOut4arrDataColumns.addItem( this.columnPeriodDataValue57 );
+				this.paramOut4arrDataColumns.addItem( this.columnPeriodDataValue58 );
+				this.paramOut4arrDataColumns.addItem( this.columnPeriodDataValue59 );				
+				this.paramOut4arrDataColumns.addItem( this.columnPeriodDataValue60 );
+				this.paramOut4arrDataColumns.addItem( this.columnPeriodDataValue61 );
+				this.paramOut4arrDataColumns.addItem( this.columnPeriodDataValue62 );
+				this.paramOut4arrDataColumns.addItem( this.columnPeriodDataValue63 );
+				this.paramOut4arrDataColumns.addItem( this.columnPeriodDataValue64 );
+				this.paramOut4arrDataColumns.addItem( this.columnPeriodDataValue65 );
+				this.paramOut4arrDataColumns.addItem( this.columnPeriodDataValue67 );
+				this.paramOut4arrDataColumns.addItem( this.columnPeriodDataValue68 );
+				this.paramOut4arrDataColumns.addItem( this.columnPeriodDataValue69 );
+				this.paramOut4arrDataColumns.addItem( this.columnPeriodDataValue70 );
+				this.paramOut4arrDataColumns.addItem( this.columnPeriodDataValue71 );
+				this.paramOut4arrDataColumns.addItem( this.columnPeriodDataValue72 );
+				this.paramOut4arrDataColumns.addItem( this.columnPeriodDataValue73 );
+				this.paramOut4arrDataColumns.addItem( this.columnPeriodDataValue74 );
+				this.paramOut4arrDataColumns.addItem( this.columnPeriodDataValue75 );
+				this.paramOut4arrDataColumns.addItem( this.columnPeriodDataValue76 );
+				this.paramOut4arrDataColumns.addItem( this.columnPeriodDataValue77 );
+				this.paramOut4arrDataColumns.addItem( this.columnPeriodDataValue78 );
+				this.paramOut4arrDataColumns.addItem( this.columnPeriodDataValue79 );
+				this.paramOut4arrDataColumns.addItem( this.columnPeriodDataValue80 );
+			}			
+			//	4	初始化方法    end				
+			
+			//	5	事件响应方法    begin
+			//	5	事件响应方法    end
+			
+			//	6	本地方法    begin
+			private function sortCompareFunction4ProductCode(obj1:ABUiRowData, obj2:ABUiRowData):int
+			{
+				if( obj1 == null )
+				{
+					return -1;
+				}
+				
+				if( obj2 == null )
+				{
+					return 1;
+				}
+				
+				var rstCompare:int = obj1.product.code.localeCompare( obj2.product.code )
+				if( rstCompare < 0 )
+				{
+					return -1;
+				}
+				else if( rstCompare > 0 )
+				{
+					return 1;
+				}
+				else
+				{
+					return 0;
+				}
+			}			
+			
+			private function sortCompareFunction4ProductName(obj1:ABUiRowData, obj2:ABUiRowData):int
+			{
+				if( obj1 == null )
+				{
+					return -1;
+				}
+				
+				if( obj2 == null )
+				{
+					return 1;
+				}
+				
+				var rstCompare:int = obj1.product.name.localeCompare( obj2.product.name )
+				if( rstCompare < 0 )
+				{
+					return -1;
+				}
+				else if( rstCompare > 0 )
+				{
+					return 1;
+				}
+				else
+				{
+					return 0;
+				}
+			}		
+			
+			private function sortCompareFunction4ProductCharacterCode(obj1:ABUiRowData, obj2:ABUiRowData):int
+			{
+				if( obj1 == null )
+				{
+					return -1;
+				}
+				
+				if( obj2 == null )
+				{
+					return 1;
+				}
+				
+				var rstCompare:int = obj1.productCharacter.code.localeCompare( obj2.productCharacter.code )
+				if( rstCompare < 0 )
+				{
+					return -1;
+				}
+				else if( rstCompare > 0 )
+				{
+					return 1;
+				}
+				else
+				{
+					return 0;
+				}
+			}			
+			
+			private function sortCompareFunction4ProductCharacterName(obj1:ABUiRowData, obj2:ABUiRowData):int
+			{
+				if( obj1 == null )
+				{
+					return -1;
+				}
+				
+				if( obj2 == null )
+				{
+					return 1;
+				}
+				
+				var rstCompare:int = obj1.productCharacter.name.localeCompare( obj2.productCharacter.name )
+				if( rstCompare < 0 )
+				{
+					return -1;
+				}
+				else if( rstCompare > 0 )
+				{
+					return 1;
+				}
+				else
+				{
+					return 0;
+				}
+			}				
+			
+			private function sortCompareFunction4OrganizationCode(obj1:ABUiRowData, obj2:ABUiRowData):int
+			{
+				if( obj1 == null )
+				{
+					return -1;
+				}
+				
+				if( obj2 == null )
+				{
+					return 1;
+				}
+				
+				var rstCompare:int = obj1.organization.code.localeCompare( obj2.organization.code )
+				if( rstCompare < 0 )
+				{
+					return -1;
+				}
+				else if( rstCompare > 0 )
+				{
+					return 1;
+				}
+				else
+				{
+					return 0;
+				}
+			}			
+			
+			private function sortCompareFunction4OrganizationName(obj1:ABUiRowData, obj2:ABUiRowData):int
+			{
+				if( obj1 == null )
+				{
+					return -1;
+				}
+				
+				if( obj2 == null )
+				{
+					return 1;
+				}
+				
+				var rstCompare:int = obj1.organization.name.localeCompare( obj2.organization.name )
+				if( rstCompare < 0 )
+				{
+					return -1;
+				}
+				else if( rstCompare > 0 )
+				{
+					return 1;
+				}
+				else
+				{
+					return 0;
+				}
+			}		
+			
+			private function sortCompareFunction4OrganizationCharacterCode(obj1:ABUiRowData, obj2:ABUiRowData):int
+			{
+				if( obj1 == null )
+				{
+					return -1;
+				}
+				
+				if( obj2 == null )
+				{
+					return 1;
+				}
+				
+				var rstCompare:int = obj1.organizationCharacter.code.localeCompare( obj2.organizationCharacter.code )
+				if( rstCompare < 0 )
+				{
+					return -1;
+				}
+				else if( rstCompare > 0 )
+				{
+					return 1;
+				}
+				else
+				{
+					return 0;
+				}
+			}			
+			
+			private function sortCompareFunction4OrganizationCharacterName(obj1:ABUiRowData, obj2:ABUiRowData):int
+			{
+				if( obj1 == null )
+				{
+					return -1;
+				}
+				
+				if( obj2 == null )
+				{
+					return 1;
+				}
+				
+				var rstCompare:int = obj1.organizationCharacter.name.localeCompare( obj2.organizationCharacter.name )
+				if( rstCompare < 0 )
+				{
+					return -1;
+				}
+				else if( rstCompare > 0 )
+				{
+					return 1;
+				}
+				else
+				{
+					return 0;
+				}
+			}			
+			
+			private function sortCompareFunction4BizData(obj1:ABUiRowData, obj2:ABUiRowData):int
+			{
+				if( obj1 == null )
+				{
+					return -1;
+				}
+				
+				if( obj2 == null )
+				{
+					return 1;
+				}
+				
+				var rstCompare:int = obj1.bizData.toString().localeCompare( obj2.bizData.toString() )
+				if( rstCompare < 0 )
+				{
+					return -1;
+				}
+				else if( rstCompare > 0 )
+				{
+					return 1;
+				}
+				else
+				{
+					return 0;
+				}
+			}					
+			//	6	本地方法   end					
+			
+			
+			
+		]]>
+	</fx:Script>	
+	<mx:columns>
+		<datagrid:CheckBoxColumn id="columnIsChecked"
+								 itemRenderer="com.cool.components.datagrid.CheckBoxItemRenderer" 
+								 headerRenderer="com.cool.components.datagrid.CheckBoxHeaderRenderer"
+								 width="25" dataField="isChecked" rendererIsEditor="true" />
+
+		<mx:DataGridColumn id="columnProductCode"	headerText="{ResourceManager.getInstance().getString('label','proCode')}" 				
+						   dataField="product" 	labelFunction="UtilDataGridColumnLabelFunction.getProductCode"	editable="false" 
+						   width="{uiconfig.proCodeWidth}" visible="{showProCode}" sortCompareFunction="sortCompareFunction4ProductCode"/>
+		
+		<mx:DataGridColumn id="columnProductName"	headerText="{ResourceManager.getInstance().getString('label','proName')}"	
+						   dataField="product" 	labelFunction="UtilDataGridColumnLabelFunction.getProductName"	editable="false" 
+						   width="{uiconfig.proNameWidth}" visible="{showProName}" sortCompareFunction="sortCompareFunction4ProductName"/>
+		
+		<mx:DataGridColumn id="columnProductCharacterCode"	headerText="{ResourceManager.getInstance().getString('label','proCharCode')}" 		
+						   dataField="productCharacter" 	labelFunction="UtilDataGridColumnLabelFunction.getProductCharacterCode"			
+						   editable="false" width="{uiconfig.proCodeCharWidth}" visible="{showProCharCode}" 	sortCompareFunction="sortCompareFunction4ProductCharacterCode"/>
+		<mx:DataGridColumn id="columnProductCharacterName"	headerText="{ResourceManager.getInstance().getString('label','proCharName')}" 		
+						   dataField="productCharacter" 	labelFunction="UtilDataGridColumnLabelFunction.getProductCharacterName"			
+						   editable="false" width="{uiconfig.proNameCharWidth}" visible="{showProCharName}" 	sortCompareFunction="sortCompareFunction4ProductCharacterName"/>
+		<mx:DataGridColumn id="columnOrganizationCode"		headerText="{ResourceManager.getInstance().getString('label','orgCode')}" 			
+						   dataField="organization" 		labelFunction="UtilDataGridColumnLabelFunction.getOrganizationCode"				
+						   editable="false" width="{uiconfig.orgCodeWidth}" visible="{showOrgCode}" 	sortCompareFunction="sortCompareFunction4OrganizationCode"/>
+		<mx:DataGridColumn id="columnOrganizationName"		headerText="{ResourceManager.getInstance().getString('label','orgName')}" 			
+						   dataField="organization" 		labelFunction="UtilDataGridColumnLabelFunction.getOrganizationName"				
+						   editable="false" width="{uiconfig.orgNameWidth}" visible="{showOrgName}"	sortCompareFunction="sortCompareFunction4OrganizationName"/>
+		<mx:DataGridColumn id="columnOrganizationCharacterCode"	headerText="{ResourceManager.getInstance().getString('label','orgCharCode')}" 	
+						   dataField="organizationCharacter" 	labelFunction="UtilDataGridColumnLabelFunction.getOrganizationCharacterCode"	
+						   editable="false" width="{uiconfig.orgCodeCharWidth}" visible="{showOrgCharCode}" 	sortCompareFunction="sortCompareFunction4OrganizationCharacterCode"/>
+		<mx:DataGridColumn id="columnOrganizationCharacterName"	headerText="{ResourceManager.getInstance().getString('label','orgCharName')}" 	
+						   dataField="organizationCharacter" 	labelFunction="UtilDataGridColumnLabelFunction.getOrganizationCharacterName"	
+						   editable="false" width="{uiconfig.orgNameCharWidth}" visible="{showOrgCharName}" 	sortCompareFunction="sortCompareFunction4OrganizationCharacterName"/>								
+		
+		<mx:DataGridColumn id="columnBizData"	headerText="{ResourceManager.getInstance().getString('label','busData')}"
+						   width="{uiconfig.bizdataWidth}"
+						   dataField="bizData" 	editable="false" visible="true" sortCompareFunction="sortCompareFunction4BizData"/>
+		
+		<mx:DataGridColumn id="columnPeriodDataValue00"			headerText="" 	dataField="periodDataValue00" visible="false" editable="false" 	textAlign="left"	width="100"/>
+		<mx:DataGridColumn id="columnPeriodDataValue01"			headerText="" 	dataField="periodDataValue01" visible="false" editable="false"	textAlign="left"	width="100"/>
+		<mx:DataGridColumn id="columnPeriodDataValue02"			headerText="" 	dataField="periodDataValue02" visible="false" editable="false"	textAlign="left"	width="100"/>
+		<mx:DataGridColumn id="columnPeriodDataValue03"			headerText="" 	dataField="periodDataValue03" visible="false" editable="false"	textAlign="left"	width="100"/>
+		<mx:DataGridColumn id="columnPeriodDataValue04"			headerText="" 	dataField="periodDataValue04" visible="false" editable="false"	textAlign="left"	width="100"/>
+		<mx:DataGridColumn id="columnPeriodDataValue05"			headerText="" 	dataField="periodDataValue05" visible="false" editable="false"	textAlign="left"	width="100"/>
+		<mx:DataGridColumn id="columnPeriodDataValue06"			headerText="" 	dataField="periodDataValue06" visible="false" editable="false"	textAlign="left"	width="100"/>
+		<mx:DataGridColumn id="columnPeriodDataValue07"			headerText="" 	dataField="periodDataValue07" visible="false" editable="false"	textAlign="left"	width="100"/>
+		<mx:DataGridColumn id="columnPeriodDataValue08"			headerText="" 	dataField="periodDataValue08" visible="false" editable="false"	textAlign="left"	width="100"/>
+		<mx:DataGridColumn id="columnPeriodDataValue09"			headerText="" 	dataField="periodDataValue09" visible="false" editable="false"	textAlign="left"	width="100"/>
+		<mx:DataGridColumn id="columnPeriodDataValue10"			headerText="" 	dataField="periodDataValue10" visible="false" editable="false"	textAlign="left"	width="100"/>
+		<mx:DataGridColumn id="columnPeriodDataValue11"			headerText="" 	dataField="periodDataValue11" visible="false" editable="false"	textAlign="left"	width="100"/>
+		<mx:DataGridColumn id="columnPeriodDataValue12"			headerText="" 	dataField="periodDataValue12" visible="false" editable="false"	textAlign="left"	width="100"/>
+		<mx:DataGridColumn id="columnPeriodDataValue13"			headerText="" 	dataField="periodDataValue13" visible="false" editable="false"	textAlign="left"	width="100"/>
+		<mx:DataGridColumn id="columnPeriodDataValue14"			headerText="" 	dataField="periodDataValue14" visible="false" editable="false"	textAlign="left"	width="100"/>
+		<mx:DataGridColumn id="columnPeriodDataValue15"			headerText="" 	dataField="periodDataValue15" visible="false" editable="false"	textAlign="left"	width="100"/>
+		<mx:DataGridColumn id="columnPeriodDataValue16"			headerText="" 	dataField="periodDataValue16" visible="false" editable="false"	textAlign="left"	width="100"/>
+		<mx:DataGridColumn id="columnPeriodDataValue17"			headerText="" 	dataField="periodDataValue17" visible="false" editable="false"	textAlign="left"	width="100"/>
+		<mx:DataGridColumn id="columnPeriodDataValue18"			headerText="" 	dataField="periodDataValue18" visible="false" editable="false"	textAlign="left"	width="100"/>
+		<mx:DataGridColumn id="columnPeriodDataValue19"			headerText="" 	dataField="periodDataValue19" visible="false" editable="false"	textAlign="left"	width="100"/>
+		<mx:DataGridColumn id="columnPeriodDataValue20"			headerText="" 	dataField="periodDataValue20" visible="false" editable="false"	textAlign="left"	width="100"/>		
+		<mx:DataGridColumn id="columnPeriodDataValue21"			headerText="" 	dataField="periodDataValue21" visible="false" editable="false"	textAlign="left"	width="100"/>
+		<mx:DataGridColumn id="columnPeriodDataValue22"			headerText="" 	dataField="periodDataValue22" visible="false" editable="false"	textAlign="left"	width="100"/>
+		<mx:DataGridColumn id="columnPeriodDataValue23"			headerText="" 	dataField="periodDataValue23" visible="false" editable="false"	textAlign="left"	width="100"/>
+		<mx:DataGridColumn id="columnPeriodDataValue24"			headerText="" 	dataField="periodDataValue24" visible="false" editable="false"	textAlign="left"	width="100"/>
+		<mx:DataGridColumn id="columnPeriodDataValue25"			headerText="" 	dataField="periodDataValue25" visible="false" editable="false"	textAlign="left"	width="100"/>
+		<mx:DataGridColumn id="columnPeriodDataValue26"			headerText="" 	dataField="periodDataValue26" visible="false" editable="false"	textAlign="left"	width="100"/>
+		<mx:DataGridColumn id="columnPeriodDataValue27"			headerText="" 	dataField="periodDataValue27" visible="false" editable="false"	textAlign="left"	width="100"/>
+		<mx:DataGridColumn id="columnPeriodDataValue28"			headerText="" 	dataField="periodDataValue28" visible="false" editable="false"	textAlign="left"	width="100"/>
+		<mx:DataGridColumn id="columnPeriodDataValue29"			headerText="" 	dataField="periodDataValue29" visible="false" editable="false"	textAlign="left"	width="100"/>
+		
+		<mx:DataGridColumn id="columnPeriodDataValue30"			headerText="" 	dataField="periodDataValue30" visible="false" editable="false"	textAlign="left"	width="100"/>		
+		<mx:DataGridColumn id="columnPeriodDataValue31"			headerText="" 	dataField="periodDataValue31" visible="false" editable="false"	textAlign="left"	width="100"/>
+		<mx:DataGridColumn id="columnPeriodDataValue32"			headerText="" 	dataField="periodDataValue32" visible="false" editable="false"	textAlign="left"	width="100"/>
+		<mx:DataGridColumn id="columnPeriodDataValue33"			headerText="" 	dataField="periodDataValue33" visible="false" editable="false"	textAlign="left"	width="100"/>
+		<mx:DataGridColumn id="columnPeriodDataValue34"			headerText="" 	dataField="periodDataValue34" visible="false" editable="false"	textAlign="left"	width="100"/>
+		<mx:DataGridColumn id="columnPeriodDataValue35"			headerText="" 	dataField="periodDataValue35" visible="false" editable="false"	textAlign="left"	width="100"/>
+		<mx:DataGridColumn id="columnPeriodDataValue36"			headerText="" 	dataField="periodDataValue36" visible="false" editable="false"	textAlign="left"	width="100"/>
+		<mx:DataGridColumn id="columnPeriodDataValue37"			headerText="" 	dataField="periodDataValue37" visible="false" editable="false"	textAlign="left"	width="100"/>
+		<mx:DataGridColumn id="columnPeriodDataValue38"			headerText="" 	dataField="periodDataValue38" visible="false" editable="false"	textAlign="left"	width="100"/>
+		<mx:DataGridColumn id="columnPeriodDataValue39"			headerText="" 	dataField="periodDataValue39" visible="false" editable="false"	textAlign="left"	width="100"/>		
+		
+		<mx:DataGridColumn id="columnPeriodDataValue40"			headerText="" 	dataField="periodDataValue40" visible="false" editable="false"	textAlign="left"	width="100"/>		
+		<mx:DataGridColumn id="columnPeriodDataValue41"			headerText="" 	dataField="periodDataValue41" visible="false" editable="false"	textAlign="left"	width="100"/>
+		<mx:DataGridColumn id="columnPeriodDataValue42"			headerText="" 	dataField="periodDataValue42" visible="false" editable="false"	textAlign="left"	width="100"/>
+		<mx:DataGridColumn id="columnPeriodDataValue43"			headerText="" 	dataField="periodDataValue43" visible="false" editable="false"	textAlign="left"	width="100"/>
+		<mx:DataGridColumn id="columnPeriodDataValue44"			headerText="" 	dataField="periodDataValue44" visible="false" editable="false"	textAlign="left"	width="100"/>
+		<mx:DataGridColumn id="columnPeriodDataValue45"			headerText="" 	dataField="periodDataValue45" visible="false" editable="false"	textAlign="left"	width="100"/>
+		<mx:DataGridColumn id="columnPeriodDataValue46"			headerText="" 	dataField="periodDataValue46" visible="false" editable="false"	textAlign="left"	width="100"/>
+		<mx:DataGridColumn id="columnPeriodDataValue47"			headerText="" 	dataField="periodDataValue47" visible="false" editable="false"	textAlign="left"	width="100"/>
+		<mx:DataGridColumn id="columnPeriodDataValue48"			headerText="" 	dataField="periodDataValue48" visible="false" editable="false"	textAlign="left"	width="100"/>
+		<mx:DataGridColumn id="columnPeriodDataValue49"			headerText="" 	dataField="periodDataValue49" visible="false" editable="false"	textAlign="left"	width="100"/>			
+		
+		<mx:DataGridColumn id="columnPeriodDataValue50"			headerText="" 	dataField="periodDataValue50" visible="false" editable="false"	textAlign="left"	width="100"/>		
+		<mx:DataGridColumn id="columnPeriodDataValue51"			headerText="" 	dataField="periodDataValue51" visible="false" editable="false"	textAlign="left"	width="100"/>
+		<mx:DataGridColumn id="columnPeriodDataValue52"			headerText="" 	dataField="periodDataValue52" visible="false" editable="false"	textAlign="left"	width="100"/>
+		<mx:DataGridColumn id="columnPeriodDataValue53"			headerText="" 	dataField="periodDataValue53" visible="false" editable="false"	textAlign="left"	width="100"/>
+		<mx:DataGridColumn id="columnPeriodDataValue54"			headerText="" 	dataField="periodDataValue54" visible="false" editable="false"	textAlign="left"	width="100"/>
+		<mx:DataGridColumn id="columnPeriodDataValue55"			headerText="" 	dataField="periodDataValue55" visible="false" editable="false"	textAlign="left"	width="100"/>
+		<mx:DataGridColumn id="columnPeriodDataValue56"			headerText="" 	dataField="periodDataValue56" visible="false" editable="false"	textAlign="left"	width="100"/>
+		<mx:DataGridColumn id="columnPeriodDataValue57"			headerText="" 	dataField="periodDataValue57" visible="false" editable="false"	textAlign="left"	width="100"/>
+		<mx:DataGridColumn id="columnPeriodDataValue58"			headerText="" 	dataField="periodDataValue58" visible="false" editable="false"	textAlign="left"	width="100"/>
+		<mx:DataGridColumn id="columnPeriodDataValue59"			headerText="" 	dataField="periodDataValue59" visible="false" editable="false"	textAlign="left"	width="100"/>	
+		
+		<mx:DataGridColumn id="columnPeriodDataValue60"			headerText="" 	dataField="periodDataValue60" visible="false" editable="false"	textAlign="left"	width="100"/>	
+		<mx:DataGridColumn id="columnPeriodDataValue61"			headerText="" 	dataField="periodDataValue61" visible="false" editable="false"	textAlign="left"	width="100"/>	
+		<mx:DataGridColumn id="columnPeriodDataValue62"			headerText="" 	dataField="periodDataValue62" visible="false" editable="false"	textAlign="left"	width="100"/>	
+		<mx:DataGridColumn id="columnPeriodDataValue63"			headerText="" 	dataField="periodDataValue63" visible="false" editable="false"	textAlign="left"	width="100"/>	
+		<mx:DataGridColumn id="columnPeriodDataValue64"			headerText="" 	dataField="periodDataValue64" visible="false" editable="false"	textAlign="left"	width="100"/>	
+		<mx:DataGridColumn id="columnPeriodDataValue65"			headerText="" 	dataField="periodDataValue65" visible="false" editable="false"	textAlign="left"	width="100"/>	
+		<mx:DataGridColumn id="columnPeriodDataValue67"			headerText="" 	dataField="periodDataValue67" visible="false" editable="false"	textAlign="left"	width="100"/>	
+		<mx:DataGridColumn id="columnPeriodDataValue68"			headerText="" 	dataField="periodDataValue68" visible="false" editable="false"	textAlign="left"	width="100"/>	
+		<mx:DataGridColumn id="columnPeriodDataValue69"			headerText="" 	dataField="periodDataValue69" visible="false" editable="false"	textAlign="left"	width="100"/>	
+		<mx:DataGridColumn id="columnPeriodDataValue70"			headerText="" 	dataField="periodDataValue70" visible="false" editable="false"	textAlign="left"	width="100"/>	
+		<mx:DataGridColumn id="columnPeriodDataValue71"			headerText="" 	dataField="periodDataValue71" visible="false" editable="false"	textAlign="left"	width="100"/>	
+		<mx:DataGridColumn id="columnPeriodDataValue72"			headerText="" 	dataField="periodDataValue72" visible="false" editable="false"	textAlign="left"	width="100"/>	
+		<mx:DataGridColumn id="columnPeriodDataValue73"			headerText="" 	dataField="periodDataValue73" visible="false" editable="false"	textAlign="left"	width="100"/>	
+		<mx:DataGridColumn id="columnPeriodDataValue74"			headerText="" 	dataField="periodDataValue74" visible="false" editable="false"	textAlign="left"	width="100"/>	
+		<mx:DataGridColumn id="columnPeriodDataValue75"			headerText="" 	dataField="periodDataValue75" visible="false" editable="false"	textAlign="left"	width="100"/>	
+		<mx:DataGridColumn id="columnPeriodDataValue76"			headerText="" 	dataField="periodDataValue76" visible="false" editable="false"	textAlign="left"	width="100"/>	
+		<mx:DataGridColumn id="columnPeriodDataValue77"			headerText="" 	dataField="periodDataValue77" visible="false" editable="false"	textAlign="left"	width="100"/>	
+		<mx:DataGridColumn id="columnPeriodDataValue78"			headerText="" 	dataField="periodDataValue78" visible="false" editable="false"	textAlign="left"	width="100"/>	
+		<mx:DataGridColumn id="columnPeriodDataValue79"			headerText="" 	dataField="periodDataValue79" visible="false" editable="false"	textAlign="left"	width="100"/>	
+		<mx:DataGridColumn id="columnPeriodDataValue80"			headerText="" 	dataField="periodDataValue80" visible="false" editable="false"	textAlign="left"	width="100"/>	
+	</mx:columns>	
+</mx:DataGrid>

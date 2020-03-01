@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Module xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		   xmlns:s="library://ns.adobe.com/flex/spark" 
+		   xmlns:mx="library://ns.adobe.com/flex/mx" layout="vertical" width="100%" height="100%" paddingLeft="10" paddingRight="10"
+		   creationComplete="creationCompleteHandler(event)"  
+		   xmlns:common="dmdd.dmddmx.com.common.*"
+		   xmlns:containers="aks.aksmx.containers.*" xmlns:product="dmdd.dmddmx.com.product.*">
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+		<s:RemoteObject endpoint="{ClientEnvironment.endpoint}" id="srvMainData" destination="UIMainDataService">		
+			<s:method name="queryForecastInstProOrg" result="resultHandler4queryData(event)" fault="faultHandler4queryData(event)">
+			</s:method>
+			
+		</s:RemoteObject>		
+	</fx:Declarations>
+	<fx:Script>
+		<![CDATA[
+			import aks.aksas.utils.UtilUi;
+			
+			import com.cool.assets.CoolAssetsFile;
+			import com.cool.utils.DataListExportUtil;
+			
+			import dmdd.dmddas.common.constant.BizConst;
+			import dmdd.dmddas.common.system.ClientEnvironment;
+			import dmdd.dmddas.common.utils.UtilDataGridColumnLabelFunction;
+			import dmdd.dmddas.common.utils.UtilExceptionLocale;
+			import dmdd.dmddas.dataaccess.bizobject.BProduct;
+			import dmdd.dmddas.dataaccess.bizobject.BProductLayer;
+			import dmdd.dmddas.dataaccess.bizobject.BSysDictionaryItem;
+			
+			import mx.collections.ArrayCollection;
+			import mx.controls.Alert;
+			import mx.events.CloseEvent;
+			import mx.events.FlexEvent;
+			import mx.events.ListEvent;
+			import mx.managers.PopUpManager;
+			import mx.resources.ResourceManager;
+			import mx.rpc.events.FaultEvent;
+			import mx.rpc.events.ResultEvent;
+			
+			[Bindable]
+			private var productArr:ArrayCollection = new ArrayCollection();
+			
+			[Bindable]
+			private var arrDictGlobalYesNo:ArrayCollection ;
+			
+			
+			protected function creationCompleteHandler(event:FlexEvent):void
+			{
+				
+				arrDictGlobalYesNo = new ArrayCollection([{value:"",name:""}
+					,{value:"1",name:"是"} ,{value:"0",name:"否"}
+				]);
+			}
+			
+			private function onQuery():void
+			{
+				var alert_title_hint:String = resourceManager.getString('alert','alert_title_hint');
+				var alert_msg:String = null;
+				
+				var queryCond:Object = new Object();
+				queryCond["fcCode"] = inputFcCode.text;
+				queryCond["fcName"] = inputFcName.text;
+				queryCond["proCode"] = inputProCode.text;
+				queryCond["proName"] = inputProName.text;
+				queryCond["orgCode"] = inputOrgCode.text;
+				queryCond["orgName"] = inputOrgName.text;
+				queryCond["blurMatch"] = cbBlurMatch.selected?"true":"false";
+				
+				UtilUi.pubFun4PopWaitWindow( this );
+				srvMainData.queryForecastInstProOrg( queryCond );
+			}	
+			
+			private function faultHandler4queryData(event:FaultEvent):void
+			{
+				UtilUi.pubFun4RemoveWaitWindow();
+				Alert.show( event.fault.faultDetail );
+			}
+			
+			private function resultHandler4queryData(event:ResultEvent):void 
+			{
+				productArr = ArrayCollection(event.result);
+				
+				UtilUi.pubFun4RemoveWaitWindow();
+			}		
+			
+			private function onExport():void
+			{
+				var csvstr:String = DataListExportUtil.generateCsvData(datagridProduct);
+				System.setClipboard(csvstr);
+			}
+			
+		]]>
+	</fx:Script>	
+	
+	<s:VGroup width="100%" verticalAlign="middle">
+		<s:HGroup verticalAlign="middle">
+			<s:Label text="{resourceManager.getString('label','forecastCategoryCode')}"  textAlign="right"/>
+			<s:TextInput id="inputFcCode" text="" editable="true" width="80"/>
+			
+			<s:Spacer width="10" />
+			<s:Label text="{resourceManager.getString('label','forecastCategoryName')}" textAlign="right" />
+			<s:TextInput id="inputFcName" text="" editable="true" width="80"/>
+			
+			<s:Spacer width="10" />
+			<s:Label text="{resourceManager.getString('label','proCode')}"  textAlign="right"/>
+			<s:TextInput id="inputProCode" text="" editable="true" width="80"/>
+			
+			<s:Spacer width="10" />
+			<s:Label text="{resourceManager.getString('label','proName')}" textAlign="right" />
+			<s:TextInput id="inputProName" text="" editable="true" width="80"/>
+			
+			<s:Spacer width="10" />
+			<s:Label text="{resourceManager.getString('label','orgCode')}"  textAlign="right"/>
+			<s:TextInput id="inputOrgCode" text="" editable="true" width="80"/>
+			
+			<s:Spacer width="10" />
+			<s:Label text="{resourceManager.getString('label','orgName')}" textAlign="right" />
+			<s:TextInput id="inputOrgName" text="" editable="true" width="80"/>
+			
+			<s:Spacer width="10" />
+			<s:CheckBox label="{resourceManager.getString('note','blurMatch')}" id="cbBlurMatch"/>
+			
+			<s:Spacer width="10" />
+			<s:Button label="{resourceManager.getString('button','query')}" icon="{CoolAssetsFile.queryIcon}" click="onQuery()" id="btnSave"/> 
+			<s:Button label="{resourceManager.getString('button','export')}" icon="{CoolAssetsFile.doctableIcon}" click="onExport()" id="btnExport"/>
+		</s:HGroup>
+	</s:VGroup>
+	
+	<mx:DataGrid id="datagridProduct" dataProvider="{productArr}" width="100%" height="100%" horizontalScrollPolicy="auto" lockedColumnCount="2" >
+		<mx:columns>
+			<mx:DataGridColumn width="80" headerText="{resourceManager.getString('label','forecastCategoryCode')}" dataField="FC_CODE"/>
+			<mx:DataGridColumn width="160" headerText="{resourceManager.getString('label','forecastCategoryName')}" dataField="FC_NAME"/>
+			<mx:DataGridColumn width="90"  headerText="{resourceManager.getString('label','proCode')}" dataField="PRO_CODE"/>
+			<mx:DataGridColumn width="130" headerText="{resourceManager.getString('label','proName')}" dataField="PRO_NAME"/>
+			<mx:DataGridColumn width="90"  headerText="{resourceManager.getString('label','orgCode')}" dataField="ORG_CODE"/>
+			<mx:DataGridColumn width="90" headerText="{resourceManager.getString('label','orgName')}" dataField="ORG_NAME"/>
+			<mx:DataGridColumn width="60" headerText="{resourceManager.getString('label','forecastPeriod')}" dataField="FCPERIODNUM"/>
+			<mx:DataGridColumn width="60" headerText="{resourceManager.getString('label','frozenPeriod')}" dataField="FZPERIODNUM" 	editable="false"/>
+			<mx:DataGridColumn width="80" headerText="{resourceManager.getString('label','runLayerPro')}" dataField="RUN_PROLAYER" editable="false"/>
+			<mx:DataGridColumn width="80" headerText="{resourceManager.getString('label','runLayerOrg')}" dataField="RUN_PROLAYER" editable="false"/>
+			<mx:DataGridColumn width="100" headerText="{resourceManager.getString('label','finalForecastData')}" dataField="FINALFC_BIZDATA" editable="false"/>
+			<mx:DataGridColumn width="80" headerText="{resourceManager.getString('label','decomposRule')}"	dataField="DISTRIBUTEREFFORMULA" editable="false" labelFunction="UtilDataGridColumnLabelFunction.getForecastDistributeRefFormulaLocale"/>
+			<mx:DataGridColumn width="80" headerText="{resourceManager.getString('label','decomposFormula')}"	dataField="DECOMPOSEFORMULA" editable="false"	labelFunction="UtilDataGridColumnLabelFunction.getForecastDecomposeFormulaLocale"/>
+			<mx:DataGridColumn width="100" headerText="{resourceManager.getString('label','decomposOnBusData')}" dataField="DIS_BIZDATA" editable="false"/>
+			<mx:DataGridColumn width="80" headerText="{resourceManager.getString('label','decomposOnPeriodNum')}"	dataField="DISTRIBUTEREFPERIODNUM" 	editable="false"/>
+			<mx:DataGridColumn width="60" headerText="{resourceManager.getString('label','isValid')}" dataField="ISVALID" editable="false" labelFunction="UtilDataGridColumnLabelFunction.getGlobalYesNoLocale"/>		
+			
+			<mx:DataGridColumn width="135" headerText="{resourceManager.getString('label','forecastModelName')}" dataField="MODEL_NAME" editable="false"/>
+			<mx:DataGridColumn width="120" headerText="{resourceManager.getString('label','fcModelHisData')}" dataField="MODELHIS_BIZDATA" editable="false"/>
+			
+			<mx:DataGridColumn width="75" headerText="{resourceManager.getString('label','errorThreshould')}" dataField="ERRORTHRESHOLD" editable="false"/>
+			<mx:DataGridColumn width="140"  headerText="{resourceManager.getString('label','modelLastRunTime')}" dataField="LAST_RUNTIME" labelFunction="UtilDataGridColumnLabelFunction.getDateTimeStr"/>
+		</mx:columns>
+	</mx:DataGrid>
+	
+	<mx:HBox width="100%">
+		<mx:Spacer width="100%"/>
+		<s:Label text="{resourceManager.getString('aks','recordnum')}"/>
+		<s:Label text="{productArr.length}"/>
+		<mx:Spacer width="30"/>
+	</mx:HBox>
+	
+</mx:Module>

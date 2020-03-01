@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:AdvancedDataGrid xmlns:fx="http://ns.adobe.com/mxml/2009" 
+					 xmlns:s="library://ns.adobe.com/flex/spark" 
+					 xmlns:mx="library://ns.adobe.com/flex/mx" horizontalScrollPolicy="on" styleName="adv1">
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+	</fx:Declarations>
+	<fx:Metadata>
+		[ResourceBundle("com_forecast_forecastmodelm_forecastmodelmaanalogitem_advanceddatagrid")]
+	</fx:Metadata>
+	<fx:Script>
+		<![CDATA[
+			import dmdd.dmddas.common.utils.UtilDataGridColumnLabelFunction;
+			import dmdd.dmddas.dataaccess.bizobject.BForecastMakeLogProOrg;
+			
+			import mx.resources.ResourceManager;
+			
+			//	描述    begin
+			//	描述    end
+			
+			//	0	输入参数    begin			
+			//	0	输入参数    end
+			
+			//	1	输出参数    begin
+			//	1	输出参数    end
+			
+			//	2	本地变量    begin			
+			//	2	本地变量    end			
+			
+			//	3	公共方法    begin							
+			//	3	公共方法    end		
+			
+			//	4	初始化方法    begin				
+			//	4	初始化方法    end				
+			
+			//	5	事件响应方法    begin
+			//	5	事件响应方法    end
+			
+			//	6	本地方法    begin
+			private function sortCompareFunction4ProductCode(obj1:BForecastMakeLogProOrg, obj2:BForecastMakeLogProOrg):int
+			{
+				if( obj1 == null )
+				{
+					return -1;
+				}
+				
+				if( obj2 == null )
+				{
+					return 1;
+				}
+				
+				var rstCompare:int = obj1.product.code.localeCompare( obj2.product.code )
+				if( rstCompare < 0 )
+				{
+					return -1;
+				}
+				else if( rstCompare > 0 )
+				{
+					return 1;
+				}
+				else
+				{
+					return 0;
+				}
+			}			
+			
+			private function sortCompareFunction4ProductName(obj1:BForecastMakeLogProOrg, obj2:BForecastMakeLogProOrg):int
+			{
+				if( obj1 == null )
+				{
+					return -1;
+				}
+				
+				if( obj2 == null )
+				{
+					return 1;
+				}
+				
+				var rstCompare:int = obj1.product.name.localeCompare( obj2.product.name )
+				if( rstCompare < 0 )
+				{
+					return -1;
+				}
+				else if( rstCompare > 0 )
+				{
+					return 1;
+				}
+				else
+				{
+					return 0;
+				}
+			}			
+			
+			private function sortCompareFunction4OrganizationCode(obj1:BForecastMakeLogProOrg, obj2:BForecastMakeLogProOrg):int
+			{
+				if( obj1 == null )
+				{
+					return -1;
+				}
+				
+				if( obj2 == null )
+				{
+					return 1;
+				}
+				
+				var rstCompare:int = obj1.organization.code.localeCompare( obj2.organization.code )
+				if( rstCompare < 0 )
+				{
+					return -1;
+				}
+				else if( rstCompare > 0 )
+				{
+					return 1;
+				}
+				else
+				{
+					return 0;
+				}
+			}			
+			
+			private function sortCompareFunction4OrganizationName(obj1:BForecastMakeLogProOrg, obj2:BForecastMakeLogProOrg):int
+			{
+				if( obj1 == null )
+				{
+					return -1;
+				}
+				
+				if( obj2 == null )
+				{
+					return 1;
+				}
+				
+				var rstCompare:int = obj1.organization.name.localeCompare( obj2.organization.name )
+				if( rstCompare < 0 )
+				{
+					return -1;
+				}
+				else if( rstCompare > 0 )
+				{
+					return 1;
+				}
+				else
+				{
+					return 0;
+				}
+			}							
+			//	6	本地方法   end					
+		]]>
+	</fx:Script>
+	<mx:columns>		
+		<mx:AdvancedDataGridColumn headerText="{ResourceManager.getInstance().getString('label','proCode')}" dataField="product" editable="false" labelFunction="UtilDataGridColumnLabelFunction.getProductCode" sortCompareFunction="sortCompareFunction4ProductCode"/>
+		<mx:AdvancedDataGridColumn headerText="{ResourceManager.getInstance().getString('label','proName')}" dataField="product" editable="false" labelFunction="UtilDataGridColumnLabelFunction.getProductName" sortCompareFunction="sortCompareFunction4ProductName"/>
+		<mx:AdvancedDataGridColumn headerText="{ResourceManager.getInstance().getString('label','orgCode')}" dataField="organization" editable="false" labelFunction="UtilDataGridColumnLabelFunction.getOrganizationCode" sortCompareFunction="sortCompareFunction4OrganizationCode"/>
+		<mx:AdvancedDataGridColumn headerText="{ResourceManager.getInstance().getString('label','orgName')}" dataField="organization" editable="false" labelFunction="UtilDataGridColumnLabelFunction.getOrganizationName" sortCompareFunction="sortCompareFunction4OrganizationName"/>
+		<mx:AdvancedDataGridColumn headerText="{ResourceManager.getInstance().getString('label','Weight')}" dataField="coefficient" editable="true" />
+	</mx:columns>	
+</mx:AdvancedDataGrid>

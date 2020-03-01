@@ -1,0 +1,281 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:TitleWindow xmlns:fx="http://ns.adobe.com/mxml/2009" 
+			   xmlns:s="library://ns.adobe.com/flex/spark" 
+			   xmlns:mx="library://ns.adobe.com/flex/mx" width="230" height="290" close="onCancel()"
+			   xmlns:containers="aks.aksmx.containers.*"
+			   creationComplete="creationCompleteHandler(event)" xmlns:report="dmdd.dmddmx.com.report.*">
+	<s:layout>
+		<s:VerticalLayout paddingLeft="10" paddingRight="10" paddingTop="0" paddingBottom="5"/>
+	</s:layout>
+	
+	<fx:Declarations>
+		
+	</fx:Declarations>
+	<fx:Metadata>
+		[ResourceBundle("com_report_breakdownrule_properties")]
+	</fx:Metadata>	
+	<fx:Script>
+		<![CDATA[
+			import aks.aksas.collections.HashMap;
+			import aks.aksas.utils.UtilUi;
+			
+			import dmdd.dmddas.common.constant.BizConst;
+			import dmdd.dmddas.common.utils.UtilPeriod;
+			import dmdd.dmddas.dataaccess.bizobject.BBreakDownRuleDefItem;
+			
+			import mx.collections.ArrayCollection;
+			import mx.controls.Alert;
+			import mx.events.DateChooserEvent;
+			import mx.events.DateChooserEventDetail;
+			import mx.events.FlexEvent;
+			import mx.managers.PopUpManager;
+			import mx.utils.StringUtil;
+			
+			
+			//	描述		begin
+			//	描述		end
+			
+			//	0	输入参数    begin
+			[Bindable]
+			public var paramIn4showPeriods:ArrayCollection = null;
+			
+			public var paramIn4closeCallback4thisObject:Object = null;
+			public var paramIn4closeCallback4function:Function = null;	
+			//	0	输入参数    end
+			
+			//	1	输出参数    begin 
+			private var paramOut4winCloseWay:int = UtilUi.WINDOW_CLOSEWAY_CANCEL;	
+			
+			//	1	输出参数    end 
+			
+			//	2	本地变量    begin	
+			private var prvVar4weekType:int = BizConst.BREAKDOWNRULE_TYPE_CALENDAR;
+			
+			[Bindable]
+			private var prvVar4selectedBreakDownDefItem:BBreakDownRuleDefItem;
+			[Bindable]
+			private var prvVar4arrBreakDownDefItemHM:HashMap = new HashMap();
+			
+			private var prv4nowPeriod:Number ;
+			//	2	本地变量    end			
+			
+			//	3	公共方法    begin	
+			
+			public function pubFun4setParamIn4closeCallback( _thisObject:Object, _function:Function ):void
+			{
+				this.paramIn4closeCallback4thisObject = _thisObject;
+				this.paramIn4closeCallback4function = _function;	
+			}
+			//	关闭方式参数
+			public function pubFun4getParamOut4winCloseWay():int
+			{
+				return this.paramOut4winCloseWay;
+			}				
+			//	关闭窗口
+			private function prvFun4close():void
+			{
+				PopUpManager.removePopUp( this );						
+				this.paramIn4closeCallback4function.call( this.paramIn4closeCallback4thisObject );				
+			}
+			
+			public function pubFun4setParamIn4BreakDown(arr:ArrayCollection,type:int):void
+			{
+				this.prvVar4weekType= type;		
+				
+				var first:BBreakDownRuleDefItem = BBreakDownRuleDefItem(arr.getItemAt(0));
+				var Str_first:String = String(first.period);
+				var str_first_year:String = Str_first.substring(0,4);
+				var str_first_month:String = Str_first.substring(4,6);
+				str_first_month = String( Number(str_first_month)-1);
+				var dateBegin:Date = new Date(str_first_year,str_first_month,1);
+				
+				this.prvVar4selectedBreakDownDefItem = BBreakDownRuleDefItem(arr.getItemAt(arr.length-1));				
+				this.prv4nowPeriod  = this.prvVar4selectedBreakDownDefItem.period;							
+				
+				var Str_end:String = String(this.prvVar4selectedBreakDownDefItem.period);
+				var str_end_year:String = Str_end.substring(0,4);
+				var str_end_month:String = Str_end.substring(4,6);
+				str_end_month = String( Number(str_end_month)-1);
+				var dateEnd:Date = new Date(str_end_year,str_end_month,UtilPeriod.calculateNumOfMonth(String(this.prv4nowPeriod )));
+				var selectedRange:Object= {"rangeStart" : dateBegin,"rangeEnd" : dateEnd};
+				this.myChooser.selectableRange =selectedRange;
+				
+				//对于未来要进行判断
+				var now_date:Date = new Date();
+				var now_data_Str:String;
+				if(now_date.getMonth()<9)
+				{	
+					now_data_Str= ""+now_date.getFullYear()+"0"+(now_date.getMonth()+1);
+				}
+				else
+				{
+					now_data_Str= ""+now_date.getFullYear()+(now_date.getMonth()+1);
+				}
+				var now_data_num:Number = Number(now_data_Str);
+				
+				if(this.prv4nowPeriod==now_data_num)
+				{
+					this.prv4nowPeriod = now_data_num;
+				}
+				else if(first.period == now_data_num)
+				{
+					this.prv4nowPeriod = first.period;
+				}
+				else if(UtilPeriod.getPeriodDifference(this.prv4nowPeriod,now_data_num)<0 && UtilPeriod.getPeriodDifference(first.period,now_data_num)>0)
+				{
+					this.prv4nowPeriod = now_data_num;
+				}
+				else if(UtilPeriod.getPeriodDifference(this.prv4nowPeriod,now_data_num)<0 && UtilPeriod.getPeriodDifference(first.period,now_data_num)<0)
+				{
+					this.prv4nowPeriod = first.period;
+				}
+				
+				
+				prvVar4arrBreakDownDefItemHM = new HashMap();
+				for(var i:int =0; i<arr.length;i++)
+				{
+					var breakDownDefItem:BBreakDownRuleDefItem = BBreakDownRuleDefItem(arr.getItemAt(i));
+					prvVar4arrBreakDownDefItemHM.put(breakDownDefItem.period,breakDownDefItem);
+					if(breakDownDefItem.period == this.prv4nowPeriod)
+					{
+						this.prvVar4selectedBreakDownDefItem = breakDownDefItem;
+					}
+				}
+			}
+			
+			public function pubFun4checkPeriodSet():Boolean
+			{
+				var num:int = 0;
+				
+				var alert_title_hint:String = resourceManager.getString('com_report_breakdownrule_properties','alert_title_hint');
+				var alert_msg:String = "";
+				var prvVar4arrBreakDownDefItems:ArrayCollection = this.prvVar4arrBreakDownDefItemHM.getValues();
+				var breakDownDefItem:BBreakDownRuleDefItem;
+				for(var i:int =0;i<prvVar4arrBreakDownDefItems.length;i++)
+				{
+					breakDownDefItem = BBreakDownRuleDefItem(prvVar4arrBreakDownDefItems.getItemAt(i));
+					num = breakDownDefItem.week1+breakDownDefItem.week2+breakDownDefItem.week3+breakDownDefItem.week4+breakDownDefItem.week5+
+						breakDownDefItem.week6;
+					
+					if(num!=100)
+					{
+						alert_msg = resourceManager.getString('com_report_breakdownrule_properties','alert_msg_period')+breakDownDefItem.period+
+							resourceManager.getString('com_report_breakdownrule_properties','alert_msg_inputover100');
+						Alert.show( alert_msg, alert_title_hint);
+						return false;					
+					}
+				}				
+				return true;
+			}
+			
+			public function pubFun4getResult():HashMap
+			{
+				return this.prvVar4arrBreakDownDefItemHM;
+			}
+			//	3	公共方法    end		
+			
+			//	4	初始化方法    begin			
+			protected function creationCompleteHandler(event:FlexEvent):void
+			{
+				this.title = resourceManager.getString('com_report_breakdownrule_properties','setbreakdown');	
+				this.x = 100;
+				this.y = 50;					
+			}						
+			//	4	初始化方法    end				
+			
+			//	5	事件响应方法    begin		
+			private function onOk():void
+			{
+				setValue(this.prvVar4selectedBreakDownDefItem);
+				prvVar4arrBreakDownDefItemHM.put(this.prv4nowPeriod,this.prvVar4selectedBreakDownDefItem);
+				if(pubFun4checkPeriodSet())
+				{					
+					this.paramOut4winCloseWay = UtilUi.WINDOW_CLOSEWAY_OK;
+				}
+				this.prvFun4close();
+			}	
+			
+			private function onCancel():void
+			{	
+				this.paramOut4winCloseWay = UtilUi.WINDOW_CLOSEWAY_CANCEL;
+				this.prvFun4close();
+			}	
+			
+			protected function onScroll(event:DateChooserEvent):void
+			{
+				setValue(this.prvVar4selectedBreakDownDefItem);
+				prvVar4arrBreakDownDefItemHM.put(this.prv4nowPeriod,this.prvVar4selectedBreakDownDefItem);
+				if(event.detail == DateChooserEventDetail.NEXT_MONTH||event.detail == DateChooserEventDetail.NEXT_YEAR)
+				{
+					this.prv4nowPeriod  = UtilPeriod.getPeriod(this.prv4nowPeriod,1);
+					this.prvVar4selectedBreakDownDefItem = prvVar4arrBreakDownDefItemHM.getValue(this.prv4nowPeriod);	
+				}
+				else if(event.detail == DateChooserEventDetail.PREVIOUS_MONTH || event.detail == DateChooserEventDetail.PREVIOUS_YEAR)
+				{					
+					this.prv4nowPeriod = UtilPeriod.getPeriod(this.prv4nowPeriod,-1);
+					this.prvVar4selectedBreakDownDefItem = prvVar4arrBreakDownDefItemHM.getValue(this.prv4nowPeriod);
+				}
+			}
+			
+			//	5	事件响应方法    end
+			
+			//	6	本地方法    begin
+			private function checkTextInputPercent(textInput:TextInput):void
+			{
+				var str:String = textInput.text;
+				//先判断是否是整数
+				var alert_title_hint:String = resourceManager.getString('com_report_breakdownrule_properties','alert_title_hint');
+				var alert_msg:String = "";
+				if(!str.match("^[0-9]*$"))
+				{					
+					alert_msg = resourceManager.getString('com_report_breakdownrule_properties','alert_msg_inputerror')
+					Alert.show( alert_msg, alert_title_hint);
+					textInput.getFocus();
+					return ;					
+				}
+				
+				var num:Number = Number(str);
+				if(num<0 || num>100)
+				{
+					alert_msg = resourceManager.getString('com_report_breakdownrule_properties','alert_msg_inputnum')
+					Alert.show( alert_msg, alert_title_hint);
+					textInput.getFocus();
+					return ;
+				}
+			}
+			
+			private function setValue(breakDownDefItem:BBreakDownRuleDefItem):void				
+			{
+				breakDownDefItem.week1 = Number(StringUtil.trim(text_week1.text));
+				breakDownDefItem.week2 = Number(StringUtil.trim(text_week2.text));
+				breakDownDefItem.week3 = Number(StringUtil.trim(text_week3.text));
+				breakDownDefItem.week4 = Number(StringUtil.trim(text_week4.text));
+				breakDownDefItem.week5 = Number(StringUtil.trim(text_week5.text));
+				breakDownDefItem.week6 = Number(StringUtil.trim(text_week6.text));
+			}
+			//	6	本地方法   end				
+			
+		]]>
+	</fx:Script>	
+	
+	<s:BorderContainer width="100" height="210" >
+		<mx:DateChooser id="myChooser"
+						x="10" y="5" monthNames="[1,2,3,4,5,6,7,8,9,10,11,12]" 
+						scroll="onScroll(event)"
+						/>
+		<mx:TextInput id="text_week1" x="165" y="59"  height="20" width="30" maxChars="2" focusOut="checkTextInputPercent(this.text_week1);" text="{this.prvVar4selectedBreakDownDefItem.week1}" editable="{!this.prvVar4selectedBreakDownDefItem.firstDay}"/>
+		<mx:TextInput id="text_week2" x="165" y="80"  height="20" width="30" maxChars="2" focusOut="checkTextInputPercent(this.text_week2);" text="{this.prvVar4selectedBreakDownDefItem.week2}" />
+		<mx:TextInput id="text_week3" x="165" y="101" height="20" width="30" maxChars="2" focusOut="checkTextInputPercent(this.text_week3);"  text="{this.prvVar4selectedBreakDownDefItem.week3}"/>
+		<mx:TextInput id="text_week4" x="165" y="122" height="20" width="30" maxChars="2" focusOut="checkTextInputPercent(this.text_week4);"  text="{this.prvVar4selectedBreakDownDefItem.week4}"/>
+		<mx:TextInput id="text_week5" x="165" y="143" height="20" width="30" maxChars="2" focusOut="checkTextInputPercent(this.text_week5);"  text="{this.prvVar4selectedBreakDownDefItem.week5}"/>
+		<mx:TextInput id="text_week6" x="165" y="164" height="20" width="30" maxChars="2" focusOut="checkTextInputPercent(this.text_week6);"  text="{this.prvVar4selectedBreakDownDefItem.week6}"/>
+	</s:BorderContainer>
+	
+	<s:BorderContainer width="100%" height="25" borderColor="#E4ECF7">
+		<s:layout>
+			<s:HorizontalLayout horizontalAlign="center"/>
+		</s:layout>
+		<s:Button label="{resourceManager.getString('com_report_breakdownrule_properties','btn_ok')}"  click="onOk()"/>
+		<s:Button label="{resourceManager.getString('com_report_breakdownrule_properties','btn_cancel')}" click="onCancel()"/>
+	</s:BorderContainer>
+</s:TitleWindow>

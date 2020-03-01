@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:TitleWindow xmlns:fx="http://ns.adobe.com/mxml/2009" 
+			   xmlns:s="library://ns.adobe.com/flex/spark" 
+
+			   xmlns:mx="library://ns.adobe.com/flex/mx" width="800" height="550" close="onCancel()"
+			   creationComplete="creationCompleteHandler(event)" 
+			   xmlns:containers="aks.aksmx.containers.*" 
+			   xmlns:security="dmdd.dmddmx.com.security.*" xmlns:buttons="com.cool.buttons.*" >
+	<s:layout>
+		<s:VerticalLayout paddingBottom="5" paddingTop="5"/>
+	</s:layout>
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+		<s:RemoteObject endpoint="{ClientEnvironment.endpoint}" id="srvSecurity" destination="SecurityService">		
+			<s:method name="getAllFunPermissions" result="resultHandler4getAllFunPermissions(event)" fault="faultHandler4getAllFunPermissions(event)">
+			</s:method>
+		</s:RemoteObject>		
+	</fx:Declarations>
+	<fx:Script>
+		<![CDATA[
+			import aks.aksas.utils.UtilUi;
+			
+			import dmdd.dmddas.common.constant.SysConst;
+			import dmdd.dmddas.common.constant.UIConst;
+			import dmdd.dmddas.common.system.ClientEnvironment;
+			import dmdd.dmddas.common.utils.UtilDataGridColumnLabelFunction;
+			import dmdd.dmddas.common.utils.UtilExceptionLocale;
+			import dmdd.dmddas.dataaccess.bizobject.BFunPermission;
+			
+			import mx.collections.ArrayCollection;
+			import mx.controls.Alert;
+			import mx.events.FlexEvent;
+			import mx.managers.PopUpManager;
+			import mx.rpc.events.FaultEvent;
+			import mx.rpc.events.ResultEvent;
+			
+			//	描述		begin
+			//	描述		end
+
+			//	0	输入参数    begin	
+			private var paramIn4closeCallback4thisObject:Object = null;
+			private var paramIn4closeCallback4function:Function = null;				
+			//	0	输入参数    end
+			
+			//	1	输出参数    begin
+			private var paramOut4selectedFunPermission:BFunPermission = null;	
+			private var paramOut4selectedFunPermissions:ArrayCollection = null;
+			
+			private var paramOut4winCloseWay:int = UtilUi.WINDOW_CLOSEWAY_CANCEL;		
+			//	1	输出参数    end
+			
+			//	2	本地变量    begin				
+			[Bindable]
+			private var prvVar4dp4adgFunPermission:ArrayCollection = new ArrayCollection();
+			
+			private var prvVar4sqlRestriction:String = null;										
+			//	2	本地变量    end			
+			
+			//	3	公共方法    begin	
+			//	关闭回调函数参数													
+			public function pubFun4setParamIn4closeCallback( _thisObject:Object, _function:Function ):void
+			{
+				this.paramIn4closeCallback4thisObject = _thisObject;
+				this.paramIn4closeCallback4function = _function;	
+			}
+			//	关闭方式参数
+			public function pubFun4getParamOut4winCloseWay():int
+			{
+				return this.paramOut4winCloseWay;
+			}				
+			//	关闭窗口
+			private function prvFun4close():void
+			{
+				PopUpManager.removePopUp( this );						
+				this.paramIn4closeCallback4function.call( this.paramIn4closeCallback4thisObject );				
+			}							
+			
+			
+			//	处理对象参数
+			public function pubFun4getParamOut4selectedFunPermission():BFunPermission
+			{
+				return this.paramOut4selectedFunPermission;
+			}										
+			public function pubFun4getParamOut4selectedFunPermissions():ArrayCollection
+			{
+				return this.paramOut4selectedFunPermissions;
+			}													
+			//	3	公共方法    end		
+			
+			//	4	初始化方法    begin			
+			protected function creationCompleteHandler(event:FlexEvent):void
+			{
+				this.title = resourceManager.getString('menu','selectFuncAccess');	
+				this.x = 100;
+				this.y = 50;		
+				
+				this.onQuery();
+			}				
+			
+			//	4	初始化方法    end				
+			
+			//	5	事件响应方法    begin	
+			private function onQuery():void
+			{
+				UtilUi.pubFun4PopWaitWindow( this );
+				this.srvSecurity.getAllFunPermissions();
+			}
+			
+			
+			private function faultHandler4getAllFunPermissions(event:FaultEvent):void
+			{
+				UtilUi.pubFun4RemoveWaitWindow();
+				Alert.show( UtilExceptionLocale.getExceptionMessageLocaleByFaultEvent( event ), resourceManager.getString('alert','alt_title_warn') );
+			}	
+			
+			private function resultHandler4getAllFunPermissions(event:ResultEvent):void 
+			{
+				this.prvVar4dp4adgFunPermission = ArrayCollection(event.result);				
+				UtilUi.pubFun4RemoveWaitWindow();
+			}		
+			
+			
+			private function onOk():void
+			{
+				this.paramOut4selectedFunPermission = BFunPermission( this.adgFunPermission.selectedItem );
+				this.paramOut4selectedFunPermissions = new ArrayCollection( this.adgFunPermission.selectedItems );
+				
+				this.paramOut4winCloseWay = UtilUi.WINDOW_CLOSEWAY_OK;
+				this.prvFun4close();
+			}	
+			
+			private function onCancel():void
+			{	
+				this.paramOut4winCloseWay = UtilUi.WINDOW_CLOSEWAY_CANCEL;
+				this.prvFun4close();
+			}		
+			//	5	事件响应方法    end
+			
+			//	6	本地方法    begin
+			//	6	本地方法   end				
+			
+		]]>
+	</fx:Script>	
+	<s:HGroup paddingLeft="10" >
+		<buttons:ButtonRefresh click="onQuery()" />
+	</s:HGroup>
+	<mx:AdvancedDataGrid id="adgFunPermission" dataProvider="{this.prvVar4dp4adgFunPermission}" width="100%" height="100%">
+		<mx:columns>
+			<mx:AdvancedDataGridColumn headerText="{resourceManager.getString('label','funcCode')}" dataField="code"/>
+			<mx:AdvancedDataGridColumn headerText="{resourceManager.getString('label','funcName')}" dataField="name"/>
+			
+			<mx:AdvancedDataGridColumn headerText="{resourceManager.getString('label','funcDesc')}" dataField="comments"/>
+			<!--
+			<mx:AdvancedDataGridColumn headerText="{resourceManager.getString('label','funcDesc')}" dataField="description" 
+									   labelFunction="UtilDataGridColumnLabelFunction.getFunPermissionDescriptionLocaleByDescription"/>
+			-->
+		</mx:columns>
+	</mx:AdvancedDataGrid>
+	<s:HGroup width="100%" horizontalAlign="center">
+		<buttons:ButtonOk enabled="{this.adgFunPermission.selectedItems.pop()}" click="onOk()"/>
+		<buttons:ButtonCancel click="onCancel()"/>
+	</s:HGroup>
+</s:TitleWindow>
+

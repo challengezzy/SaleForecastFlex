@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:AdvancedDataGrid xmlns:fx="http://ns.adobe.com/mxml/2009" 
+					 xmlns:s="library://ns.adobe.com/flex/spark" 
+					 xmlns:mx="library://ns.adobe.com/flex/mx" horizontalScrollPolicy="on" styleName="adv1" fontSize="12">
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+	</fx:Declarations>
+	<fx:Metadata>
+		[ResourceBundle("com_forecast_forecastruntask_advanceddatagrid")]
+	</fx:Metadata>
+	<fx:Script>
+		<![CDATA[
+			import dmdd.dmddas.common.utils.UtilDataGridColumnLabelFunction;
+			
+			import mx.resources.ResourceManager;
+			
+			//	描述    begin
+			//	描述    end
+			
+			//	0	输入参数    begin				
+			//	0	输入参数    end
+			
+			//	1	输出参数    begin
+			//	1	输出参数    end
+			
+			//	2	本地变量    begin			
+			//	2	本地变量    end			
+			
+			//	3	公共方法    begin			
+			//	3	公共方法    end		
+			
+			//	4	初始化方法    begin			
+			//	4	初始化方法    end				
+			
+			//	5	事件响应方法    begin
+			//	5	事件响应方法    end
+
+			//	6	本地方法    begin
+			//	6	本地方法   end					
+		]]>
+	</fx:Script>
+	<mx:columns>		
+		<mx:AdvancedDataGridColumn headerText="{ResourceManager.getInstance().getString('com_forecast_forecastruntask_advanceddatagrid','compileperiod')}"		dataField="compilePeriod" 		editable="false"/>
+		<mx:AdvancedDataGridColumn headerText="{ResourceManager.getInstance().getString('com_forecast_forecastruntask_advanceddatagrid','description')}"		dataField="description" 		editable="false"/>
+		<mx:AdvancedDataGridColumn headerText="{ResourceManager.getInstance().getString('com_forecast_forecastruntask_advanceddatagrid','creator')}"			dataField="creator" 			editable="false"/>
+		<mx:AdvancedDataGridColumn headerText="{ResourceManager.getInstance().getString('com_forecast_forecastruntask_advanceddatagrid','createdtime')}"		dataField="createdTime" 		editable="false" labelFunction="UtilDataGridColumnLabelFunction.getDateTimeStr"/>
+		<mx:AdvancedDataGridColumn headerText="{ResourceManager.getInstance().getString('com_forecast_forecastruntask_advanceddatagrid','status')}"				dataField="status" 				editable="false" labelFunction="UtilDataGridColumnLabelFunction.getForecastRunTaskStatusLocale"/>
+		<mx:AdvancedDataGridColumn headerText="{ResourceManager.getInstance().getString('com_forecast_forecastruntask_advanceddatagrid','finishtime')}"			dataField="finishTime" 			editable="false" labelFunction="UtilDataGridColumnLabelFunction.getDateTimeStr"/>
+			
+	</mx:columns>	
+</mx:AdvancedDataGrid>

@@ -1,0 +1,245 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Module xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		   xmlns:s="library://ns.adobe.com/flex/spark" 
+		   xmlns:mx="library://ns.adobe.com/flex/mx" layout="vertical" 
+		   width="100%" height="100%" paddingLeft="10" paddingRight="10"
+		   creationComplete="creationCompleteHandler(event)" 
+		   xmlns:containers="aks.aksmx.containers.*" xmlns:unit="dmdd.dmddmx.com.unit.*" xmlns:common="dmdd.dmddmx.com.common.*">
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+		<s:RemoteObject endpoint="{ClientEnvironment.endpoint}" id="srvSystemService" destination="SystemService">	
+			<s:method name="doSysBak" result="resultHandler4doSysBak(event)" fault="faultHandler4doSysBak(event)">
+			</s:method>							  
+		</s:RemoteObject>		
+	</fx:Declarations>
+	<fx:Script>
+		<![CDATA[
+			import aks.aksas.utils.UtilUi;
+			
+			import com.cool.assets.CoolAssetsFile;
+			
+			import dmdd.dmddas.common.constant.BizConst;
+			import dmdd.dmddas.common.constant.SysConst;
+			import dmdd.dmddas.common.system.ClientEnvironment;
+			import dmdd.dmddas.common.utils.UtilPeriod;
+			import dmdd.dmddas.dataaccess.bizobject.BSysBakLog;
+			
+			import mx.controls.Alert;
+			import mx.events.CloseEvent;
+			import mx.events.FlexEvent;
+			import mx.rpc.events.FaultEvent;
+			import mx.rpc.events.ResultEvent;
+			import mx.utils.StringUtil;
+			
+			
+			
+			
+			//	描述    begin
+			//	描述    end
+			
+			//	0	输入参数    begin						
+			//	0	输入参数    end
+			
+			//	1	输出参数    begin
+			//	1	输出参数    end
+			
+			//	2	本地变量    begin	
+			[Bindable]
+			private var prvBSysBakLog:BSysBakLog = new BSysBakLog();
+			//	2	本地变量    end			
+			
+			//	3	公共方法    begin			
+			//	3	公共方法    end		
+			
+			//	4	初始化方法    begin	
+			protected function creationCompleteHandler(event:FlexEvent):void
+			{
+			}			
+			//	4	初始化方法    end				
+			
+			//	5	事件响应方法    begin
+			protected function onRunBak(event:MouseEvent):void
+			{
+				if(!checkPeriodSpan())
+				{
+					return ;
+				}
+				var alert_title_hint:String = resourceManager.getString('alert','bak_alert_title13');
+				var alert_msg:String = resourceManager.getString('alert','bak_content_head13');	
+				if(cb_histrotydata.selected == true)
+				{
+					alert_msg = alert_msg+" "+resourceManager.getString('note','historyData');	
+				}
+				if(cb_historyadjustlog.selected == true)
+				{
+					alert_msg = alert_msg+" "+resourceManager.getString('note','historyCleanLog');
+				}
+				if(cb_pricedata.selected == true)
+				{
+					alert_msg = alert_msg+" "+resourceManager.getString('note','priceData');
+				}
+				
+				if(cb_forecastdata.selected == true)
+				{
+					alert_msg = alert_msg+" "+resourceManager.getString('note','forecastData');
+				}
+				
+				if(cb_forecastmakelog.selected == true)
+				{
+					alert_msg = alert_msg+" "+resourceManager.getString('note','forecastCleanLog');
+				}
+				alert_msg=alert_msg+resourceManager.getString('alert','bak_content_end13');
+				
+				Alert.show( alert_msg, alert_title_hint, Alert.OK | Alert.CANCEL, this, ConfirmHandler, null, Alert.OK );	
+			}
+			
+			public function ConfirmHandler(event:CloseEvent):void
+			{
+				if(event.detail == Alert.OK)
+				{
+					UtilUi.pubFun4PopWaitWindow(this);
+					var periodBegin:int = UtilPeriod.parse( StringUtil.trim(this.text_begin.text) );
+					var periodEnd:int = UtilPeriod.parse( StringUtil.trim(this.text_end.text) );
+					srvSystemService.doSysBak(this.prvBSysBakLog);
+					
+				}
+			}
+			
+			private function faultHandler4doSysBak(event:FaultEvent):void
+			{
+				UtilUi.pubFun4RemoveWaitWindow();
+				var alert_title_hint:String = resourceManager.getString('alert','alert_title_hint');
+				var alert_msg:String = resourceManager.getString('alert','alert_msg_error13');	
+				Alert.show(alert_msg);
+			}
+			
+			
+			private function resultHandler4doSysBak(event:ResultEvent):void 
+			{						
+				UtilUi.pubFun4RemoveWaitWindow();
+				var alert_title_hint:String = resourceManager.getString('alert','alert_title_hint');
+				var alert_msg:String = resourceManager.getString('alert','alert_msg_success13');	
+				Alert.show(alert_msg);
+			}
+			//	5	事件响应方法    end
+			
+			//	6	本地方法    begin
+			public function checkPeriodSpan():Boolean
+			{
+				var periodBegin:int = UtilPeriod.parse( StringUtil.trim(this.text_begin.text) );
+				var periodEnd:int = UtilPeriod.parse( StringUtil.trim(this.text_end.text) );
+				
+				var alert_title_hint:String = resourceManager.getString('alert','alert_title_hint');
+				var alert_msg:String = "";					
+				if( periodBegin == SysConst.PERIOD_NULL )
+				{
+					alert_msg = resourceManager.getString('alert','alert_msg_periodbegin13');
+					Alert.show( alert_msg, alert_title_hint);
+					return false;						
+				}
+				if( periodEnd == SysConst.PERIOD_NULL )
+				{
+					alert_msg = resourceManager.getString('alert','alert_msg_periodend13');
+					Alert.show( alert_msg, alert_title_hint);
+					return false;						
+				}				
+				
+				if( UtilPeriod.getPeriodDifference( periodBegin, periodEnd ) < 0 )
+				{
+					alert_msg = resourceManager.getString('alert','alert_msg_begingtend13');
+					Alert.show( alert_msg, alert_title_hint);
+					return false;						
+				}
+				var isselectbakcon:Boolean = false;
+				if(cb_histrotydata.selected==true)
+				{
+					isselectbakcon =true;
+					this.prvBSysBakLog.bakHistoryData = BizConst.GLOBAL_YESNO_YES;
+				}
+				else
+				{
+					this.prvBSysBakLog.bakHistoryData = BizConst.GLOBAL_YESNO_NO;
+				}
+				if(cb_historyadjustlog.selected == true)
+				{
+					isselectbakcon =true;
+					this.prvBSysBakLog.bakHistoryAdjustLog = BizConst.GLOBAL_YESNO_YES;
+				}
+				else
+				{
+					this.prvBSysBakLog.bakHistoryAdjustLog = BizConst.GLOBAL_YESNO_NO;
+				}
+				
+				if(cb_pricedata.selected ==true)
+				{
+					isselectbakcon =true;
+					this.prvBSysBakLog.bakPriceData = BizConst.GLOBAL_YESNO_YES;
+				}
+				else
+				{
+					this.prvBSysBakLog.bakPriceData = BizConst.GLOBAL_YESNO_NO;
+				}
+				if(cb_forecastdata.selected ==true)
+				{
+					isselectbakcon =true;
+					this.prvBSysBakLog.bakForecastData = BizConst.GLOBAL_YESNO_YES;
+				}
+				else
+				{
+					this.prvBSysBakLog.bakForecastData = BizConst.GLOBAL_YESNO_NO;
+				}
+				if(cb_forecastmakelog.selected == true)
+				{
+					isselectbakcon =true;
+					this.prvBSysBakLog.bakForecastMakeLog = BizConst.GLOBAL_YESNO_YES;
+				}
+				else
+				{
+					this.prvBSysBakLog.bakForecastMakeLog = BizConst.GLOBAL_YESNO_NO;
+				}
+				if(isselectbakcon ==false)
+				{
+					alert_msg = resourceManager.getString('alert','alert_msg_nobakconf13');
+					Alert.show( alert_msg, alert_title_hint);
+					return false;
+				}
+				this.prvBSysBakLog.beginPeroid = periodBegin;
+				this.prvBSysBakLog.endPeroid = periodEnd;
+				this.prvBSysBakLog.description = txtDescription.text;
+				this.prvBSysBakLog.comments = txtComments.text;
+				this.prvBSysBakLog.operatorUserName = ClientEnvironment.getOperatorUser().userName;
+				return true;
+				
+			}			
+			//	6	本地方法   end	
+
+
+		]]>
+	</fx:Script>
+	
+	<common:LabelBoundary paddingTop="5" labelText="{resourceManager.getString('note','plzSelectClearItem')}" />
+	<containers:AksControlBar>			
+		<s:Label text="{resourceManager.getString('note','plzSelectClearItem')}"/>
+		<mx:Spacer width="20"/>
+		<s:CheckBox label="{resourceManager.getString('note','historyData')}" id="cb_histrotydata"/>
+		<s:CheckBox label="{resourceManager.getString('note','historyCleanLog')}" id="cb_historyadjustlog"/>
+		<s:CheckBox label="{resourceManager.getString('note','priceData')}" id="cb_pricedata"/>
+		<s:CheckBox label="{resourceManager.getString('note','forecastData')}" id="cb_forecastdata"/>
+		<s:CheckBox label="{resourceManager.getString('note','forecastCleanLog')}" id="cb_forecastmakelog"/>
+	</containers:AksControlBar>
+	<containers:AksControlBar>			
+		<s:Label text="{resourceManager.getString('note','desc')}"/>
+		<s:TextInput id="txtDescription" maxChars="255" width="300"/>			
+	</containers:AksControlBar>
+	<containers:AksControlBar>
+		<s:Label text="{resourceManager.getString('note','remark')}"/>
+		<s:TextInput width="300" id="txtComments" maxChars="255"/>				
+	</containers:AksControlBar>
+	<containers:AksControlBar>			
+		<s:Label text="{resourceManager.getString('note','startPeriod')}"/>
+		<s:TextInput id="text_begin" maxChars="6" />
+		<s:Label text="{resourceManager.getString('note','endPeriod')}"/>
+		<s:TextInput id="text_end" maxChars="6" />
+		<s:Button label="{resourceManager.getString('button','startClear')}" click="onRunBak(event)" icon="{CoolAssetsFile.startIcon}" />
+	</containers:AksControlBar>
+</mx:Module>

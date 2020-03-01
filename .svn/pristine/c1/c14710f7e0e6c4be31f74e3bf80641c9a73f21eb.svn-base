@@ -1,0 +1,30 @@
+
+querycondition=Query
+operatoruserlist=User List
+operatoruserdetail=User Detail
+operatoruser=General Information
+operatoruser_funpermission=Functionalities
+operatoruser_bizdata=Key Figures
+operatoruser_proorg=Business Scope
+
+btn_new=New
+btn_copy=Copy
+btn_upd=Edit
+btn_del=Delete
+btn_refreshuserstats=Update User Status
+btn_refresolddata=Data Refresh
+
+autitle_new=New User
+autitle_upd=Edit User
+
+alert_title_hint=Alert
+alert_msg_deleteself=Current user cannot be delete! 
+alert_msg_deleteconfirm=Do you confirm to delete?
+alert_msg_succeed=Succeed!
+alert_msg_fail=Failed!
+alert_msg_refreshuserstats=Do to want to reset the user's status?
+alert_msg_refresholddata=Do you confirm to Refresh Old Data ?
+
+
+
+

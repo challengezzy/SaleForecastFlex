@@ -1,0 +1,479 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Module xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		   xmlns:s="library://ns.adobe.com/flex/spark" 
+		   xmlns:mx="library://ns.adobe.com/flex/mx" layout="vertical" width="100%" height="100%" paddingLeft="10" paddingRight="10"
+		   creationComplete="creationCompleteHandler(event)"  
+		   xmlns:common="dmdd.dmddmx.com.common.*"
+		   xmlns:containers="aks.aksmx.containers.*" xmlns:history="dmdd.dmddmx.com.history.*" xmlns:bizdata="dmdd.dmddmx.com.bizdata.*" xmlns:unit="dmdd.dmddmx.com.unit.*" xmlns:buttons="com.cool.buttons.*">
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+		<s:RemoteObject endpoint="{ClientEnvironment.endpoint}" id="srvHistory" destination="HistoryService">	
+			<s:method name="saveHistoryADRDatas4ImportUI" result="resultHandler4saveHistoryADRDatas4ImportUI(event)" fault="faultHandler4saveHistoryADRDatas4ImportUI(event)">
+			</s:method>							  
+		</s:RemoteObject>			
+	</fx:Declarations>
+	<fx:Script>
+		<![CDATA[
+			import aks.aksas.utils.UtilUi;
+			
+			import dmdd.dmddas.common.constant.BizConst;
+			import dmdd.dmddas.common.constant.SysConst;
+			import dmdd.dmddas.common.system.ClientEnvironment;
+			import dmdd.dmddas.common.utils.UtilExceptionLocale;
+			import dmdd.dmddas.common.utils.UtilPeriod;
+			import dmdd.dmddas.dataaccess.aidobject.ABImHistoryADRData;
+			import dmdd.dmddas.dataaccess.aidobject.ABImHistoryData;
+			import dmdd.dmddas.dataaccess.bizobject.BBizData;
+			import dmdd.dmddas.dataaccess.bizobject.BSysDictionaryItem;
+			import dmdd.dmddas.dataaccess.bizobject.BUnit;
+			import dmdd.dmddas.dataaccess.bizobject.BUnitGroup;
+			import com.cool.assets.CoolAssetsFile;
+
+			import mx.collections.ArrayCollection;
+			import mx.collections.IViewCursor;
+			import mx.controls.Alert;
+			import mx.controls.DataGrid;
+			import mx.controls.dataGridClasses.DataGridColumn;
+			import mx.events.FlexEvent;
+			import mx.rpc.events.FaultEvent;
+			import mx.rpc.events.ResultEvent;
+			
+			
+			
+			//	描述    begin
+			//	描述    end
+			
+			//	0	输入参数    begin						
+			//	0	输入参数    end
+			
+			//	1	输出参数    begin
+			//	1	输出参数    end
+			
+			//	2	本地变量    begin	
+			[Bindable]
+			private var prvVar4dp4comAdgImHistoryADRData:ArrayCollection = new ArrayCollection();
+			[Bindable]
+			private var prvVar4arrDictBizDataType_history:ArrayCollection = new ArrayCollection();		
+			
+			[Bindable]
+			private var prvVar4arrDictBizDataType_historyadr:ArrayCollection = new ArrayCollection();
+			
+			private var prvVar4unit:BUnit = null;
+			
+			private var prvVar4arrFailedRecord:ArrayCollection = new ArrayCollection();
+			
+			//	2	本地变量    end			
+			
+			//	3	公共方法    begin			
+			//	3	公共方法    end		
+			
+			//	4	初始化方法    begin	
+			protected function creationCompleteHandler(event:FlexEvent):void
+			{
+				//	初始化界面参数	begin
+				this.prvVar4arrDictBizDataType_history = new ArrayCollection();
+				this.prvVar4arrDictBizDataType_historyadr = new ArrayCollection();
+				
+				var arrDictBizDataType:ArrayCollection = ClientEnvironment.getBizDataTypeArr();
+				if( arrDictBizDataType != null )
+				{
+					var i:int;
+					var sysDictionaryItem:BSysDictionaryItem = null;
+					for( i=0; i<arrDictBizDataType.length; i=i+1 )
+					{
+						sysDictionaryItem = BSysDictionaryItem(arrDictBizDataType.getItemAt(i));
+						if( sysDictionaryItem.value == BizConst.BIZDATA_TYPE_HISTORY )
+						{
+							this.prvVar4arrDictBizDataType_history.addItem( sysDictionaryItem );
+						}
+						else if( sysDictionaryItem.value == BizConst.BIZDATA_TYPE_HISTORYADR )
+						{
+							this.prvVar4arrDictBizDataType_historyadr.addItem( sysDictionaryItem );
+						}
+					}
+				}		
+				
+				//	初始化界面参数	end				
+			}			
+			//	4	初始化方法    end				
+			
+			//	5	事件响应方法    begin
+			private function onChange4comboBoxUnit():void
+			{
+				var selectedUnit:BUnit = BUnit(this.comboBoxUnit.selectedItem)
+				var i:int;
+				var imHistoryData:ABImHistoryADRData = null;
+				if( selectedUnit != null && this.prvVar4unit != null && selectedUnit.id != this.prvVar4unit.id )
+				{
+					if( this.prvVar4dp4comAdgImHistoryADRData != null )
+					{
+						for( i=0; i<this.prvVar4dp4comAdgImHistoryADRData.length; i=i+1 )
+						{
+							imHistoryData = ABImHistoryADRData(this.prvVar4dp4comAdgImHistoryADRData.getItemAt(i));
+							imHistoryData.exchangeUnit( this.prvVar4unit.exchangeRate, selectedUnit.exchangeRate );
+						}
+					}	
+				}
+				
+				this.prvVar4unit = selectedUnit;				
+			}
+			
+			private function onClear():void
+			{
+				this.prvVar4dp4comAdgImHistoryADRData = new ArrayCollection();
+				this.comAdgImHistoryADRData.columnImportResult.visible = false;
+				this.btnSave.enabled = false;
+				this.btnExport.enabled = false;
+				this.text_comments.text="";
+			}
+			
+			private function onSave():void
+			{
+				var alert_title_hint:String = resourceManager.getString('alert','alert_title_hint');
+				var alert_msg:String = null;  
+				
+				var bizData_historyadr:BBizData = this.comBizDataADRField.paramIo4selectedBizData;
+				if( bizData_historyadr == null )
+				{
+					alert_msg = resourceManager.getString('alert','alert_msg_nohistoryadrdata12');
+					Alert.show( alert_msg, alert_title_hint );	
+					return;							
+				}
+				
+				var unitGroup:BUnitGroup = this.comUnitGroupField.paramIo4selectedUnitGroup;
+				if( unitGroup == null )
+				{
+					alert_msg = resourceManager.getString('alert','alert_msg_nounitgroup12');
+					Alert.show( alert_msg, alert_title_hint );	
+					return;						
+				}
+				
+				var selectedUnit:BUnit = BUnit(this.comboBoxUnit.selectedItem);
+				if( selectedUnit == null )
+				{
+					alert_msg = resourceManager.getString('alert','alert_msg_nounit12');
+					Alert.show( alert_msg, alert_title_hint );	
+					return;						
+				}				
+				
+				if( this.prvVar4dp4comAdgImHistoryADRData.length <= 0 )
+				{
+					alert_msg = resourceManager.getString('alert','alert_msg_nodatatosave12');
+					Alert.show( alert_msg, alert_title_hint );	
+					return;												
+				}
+				
+				UtilUi.pubFun4PopWaitWindow( this );
+				
+				//	传递到服务器的数据应该是以基准单位计数的	begin
+				var arrImHistoryData4save:ArrayCollection = new ArrayCollection();
+				var i:int;
+				var imHistoryData:ABImHistoryADRData = null;
+				var imHistoryData_new:ABImHistoryADRData = null;
+				for( i=0; i<this.prvVar4dp4comAdgImHistoryADRData.length; i=i+1 )
+				{
+					imHistoryData = ABImHistoryADRData(this.prvVar4dp4comAdgImHistoryADRData.getItemAt(i));
+					imHistoryData_new = new ABImHistoryADRData();
+					imHistoryData_new.copyDeep( imHistoryData );
+					if( selectedUnit.isBase == BizConst.GLOBAL_YESNO_NO )
+					{
+						imHistoryData_new.exchangeUnit( selectedUnit.exchangeRate, 1 );
+					}	
+					arrImHistoryData4save.addItem( imHistoryData_new );
+					
+				}									
+				//	传递到服务器的数据应该是以基准单位计数的	end
+				
+				var _comments:String = this.text_comments.text;
+				
+				this.srvHistory.saveHistoryADRDatas4ImportUI( bizData_historyadr, unitGroup,_comments,ClientEnvironment.getOperatorUser(), arrImHistoryData4save );
+			}	
+			
+			private function faultHandler4saveHistoryADRDatas4ImportUI(event:FaultEvent):void
+			{
+				UtilUi.pubFun4RemoveWaitWindow();
+				Alert.show( UtilExceptionLocale.getExceptionMessageLocaleByFaultEvent( event ), resourceManager.getString('alert','alt_title_warn') );
+			}
+			
+			private function resultHandler4saveHistoryADRDatas4ImportUI(event:ResultEvent):void 
+			{
+				this.prvVar4dp4comAdgImHistoryADRData = ArrayCollection(event.result);
+				
+				this.prvVar4arrFailedRecord = new ArrayCollection();
+	
+				var totalNum:int = 0; 
+				var failNum:int = 0;
+				var i:int;
+				var rstImHistoryData:ABImHistoryADRData = null;		
+				if( this.prvVar4dp4comAdgImHistoryADRData != null )
+				{
+					if(  this.prvVar4unit != null  && this.comUnitGroupField.paramIo4selectedUnitGroup!=null)
+					{
+						totalNum = this.prvVar4dp4comAdgImHistoryADRData.length;
+						for( i=0; i<this.prvVar4dp4comAdgImHistoryADRData.length; i=i+1 )
+						{
+							rstImHistoryData = ABImHistoryADRData(this.prvVar4dp4comAdgImHistoryADRData.getItemAt(i));
+							rstImHistoryData.exchangeUnit( this.comUnitGroupField.paramIo4selectedUnitGroup.getBaseUnit().exchangeRate, prvVar4unit.exchangeRate );
+							if( rstImHistoryData.importResult != BizConst.IMPORT_RESULT_SUCCESS )
+							{
+								rstImHistoryData.importResult = UtilExceptionLocale.getExceptionMessageLocaleByCauseMessage( rstImHistoryData.importResult );
+								
+								this.prvVar4arrFailedRecord.addItem( rstImHistoryData );
+							}
+						}
+					}
+					failNum = this.prvVar4arrFailedRecord.length;
+				}
+				
+				UtilUi.pubFun4RemoveWaitWindow();
+				this.comAdgImHistoryADRData.columnImportResult.visible = true;
+				
+				var alert_title_hint:String = resourceManager.getString('alert','alert_title_hint');
+				var alert_msg:String = null;  	
+				
+				alert_msg = resourceManager.getString('alert','alert_msg_totalnum12');
+				alert_msg = alert_msg + totalNum + "\n";
+				alert_msg = alert_msg + resourceManager.getString('alert','alert_msg_failnum12');
+				alert_msg = alert_msg + failNum + "\n";
+				
+				Alert.show( alert_msg, alert_title_hint );
+				
+				if( failNum > 0 )
+				{
+					this.btnExport.enabled = true;					
+				}
+				else
+				{
+					this.btnExport.enabled = false;					
+				}		
+				
+			}		
+			private function onExport():void
+			{
+				//	只导出错误的，所以先把组件显示的内容换成错误的，处理完后再换回来	begin
+				var arrdp4comAdgImHistoryData_bak:ArrayCollection = new ArrayCollection();
+				arrdp4comAdgImHistoryData_bak.addAll( this.prvVar4dp4comAdgImHistoryADRData );
+				
+				this.prvVar4dp4comAdgImHistoryADRData.removeAll();
+				this.prvVar4dp4comAdgImHistoryADRData.addAll( this.prvVar4arrFailedRecord );
+				//	this.prvVar4dp4comAdgImHistoryData.addAll(this.prvVar4arrOkButFailedRecord);
+				
+				var TSVString:String = this.exportCSV( this.comAdgImHistoryADRData ) ;
+				
+				this.prvVar4dp4comAdgImHistoryADRData.removeAll();
+				this.prvVar4dp4comAdgImHistoryADRData.addAll( arrdp4comAdgImHistoryData_bak );
+				//	只导出错误的，所以先把组件显示的内容换成错误的，处理完后再换回来	end
+				
+				// Copy the TSV string to the clipboard
+				System.setClipboard(TSVString);					
+			}
+			
+			//	5	事件响应方法    end
+			
+			//	6	本地方法    begin
+			private function exportCSV(dg:DataGrid, csvSeparator:String="\t", lineSeparator:String="\n"):String
+			{
+				var data:String = "";
+				var columns:Array = dg.columns;
+				var columnCount:int = columns.length;
+				var column:DataGridColumn;
+				var header:String = "";
+				var headerGenerated:Boolean = false;
+				var dataProvider:Object = dg.dataProvider;
+				var rowCount:int = dataProvider.length;
+				var dp:Object = null;
+				
+				var cursor:IViewCursor = dataProvider.createCursor ();
+				var j:int = 0;
+				
+				//loop through rows
+				while (!cursor.afterLast)
+				{
+					var obj:Object = null;
+					obj = cursor.current;
+					
+					//loop through all columns for the row
+					for(var k:int = 0; k < columnCount; k++)
+					{
+						column = columns[k];
+						//Exclude column data which is invisible (hidden)
+						if(!column.visible)
+						{
+							continue;
+						}
+						
+						data += "\""+ column.itemToLabel(obj)+ "\"";
+						if(k < (columnCount -1))
+						{
+							data += csvSeparator;
+						}
+						//generate header of CSV, only if it's not genereted yet
+						if (!headerGenerated)
+						{
+							var columnHeadStr:String = column.headerText;
+							
+							header += "\"" + columnHeadStr.replace("\n","") + "\""; //把表头中的换行去掉
+							if (k < columnCount - 1)
+							{
+								header += csvSeparator;
+							}
+						}
+						
+						
+					}
+					
+					headerGenerated = true;
+					if (j < (rowCount - 1))
+					{
+						data += lineSeparator;
+					}
+					j++;
+					cursor.moveNext ();
+				}
+				
+				//set references to null:
+				dataProvider = null;
+				columns = null;
+				column = null;
+				
+				return (header + "\r\n" + data);
+			} 
+			
+			
+			
+			private function dataGridKeyDownHandler( event:KeyboardEvent ):void   
+			{     
+				if (event.ctrlKey && this.comAdgImHistoryADRData.getChildByName("clipboardProxy") == null )     
+				{       
+					// Add an invisible TextField object to the DataGrid       
+					var textFieldClipboard:TextField = new TextField();       
+					textFieldClipboard.name = "clipboardProxy";       
+					this.comAdgImHistoryADRData.addChild(textFieldClipboard);       
+					textFieldClipboard.visible = false;       
+					textFieldClipboard.type = TextFieldType.INPUT;       
+					textFieldClipboard.multiline = true;       
+					// Populate the TextField with selected data in TSV format       
+					// textField.text = getTextFromItems(dataGrid.selectedItems);       
+					// textField.setSelection(0, textField.text.length - 1);       
+					// Listen for textInput event       
+					textFieldClipboard.addEventListener(TextEvent.TEXT_INPUT, clipboardProxyPasteHandler);    
+					// Set player-level focus to the TextField       
+					systemManager.stage.focus = textFieldClipboard;     
+				}   
+			}
+			
+			private function clipboardProxyPasteHandler(event:TextEvent):void   
+			{     
+				// Extract values from TSV format and populate the DataGrid
+				if( this.comAdgImHistoryADRData.columnImportResult.visible == true )
+				{
+					this.comAdgImHistoryADRData.columnImportResult.visible = false;
+				}
+				
+				this.prvVar4dp4comAdgImHistoryADRData = new ArrayCollection();
+				this.getImHistoryDatasFromText( event.text );  
+				this.btnSave.enabled = true;
+				
+				// 一定要在这里把 textField移除，不然会报 Flash.events.event 到 indexChang eEvent 的类型转换错误
+				// 移去 textField
+				var textFieldClipboard:TextField = TextField(this.comAdgImHistoryADRData.getChildByName("clipboardProxy"));       
+				if ( textFieldClipboard != null )
+				{         
+					this.comAdgImHistoryADRData.removeChild(textFieldClipboard);
+				}   								
+			}   
+			
+			private function getImHistoryDatasFromText(text:String):void   
+			{     
+				var alert_title_hint:String = resourceManager.getString('alert','alert_title_hint');
+				var alert_msg:String = null;  
+				
+				var rstArrayImHistoryData:Array = new Array();
+				var rows:Array = text.split("\n");
+				if( rows == null )
+				{
+					alert_msg = resourceManager.getString('alert','alert_msg_nohistorydata12');
+					Alert.show( alert_msg, alert_title_hint );	
+					return;	
+				}     
+				if (!rows[rows.length - 1])
+				{       
+					rows.pop();
+				}     
+				
+				if( rows.length <= 1 )
+				{
+					alert_msg = resourceManager.getString('alert','alert_msg_nohistorydata12');
+					Alert.show( alert_msg, alert_title_hint );						
+					return;
+				}
+				
+				var rwHeader:String = rows[0];
+				var fieldsHeader:Array = rwHeader.split( "\t" );
+				if(!(fieldsHeader[fieldsHeader.length-1]))
+				{
+					fieldsHeader.pop();
+				} 				
+				if( fieldsHeader.length < 5 )
+				{
+					alert_msg = resourceManager.getString('alert','alert_msg_errorcolumnheader12');
+					Alert.show( alert_msg, alert_title_hint );						
+					return;					
+				}
+				
+				var row:String = null;
+				var rowIdx:int;
+				var fields:Array = null;
+				var periodIdx:int;
+				var periodNum:int;
+				
+				var newImHistoryData:ABImHistoryADRData = null;
+				for( rowIdx=1; rowIdx<rows.length; rowIdx=rowIdx+1 )
+				{
+					newImHistoryData = new ABImHistoryADRData();
+					
+					newImHistoryData.importResult = null;
+					
+					row = rows[rowIdx];
+					fields = row.split("\t");
+					if( fields.length <= 2 )
+					{
+						continue;
+					}
+					newImHistoryData.productCode = fields[0];
+					newImHistoryData.organizationCode = fields[1];
+					newImHistoryData.period = int(fields[2]);
+					newImHistoryData.value = Number(fields[3]);
+					newImHistoryData.comments = fields[4];
+					this.prvVar4dp4comAdgImHistoryADRData.addItem( newImHistoryData );
+				}
+			}   			
+			//	6	本地方法   end	
+			
+		]]>
+	</fx:Script>
+	<common:LabelBoundary paddingTop="5" labelText="{resourceManager.getString('menu','historyCleanReasonData')}" />
+	<containers:AksControlBar>
+		<s:Label text="{resourceManager.getString('note','historyCleanReasonData')}"/>
+		<bizdata:Com_BizData_BizData_Field id="comBizDataADRField" paramIn4arrDictBizDataType="{this.prvVar4arrDictBizDataType_historyadr}" paramIn4blConstrainedByPermission="true" paramIn4blOnlyIsManaging="true" width="100%">
+		</bizdata:Com_BizData_BizData_Field>
+		<mx:Spacer width="20"/>
+		<s:Label text="{resourceManager.getString('note','unitGroup')}"/>
+		<unit:Com_Unit_UnitGroup_Field id="comUnitGroupField" width="100%">
+		</unit:Com_Unit_UnitGroup_Field>
+		<mx:Spacer width="20"/>
+		<s:Label text="{resourceManager.getString('note','unit')}"/>
+		<s:ComboBox id="comboBoxUnit" dataProvider="{this.comUnitGroupField.paramIo4selectedUnitGroup.units}" selectedIndex="0" change="onChange4comboBoxUnit()"/>
+	</containers:AksControlBar>
+	<containers:AksControlBar>
+		<s:Label text="{resourceManager.getString('note','impReasonOverallComment')}"/>
+		<s:TextInput text="" id="text_comments" width="100%" maxChars="255" />
+		<mx:Spacer width="20"/>
+		<buttons:ButtonSave click="onSave()" id="btnSave" enabled="false"/> 
+		<buttons:ButtonClear click="onClear()"/>
+		<buttons:ButtonExpErrorRecord click="onExport()" id="btnExport" enabled="false"/>
+	</containers:AksControlBar>
+	<history:Com_History_ImHistoryADRData_AdvancedDataGrid id="comAdgImHistoryADRData" dataProvider="{this.prvVar4dp4comAdgImHistoryADRData}" width="100%" height="100%" keyDown="dataGridKeyDownHandler(event)"/>
+	
+	
+</mx:Module>

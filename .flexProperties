@@ -1,0 +1,2 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<flexProperties enableServiceManager="false" flexServerFeatures="4" flexServerType="2" serverContextRoot="SaleForecastWeb" serverRoot="D:/tomcat/tomcat6_8585/webapps/SaleForecastWeb" serverRootURL="http://localhost:8585/SaleForecastWeb" toolCompile="true" useServerFlexSDK="false" version="2"/>

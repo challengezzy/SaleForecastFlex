@@ -1,0 +1,904 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Module xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		   xmlns:s="library://ns.adobe.com/flex/spark" 
+		   xmlns:mx="library://ns.adobe.com/flex/mx" layout="vertical" width="100%" height="100%" 
+		   creationComplete="creationCompleteHandler(event)" 
+		   xmlns:security="dmdd.dmddmx.com.security.*" xmlns:uirowdata="dmdd.dmddmx.com.uirowdata.*" 
+		   xmlns:controls="aks.aksmx.controls.*" xmlns:charts="aks.aksmx.charts.*" xmlns:containers="aks.aksmx.containers.*">
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+		<s:RemoteObject endpoint="{ClientEnvironment.endpoint}" id="srvUiRowData" destination="UiRowDataService">	
+			<s:method name="getUiRowDatas" result="resultHandler4getUiRowDatas(event)" fault="faultHandler4getUiRowDatas(event)">
+			</s:method>							  
+		</s:RemoteObject>		
+	</fx:Declarations>
+	<fx:Metadata>
+		[ResourceBundle("mod_report")]
+	</fx:Metadata>
+	<fx:Script>
+		<![CDATA[
+			import aks.aksas.charts.AksChartDataObject;
+			import aks.aksas.controls.AksLockDataGridObject;
+			import aks.aksas.utils.UtilArrayCollection;
+			import aks.aksas.utils.UtilUi;
+			
+			import dmdd.dmddas.common.constant.BizConst;
+			import dmdd.dmddas.common.constant.SysConst;
+			import dmdd.dmddas.common.constant.UIConst;
+			import dmdd.dmddas.common.system.ClientEnvironment;
+			import dmdd.dmddas.common.utils.UtilExceptionLocale;
+			import dmdd.dmddas.common.utils.UtilPeriod;
+			import dmdd.dmddas.common.utils.UtilUiRowData;
+			import dmdd.dmddas.dataaccess.aidobject.ABUiRowData;
+			import dmdd.dmddas.dataaccess.bizobject.BBizDataDefItemKpi;
+			import dmdd.dmddas.dataaccess.bizobject.BSysDictionaryItem;
+			import dmdd.dmddas.dataaccess.bizobject.BUnit;
+			import dmdd.dmddas.dataaccess.bizobject.BUnitGroup;
+			
+			import mx.collections.ArrayCollection;
+			import mx.controls.Alert;
+			import mx.events.FlexEvent;
+			import mx.events.IndexChangedEvent;
+			import mx.formatters.NumberFormatter;
+			import mx.rpc.events.FaultEvent;
+			import mx.rpc.events.ResultEvent;
+			
+			
+			
+			//	描述    begin
+			//	描述    end
+			
+			//	0	输入参数    begin						
+			//	0	输入参数    end
+			
+			//	1	输出参数    begin
+			//	1	输出参数    end
+			
+			//	2	本地变量    begin	
+			[Bindable]
+			private var prvVar4dp4comAdgUiRowData:ArrayCollection = new ArrayCollection();
+			[Bindable]
+			private var prvVar4dp4comAdgUiRowDatabak:ArrayCollection = new ArrayCollection();
+			
+			[Bindable]
+			private var prvVar4arrDictBizDataType:ArrayCollection = ClientEnvironment.getBizDataTypeArr();	
+			
+			[Bindable]
+			private var prvVar4dp4chart4scale:ArrayCollection = new ArrayCollection();
+			
+			private var prvVar4arr4displayName4chart4scale:ArrayCollection = new ArrayCollection();
+			private var prvVar4arr4yField4chart4scale:ArrayCollection = new ArrayCollection();		
+			
+			[Bindable]
+			private var prvVar4dp4chart4kpi:ArrayCollection = new ArrayCollection();
+			
+			private var prvVar4arr4displayName4chart4kpi:ArrayCollection = new ArrayCollection();
+			private var prvVar4arr4yField4chart4kpi:ArrayCollection = new ArrayCollection();				
+			
+			//	 显示设置		begin
+			[Bindable]
+			private var prvVar4blDispProduct:Boolean = true;
+			[Bindable]
+			private var prvVar4blDispProductCharacter:Boolean = false;
+			[Bindable]
+			private var prvVar4blDispOrganization:Boolean = true;
+			[Bindable]
+			private var prvVar4blDispOrganizationCharacter:Boolean = false;
+			
+			[Bindable]
+			private var prvVar4unitGroup:BUnitGroup = null;
+			private var prvVar4unit:BUnit = null;
+			
+			//	 显示设置		end
+			
+			
+			//	查询条件		begin
+			private var prvVar4qcondArrUiRowDataProOrgs:ArrayCollection = new ArrayCollection();
+			private var prvVar4qcondArrBizDatas:ArrayCollection = new ArrayCollection();
+			
+			private var prvVar4qcondPeriodBegin:int;
+			private var prvVar4qcondPeriodEnd:int;
+			//	查询条件		end
+			
+			//	2	本地变量    end			
+			
+			//	3	公共方法    begin			
+			//	3	公共方法    end		
+			
+			//	4	初始化方法    begin	
+			protected function creationCompleteHandler(event:FlexEvent):void
+			{				
+				//	初始化默认显示维度	begin				
+				this.prvVar4blDispProduct = this.comProOrgBizDataPeriodScope.comProOrgDisplayOption.checkBoxProduct.selected;
+				this.prvVar4blDispProductCharacter = this.comProOrgBizDataPeriodScope.comProOrgDisplayOption.checkBoxProductCharacter.selected;
+				this.prvVar4blDispOrganization = this.comProOrgBizDataPeriodScope.comProOrgDisplayOption.checkBoxOrganization.selected;
+				this.prvVar4blDispOrganizationCharacter = this.comProOrgBizDataPeriodScope.comProOrgDisplayOption.checkBoxOrganizationCharacter.selected;
+				this.comAdgUiRowData.setVisible4Dimension( this.prvVar4blDispProduct, this.prvVar4blDispProductCharacter, this.prvVar4blDispOrganization, this.prvVar4blDispOrganizationCharacter );				
+				//	初始化默认显示维度	end
+				
+				//设置默认产品和组织选择层次  begin
+				this.comProOrgBizDataPeriodScope.comProOrgDisplayOption.comboBoxProductLayer.selectedIndex = this.comProOrgBizDataPeriodScope.comProOrgDisplayOption.comboBoxProductLayer.dataProvider.length-1;
+				this.comProOrgBizDataPeriodScope.comProOrgDisplayOption.comboBoxOrganizationLayer.selectedIndex = this.comProOrgBizDataPeriodScope.comProOrgDisplayOption.comboBoxOrganizationLayer.dataProvider.length-1;
+				//设置默认产品和组织选择层次  end.
+				
+				//	初始化默认显示期间	begin
+				this.comProOrgBizDataPeriodScope.comPeriodSpan.txtPeriodBegin.text = String( UtilPeriod.getPeriod( ClientEnvironment.getSysPeriod().compilePeriod, -12)  ); 
+				this.comProOrgBizDataPeriodScope.comPeriodSpan.txtPeriodEnd.text =  String( UtilPeriod.getPeriod( ClientEnvironment.getSysPeriod().compilePeriod, 2) );
+				//	初始化默认显示期间	end
+				
+				//	初始化编码名称显示设置	begin
+				//	初始化编码名称显示设置	end
+				//增加右键锁定模块 begin
+				var aksright_edit:AksLockDataGridObject = new AksLockDataGridObject(this.comAdgUiRowData);				
+				//增加右键锁定模块 end
+				
+				this.prvVar4arrDictBizDataType = new ArrayCollection();
+				var arrDictBizDataType:ArrayCollection = ClientEnvironment.getBizDataTypeArr();
+				if( arrDictBizDataType != null )
+				{
+					var i:int;
+					var sysDictionaryItem:BSysDictionaryItem = null;
+					for( i=0; i<arrDictBizDataType.length; i=i+1 )
+					{
+						sysDictionaryItem = BSysDictionaryItem(arrDictBizDataType.getItemAt(i));
+						if( 
+							sysDictionaryItem.value == BizConst.BIZDATA_TYPE_FORECASTASSESSMENT
+						)
+						{
+							this.prvVar4arrDictBizDataType.addItem( sysDictionaryItem );
+						}				
+					}
+				}
+			}					
+			//	4	初始化方法    end				
+			
+			//	5	事件响应方法    begin	
+			private function callbackFunction4execute4comProOrgBizDataPeriodScope():void
+			{												
+				//	从 comProOrgBizDataPeriodScope中取得显示设置	begin
+				this.prvVar4blDispProduct = this.comProOrgBizDataPeriodScope.pubFun4getParamIo4blDisplayProduct();
+				this.prvVar4blDispProductCharacter = this.comProOrgBizDataPeriodScope.pubFun4getParamIo4blDisplayProductCharacter();
+				this.prvVar4blDispOrganization = this.comProOrgBizDataPeriodScope.pubFun4getParamIo4blDisplayOrganization();
+				this.prvVar4blDispOrganizationCharacter = this.comProOrgBizDataPeriodScope.pubFun4getParamIo4blDisplayOrganizationCharacter();
+				
+				this.prvVar4unitGroup = this.comProOrgBizDataPeriodScope.pubFun4getParamOut4unitGroup();
+				this.prvVar4unit = this.comProOrgBizDataPeriodScope.pubFun4getParamOut4unit();
+				//	this.comUiRowDataDisplayControlBar.comboBoxUnit.selectedItem 的丢失问题	begin
+				/*
+				*	this.prvVar4unitGroup = this.comProOrgBizDataPeriodScope.pubFun4getParamOut4unitGroup(); 的执行，因为
+				*	this.prvVar4unitGroup 被绑定到了 this.comUiRowDataDisplayControlBar 的参数上，
+				*	使得this.comUiRowDataDisplayControlBar.comboBoxUnit.selectedItem 自动取得了一个值，
+				*	如果这个值 与 this.prvVar4unit一样的话， this.comUiRowDataDisplayControlBar.comboBoxUnit.selectedItem = this.prvVar4unit; 的执行效果没有，
+				*	从而到后来还是认为 this.comUiRowDataDisplayControlBar.comboBoxUnit.selectedItem 是 undefined
+				*	所以，加上了 this.comUiRowDataDisplayControlBar.comboBoxUnit.selectedItem = null; 来强制其变化，使下面一句代码有效
+				*/
+				this.comUiRowDataDisplayControlBar.comboBoxUnit.selectedItem = null;
+				//	this.comUiRowDataDisplayControlBar.comboBoxUnit.selectedItem 的丢失问题	end				
+				this.comUiRowDataDisplayControlBar.comboBoxUnit.selectedItem = this.prvVar4unit;
+				//	从 comProOrgBizDataPeriodScope中取得显示设置	end
+				
+				
+				//	从 comProOrgBizDataPeriodScope中取得查询条件	begin
+				this.prvVar4qcondArrUiRowDataProOrgs = this.comProOrgBizDataPeriodScope.pubFun4getParamOut4arrUiRowDataProOrgs();
+				this.prvVar4qcondArrBizDatas = this.comProOrgBizDataPeriodScope.pubFun4getParamOut4arrBizDatas();
+				//	从 comProOrgBizDataPeriodScope中取得查询条件	end
+				
+				//	从 comPeriodSpan 取得查询期间		begin
+				this.prvVar4qcondPeriodBegin = this.comProOrgBizDataPeriodScope.pubFun4getParamOut4periodBegin();
+				this.prvVar4qcondPeriodEnd = this.comProOrgBizDataPeriodScope.pubFun4getParamOut4periodEnd();
+				//	从 comPeriodSpan 取得查询期间		end
+				
+				this.comAdgUiRowData.setVisible4Dimension( this.prvVar4blDispProduct, this.prvVar4blDispProductCharacter, this.prvVar4blDispOrganization, this.prvVar4blDispOrganizationCharacter );
+				this.comAdgUiRowData.setPeriodBeginEnd( this.prvVar4qcondPeriodBegin, this.prvVar4qcondPeriodEnd, false );
+				
+				var blPageProOrg:Boolean = this.comProOrgBizDataPeriodScope.pubFun4getParamOut4blPageProOrg();
+				if( blPageProOrg == true )
+				{	
+					//	初始化数据表格控制板
+					this.comAksDataGridControlBar.pubFun4setResultParams( true, this.prvVar4qcondArrUiRowDataProOrgs.length, ClientEnvironment.getSysParamPageSize() );
+					
+					//	去执行第一页查询
+					this.prvFun4pageQueryReportDatas( 1 );
+				}
+				else
+				{	
+					//	初始化数据表格控制板					
+					this.comAksDataGridControlBar.pubFun4setResultParams( false, this.prvVar4qcondArrUiRowDataProOrgs.length, this.prvVar4qcondArrUiRowDataProOrgs.length );
+					
+					//	不分页查询
+					UtilUi.pubFun4PopWaitWindow( this );
+					this.prvVar4dp4comAdgUiRowData = new ArrayCollection();
+					this.srvUiRowData.getUiRowDatas( this.prvVar4qcondArrUiRowDataProOrgs, this.prvVar4qcondPeriodBegin, this.prvVar4qcondPeriodEnd, this.prvVar4qcondArrBizDatas, ClientEnvironment.getSysPeriod()  );
+				}			
+				
+				//重置不显示0的勾选
+				this.comAksDataGridControlBar.showzero.selected=false;
+			}			
+			
+			//	分页查询相关		begin			
+			private function prvFun4pageQueryReportDatas( _pageIndex:int ):void
+			{
+				UtilUi.pubFun4PopWaitWindow( this );
+				var arrUiRowDataProOrgs:ArrayCollection = new ArrayCollection();
+				var i:int;
+				var pageSize:int = ClientEnvironment.getSysParamPageSize();
+				var indexBegin:int = pageSize * (_pageIndex-1);
+				var indexEnd:int = pageSize * _pageIndex;
+				if( indexEnd > this.prvVar4qcondArrUiRowDataProOrgs.length )
+				{
+					indexEnd = this.prvVar4qcondArrUiRowDataProOrgs.length;
+				}
+				//	分页查询,根据pageIndex计算需要传递给服务器的查询条件
+				for( i=indexBegin; i<indexEnd; i=i+1 )
+				{
+					arrUiRowDataProOrgs.addItem( this.prvVar4qcondArrUiRowDataProOrgs.getItemAt(i) );	
+				}
+				
+				
+				this.prvVar4dp4comAdgUiRowData = new ArrayCollection();
+				this.srvUiRowData.getUiRowDatas( arrUiRowDataProOrgs, this.prvVar4qcondPeriodBegin, this.prvVar4qcondPeriodEnd, this.prvVar4qcondArrBizDatas, ClientEnvironment.getSysPeriod()  );					
+			}			
+			//	分页查询相关		end		
+			
+			private function prvFun4ShowZero(notshow:Boolean):void
+			{
+				if(notshow)//去除为0的显示
+				{
+					var uiRowData:ABUiRowData;
+					var prvVar4remove:ArrayCollection = new ArrayCollection();
+					for(var i:int=0; i<this.prvVar4dp4comAdgUiRowData.length; i=i+1 )
+					{
+						uiRowData = ABUiRowData(this.prvVar4dp4comAdgUiRowData.getItemAt(i));
+						if(prv4CheckZero(uiRowData))
+						{
+							prvVar4remove.addItem(uiRowData);
+						}
+					}
+					this.prvVar4dp4comAdgUiRowData = UtilArrayCollection.removeItems(this.prvVar4dp4comAdgUiRowData,prvVar4remove);
+				}
+				else
+				{
+					prvVar4dp4comAdgUiRowData = new ArrayCollection();
+					var uiRowData_new:ABUiRowData;
+					for( i=0; i<this.prvVar4dp4comAdgUiRowDatabak.length; i=i+1 )
+					{
+						uiRowData = ABUiRowData(this.prvVar4dp4comAdgUiRowDatabak.getItemAt(i));
+						uiRowData_new = new ABUiRowData();
+						uiRowData_new.copyDeep(uiRowData);
+						prvVar4dp4comAdgUiRowData.addItem(uiRowData_new);
+					}
+					
+				}
+			}
+			
+			private function prv4CheckZero(uiRowData:ABUiRowData):Boolean
+			{
+				var value:Number;
+				var periodDiff:int = UtilPeriod.getPeriodDifference( uiRowData.periodBegin, uiRowData.periodEnd );
+				for(var periodLoc:int= 0; periodLoc <= periodDiff; periodLoc = periodLoc + 1 )
+				{
+					value = uiRowData.pubFun4getPeriodDataValue(periodLoc);
+					if(value!=0)
+					{
+						return false;
+					}
+				}
+				
+				return true;
+			}
+			
+			private function faultHandler4getUiRowDatas(event:FaultEvent):void
+			{
+				UtilUi.pubFun4RemoveWaitWindow();
+				Alert.show( UtilExceptionLocale.getExceptionMessageLocaleByFaultEvent( event ), resourceManager.getString('main','alt_title_warn') );
+			}	
+			
+			private function resultHandler4getUiRowDatas(event:ResultEvent):void 
+			{
+				this.btnExportData.enabled = true;
+				this.btnRefreshChart.enabled = true;
+				
+				
+				this.prvVar4dp4comAdgUiRowData = ArrayCollection(event.result);
+				
+				var i:int;
+				var seledtedUnit:BUnit = null;
+				var uiRowData:ABUiRowData = null;
+				
+				var periodDiff:int;
+				var periodLoc:int;
+				var aitemValue:Number;
+				var bitemValue:Number;
+				var kpiValue:Number;
+				var kpiFormula:int;
+				
+				var numberFormatter:NumberFormatter = new NumberFormatter();
+				numberFormatter.precision = 2;
+				var myPattern:RegExp = /,/g;//用来去掉格式化后的逗号
+				
+				if( this.prvVar4dp4comAdgUiRowData != null )
+				{
+					seledtedUnit = BUnit(this.comUiRowDataDisplayControlBar.comboBoxUnit.selectedItem);		
+					
+					for( i=0; i<this.prvVar4dp4comAdgUiRowData.length; i=i+1 )
+					{
+						uiRowData = ABUiRowData(this.prvVar4dp4comAdgUiRowData.getItemAt(i));
+						
+						if( uiRowData.bizData.type != BizConst.BIZDATA_TYPE_KPI )
+						{
+							//	非Kpi数据换算后放入显示表格
+							if( seledtedUnit != null && seledtedUnit.isBase == BizConst.GLOBAL_YESNO_NO )
+							{
+								uiRowData.exchangeUnit( 1, seledtedUnit.exchangeRate );						
+							}						
+						}
+						else
+						{
+							if( uiRowData.bizData.bizDataDefItems != null && uiRowData.bizData.bizDataDefItems.length == 1 )
+							{
+								kpiFormula = BBizDataDefItemKpi(uiRowData.bizData.bizDataDefItems.getItemAt(0)).kpiFormula;
+								
+								//	kpi数据，计算真正的Kpi值
+								periodDiff = UtilPeriod.getPeriodDifference( uiRowData.periodBegin, uiRowData.periodEnd );
+								for( periodLoc = 0; periodLoc <= periodDiff; periodLoc = periodLoc + 1 )
+								{
+									aitemValue = uiRowData.pubFun4getPeriodDataValue( periodLoc );
+									bitemValue = uiRowData.pubFun4getPeriodDataValueBak( periodLoc );
+									
+									if( kpiFormula == BizConst.BIZDATADEFITEM_KPIFORMULA_RATIO )
+									{
+										if( isNaN(aitemValue) || isNaN(bitemValue) )
+										{
+											uiRowData.pubFun4setPeriodDataValue( periodLoc, NaN );
+											uiRowData.pubFun4setPeriodDataValueBak( periodLoc, NaN );
+										}
+										else if( bitemValue == 0 )
+										{
+											uiRowData.pubFun4setPeriodDataValue( periodLoc, NaN );
+											uiRowData.pubFun4setPeriodDataValueBak( periodLoc, NaN );								
+										}
+										else
+										{
+											kpiValue = aitemValue / bitemValue * 100.0;
+											kpiValue = Number( numberFormatter.format( kpiValue ).replace(myPattern,"" ));
+											
+											uiRowData.pubFun4setPeriodDataValue( periodLoc, kpiValue );
+											uiRowData.pubFun4setPeriodDataValueBak( periodLoc, kpiValue );									
+										}										
+									}
+									else if( kpiFormula == BizConst.BIZDATADEFITEM_KPIFORMULA_INCREMENTRATIO )
+									{
+										if( isNaN(aitemValue) || isNaN(bitemValue) )
+										{
+											uiRowData.pubFun4setPeriodDataValue( periodLoc, NaN );
+											uiRowData.pubFun4setPeriodDataValueBak( periodLoc, NaN );
+										}
+										else if( bitemValue == 0 )
+										{
+											uiRowData.pubFun4setPeriodDataValue( periodLoc, NaN );
+											uiRowData.pubFun4setPeriodDataValueBak( periodLoc, NaN );								
+										}
+										else
+										{
+											kpiValue = Math.abs( aitemValue - bitemValue ) / bitemValue * 100.0;
+											kpiValue = Number( numberFormatter.format( kpiValue ).replace(myPattern,"" ) );
+											
+											uiRowData.pubFun4setPeriodDataValue( periodLoc, kpiValue );
+											uiRowData.pubFun4setPeriodDataValueBak( periodLoc, kpiValue );									
+										}											
+									}
+									else if( kpiFormula == BizConst.BIZDATADEFITEM_KPIFORMULA_INCREMENTRATIO_I )
+									{
+										if( isNaN(aitemValue) || isNaN(bitemValue) )
+										{
+											uiRowData.pubFun4setPeriodDataValue( periodLoc, NaN );
+											uiRowData.pubFun4setPeriodDataValueBak( periodLoc, NaN );
+										}
+										else if( bitemValue == 0 )
+										{
+											uiRowData.pubFun4setPeriodDataValue( periodLoc, NaN );
+											uiRowData.pubFun4setPeriodDataValueBak( periodLoc, NaN );								
+										}
+										else
+										{
+											kpiValue = (1 - Math.abs( aitemValue - bitemValue ) / bitemValue) * 100.0;
+											kpiValue = Number( numberFormatter.format( kpiValue ).replace(myPattern,"" ) );
+											
+											uiRowData.pubFun4setPeriodDataValue( periodLoc, kpiValue );
+											uiRowData.pubFun4setPeriodDataValueBak( periodLoc, kpiValue );									
+										}											
+									}
+									else if( kpiFormula == BizConst.BIZDATADEFITEM_KPIFORMULA_INCREMENTRATIO_II )
+									{
+										if( isNaN(aitemValue) )
+										{
+											aitemValue = 0;
+										}
+										if( isNaN(bitemValue) )
+										{
+											bitemValue = 0;
+										}
+										
+										if( aitemValue + bitemValue == 0 )
+										{
+											//	分母为0
+											uiRowData.pubFun4setPeriodDataValue( periodLoc, NaN );
+											uiRowData.pubFun4setPeriodDataValueBak( periodLoc, NaN );																		
+										}
+										else
+										{
+											kpiValue = 2.0 * Math.abs(aitemValue - bitemValue) / (aitemValue + bitemValue) * 100.0;
+											kpiValue = Number( numberFormatter.format( kpiValue ).replace(myPattern,"" ) ); 
+											
+											uiRowData.pubFun4setPeriodDataValue( periodLoc, kpiValue );
+											uiRowData.pubFun4setPeriodDataValueBak( periodLoc, kpiValue );									
+										}									
+									}	
+									else if(kpiFormula == BizConst.BIZDATADEFITEM_KPIFORMULA_INCREMENTRATIO_III)
+									{
+										if( isNaN(aitemValue) )
+										{
+											aitemValue = 0;
+										}
+										if( isNaN(bitemValue) )
+										{
+											bitemValue = 0;
+										}
+										kpiValue = (aitemValue - bitemValue)  ;
+										kpiValue = Number( numberFormatter.format( kpiValue ).replace(myPattern,"" ) ); 
+										
+										uiRowData.pubFun4setPeriodDataValue( periodLoc, kpiValue );
+										uiRowData.pubFun4setPeriodDataValueBak( periodLoc, kpiValue );
+									}
+									else if(kpiFormula == BizConst.BIZDATADEFITEM_KPIFORMULA_INCREMENTRATIO_IV)
+									{
+										if( isNaN(aitemValue) )
+										{
+											aitemValue = 0;
+										}
+										if( isNaN(bitemValue) )
+										{
+											bitemValue = 0;
+										}
+										kpiValue =  Math.abs(aitemValue - bitemValue) ;
+										kpiValue = Number( numberFormatter.format( kpiValue ).replace(myPattern,"" ) ); 
+										
+										uiRowData.pubFun4setPeriodDataValue( periodLoc, kpiValue );
+										uiRowData.pubFun4setPeriodDataValueBak( periodLoc, kpiValue );
+									}
+									else if(kpiFormula == BizConst.BIZDATADEFITEM_KPIFORMULA_INCREMENTRATIO_V)
+									{
+										if( isNaN(aitemValue) || isNaN(bitemValue) )
+										{
+											uiRowData.pubFun4setPeriodDataValue( periodLoc, NaN );
+											uiRowData.pubFun4setPeriodDataValueBak( periodLoc, NaN );
+										}
+										else if( bitemValue == 0 )
+										{
+											uiRowData.pubFun4setPeriodDataValue( periodLoc, NaN );
+											uiRowData.pubFun4setPeriodDataValueBak( periodLoc, NaN );								
+										}
+										else
+										{
+											kpiValue = ( aitemValue - bitemValue ) / bitemValue * 100.0;
+											kpiValue = Number( numberFormatter.format( kpiValue ).replace(myPattern,"" ) );
+											
+											uiRowData.pubFun4setPeriodDataValue( periodLoc, kpiValue );
+											uiRowData.pubFun4setPeriodDataValueBak( periodLoc, kpiValue );									
+										}	
+									}
+									else if(kpiFormula == BizConst.BIZDATADEFITEM_KPIFORMULA_INCREMENTRATIO_VI)
+									{
+										if( isNaN(aitemValue) || isNaN(bitemValue) )
+										{
+											uiRowData.pubFun4setPeriodDataValue( periodLoc, NaN );
+											uiRowData.pubFun4setPeriodDataValueBak( periodLoc, NaN );
+										}
+										else if( bitemValue == 0 )
+										{
+											uiRowData.pubFun4setPeriodDataValue( periodLoc, NaN );
+											uiRowData.pubFun4setPeriodDataValueBak( periodLoc, NaN );								
+										}
+										else if(aitemValue<0 || bitemValue<0)
+										{
+											uiRowData.pubFun4setPeriodDataValue( periodLoc, 0 );
+											uiRowData.pubFun4setPeriodDataValueBak( periodLoc, 0 );	
+										}
+										else
+										{
+											if(aitemValue<bitemValue)
+											{
+												kpiValue = aitemValue / bitemValue * 100.0;
+												kpiValue = Number( numberFormatter.format( kpiValue ) );
+											}
+											else
+											{
+												kpiValue = bitemValue / aitemValue * 100.0;
+												kpiValue = Number( numberFormatter.format( kpiValue ) );
+											}
+											
+											uiRowData.pubFun4setPeriodDataValue( periodLoc, kpiValue );
+											uiRowData.pubFun4setPeriodDataValueBak( periodLoc, kpiValue );									
+										}	
+									}
+									else
+									{
+										//	out of design
+										uiRowData.pubFun4setPeriodDataValue( periodLoc, NaN );
+										uiRowData.pubFun4setPeriodDataValueBak( periodLoc, NaN );										
+									}
+									
+								}
+								
+							}
+						}
+						
+					}					
+				}
+				prvVar4dp4comAdgUiRowDatabak = new ArrayCollection();
+				var uiRowData_new:ABUiRowData;
+				for( i=0; i<this.prvVar4dp4comAdgUiRowData.length; i=i+1 )
+				{
+					uiRowData = ABUiRowData(this.prvVar4dp4comAdgUiRowData.getItemAt(i));
+					uiRowData_new = new ABUiRowData();
+					uiRowData_new.copyDeep(uiRowData);
+					prvVar4dp4comAdgUiRowDatabak.addItem(uiRowData_new);
+				}
+				UtilUi.pubFun4RemoveWaitWindow();
+			}				
+			
+			private function callbackFunction4onChange4comUiRowDataDisplayControlBar():void
+			{
+				//	单位变化	begin
+				var selectedUnit:BUnit = BUnit(this.comUiRowDataDisplayControlBar.comboBoxUnit.selectedItem)
+				var i:int;
+				
+				var uiRowData:ABUiRowData = null;
+				if( selectedUnit != null && this.prvVar4unit != null && selectedUnit.id != this.prvVar4unit.id )
+				{
+					if( this.prvVar4dp4comAdgUiRowData != null )
+					{
+						for( i=0; i<this.prvVar4dp4comAdgUiRowData.length; i=i+1 )
+						{
+							uiRowData = ABUiRowData(this.prvVar4dp4comAdgUiRowData.getItemAt(i));
+							uiRowData.exchangeUnit( this.prvVar4unit.exchangeRate, selectedUnit.exchangeRate );
+						}
+					}	
+					
+					this.prvVar4unit = selectedUnit;
+				}
+				//	单位变化	end
+				
+				//	显示列变化		begin
+				this.comAdgUiRowData.columnProductCode.visible = this.prvVar4blDispProduct && this.comUiRowDataDisplayControlBar.checkBoxProductCode.selected;
+				this.comAdgUiRowData.columnProductName.visible = this.prvVar4blDispProduct && this.comUiRowDataDisplayControlBar.checkBoxProductName.selected;
+				
+				this.comAdgUiRowData.columnProductCharacterCode.visible = this.prvVar4blDispProductCharacter && this.comUiRowDataDisplayControlBar.checkBoxProductCharacterCode.selected;
+				this.comAdgUiRowData.columnProductCharacterName.visible = this.prvVar4blDispProductCharacter && this.comUiRowDataDisplayControlBar.checkBoxProductCharacterName.selected;
+				
+				this.comAdgUiRowData.columnOrganizationCode.visible = this.prvVar4blDispOrganization && this.comUiRowDataDisplayControlBar.checkBoxOrganizationCode.selected;
+				this.comAdgUiRowData.columnOrganizationName.visible = this.prvVar4blDispOrganization && this.comUiRowDataDisplayControlBar.checkBoxOrganizationName.selected;
+				
+				this.comAdgUiRowData.columnOrganizationCharacterCode.visible = this.prvVar4blDispOrganizationCharacter && this.comUiRowDataDisplayControlBar.checkBoxOrganizationCharacterCode.selected;
+				this.comAdgUiRowData.columnOrganizationCharacterName.visible = this.prvVar4blDispOrganizationCharacter && this.comUiRowDataDisplayControlBar.checkBoxOrganizationCharacterName.selected;								
+				//	显示列变化		end
+			}
+			
+			private function onExportData():void
+			{
+				var TSVString:String = "";
+				
+				// Run through each field to create the column headers row
+				if( this.prvVar4blDispProduct == true )
+				{
+					TSVString += this.comAdgUiRowData.columnProductCode.headerText + "\t";
+					TSVString += this.comAdgUiRowData.columnProductName.headerText + "\t";
+				}
+				if( this.prvVar4blDispProductCharacter == true )
+				{
+					TSVString += this.comAdgUiRowData.columnProductCharacterCode.headerText + "\t";
+					TSVString += this.comAdgUiRowData.columnProductCharacterName.headerText + "\t";
+				}            	
+				if( this.prvVar4blDispOrganization == true )
+				{
+					TSVString += this.comAdgUiRowData.columnOrganizationCode.headerText + "\t";
+					TSVString += this.comAdgUiRowData.columnOrganizationName.headerText + "\t";
+				}            	
+				if( this.prvVar4blDispOrganizationCharacter == true )
+				{
+					TSVString += this.comAdgUiRowData.columnOrganizationCharacterCode.headerText + "\t";
+					TSVString += this.comAdgUiRowData.columnOrganizationCharacterName.headerText + "\t";
+				}            	            	
+				
+				TSVString += this.comAdgUiRowData.columnBizData.headerText + "\t";
+				
+				// 能执行这个方法，起止月份肯定是对的
+				
+				var periodDiff:int = UtilPeriod.getPeriodDifference( this.prvVar4qcondPeriodBegin, this.prvVar4qcondPeriodEnd );
+				var periodLoc:int;
+				for( periodLoc=0; periodLoc<periodDiff; periodLoc=periodLoc+1 )
+				{
+					TSVString += UtilPeriod.getPeriod( this.prvVar4qcondPeriodBegin, periodLoc ) + "\t";
+				}
+				TSVString += UtilPeriod.getPeriod( this.prvVar4qcondPeriodBegin, periodLoc ) + "\n";            
+				
+				var i:int;
+				var uiRowData:ABUiRowData = null;
+				if( this.prvVar4dp4comAdgUiRowData != null )
+				{
+					for( i=0; i<this.prvVar4dp4comAdgUiRowData.length; i=i+1 )
+					{
+						uiRowData = ABUiRowData( this.prvVar4dp4comAdgUiRowData.getItemAt( i ) );
+						
+						if( this.prvVar4blDispProduct == true )
+						{
+							TSVString += uiRowData.product.code + "\t";
+							TSVString += uiRowData.product.name + "\t";
+						}
+						if( this.prvVar4blDispProductCharacter == true )
+						{
+							TSVString += uiRowData.productCharacter.code + "\t";
+							TSVString += uiRowData.productCharacter.name + "\t";
+						}            	
+						if( this.prvVar4blDispOrganization == true )
+						{
+							TSVString += uiRowData.organization.code + "\t";
+							TSVString += uiRowData.organization.name + "\t";
+						}            	
+						if( this.prvVar4blDispOrganizationCharacter == true )
+						{
+							TSVString += uiRowData.organizationCharacter.code + "\t";
+							TSVString += uiRowData.organizationCharacter.name + "\t";
+						}            	            	
+						
+						TSVString += uiRowData.bizData.toString() + "\t";
+						
+						for( periodLoc=0; periodLoc<periodDiff; periodLoc=periodLoc+1 )
+						{
+							TSVString += uiRowData.pubFun4getPeriodDataValue( periodLoc ) + "\t";
+						}
+						TSVString += uiRowData.pubFun4getPeriodDataValue( periodLoc ) + "\n";            			           				
+					}	
+				}	
+				// Copy the TSV string to the clipboard
+				System.setClipboard(TSVString);				
+			}				
+			
+			private function onRefreshChart():void
+			{
+				var i:int;
+				var uiRowData:ABUiRowData = null;
+				
+				//	收集被勾选的 uiRowData	begin
+				var arr4checkedUiRowData4scale:ArrayCollection = new ArrayCollection();
+				var arr4checkedUiRowData4kpi:ArrayCollection = new ArrayCollection();
+				
+				if( this.prvVar4dp4comAdgUiRowData != null )
+				{
+					for( i=0; i<this.prvVar4dp4comAdgUiRowData.length; i=i+1 )
+					{
+						uiRowData = ABUiRowData(this.prvVar4dp4comAdgUiRowData.getItemAt(i));
+						if( uiRowData.isChecked == true )
+						{
+							if( uiRowData.bizData.type == BizConst.BIZDATA_TYPE_KPI )
+							{
+								arr4checkedUiRowData4kpi.addItem( uiRowData );
+							}
+							else
+							{
+								arr4checkedUiRowData4scale.addItem( uiRowData );
+							}
+						}
+					}
+				}
+				
+				var alert_title_hint:String = resourceManager.getString('mod_report','alert_title_hint');
+				var alert_msg:String = "";			
+				
+				if( arr4checkedUiRowData4scale.length > SysConst.CHART_MAX_NUM )
+				{
+					alert_msg = resourceManager.getString('mod_report','alert_msg_chartexceedmaxnum_scale');
+					Alert.show( alert_msg, alert_title_hint);					
+				}
+				
+				if( arr4checkedUiRowData4kpi.length > SysConst.CHART_MAX_NUM )
+				{
+					alert_msg = resourceManager.getString('mod_report','alert_msg_chartexceedmaxnum_kpi');
+					Alert.show( alert_msg, alert_title_hint);					
+				}				
+				//	收集被勾选的 uiRowData	begin
+				
+				//	收集displayName 和 yFieldName	begin
+				var displayName:String = null;
+				var yFieldName:String = null;
+				
+				this.prvVar4arr4displayName4chart4scale = new ArrayCollection();
+				this.prvVar4arr4yField4chart4scale = new ArrayCollection();
+				for( i=0; i<arr4checkedUiRowData4scale.length; i=i+1 )
+				{
+					uiRowData = ABUiRowData( arr4checkedUiRowData4scale.getItemAt(i) );
+					
+					displayName = UtilUiRowData.getDisplayName4Chart( this.prvVar4blDispProduct, uiRowData.product,
+						this.prvVar4blDispProductCharacter, uiRowData.productCharacter,
+						this.prvVar4blDispOrganization, uiRowData.organization,
+						this.prvVar4blDispOrganizationCharacter, uiRowData.organizationCharacter,
+						true, uiRowData.bizData );
+					
+					yFieldName = AksChartDataObject.getFiledName(i);
+					
+					this.prvVar4arr4displayName4chart4scale.addItem( displayName );
+					this.prvVar4arr4yField4chart4scale.addItem( yFieldName );	
+				}	
+				
+				this.prvVar4arr4displayName4chart4kpi = new ArrayCollection();
+				this.prvVar4arr4yField4chart4kpi = new ArrayCollection();
+				for( i=0; i<arr4checkedUiRowData4kpi.length; i=i+1 )
+				{
+					uiRowData = ABUiRowData( arr4checkedUiRowData4kpi.getItemAt(i) );
+					
+					displayName = UtilUiRowData.getDisplayName4Chart( this.prvVar4blDispProduct, uiRowData.product,
+						this.prvVar4blDispProductCharacter, uiRowData.productCharacter,
+						this.prvVar4blDispOrganization, uiRowData.organization,
+						this.prvVar4blDispOrganizationCharacter, uiRowData.organizationCharacter,
+						true, uiRowData.bizData );
+					
+					yFieldName = AksChartDataObject.getFiledName(i);
+					
+					this.prvVar4arr4displayName4chart4kpi.addItem( displayName );
+					this.prvVar4arr4yField4chart4kpi.addItem( yFieldName );	
+				}					
+				//	收集displayName 和 yFieldName	begin			
+				
+				//	刷新Chart基本信息	begin
+				this.tabNav4chart_changeHandler( null );			
+				//	刷新Chart基本信息	end					
+				
+				
+				// 收集chart 数据源    begin
+				this.prvVar4dp4chart4scale = new ArrayCollection();
+				this.prvVar4dp4chart4kpi = new ArrayCollection();
+				
+				var periodDiff:int = UtilPeriod.getPeriodDifference( this.prvVar4qcondPeriodBegin, this.prvVar4qcondPeriodEnd );
+				if( periodDiff == SysConst.PERIOD_DIFF_NULL )
+				{
+					return;
+				}
+				
+				var periodLoc:int;
+				
+				var aksChartDataObject:AksChartDataObject = null;
+				var value4chart:Number;
+				for( periodLoc=0; periodLoc<=periodDiff; periodLoc=periodLoc+1 )
+				{
+					aksChartDataObject = new AksChartDataObject();
+					aksChartDataObject.categoryFieldValue = String( UtilPeriod.getPeriod( this.prvVar4qcondPeriodBegin, periodLoc ) );
+					for( i=0; i<arr4checkedUiRowData4scale.length; i=i+1 )
+					{
+						uiRowData = ABUiRowData( arr4checkedUiRowData4scale.getItemAt(i) );
+						
+						//	历史类数据 0 值处不画图，免得掉下来	begin
+						value4chart = uiRowData.pubFun4getPeriodDataValue(periodLoc);
+						
+						if( uiRowData.bizData.type == BizConst.BIZDATA_TYPE_HISTORY ||
+							uiRowData.bizData.type == BizConst.BIZDATA_TYPE_HISTORYAD ||
+							uiRowData.bizData.type == BizConst.BIZDATA_TYPE_HISTORYADR || 
+							uiRowData.bizData.type == BizConst.BIZDATA_TYPE_TIMEHIS )
+						{
+							if( value4chart == 0 )
+							{
+								value4chart = NaN;
+							}
+						}
+						//	历史类数据 0 值处不画图，免得掉下来	end
+						
+						aksChartDataObject.setData( i, value4chart );
+					}
+					this.prvVar4dp4chart4scale.addItem( aksChartDataObject );
+				}
+				
+				for( periodLoc=0; periodLoc<=periodDiff; periodLoc=periodLoc+1 )
+				{
+					aksChartDataObject = new AksChartDataObject();
+					aksChartDataObject.categoryFieldValue = String( UtilPeriod.getPeriod( this.prvVar4qcondPeriodBegin, periodLoc ) );
+					for( i=0; i<arr4checkedUiRowData4kpi.length; i=i+1 )
+					{
+						uiRowData = ABUiRowData( arr4checkedUiRowData4kpi.getItemAt(i) );
+						aksChartDataObject.setData( i, uiRowData.pubFun4getPeriodDataValue(periodLoc) );
+					}
+					this.prvVar4dp4chart4kpi.addItem( aksChartDataObject );
+				}				
+				// 收集chart 数据源    end				
+				
+			}
+			
+			protected function tabNav4chart_changeHandler(event:IndexChangedEvent):void
+			{
+				if( this.tabNav4chart.selectedChild == this.tab4aksLineChart4scale )
+				{
+					this.aksLineChart4scale.pubFun4setSeries( this.prvVar4arr4displayName4chart4scale, this.prvVar4arr4yField4chart4scale );
+				}
+				else if( this.tabNav4chart.selectedChild == this.tab4aksColumnChart4scale )
+				{
+					this.aksColunmnChart4scale.pubFun4setSeries( this.prvVar4arr4displayName4chart4scale, this.prvVar4arr4yField4chart4scale );
+				}
+				else if( this.tabNav4chart.selectedChild == this.tab4aksLineChart4kpi )
+				{
+					this.aksLineChart4kpi.pubFun4setSeries( this.prvVar4arr4displayName4chart4kpi, this.prvVar4arr4yField4chart4kpi );
+				}
+				else if( this.tabNav4chart.selectedChild == this.tab4aksColumnChart4kpi )
+				{
+					this.aksColunmnChart4kpi.pubFun4setSeries( this.prvVar4arr4displayName4chart4kpi, this.prvVar4arr4yField4chart4kpi );
+				}				
+			}			
+			//	5	事件响应方法    end
+			
+			//	6	本地方法    begin
+			//	6	本地方法   end	
+			
+		]]>
+	</fx:Script>
+	
+	<mx:VDividedBox width="100%" height="1000">
+		<containers:AksAdvancedPanel paramIn4expandable="true" width="100%" height="390" minHeight="30" title="{resourceManager.getString('mod_report','querycondition')}">
+			<containers:layout>
+				<s:VerticalLayout/>
+			</containers:layout>
+			<security:Com_Security_ProOrg_BizData_Period_Scope id="comProOrgBizDataPeriodScope" paramIn4uiCode="{UIConst.UICODE_FORECAST_FORECASTASSESSMENT_QUERY}" width="100%" height="100%" paramIn4arrDictBizDataType="{this.prvVar4arrDictBizDataType}" paramIn4blOnlyIsManagingBizData="false" paramIn4executeCallback4thisObject="{this}" paramIn4executeCallback4function="{this.callbackFunction4execute4comProOrgBizDataPeriodScope}">
+			</security:Com_Security_ProOrg_BizData_Period_Scope>
+		</containers:AksAdvancedPanel>
+		<containers:AksAdvancedPanel paramIn4expandable="true" width="100%" height="60%" minHeight="30" title="{resourceManager.getString('mod_report','reportdata_table')}">
+			<containers:layout>
+				<s:VerticalLayout/>
+			</containers:layout>
+			<containers:AksControlBar>
+				<s:Button id="btnExportData" enabled="false" label="{resourceManager.getString('mod_report','btn_exportdata')}" click="onExportData()"/>
+			</containers:AksControlBar>			
+			<controls:AksDataGridControlBar id="comAksDataGridControlBar" paramIn4enabled4BtnSetColumns="false" paramIn4dataGrid="{this.comAdgUiRowData}" paramIn4callback4thisObject="{this}" paramIn4callback4queryFunction="{this.prvFun4pageQueryReportDatas}" paramIn4callback4showzeroFunction="{this.prvFun4ShowZero}" paramin4ShowZero="true">
+			</controls:AksDataGridControlBar>
+			<uirowdata:Com_UiRowData_UiRowData_DisplayControlBar id="comUiRowDataDisplayControlBar" paramIn4change4Callback4thisObject="{this}" paramIn4changeCallback4function="{this.callbackFunction4onChange4comUiRowDataDisplayControlBar}" paramIn4unitGroup="{this.prvVar4unitGroup}" paramIn4enabled4Product="{this.prvVar4blDispProduct}" paramIn4enabled4ProductCharacter="{this.prvVar4blDispProductCharacter}"  paramIn4enabled4Organization="{this.prvVar4blDispOrganization}" paramIn4enabled4OrganizationCharacter="{this.prvVar4blDispOrganizationCharacter}">
+			</uirowdata:Com_UiRowData_UiRowData_DisplayControlBar>			
+			<uirowdata:Com_UiRowData_UiRowData_AdvancedDataGrid id="comAdgUiRowData" dataProvider="{this.prvVar4dp4comAdgUiRowData}" editable="true" width="100%" height="100%"/>
+		</containers:AksAdvancedPanel>
+		<containers:AksAdvancedPanel paramIn4expandable="true" width="100%" height="40%" minHeight="30" title="{resourceManager.getString('mod_report','reportdata_chart')}">
+			<containers:layout>
+				<s:VerticalLayout/>
+			</containers:layout>
+			<containers:AksControlBar>
+				<s:Button id="btnRefreshChart" enabled="false" label="{resourceManager.getString('mod_report','btn_refreshchart')}" click="onRefreshChart()"/>
+			</containers:AksControlBar>
+			<mx:TabNavigator width="100%" height="100%" id="tabNav4chart" change="tabNav4chart_changeHandler(event)">
+				<s:NavigatorContent label="{resourceManager.getString('mod_report','reportdata_chartscaleline')}" width="100%" height="100%" id="tab4aksLineChart4scale">
+					<s:layout>
+						<s:VerticalLayout/>
+					</s:layout>
+					<charts:AksLineChart id="aksLineChart4scale" width="100%" height="100%" paramIn4dp4lineChart="{this.prvVar4dp4chart4scale}" paramIn4visible4legend="true">
+					</charts:AksLineChart>					
+				</s:NavigatorContent>
+				<s:NavigatorContent label="{resourceManager.getString('mod_report','reportdata_chartscalecolumn')}" width="100%" height="100%" id="tab4aksColumnChart4scale" >
+					<s:layout>
+						<s:VerticalLayout/>
+					</s:layout>
+					<charts:AksColumnChart id="aksColunmnChart4scale" width="100%" height="100%" paramIn4dp4columnChart="{this.prvVar4dp4chart4scale}" paramIn4visible4legend="false">
+					</charts:AksColumnChart>					
+				</s:NavigatorContent>
+				<s:NavigatorContent label="{resourceManager.getString('mod_report','reportdata_chartkpiline')}" width="100%" height="100%" id="tab4aksLineChart4kpi">
+					<s:layout>
+						<s:VerticalLayout/>
+					</s:layout>
+					<charts:AksLineChart id="aksLineChart4kpi" width="100%" height="100%" paramIn4dp4lineChart="{this.prvVar4dp4chart4kpi}" paramIn4visible4legend="true">
+					</charts:AksLineChart>					
+				</s:NavigatorContent>
+				<s:NavigatorContent label="{resourceManager.getString('mod_report','reportdata_chartkpicolumn')}" width="100%" height="100%" id="tab4aksColumnChart4kpi" >
+					<s:layout>
+						<s:VerticalLayout/>
+					</s:layout>
+					<charts:AksColumnChart id="aksColunmnChart4kpi" width="100%" height="100%" paramIn4dp4columnChart="{this.prvVar4dp4chart4kpi}" paramIn4visible4legend="false">
+					</charts:AksColumnChart>					
+				</s:NavigatorContent>				
+			</mx:TabNavigator>			
+		</containers:AksAdvancedPanel>		
+		
+	</mx:VDividedBox>
+	
+	
+</mx:Module>

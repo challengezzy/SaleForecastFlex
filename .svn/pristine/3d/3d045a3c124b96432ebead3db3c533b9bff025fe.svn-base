@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:TitleWindow xmlns:fx="http://ns.adobe.com/mxml/2009" 
+			   xmlns:s="library://ns.adobe.com/flex/spark" 
+			   xmlns:mx="library://ns.adobe.com/flex/mx" width="800" height="600" close="onCancel()"
+			   creationComplete="creationCompleteHandler(event)" 
+			   xmlns:uirowdata="dmdd.dmddmx.com.uirowdata.*">
+	<s:layout>
+		<s:VerticalLayout/>
+	</s:layout>
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+		<s:RemoteObject endpoint="{ClientEnvironment.endpoint}" id="srvUiRowData" destination="UiRowDataService">	
+			<s:method name="getDetailUiRowDatas" result="resultHandler4getUiRowDatas(event)" fault="faultHandler4getUiRowDatas(event)">
+			</s:method>							  
+		</s:RemoteObject>
+	</fx:Declarations>
+
+	<fx:Script>
+		<![CDATA[
+			import aks.aksas.utils.UtilUi;
+			
+			import dmdd.dmddas.common.system.ClientEnvironment;
+			import dmdd.dmddas.common.utils.UtilExceptionLocale;
+			import dmdd.dmddas.common.utils.UtilPeriod;
+			import dmdd.dmddas.dataaccess.aidobject.ABProOrg;
+			import dmdd.dmddas.dataaccess.aidobject.ABUiRowData;
+			import dmdd.dmddas.dataaccess.aidobject.ABUiRowDataProOrg;
+			import dmdd.dmddas.dataaccess.bizobject.BBizData;
+			import dmdd.dmddas.dataaccess.bizobject.BSysPeriod;
+			
+			import mx.collections.ArrayCollection;
+			import mx.controls.Alert;
+			import mx.events.FlexEvent;
+			import mx.managers.PopUpManager;
+			import mx.rpc.events.FaultEvent;
+			import mx.rpc.events.ResultEvent;
+			
+			//	描述		begin
+			//	描述		end
+			
+			//	0	输入参数    begin	
+			public var paramIn4arrSelectedABProOrg:ArrayCollection=null;
+			public var paramIn4abUiRowDataProOrg:ABUiRowDataProOrg=null;
+			public var paramIn4qcondPeriodBegin:int = 0;
+			public var paramIn4qcondPeriodEnd:int = 0;
+			public var paramIn4selectedBizDataKPI:BBizData = null;
+			public var paramIn4selectedBaseBizDataIndex:int = -1;
+			public var paramIn4sysPeriod:BSysPeriod = null;
+			
+			//	0	输入参数    end
+			
+			//	1	输出参数    begin
+	
+			//	1	输出参数    end
+			
+			//	2	本地变量    begin				
+			[Bindable]
+			private var prvVar4dp4comAdgUiRowData:ArrayCollection = new ArrayCollection();
+			//	2	本地变量    end			
+			
+			//	3	公共方法    begin	
+			//	关闭回调函数参数													
+				
+			//	关闭窗口
+			private function prvFun4close():void
+			{
+				PopUpManager.removePopUp( this );								
+			}							
+			
+							
+			
+			//	3	公共方法    end		
+			
+			//	4	初始化方法    begin			
+			protected function creationCompleteHandler(event:FlexEvent):void
+			{
+				this.title = resourceManager.getString('menu','detailInfo');	
+				this.x = 100;
+				this.y = 50;		
+				comAdgUiRowData.columnIsChecked.visible=false;
+			}				
+			
+			//	4	初始化方法    end				
+			
+			//	5	事件响应方法    begin			
+			
+			private function onCancel():void
+			{	
+				this.prvFun4close();
+			}	
+			
+			//	5	事件响应方法    end
+			
+			//	6	本地方法    begin
+			public function onViewDetail():void
+			{
+				UtilUi.pubFun4PopWaitWindow( this );
+				this.srvUiRowData.getDetailUiRowDatas(this.paramIn4arrSelectedABProOrg, this.paramIn4abUiRowDataProOrg, this.paramIn4qcondPeriodBegin, this.paramIn4qcondPeriodEnd, this.paramIn4selectedBizDataKPI, paramIn4sysPeriod,paramIn4selectedBaseBizDataIndex  );
+			}
+			private function faultHandler4getUiRowDatas(event:FaultEvent):void
+			{
+				UtilUi.pubFun4RemoveWaitWindow();
+				Alert.show( UtilExceptionLocale.getExceptionMessageLocaleByFaultEvent( event ), resourceManager.getString('main','alt_title_warn') );
+			}	
+			
+			private function resultHandler4getUiRowDatas(event:ResultEvent):void 
+			{	
+				this.comAdgUiRowData.setPeriodBeginEnd( this.paramIn4qcondPeriodBegin, this.paramIn4qcondPeriodEnd, false );
+				this.prvVar4dp4comAdgUiRowData = ArrayCollection(event.result);
+				var kpiValue:Number = NaN;
+				var uiRowData:ABUiRowData = null;
+				
+				var periodDiff:int;
+				var periodLoc:int;
+				if( this.prvVar4dp4comAdgUiRowData != null )
+				{
+					for(var i:int=0; i<this.prvVar4dp4comAdgUiRowData.length; i=i+1 )
+					{
+						uiRowData = ABUiRowData(this.prvVar4dp4comAdgUiRowData.getItemAt(i));
+						periodDiff = UtilPeriod.getPeriodDifference( uiRowData.periodBegin, uiRowData.periodEnd );
+						for( periodLoc = 0; periodLoc <= periodDiff; periodLoc = periodLoc + 1 )
+						{
+							kpiValue=uiRowData.pubFun4getPeriodDataValue( periodLoc );
+							uiRowData.pubFun4setPeriodDataValue( periodLoc,kpiValue/100);
+						}
+					}
+				}
+				UtilUi.pubFun4RemoveWaitWindow();
+			}	
+			//	6	本地方法   end				
+			
+			
+			
+		]]>
+	</fx:Script>
+	<s:Panel width="100%" height="100%" minHeight="30" title="Items">
+		<s:layout>
+			<s:VerticalLayout/>
+		</s:layout>
+		<uirowdata:Com_UiRowData_UiRowData_AdvancedDataGrid id="comAdgUiRowData" dataProvider="{this.prvVar4dp4comAdgUiRowData}" editable="true" width="100%" height="100%"/>
+	</s:Panel>	
+	<s:BorderContainer width="100%" height="25" borderColor="#E4ECF7">
+		<s:layout>
+			<s:HorizontalLayout horizontalAlign="center"/>
+		</s:layout>
+		<s:Button label="{resourceManager.getString('button','close')}" click="onCancel()"/>
+	</s:BorderContainer>
+</s:TitleWindow>
+

@@ -1,0 +1,712 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009" 
+			   xmlns:s="library://ns.adobe.com/flex/spark" 
+			   xmlns:mx="library://ns.adobe.com/flex/mx" 
+			   creationComplete="creationCompleteHandler(event)" width="100%" height="100%"
+			   scriptTimeLimit="1800000"  minWidth="700" minHeight="500" 
+			   controlBarVisible="false" backgroundColor="#F5F4F4"
+			   preinitialize="{preinit()}"
+			   xmlns:mod="dmdd.dmddmx.mod.*"
+			   >
+	<s:layout>
+		<s:VerticalLayout horizontalAlign="center" verticalAlign="middle"/>
+	</s:layout>
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+		<s:RemoteObject endpoint="{ClientEnvironment.endpoint}" id="srvSystem" destination="SystemService" showBusyCursor="true">
+			<s:method name="getClientEnvironmentDatas" result="resultHandler4getClientEnvironmentDatas(event)" fault="faultHandler4getClientEnvironmentDatas(event)">
+			</s:method>
+			<s:method name="getStatusADOpen" result="resultHandler4getStatusADOpen(event)" fault="faultHandler4getStatusADOpen(event)">
+			</s:method>
+			<s:method name="getClientEnvironmentMainDatas" result="resultHandler4getClientEnvironmentMainDatas(event)" fault="faultHandler4getClientEnvironmentMainDatas(event)">
+			</s:method>
+		</s:RemoteObject>	
+		<s:RemoteObject endpoint="{ClientEnvironment.endpoint}" id="srvSecurity" destination="SecurityService" showBusyCursor="true">
+			<s:method name="doLogin" result="resultHandler4doLogin(event)" fault="faultHandler4doLogin(event)">
+			</s:method>
+			<!-- 
+			<s:method name="doLogout" result="resultHandler4doLogout(event)" fault="faultHandler4doLogout(event)">
+			</s:method>
+			-->
+		</s:RemoteObject>
+	</fx:Declarations>
+	<fx:Style source="dmdd/dmddassets/css/aks/dmddair.css"/>
+	<fx:Metadata>
+		[ResourceBundle("main")]
+		
+		[ResourceBundle("button")]
+		[ResourceBundle("menu")]
+		[ResourceBundle("label")]
+		[ResourceBundle("note")]
+		[ResourceBundle("alert")]
+	</fx:Metadata>
+	<fx:Script>
+		<![CDATA[
+			import aks.aksas.aidobject.AksOptionObj;
+			import aks.aksas.controls.AksOptions;
+			import aks.aksas.controls.AksOptionsSetting;
+			import aks.aksas.utils.UtilUi;
+			import aks.aksmx.controls.AksOptionMgAU;
+			
+			import com.cool.components.LoadingWindow;
+			import com.cool.constant.DataViewConst;
+			import com.cool.events.MetadataTempletUtilEvent;
+			import com.cool.system.CoolClientEnv;
+			import com.cool.utils.MetadataTempletUtil;
+			import com.cool.vo.MetadataTempletVO;
+			import com.cool.vo.SimpleHashVO;
+			
+			import dmdd.dmddas.common.constant.BizConst;
+			import dmdd.dmddas.common.constant.SysConst;
+			import dmdd.dmddas.common.system.ClientEnvironment;
+			import dmdd.dmddas.common.system.UiConfigVo;
+			import dmdd.dmddas.common.utils.UtilExceptionLocale;
+			import dmdd.dmddas.dataaccess.bizobject.BDistributionCenter;
+			import dmdd.dmddas.dataaccess.bizobject.BOperatorUser;
+			import dmdd.dmddas.dataaccess.bizobject.BOrganization;
+			import dmdd.dmddas.dataaccess.bizobject.BOrganizationCharacter;
+			import dmdd.dmddas.dataaccess.bizobject.BProduct;
+			import dmdd.dmddas.dataaccess.bizobject.BProductCharacter;
+			import dmdd.dmddas.dataaccess.bizobject.BSysPeriod;
+			
+			import flash.events.ErrorEvent;
+			
+			import mx.collections.ArrayCollection;
+			import mx.controls.Alert;
+			import mx.core.FlexGlobals;
+			import mx.core.UIComponent;
+			import mx.events.CloseEvent;
+			import mx.events.FlexEvent;
+			import mx.events.ModuleEvent;
+			import mx.managers.BrowserManager;
+			import mx.managers.PopUpManager;
+			import mx.modules.IModuleInfo;
+			import mx.modules.ModuleManager;
+			import mx.rpc.events.FaultEvent;
+			import mx.rpc.events.ResultEvent;
+			import mx.utils.StringUtil;
+			
+			import spark.events.IndexChangeEvent;
+			import spark.events.TextOperationEvent;	
+			
+			//flex-java 对象映射
+			private var shv:SimpleHashVO;
+			
+			//	0	本地变量    begin	
+			[Bindable]
+			private var dp4Locales:ArrayCollection = new ArrayCollection([{label:"中文", data:SysConst.LOCALE_ZH},{label:"English", data:SysConst.LOCALE_EN}]); 
+			
+			private var clientLocalTime:Date;
+			
+			private var iModuleInfo_Work:IModuleInfo;		
+			
+			private var prvVar4auWindow:AksOptionMgAU = null;
+			
+			private var prvVar4isOpenAD:Boolean = false;
+			
+			private var prvVar4isShareInfo:Boolean = false;
+			
+			private var isClose4Update:Boolean = false;
+			
+			private var localeLanguage:String = SysConst.LOCALE_ZH;
+			
+			private var userShareObject:SharedObject;//共享变量，缓存
+			
+			private var loadingWindow:LoadingWindow = new LoadingWindow();
+			
+			//配置选项
+			[Bindable]
+			private var prv4arrOptions:ArrayCollection = new ArrayCollection();
+			//	0	本地变量    end			
+			
+			//	1	输入参数    begin
+			//	1	输入参数    end
+			
+			//	2	输出参数    begin
+			//	2	输出参数    end
+			
+			private function preinit():void{
+				initStyle();
+				
+				//设置客户端环境变量
+				var endpoint:String = FlexGlobals.topLevelApplication.parameters["endpoint"];
+				var polling_point:String = FlexGlobals.topLevelApplication.parameters["endpoint_polling"];
+				var streaming_point:String = FlexGlobals.topLevelApplication.parameters["endpoint_streaming"];
+				var webroot:String = FlexGlobals.topLevelApplication.parameters["webroot"];
+				
+				ClientEnvironment.endpoint = endpoint;
+				ClientEnvironment.webroot = webroot;
+				
+				CoolClientEnv.getInstance().putVar(CoolClientEnv.KEY_SERVICE_ENDPOINT,endpoint);
+				CoolClientEnv.getInstance().putVar(CoolClientEnv.KEY_SERVICE_WEBROOT, webroot);
+				
+				localeLanguage = FlexGlobals.topLevelApplication.parameters["language"];
+			}
+			
+			
+			//	3	初始化方法    begin	,界面元素创建完成后		
+			private function creationCompleteHandler(event:FlexEvent):void
+			{				
+				FlexGlobals.topLevelApplication = this;
+				//	初始窗口		begin
+				//x = 0;	这里不管用，通过dmdd-app.xml设置
+				//y = 0;
+//				width = Capabilities.screenResolutionX; //这里会把屏幕撑到最大，在浏览器中不适用
+//				height = Capabilities.screenResolutionY-80;
+				//	初始窗口		end
+				
+				clientLocalTime = new Date();
+				
+				//comboBox4ListOptions.selectedIndex=0;
+				
+				//add by zhangzy 2013-7-16设置URL请求响应超时时间，60分钟，可防止服务端还在执行，客户端出现网络超时的情况
+				//URLRequestDefaults.idleTimeout = 3600*1000; //只在AIR中有效
+				
+				scriptTimeLimit = 30*60*1000;//设置脚本执行响应超时时间
+				
+				//设置默认列表页大小 为1000条
+				ClientEnvironment.setSysParamPageSize( 1000 );
+				
+				//设置共享变量
+				userShareObject = SharedObject.getLocal(SysConst.KEY_SHAREDOBJECT_USERINFO);
+				
+				var flushResult:String = userShareObject.flush(100000);
+				if(flushResult == SharedObjectFlushStatus.PENDING){
+					userShareObject.addEventListener(NetStatusEvent.NET_STATUS,soNetStatusEventHandler);
+				}
+				
+				//从本地变量中读取登录用户信息
+				if(userShareObject != null && userShareObject.data != null){
+					txtUser.text = userShareObject.data.username;
+					txtPassword.text = userShareObject.data.userpwd;
+					chekBoxSavePwd.selected = userShareObject.data.rememberPassword as Boolean;
+					chekBoxAutoLogin.selected = userShareObject.data.autoLogin as Boolean;
+					localeLanguage = userShareObject.data.locale;
+					userShareObject.data.autoLogin = chekBoxAutoLogin.selected as Boolean;
+				}
+				
+				//设置本地语言
+				if(SysConst.LOCALE_EN != localeLanguage ){
+					localeLanguage = SysConst.LOCALE_ZH; //不是英文，就是中文，其它的错误语言也作为中文处理
+				}
+				resourceManager.localeChain = [ localeLanguage ];
+				for(var i:int=0;i<dp4Locales.length;i++){
+					var localeObj:Object = dp4Locales.getItemAt(i);
+					if(localeLanguage == localeObj.data){
+						comboBox4Locale.selectedIndex = i;
+						break;
+					}
+				}
+				ClientEnvironment.locale = localeLanguage;
+				
+				srvSecurity.endpoint = ClientEnvironment.endpoint;
+				srvSystem.endpoint = ClientEnvironment.endpoint;
+				
+				initCache();
+			}
+			
+			private function initCache():void{
+				loadingWindow.text = "正在初始化...";
+				PopUpManager.addPopUp(loadingWindow,this,true);
+				PopUpManager.centerPopUp(loadingWindow);
+				var metaUtil:MetadataTempletUtil = MetadataTempletUtil.getInstance();
+				metaUtil.addEventListener(MetadataTempletUtilEvent.INIT_GLOBAL_COMPLETE,initGlobalCacheCompleteHandler);
+				loadingWindow.text = "正在初始化缓存...";
+				metaUtil.initGlobalMetadataTempletVOCache(ClientEnvironment.endpoint);
+			}
+			
+			private function initGlobalCacheCompleteHandler(event:MetadataTempletUtilEvent):void{
+				loadingWindow.text = "初始化成功";
+				var util:MetadataTempletUtil = MetadataTempletUtil.getInstance();
+				util.removeEventListener(MetadataTempletUtilEvent.INIT_GLOBAL_COMPLETE,initGlobalCacheCompleteHandler);
+				PopUpManager.removePopUp(loadingWindow);
+				
+				//获取系统配置元数据
+				var sysconfigMeta:MetadataTempletVO = util.getMetadataTempletVO(DataViewConst.METADATA_SYSCONFIG);
+				var browserTitle:String = "DMDD3.0- Forecast and S&OP expert";
+				
+				if(sysconfigMeta != null && sysconfigMeta.contentXML !=null &&  sysconfigMeta.contentXML.browserTitle != null){
+					browserTitle = String(sysconfigMeta.contentXML.browserTitle);
+				}
+				BrowserManager.getInstance().setTitle(browserTitle);
+				
+				//用户界面定义
+				var uiConfig:UiConfigVo = new UiConfigVo();
+				uiConfig.setSysMetaData(sysconfigMeta.contentXML);
+				ClientEnvironment.uiConfig = uiConfig;
+				
+				//	获取系统环境变量
+				UtilUi.pubFun4PopWaitWindow( this );
+				srvSystem.getClientEnvironmentDatas();
+			}
+			
+			private function soNetStatusEventHandler(event:NetStatusEvent):void{
+				userShareObject.removeEventListener(NetStatusEvent.NET_STATUS,soNetStatusEventHandler);
+			}
+			
+			private function initStyle():void{
+				var userStyle:SharedObject = SharedObject.getLocal("userStyle");
+				var styleFilePath:String = FlexGlobals.topLevelApplication.parameters["themeuri"] as String;
+				try
+				{
+					if(styleFilePath != null && styleFilePath != "" && styleFilePath != "null"){
+						FlexGlobals.topLevelApplication.styleManager.loadStyleDeclarations2(styleFilePath);
+						userStyle.data.styleFilePath = styleFilePath;
+					}else{
+						styleFilePath = userStyle.data.styleFilePath as String;
+						if(styleFilePath != null && styleFilePath != "" && styleFilePath != "null")
+							FlexGlobals.topLevelApplication.styleManager.loadStyleDeclarations2(styleFilePath);
+					}
+				} catch(error:Error)
+				{			
+				}
+				
+			}
+			
+			
+			//	3	初始化方法    end
+			
+			//	4	公共方法    begin
+			//	4	公共方法    end			
+			
+			//	5	事件响应方法    begin	
+			protected function onChangeTextHandler(event:TextOperationEvent):void
+			{
+				prvVar4isShareInfo=false;
+			}
+			
+			
+			private function onChange4comboBox4Locale():void
+			{
+				if( comboBox4Locale.selectedIndex == 0 )
+				{
+					resourceManager.localeChain = [ SysConst.LOCALE_ZH ];
+					ClientEnvironment.locale = SysConst.LOCALE_ZH;
+				}
+				else if( comboBox4Locale.selectedIndex == 1 )
+				{
+					resourceManager.localeChain = [ SysConst.LOCALE_EN ];
+					ClientEnvironment.locale = SysConst.LOCALE_EN;
+				}	
+			}
+			
+			private function onClear():void
+			{
+				txtUser.text = "";
+				txtPassword.text = "";
+			}
+			
+			public function onLogout():void{
+				viewStack.selectedIndex = 0;
+				validateDisplayList();
+			}
+			
+			private function onLogin():void
+			{
+				var loginName:String = StringUtil.trim( txtUser.text );
+				var password:String = txtPassword.text;
+				
+				if( loginName == null || loginName == "" )
+				{
+					var alt_title_hint:String = resourceManager.getString('main','alt_title_hint');
+					var alt_msg:String = resourceManager.getString('main','alt_msg_inputloginname');
+					Alert.show( alt_msg, alt_title_hint );
+					return;
+				}
+				
+				UtilUi.pubFun4PopWaitWindowAndConent(this,"正在获取客户端缓存主数据!");
+				srvSystem.getClientEnvironmentMainDatas();
+			}	
+			
+			private function faultHandler4getClientEnvironmentDatas(event:FaultEvent):void
+			{
+				UtilUi.pubFun4RemoveWaitWindow();
+				Alert.show( UtilExceptionLocale.getExceptionMessageLocaleByFaultEvent( event ), resourceManager.getString('main','alt_title_warn') );
+			}	
+			
+			private function resultHandler4getClientEnvironmentDatas(event:ResultEvent):void 
+			{
+				//获取系统状态
+				UtilUi.pubFun4RemoveWaitWindow();
+				
+				var alt_title_hint:String = resourceManager.getString('main','alt_title_hint');
+				var alt_msg:String = resourceManager.getString('main','alt_msg_fail4loadclientenvironmentdatas');	
+				
+				if( event.result == null )
+				{
+					Alert.show( alt_msg, alt_title_hint );
+					return;							
+				}
+				
+				var arr4ClientEnvironmentData:ArrayCollection = ArrayCollection(event.result);
+				if( arr4ClientEnvironmentData.length != 5 )
+				{
+					Alert.show( alt_msg, alt_title_hint );
+					return;														
+				}		
+				
+				var sysDateTime:Date = arr4ClientEnvironmentData.getItemAt(0) as Date;
+				ClientEnvironment.setTimeDifference( sysDateTime.getTime() - clientLocalTime.getTime() );
+				
+				ClientEnvironment.systemStatus = arr4ClientEnvironmentData.getItemAt(1) as int;
+				
+				ClientEnvironment.version_server = arr4ClientEnvironmentData.getItemAt(2) as String;
+				
+				ClientEnvironment.version_database = arr4ClientEnvironmentData.getItemAt(3) as String;
+				
+				ClientEnvironment.database_type = arr4ClientEnvironmentData.getItemAt(4) as String;
+				
+				//自动登录
+				if(chekBoxAutoLogin.selected == true){
+					onLogin();
+				}
+				
+			}
+			
+			private function faultHandler4getClientEnvironmentMainDatas(event:FaultEvent):void
+			{
+				UtilUi.pubFun4RemoveWaitWindow();
+				Alert.show( UtilExceptionLocale.getExceptionMessageLocaleByFaultEvent( event ), resourceManager.getString('alert','alt_title_warn') );
+			}	
+			
+			private function resultHandler4getClientEnvironmentMainDatas(event:ResultEvent):void 
+			{
+				UtilUi.pubFun4RemoveWaitWindow();
+				var alt_title_hint:String = resourceManager.getString('alert','alt_title_hint');
+				var alt_msg:String = resourceManager.getString('alert','alt_msg_fail4loadclientenvironmentdatas');	
+				if( event.result == null )
+				{
+					Alert.show( alt_msg, alt_title_hint );
+					return;							
+				}
+				
+				var arr4ClientEnvironmentData:ArrayCollection = ArrayCollection(event.result);
+				if( arr4ClientEnvironmentData.length <= 12 )
+				{
+					Alert.show( alt_msg, alt_title_hint );
+					return;														
+				}
+				//load all
+				ClientEnvironment.setSysParams( ArrayCollection( arr4ClientEnvironmentData.getItemAt(0) ) );	
+				
+				ClientEnvironment.arr4AllSysDictionaryItems = ArrayCollection(arr4ClientEnvironmentData.getItemAt(1));	
+				
+				ClientEnvironment.setSysPeriod( BSysPeriod( arr4ClientEnvironmentData.getItemAt(2) ) );
+				
+				ClientEnvironment.setProductTreeRoot( BProduct( arr4ClientEnvironmentData.getItemAt(3) ) );
+				
+				ClientEnvironment.setProductCharacterTreeRoot( BProductCharacter( arr4ClientEnvironmentData.getItemAt(4) ) );
+				
+				ClientEnvironment.setProductLayers( ArrayCollection(arr4ClientEnvironmentData.getItemAt(5)) );
+				
+				ClientEnvironment.setProductCharacterLayers( ArrayCollection( arr4ClientEnvironmentData.getItemAt(6) ) );
+				
+				ClientEnvironment.setOrganizationTreeRoot( BOrganization( arr4ClientEnvironmentData.getItemAt(7) ) );
+				
+				ClientEnvironment.setOrganizationCharacterTreeRoot( BOrganizationCharacter( arr4ClientEnvironmentData.getItemAt( 8 ) ) );
+				
+				ClientEnvironment.setOrganizationLayers( ArrayCollection( arr4ClientEnvironmentData.getItemAt(9) ) );
+				
+				ClientEnvironment.setOrganizationCharacterLayers(  ArrayCollection ( arr4ClientEnvironmentData.getItemAt(10) ) );
+				
+				ClientEnvironment.setUnitGroups(ArrayCollection(arr4ClientEnvironmentData.getItemAt(11)));
+				
+				var menuStr:String = arr4ClientEnvironmentData.getItemAt(12) as String;
+				ClientEnvironment.menuXml = new XML(menuStr);
+				
+				//考虑没有升级补货补丁的情况
+				if(arr4ClientEnvironmentData.length >= 14)
+					ClientEnvironment.setDCTreeRoot( BDistributionCenter(arr4ClientEnvironmentData.getItemAt(13)));
+				
+				//	用户登录
+				var loginName:String = StringUtil.trim( txtUser.text );
+				var password:String = txtPassword.text;
+				
+				UtilUi.pubFun4PopWaitWindowAndConent(this,"登录中...");
+				srvSecurity.doLogin(loginName, password,prvVar4isShareInfo);
+				
+			}
+			
+			
+			private function faultHandler4doLogin(event:FaultEvent):void
+			{
+				UtilUi.pubFun4RemoveWaitWindow();
+				Alert.show( UtilExceptionLocale.getExceptionMessageLocaleByFaultEvent( event ), resourceManager.getString('main','alt_title_warn') );
+			}	
+			
+			private function resultHandler4doLogin(event:ResultEvent):void 
+			{				
+				UtilUi.pubFun4RemoveWaitWindow();
+				
+				var alt_title_hint:String = resourceManager.getString('main','alt_title_hint');
+				var alt_msg:String = null;	
+				
+				if( event.result == null )
+				{
+					alt_title_hint = resourceManager.getString('main','alt_title_hint');
+					alt_msg = resourceManager.getString('main','alt_msg_loginfail');
+					Alert.show( alt_msg, alt_title_hint );
+					
+					return;							
+				}
+				ClientEnvironment.setOperatorUser( BOperatorUser( event.result ) ) ;
+				
+				//保存登陆信息
+				saveLoginInfo(txtUser.text,txtPassword.text);
+				
+				//	检查系统状态并根据被用户权限确定用户是否可以登录	begin
+				//	这个检查只能在用户实际登陆后才能做
+				if( ClientEnvironment.systemStatus == BizConst.SYSTEM_STATUS_EXCEPTION_START )
+				{
+					alt_msg = resourceManager.getString('main','alt_msg_systemstatus_exception_start');
+					Alert.show( alt_msg, alt_title_hint );
+					btnLogin.enabled = false;	//	逼迫用户关闭界面
+					return;							
+				}	
+				else if( ClientEnvironment.systemStatus == BizConst.SYSTEM_STATUS_EXCEPTION_ROLLINGPERIOD )
+				{
+					//	期间滚动异常
+					if( ClientEnvironment.checkIsPermission(BizConst.FUNPERMISSION_SYSTEM_PERIOD_ROLL) == true )
+					{
+						//	有期间滚动权限的用户可以登入系统，以便检查
+					}
+					else
+					{
+						//	没有期间滚动权限的用户，不可以登入系统
+						alt_msg = resourceManager.getString('main','alt_msg_systemstatus_exception_rollingperiod');
+						Alert.show( alt_msg, alt_title_hint );
+						btnLogin.enabled = false;	//	逼迫用户关闭界面
+						return;								
+					}
+				}
+				else if( ClientEnvironment.systemStatus == BizConst.SYSTEM_STATUS_ROLLINGPERIOD )
+				{
+					//	期间滚动中
+					if( ClientEnvironment.checkIsPermission(BizConst.FUNPERMISSION_SYSTEM_PERIOD_ROLL) == true )
+					{
+						//	有期间滚动权限的用户可以登入系统，以便检查
+					}
+					else
+					{
+						//	没有期间滚动权限的用户，不可以登入系统
+						alt_msg = resourceManager.getString('main','alt_msg_systemstatus_rollingperiod');
+						Alert.show( alt_msg, alt_title_hint );
+						btnLogin.enabled = false;	//	逼迫用户关闭界面
+						return;								
+					}					
+				}
+				else if( ClientEnvironment.systemStatus == BizConst.SYSTEM_STATUS_EXCEPTION_RUNNINGFORECAST )
+				{
+					//	预测运行异常
+					if( ClientEnvironment.checkIsPermission(BizConst.FUNPERMISSION_FORECAST_FORECASTDATA_FCMODEL) == true )
+					{
+						//	有模型预测权限的用户可以登入系统，以便检查
+					}
+					else
+					{
+						//	没有模型预测权限的用户，不可以登入系统
+						alt_msg = resourceManager.getString('main','alt_msg_systemstatus_exception_rollingperiod');
+						Alert.show( alt_msg, alt_title_hint );
+						btnLogin.enabled = false;	//	逼迫用户关闭界面
+						return;								
+					}
+				}					
+				else if( ClientEnvironment.systemStatus == BizConst.SYSTEM_STATUS_RUNNINGFORECAST )
+				{
+					//	预测类别运行时
+					if( ClientEnvironment.checkIsPermission(BizConst.FUNPERMISSION_FORECAST_FORECASTDATA_FCMODEL) == true )
+					{
+						//	有模型预测权限的用户可以登入系统，以便检查
+					}
+					else
+					{
+						//	没有模型预测权限的用户，不可以登入系统
+						alt_msg = resourceManager.getString('main','alt_msg_systemstatus_runningforecast');
+						Alert.show( alt_msg, alt_title_hint );
+						btnLogin.enabled = false;	//	逼迫用户关闭界面
+						return;								
+					}					
+				}				
+				//	检查系统状态并根据被用户权限确定用户是否可以登录	end
+				
+				//	检查用户到期和密码到期	begin
+				var sysDateTime:Date = new Date( new Date().time + ClientEnvironment.getTimeDifference() );
+				if( sysDateTime.getTime() >= ClientEnvironment.getOperatorUser().userExpiryTime.getTime() )
+				{
+					alt_msg = resourceManager.getString('main','alt_msg_user_expire');
+					Alert.show( alt_msg, alt_title_hint );
+					btnLogin.enabled = false;	//	逼迫用户关闭界面
+					return;
+				}
+				
+				if( sysDateTime.getTime() >= ClientEnvironment.getOperatorUser().pwdExpiryTime.getTime() )
+				{
+					alt_msg = resourceManager.getString('main','alt_msg_password_expire');
+					Alert.show( alt_msg, alt_title_hint );
+					btnLogin.enabled = false;	//	逼迫用户关闭界面
+					return;
+				}				
+				//	检查用户到期和密码到期	end
+				
+				swithWorkFrame();
+			}
+			
+			private function swithWorkFrame():void{
+				//	切换登陆界面与工作界面		
+				viewStack.selectedIndex = 1;
+				validateDisplayList();
+				workFrame.dp4Locales = dp4Locales;
+				workFrame.initWorkFrame();
+				
+				ClientEnvironment.modWork = workFrame as UIComponent;
+			}
+			
+			//	5	事件响应方法    end
+			
+			//	6	本地方法    begin
+			
+			//服务器设置的相关代码全部注释
+			
+			private function setOption(index:int):void
+			{
+				var option:AksOptionObj = prv4arrOptions.getItemAt(index) as AksOptionObj;
+				AksOptions.serverConfigName = option.name;
+				AksOptions.serverName = option.serverName ;
+				AksOptions.serverPort = option.serverPort;
+				AksOptions.contextRoot = option.contextRoot;
+				AksOptions.updateServerName = option.updateServerName;
+				AksOptions.updateServerPort = option.updateServerPort;
+				var pageSize:int = int(option.pageSize);
+				if(pageSize<0)
+				{
+					pageSize=20;
+				}
+				ClientEnvironment.endpoint = "http://" +AksOptions.getServerOption()+ "/messagebroker/amf";
+				ClientEnvironment.setSysParamPageSize( pageSize );
+				AksOptions.pageSize = pageSize;	
+				//判断是否需要使用AD机制，如果需要则读取客户端信息
+				srvSystem.getStatusADOpen();
+			}
+			
+			private function faultHandler4getStatusADOpen(event:FaultEvent):void
+			{
+				Alert.show( UtilExceptionLocale.getExceptionMessageLocaleByFaultEvent( event ), resourceManager.getString('main','alt_title_warn') );
+			}
+			
+			private function resultHandler4getStatusADOpen(event:ResultEvent):void 
+			{
+				var isOpenAd:String = event.result as String;
+				if(isOpenAd == null ||isOpenAd == "" )//获取不到AD信息，正常登陆
+				{					
+				}
+				else if(isOpenAd == "true" || isOpenAd == "TRUE") //要验证AD
+				{
+					prvVar4isOpenAD = true;
+					var so:SharedObject =SharedObject.getLocal("so_loginInfo");  
+					
+					if(null==so)  			//没有保存信息，		
+					{  						
+						return ;
+						
+					}else  						
+					{  					
+						var username:String=so.data.username;  						
+						var password:String=so.data.password;  
+						txtUser.text=username;
+						txtPassword.text=password;
+						prvVar4isShareInfo=true;
+					}  
+					
+				}
+				//先判断自动更新
+				//checkForUpdate();
+			}
+			
+			private function saveLoginInfo(username:String,password:String):void
+			{
+				if(chekBoxSavePwd.selected){
+					//记住密码
+					userShareObject.data.username = username;
+					userShareObject.data.userpwd = password;
+					userShareObject.data.locale = resourceManager.localeChain;
+					userShareObject.data.rememberPassword = chekBoxSavePwd.selected; //是否记住密码
+					userShareObject.data.autoLogin = chekBoxAutoLogin.selected ; //是否自动登录
+				}else{
+					userShareObject.clear();
+				}
+				
+				//立即把共享对象数据写入本地文件  				
+				userShareObject.flush();  
+			}
+			//	6	本地方法   end			
+			
+		]]>
+	</fx:Script>
+	<mx:ViewStack id="viewStack" borderStyle="solid" width="100%" height="100%">
+		
+		<mx:HBox width="100%" height="100%">
+			<s:BorderContainer width="100%" height="100%" id="bCLogin" borderVisible="false">
+				<s:layout>
+					<s:VerticalLayout horizontalAlign="center" verticalAlign="middle"/>
+				</s:layout>
+				<s:backgroundFill >
+					<s:SolidColor color="#F5F4F4" />
+				</s:backgroundFill>
+				<s:BorderContainer borderVisible="true" borderWeight="4" borderColor="#C7D7EE">
+					<s:layout>
+						<s:HorizontalLayout paddingLeft="10" paddingRight="10" paddingTop="10" paddingBottom="10"/>
+					</s:layout>
+					<s:backgroundFill >
+						<s:SolidColor color="#ffffff">
+						</s:SolidColor>
+					</s:backgroundFill>
+					<s:VGroup height="100%" horizontalAlign="left" verticalAlign="middle">
+						<mx:Image source="@Embed(source='dmdd/dmddassets/images/login.GIF')">
+						</mx:Image>					
+					</s:VGroup>
+					
+					<s:VGroup width="340" height="100%">
+						<s:VGroup width="100%" height="30%" horizontalAlign="center" verticalAlign="bottom">
+							<mx:Image source="@Embed(source='dmdd/dmddassets/icons/logo_login.png')"/>
+						</s:VGroup>
+						<s:VGroup width="100%" height="70%" horizontalAlign="center" verticalAlign="middle">
+							<mx:Form defaultButton="{btnLogin}">
+								<mx:FormItem label="{resourceManager.getString('main','language')}">
+									<s:ComboBox id="comboBox4Locale" dataProvider="{dp4Locales}" selectedIndex="0" 
+												change="onChange4comboBox4Locale()">				
+									</s:ComboBox>
+								</mx:FormItem>
+								<mx:FormItem label="{resourceManager.getString('main','user')}">
+									<s:TextInput id="txtUser" change="onChangeTextHandler(event)">
+									</s:TextInput>
+								</mx:FormItem>
+								<mx:FormItem label="{resourceManager.getString('main','password')}">
+									<s:TextInput id="txtPassword" displayAsPassword="true" change="onChangeTextHandler(event)">
+									</s:TextInput>
+								</mx:FormItem>
+								<mx:FormItem label="{resourceManager.getString('main','savePassword')}">
+									<s:CheckBox id="chekBoxSavePwd" selected="false"  />
+								</mx:FormItem>
+								<mx:FormItem label="{resourceManager.getString('main','autoLogin')}" >
+									<s:CheckBox id="chekBoxAutoLogin" selected="false"  />
+								</mx:FormItem>
+								<s:Spacer height="15" />
+								<s:HGroup width="100%" horizontalAlign="center">
+									<s:Button label="{resourceManager.getString('main','btn_login')}" click="onLogin()" id="btnLogin"/>
+									<s:Spacer width="10" />
+									<s:Button label="{resourceManager.getString('main','btn_clear')}" click="onClear()"/>
+								</s:HGroup>
+							</mx:Form>										
+						</s:VGroup>
+					</s:VGroup>
+				</s:BorderContainer>
+				<s:Spacer height="25" />
+				<s:VGroup width="100%" horizontalAlign="center" verticalAlign="middle">
+					<s:Label text="{resourceManager.getString('main','copyrightInfo')}"/>
+				</s:VGroup>
+			</s:BorderContainer>
+		</mx:HBox>
+		<mod:Mod_WorkFrame id="workFrame" width="100%" height="100%" visible="false" onLogoutFunction="{onLogout}">
+		</mod:Mod_WorkFrame>
+	</mx:ViewStack>
+</s:Application>

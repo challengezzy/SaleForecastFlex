@@ -1,0 +1,16 @@
+
+product_code=Product ID
+product_name=Description
+productcharacter_code=ProChara ID
+productcharacter_name=Description
+organization_code=SalesOrg ID
+organization_name=Description
+organizationcharacter_code=SalesOrgChara ID
+organizationcharacter_name=Descripiton
+bizdata=Key Figure
+period=Period
+oldvalue=Value Changed From
+newvalue=Value Changed To
+description=Comments
+
+

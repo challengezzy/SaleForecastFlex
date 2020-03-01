@@ -1,0 +1,320 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:TitleWindow xmlns:fx="http://ns.adobe.com/mxml/2009" 
+			   xmlns:s="library://ns.adobe.com/flex/spark" 
+			   xmlns:mx="library://ns.adobe.com/flex/mx" width="500" height="300" close="onCancel()"
+			   creationComplete="creationCompleteHandler(event)"  
+			   xmlns:security="dmdd.dmddmx.com.security.*">
+	<s:layout>
+		<s:VerticalLayout/>
+	</s:layout>
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+		<s:RemoteObject endpoint="{ClientEnvironment.endpoint}" id="srvUi" destination="UiService">
+			<s:method name="newUiPopbScope" result="resultHandler4saveUiPopbScope(event)" fault="faultHandler4saveUiPopbScope(event)">
+			</s:method>	
+		</s:RemoteObject>		
+	</fx:Declarations>
+	
+	<fx:Metadata>
+		[ResourceBundle("com_report_customreport_au")]
+	</fx:Metadata>
+	
+	<fx:Script>
+		<![CDATA[
+			import aks.aksas.utils.UtilUi;
+			
+			import dmdd.dmddas.common.constant.BizConst;
+			import dmdd.dmddas.common.constant.UIConst;
+			import dmdd.dmddas.common.system.ClientEnvironment;
+			import dmdd.dmddas.common.utils.UtilExceptionLocale;
+			import dmdd.dmddas.common.utils.UtilPeriod;
+			import dmdd.dmddas.dataaccess.aidobject.ABProOrg;
+			import dmdd.dmddas.dataaccess.bizobject.BBizData;
+			import dmdd.dmddas.dataaccess.bizobject.BUiPopbScope;
+			import dmdd.dmddas.dataaccess.bizobject.BUiPopbScopeBizData;
+			import dmdd.dmddas.dataaccess.bizobject.BUiPopbScopeProOrg;
+			
+			import mx.collections.ArrayCollection;
+			import mx.controls.Alert;
+			import mx.events.FlexEvent;
+			import mx.managers.PopUpManager;
+			import mx.rpc.events.FaultEvent;
+			import mx.rpc.events.ResultEvent;
+			import mx.utils.StringUtil;
+			//	描述		begin
+			//	描述		end
+			
+			//	0	输入参数    begin		
+			private var paramIn4closeCallback4thisObject:Object = null;
+			private var paramIn4closeCallback4function:Function = null;
+			
+			private var paramIo4winUse:int = UtilUi.AUWINDOW_USE_NEW;
+			
+			[Bindable]
+			private var paramIo4uiPopbScope:BUiPopbScope = null;							
+			//	0	输入参数    end
+			
+			//	1	输出参数    begin
+			private var paramOut4winCloseWay:int = UtilUi.WINDOW_CLOSEWAY_CANCEL;
+			
+			//	1	输出参数    end
+			
+			//	2	本地变量    begin
+			[Bindable]
+			private var prvVar4arrDictBizDataType:ArrayCollection = ClientEnvironment.getBizDataTypeArr();				
+			//	2	本地变量    end			
+			
+			//	3	公共方法    begin	
+			//	构造函数
+			public function pubFun4constructor( _paramIo4uiPopbScope:BUiPopbScope, _paramIo4winUse:int, _paramIn4closeCallback4thisObject:Object, _paramIn4closeCallback4function:Function ):void
+			{
+				this.pubFun4setParamIo4uiPopbScope( _paramIo4uiPopbScope, _paramIo4winUse );
+				this.pubFun4setParamIn4closeCallback( _paramIn4closeCallback4thisObject, _paramIn4closeCallback4function );
+			}	
+			
+			//	关闭回调函数参数													
+			public function pubFun4setParamIn4closeCallback( _thisObject:Object, _function:Function ):void
+			{
+				this.paramIn4closeCallback4thisObject = _thisObject;
+				this.paramIn4closeCallback4function = _function;	
+			}
+			//	关闭方式参数
+			public function pubFun4getParamOut4winCloseWay():int
+			{
+				return this.paramOut4winCloseWay;
+			}
+			//	关闭窗口
+			private function prvFun4close():void
+			{
+				PopUpManager.removePopUp( this );						
+				this.paramIn4closeCallback4function.call( this.paramIn4closeCallback4thisObject );				
+			}				
+			
+			//	界面用途参数
+			public function pubFun4getParamIo4winUse():int
+			{
+				return this.paramIo4winUse;
+			}			
+			
+			
+			//	处理对象参数
+			/**
+			 * _paramIo4uiPopbScope:BUiPopbScope	处理对象
+			 * _paramIo4winUse:int	处理动作
+			 */ 			
+			public function pubFun4setParamIo4uiPopbScope( _paramIo4uiPopbScope:BUiPopbScope, _paramIo4winUse:int ):void
+			{
+				this.paramIo4uiPopbScope = _paramIo4uiPopbScope;
+				this.paramIo4winUse = _paramIo4winUse;
+			}
+			public function pubFun4getParamIo4uiPopbScope():BUiPopbScope
+			{
+				return this.paramIo4uiPopbScope;
+			}				
+			//	3	公共方法    end		
+			
+			//	4	初始化方法    begin			
+			private function creationCompleteHandler(event:FlexEvent):void
+			{
+				this.title = resourceManager.getString('com_report_customreport_au','title');
+				this.x = 100;
+				this.y = 50;
+			}						
+			//	4	初始化方法    end				
+			
+			//	5	事件响应方法    begin				
+			private function onSave():void
+			{				
+				if( this.prvFun4prepare4save() == true )
+				{
+					UtilUi.pubFun4PopWaitWindow( this );
+					if( this.paramIo4winUse == UtilUi.AUWINDOW_USE_NEW )
+					{
+						this.srvUi.newUiPopbScope( this.paramIo4uiPopbScope );
+					}
+					else
+					{
+						Alert.show( '意外情形，请联系技术支持人员', '提示' );	
+					}
+				}
+			}			
+			
+			private function faultHandler4saveUiPopbScope(event:FaultEvent):void
+			{
+				UtilUi.pubFun4RemoveWaitWindow();
+				Alert.show( UtilExceptionLocale.getExceptionMessageLocaleByFaultEvent( event ), resourceManager.getString('main','alt_title_warn') );
+			}	
+			
+			private function resultHandler4saveUiPopbScope(event:ResultEvent):void 
+			{
+				this.paramIo4uiPopbScope = BUiPopbScope(event.result);	
+				UtilUi.pubFun4RemoveWaitWindow();
+				
+				this.paramOut4winCloseWay = UtilUi.WINDOW_CLOSEWAY_OK;
+				this.prvFun4close();
+			}				
+			
+			private function onCancel():void
+			{
+				this.paramOut4winCloseWay = UtilUi.WINDOW_CLOSEWAY_CANCEL;
+				this.prvFun4close();
+			}	
+			
+			//	5	事件响应方法    end
+			
+			//	6	本地方法    begin
+			private function prvFun4prepare4save():Boolean
+			{
+				//	检查合法性	begin
+				var alert_title_hint:String = resourceManager.getString('com_report_customreport_au','alert_title_hint');
+				var alert_msg:String = "";
+				if( this.comProOrgBizDataPeriodScope.pubFun4getDp4comAdgProOrg() == null || this.comProOrgBizDataPeriodScope.pubFun4getDp4comAdgProOrg().length == 0 )
+				{
+					UtilUi.pubFun4RemoveWaitWindow();
+					
+					alert_msg = resourceManager.getString('com_report_customreport_au','alter_msg_proorgisnull');
+					Alert.show( alert_msg, alert_title_hint);
+					return false;					
+				}
+				
+				if( this.comProOrgBizDataPeriodScope.pubFun4getDp4comAdgBizData() == null || this.comProOrgBizDataPeriodScope.pubFun4getDp4comAdgBizData().length == 0 )
+				{
+					UtilUi.pubFun4RemoveWaitWindow();
+					
+					alert_msg = resourceManager.getString('com_report_customreport_au','alter_msg_bizdataisnull');
+					Alert.show( alert_msg, alert_title_hint);
+					return false;					
+				}			
+				
+				if( this.comProOrgBizDataPeriodScope.comProOrgDisplayOption.pubFun4checkDisplayOption() == false )
+				{
+					UtilUi.pubFun4RemoveWaitWindow();
+					return false;
+				}										
+
+				if( this.comProOrgBizDataPeriodScope.comPeriodSpan.pubFun4checkPeriodSpan() == false )
+				{
+					return false;
+				}
+				
+				//	检查合法性	end
+				
+				var newUiPopbScope:BUiPopbScope = new BUiPopbScope();
+				
+				newUiPopbScope.operatorUser = ClientEnvironment.getOperatorUser();
+				newUiPopbScope.uiCode = UIConst.UICODE_HOMEPAGE;
+				
+				var i:int;
+				var proOrg:ABProOrg = null;
+				var uiPopbScopeProOrg:BUiPopbScopeProOrg = null;
+				//	ProOrg		begin
+				newUiPopbScope.uiPopbScopeProOrgs = new ArrayCollection();
+				for( i=0; i<this.comProOrgBizDataPeriodScope.pubFun4getDp4comAdgProOrg().length; i=i+1 )
+				{
+					proOrg = ABProOrg(this.comProOrgBizDataPeriodScope.pubFun4getDp4comAdgProOrg().getItemAt(i));
+					
+					uiPopbScopeProOrg = new BUiPopbScopeProOrg();
+					uiPopbScopeProOrg.product = proOrg.product;
+					uiPopbScopeProOrg.organization = proOrg.organization;
+					uiPopbScopeProOrg.uiPopbScope = newUiPopbScope;
+					newUiPopbScope.uiPopbScopeProOrgs.addItem( uiPopbScopeProOrg );
+				}
+				//	ProOrg		end
+				
+				var bizData:BBizData = null;
+				var uiPopbScopeBizData:BUiPopbScopeBizData = null;
+				//	BizData		begin
+				newUiPopbScope.uiPopbScopeBizDatas = new ArrayCollection();
+				for( i=0; i<this.comProOrgBizDataPeriodScope.pubFun4getDp4comAdgBizData().length; i=i+1 )
+				{
+					bizData = BBizData(this.comProOrgBizDataPeriodScope.pubFun4getDp4comAdgBizData().getItemAt(i));
+					
+					uiPopbScopeBizData = new BUiPopbScopeBizData();
+					uiPopbScopeBizData.bizData = bizData;
+					uiPopbScopeBizData.uiPopbScope = newUiPopbScope;
+					newUiPopbScope.uiPopbScopeBizDatas.addItem( uiPopbScopeBizData );
+				}				
+				//	BizData		end
+				
+				//	显示控制		begin
+
+				newUiPopbScope.isDisplayControl = BizConst.GLOBAL_YESNO_YES;
+				
+				if( this.comProOrgBizDataPeriodScope.comProOrgDisplayOption.pubFun4getParamIo4blDisplayProduct() == true )
+				{
+					newUiPopbScope.isShowProduct = BizConst.GLOBAL_YESNO_YES;
+				}
+				else
+				{
+					newUiPopbScope.isShowProduct = BizConst.GLOBAL_YESNO_NO;
+				}
+				newUiPopbScope.productLayer = this.comProOrgBizDataPeriodScope.comProOrgDisplayOption.pubFun4getParamIo4productLayer();
+				if( this.comProOrgBizDataPeriodScope.comProOrgDisplayOption.pubFun4getParamIo4blDisplayProductCharacter() == true )
+				{
+					newUiPopbScope.isShowOrganizationCharacter = BizConst.GLOBAL_YESNO_YES;
+				}
+				else
+				{
+					newUiPopbScope.isShowOrganizationCharacter = BizConst.GLOBAL_YESNO_NO;
+				}
+				newUiPopbScope.productCharacterLayer = this.comProOrgBizDataPeriodScope.comProOrgDisplayOption.pubFun4getParamIo4productCharacterLayer();
+				newUiPopbScope.productCharacterType = this.comProOrgBizDataPeriodScope.comProOrgDisplayOption.pubFun4getParamIo4productCharacterType();
+				
+				if( this.comProOrgBizDataPeriodScope.comProOrgDisplayOption.pubFun4getParamIo4blDisplayOrganization() == true )
+				{
+					newUiPopbScope.isShowOrganization = BizConst.GLOBAL_YESNO_YES;
+				}
+				else
+				{
+					newUiPopbScope.isShowOrganization = BizConst.GLOBAL_YESNO_NO;
+				}
+				newUiPopbScope.organizationLayer = this.comProOrgBizDataPeriodScope.comProOrgDisplayOption.pubFun4getParamIo4organizationLayer();
+				if( this.comProOrgBizDataPeriodScope.comProOrgDisplayOption.pubFun4getParamIo4blDisplayOrganizationCharacter() == true )
+				{
+					newUiPopbScope.isShowOrganizationCharacter = BizConst.GLOBAL_YESNO_YES;
+				}
+				else
+				{
+					newUiPopbScope.isShowOrganizationCharacter = BizConst.GLOBAL_YESNO_NO;
+				}
+				newUiPopbScope.organizationCharacterLayer = this.comProOrgBizDataPeriodScope.comProOrgDisplayOption.pubFun4getParamIo4organizationCharacterLayer();
+				newUiPopbScope.organizationCharacterType = this.comProOrgBizDataPeriodScope.comProOrgDisplayOption.pubFun4getParamIo4organizationCharacterType();					
+
+				//	显示控制		end
+				
+				//	期间控制 		begin
+
+				newUiPopbScope.isPeriodControl = BizConst.GLOBAL_YESNO_YES;
+				var periodBegin:int = this.comProOrgBizDataPeriodScope.comPeriodSpan.pubFun4getParamOut4periodBegin();
+				var periodEnd:int = this.comProOrgBizDataPeriodScope.comPeriodSpan.pubFun4getParamOut4periodEnd();
+				
+				newUiPopbScope.periodOffsetBegin =  UtilPeriod.getPeriodDifference( ClientEnvironment.getSysPeriod().compilePeriod, periodBegin );
+				newUiPopbScope.periodOffsetEnd =  UtilPeriod.getPeriodDifference( ClientEnvironment.getSysPeriod().compilePeriod, periodEnd );
+				//	期间控制 		end
+				
+				this.paramIo4uiPopbScope = newUiPopbScope;
+				this.paramIo4uiPopbScope.operatorUser = ClientEnvironment.getOperatorUser();
+				this.paramIo4uiPopbScope.uiCode = UIConst.UICODE_HOMEPAGE;
+				this.paramIo4uiPopbScope.code = "" + ClientEnvironment.getOperatorUser().id;
+				this.paramIo4uiPopbScope.name = "" + ClientEnvironment.getOperatorUser().id;
+
+				return true;
+			}							
+			//	6	本地方法   end						
+
+
+		]]>
+	</fx:Script>
+	
+	
+	<security:Com_Security_ProOrg_BizData_Period_Set id="comProOrgBizDataPeriodScope" paramIn4executable="false" paramIn4visible4forecast4periodspan="false"
+					paramIn4uiCode="{UIConst.UICODE_CUSTOMREPORT_AU}" paramIn4arrDictBizDataType="{this.prvVar4arrDictBizDataType}" width="100%">
+	</security:Com_Security_ProOrg_BizData_Period_Set>
+    <s:BorderContainer width="100%" height="25" borderColor="#E4ECF7">
+        <s:layout>
+            <s:HorizontalLayout horizontalAlign="center"/>
+        </s:layout>
+		<s:Button label="{resourceManager.getString('com_report_customreport_au','btn_save')}" click="onSave()"/>	
+		<s:Button label="{resourceManager.getString('com_report_customreport_au','btn_cancel')}" click="onCancel()"/>	
+	</s:BorderContainer>
+</s:TitleWindow>

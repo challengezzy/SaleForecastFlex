@@ -1,0 +1,29 @@
+﻿
+organization=SalesOrg
+organizationcharacter=SalesOrgChara
+organizationorgcharacter=SalesOrg-OrgChara
+productwarnning=Exception
+
+btn_load=LoadData
+btn_save=Save
+btn_clear=Clear
+btn_export=FailedExport
+text_date=Loading Period(YYYYMMDD)
+text_region=Company ID
+btn_del=Remove
+btn_export_warnning=ExportAlert
+
+alert_title_hint=Alert
+
+alert_msg_nodatatosave=No Data needs save!
+
+alert_msg_noorganization=No data pastes!
+alert_msg_errorcolumnheader=Column header is error!
+
+
+alert_msg_totalnum=Total number of records：
+alert_msg_failnum=Number of imported failed records：
+alert_msg_inputdate=Input loading periond!
+alert_msg_inputdate_err=Period format is not correct!
+alert_msg_waitforgetdata=Data is loading, needs several minutes, continue?
+alert_msg_inputdate_noregion=Input company ID

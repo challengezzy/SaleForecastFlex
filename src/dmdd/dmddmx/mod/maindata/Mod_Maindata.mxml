@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Module xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		   xmlns:s="library://ns.adobe.com/flex/spark" 
+		   xmlns:mx="library://ns.adobe.com/flex/mx" layout="horizontal" width="100%" height="100%"
+		   creationComplete="creationCompleteHandler(event)">
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+	</fx:Declarations>
+	<fx:Metadata>
+		[ResourceBundle("mod_maindata")]
+	</fx:Metadata>
+	<fx:Script>
+		<![CDATA[
+			import dmdd.dmddas.common.constant.BizConst;
+			import dmdd.dmddas.common.system.ClientEnvironment;
+			
+			import mx.events.FlexEvent;
+			//	描述    begin
+			//	描述    end
+			
+			//	0	输入参数    begin						
+			//	0	输入参数    end
+			
+			//	1	输出参数    begin
+			//	1	输出参数    end
+			
+			//	2	本地变量    begin			
+			//	2	本地变量    end			
+			
+			//	3	公共方法    begin			
+			//	3	公共方法    end		
+			
+			//	4	初始化方法    begin	
+			protected function creationCompleteHandler(event:FlexEvent):void
+			{
+				viewStack.removeAllElements();
+				
+				if( ClientEnvironment.checkIsPermission(BizConst.FUNPERMISSION_MAINDATA_UNIT_QUERY) ||
+					ClientEnvironment.checkIsPermission(BizConst.FUNPERMISSION_MAINDATA_UNIT_MANAGE)
+				)
+				{
+					viewStack.addElement( modloader_maindata_unit );				
+				}
+				
+				if(	ClientEnvironment.checkIsPermission(BizConst.FUNPERMISSION_MAINDATA_PRODUCT_PRODUCT_QUERY) ||
+					ClientEnvironment.checkIsPermission(BizConst.FUNPERMISSION_MAINDATA_PRODUCT_PRODUCT_MANAGE) ||
+					ClientEnvironment.checkIsPermission(BizConst.FUNPERMISSION_MAINDATA_PRODUCT_PRODUCTLAYER_QUERY) ||
+					ClientEnvironment.checkIsPermission(BizConst.FUNPERMISSION_MAINDATA_PRODUCT_PRODUCTLAYER_MANAGE) ||
+					ClientEnvironment.checkIsPermission(BizConst.FUNPERMISSION_MAINDATA_PRODUCT_PRODUCTCHARACTER_QUERY) ||
+					ClientEnvironment.checkIsPermission(BizConst.FUNPERMISSION_MAINDATA_PRODUCT_PRODUCTCHARACTER_MANAGE) ||
+					ClientEnvironment.checkIsPermission(BizConst.FUNPERMISSION_MAINDATA_PRODUCT_PRODUCTCHARACTERLAYER_QUERY) ||
+					ClientEnvironment.checkIsPermission(BizConst.FUNPERMISSION_MAINDATA_PRODUCT_PRODUCTCHARACTERLAYER_MANAGE) ||  
+					ClientEnvironment.checkIsPermission(BizConst.FUNPERMISSION_MAINDATA_PRODUCT_PRODUCT_IMPORT) ||
+					ClientEnvironment.checkIsPermission(BizConst.FUNPERMISSION_MAINDATA_PRODUCT_PRODUCTCHARACTER_IMPORT) ||
+					ClientEnvironment.checkIsPermission(BizConst.FUNPERMISSION_MAINDATA_PRODUCT_PRODUCTPROCHARACTER_IMPORT) 					
+				)
+				{
+					viewStack.addElement( modloader_maindata_product );					
+				}
+				
+				if(	ClientEnvironment.checkIsPermission(BizConst.FUNPERMISSION_MAINDATA_ORGANIZATION_ORGANIZATION_QUERY) ||
+					ClientEnvironment.checkIsPermission(BizConst.FUNPERMISSION_MAINDATA_ORGANIZATION_ORGANIZATION_MANAGE) ||
+					ClientEnvironment.checkIsPermission(BizConst.FUNPERMISSION_MAINDATA_ORGANIZATION_ORGANIZATIONLAYER_QUERY) ||
+					ClientEnvironment.checkIsPermission(BizConst.FUNPERMISSION_MAINDATA_ORGANIZATION_ORGANIZATIONLAYER_MANAGE) ||
+					ClientEnvironment.checkIsPermission(BizConst.FUNPERMISSION_MAINDATA_ORGANIZATION_ORGANIZATIONCHARACTER_QUERY) ||
+					ClientEnvironment.checkIsPermission(BizConst.FUNPERMISSION_MAINDATA_ORGANIZATION_ORGANIZATIONCHARACTER_MANAGE) ||
+					ClientEnvironment.checkIsPermission(BizConst.FUNPERMISSION_MAINDATA_ORGANIZATION_ORGANIZATIONCHARACTERLAYER_QUERY) ||
+					ClientEnvironment.checkIsPermission(BizConst.FUNPERMISSION_MAINDATA_ORGANIZATION_ORGANIZATIONCHARACTERLAYER_MANAGE) ||
+					ClientEnvironment.checkIsPermission(BizConst.FUNPERMISSION_MAINDATA_ORGANIZATION_ORGANIZATION_IMPORT) ||
+					ClientEnvironment.checkIsPermission(BizConst.FUNPERMISSION_MAINDATA_ORGANIZATION_ORGANIZATIONCHARACTER_IMPORT) ||
+					ClientEnvironment.checkIsPermission(BizConst.FUNPERMISSION_MAINDATA_ORGANIZATION_ORGANIZATIONORGCHARACTER_IMPORT) 					
+				)
+				{
+					viewStack.addElement( modloader_maindata_organization );					
+				}
+				
+				if( ClientEnvironment.checkIsPermission(BizConst.FUNPERMISSION_MAINDATA_DISTRIBUTIONCENTER) ){
+					viewStack.addElement(modloader_maindata_dc);
+				}
+				
+				if(	ClientEnvironment.checkIsPermission(BizConst.FUNPERMISSION_MAINDATA_BIZDATA_QUERY) ||
+					ClientEnvironment.checkIsPermission(BizConst.FUNPERMISSION_MAINDATA_BIZDATA_MANAGE) 
+				)
+				{
+					viewStack.addElement( modloader_maindata_bizdata );					
+				}	
+				
+				if(	ClientEnvironment.checkIsPermission(BizConst.FUNPERMISSION_FORECAST_FORECASTMODEL_QUERY) ||
+					ClientEnvironment.checkIsPermission(BizConst.FUNPERMISSION_FORECAST_FORECASTMODEL_MANAGE)
+				)
+				{
+					viewStack.addElement( modloader_forecast_forecastinst );					
+				}				
+						
+				if(	ClientEnvironment.checkIsPermission(BizConst.FUNPERMISSION_FORECAST_FORECASTINST_QUERY) ||
+					ClientEnvironment.checkIsPermission(BizConst.FUNPERMISSION_FORECAST_FORECASTINST_MANAGE) 
+				)
+				{
+					viewStack.addElement( modloader_forecast_forecastmodelm );					
+				}
+				
+				
+					
+			}			
+			//	4	初始化方法    end				
+			
+			//	5	事件响应方法    begin
+			//	5	事件响应方法    end
+			
+			//	6	本地方法    begin
+			//	6	本地方法   end					
+		]]>
+	</fx:Script>
+
+	<mx:TabBar dataProvider="{viewStack}" direction="vertical" width="150"/> 
+	
+	<mx:ViewStack id="viewStack" 
+				  borderStyle="solid" width="100%" height="100%"> 
+		
+		<mx:ModuleLoader url="dmdd/dmddmx/mod/maindata/unit/Mod_Maindata_Unit.swf" id="modloader_maindata_unit" applicationDomain="{ApplicationDomain.currentDomain}" 
+						 label="{resourceManager.getString('menu','measureUnit')}" width="100%" height="100%">
+		</mx:ModuleLoader>
+		<mx:ModuleLoader url="dmdd/dmddmx/mod/maindata/product/Mod_Maindata_Product.swf" id="modloader_maindata_product" applicationDomain="{ApplicationDomain.currentDomain}" 
+						 label="{resourceManager.getString('menu','product')}" width="100%" height="100%">
+		</mx:ModuleLoader>	
+		<mx:ModuleLoader url="dmdd/dmddmx/mod/maindata/organization/Mod_Maindata_Organization.swf" id="modloader_maindata_organization" applicationDomain="{ApplicationDomain.currentDomain}" 
+						 label="{resourceManager.getString('menu','salesOrg')}" width="100%" height="100%">
+		</mx:ModuleLoader>
+		<mx:ModuleLoader url="dmdd/dmddmx/mod/maindata/distributioncenter/Mod_Maindata_DC.swf" id="modloader_maindata_dc" 
+						 applicationDomain="{ApplicationDomain.currentDomain}" label="{resourceManager.getString('menu','distributionCentre')}" 
+						 width="100%" height="100%">
+		</mx:ModuleLoader>
+		<mx:ModuleLoader url="dmdd/dmddmx/mod/maindata/bizdata/Mod_Maindata_BizData.swf" id="modloader_maindata_bizdata" applicationDomain="{ApplicationDomain.currentDomain}" 
+						 label="{resourceManager.getString('menu','busData')}" width="100%" height="100%">
+		</mx:ModuleLoader>
+		<mx:ModuleLoader url="dmdd/dmddmx/mod/forecast/Mod_Forecast_ForecastModelM.swf" id="modloader_forecast_forecastmodelm" applicationDomain="{ApplicationDomain.currentDomain}" 
+						 label="{resourceManager.getString('menu','forecastModel')}" width="100%" height="100%">
+		</mx:ModuleLoader>			
+		<mx:ModuleLoader url="dmdd/dmddmx/mod/forecast/Mod_Forecast_ForecastInst.swf" id="modloader_forecast_forecastinst" applicationDomain="{ApplicationDomain.currentDomain}" 
+						 label="{resourceManager.getString('menu','forecastStrategy')}" width="100%" height="100%">
+		</mx:ModuleLoader>
+	</mx:ViewStack>	
+	
+</mx:Module>

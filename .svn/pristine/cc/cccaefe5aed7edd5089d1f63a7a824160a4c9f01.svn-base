@@ -1,0 +1,13 @@
+
+compileperiod=Planning Period(YYYYMM)
+actiontype=Action Type
+operatoruser=Processor
+
+
+chkbox_pagequery=Page
+
+btn_query=Go
+
+alert_title_hint=Alert
+alert_msg_compileperiodisinvalid=Please enter a planning period in correct format!
+alert_msg_nooperatoruser=You have to select one processor!

@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:AdvancedDataGrid xmlns:fx="http://ns.adobe.com/mxml/2009" 
+					 xmlns:s="library://ns.adobe.com/flex/spark" 
+					 xmlns:mx="library://ns.adobe.com/flex/mx" horizontalScrollPolicy="on" styleName="adv1">
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+	</fx:Declarations>
+	<fx:Metadata>
+		[ResourceBundle("com_system_periodrolltask_advanceddatagrid")]
+	</fx:Metadata>
+	<fx:Script>
+		<![CDATA[
+			import dmdd.dmddas.common.utils.UtilDataGridColumnLabelFunction;
+			
+			import mx.resources.ResourceManager;
+			
+			//	描述    begin
+			//	描述    end
+			
+			//	0	输入参数    begin			
+			//	0	输入参数    end
+			
+			//	1	输出参数    begin
+			//	1	输出参数    end
+			
+			//	2	本地变量    begin			
+			//	2	本地变量    end			
+			
+			//	3	公共方法    begin			
+			//	3	公共方法    end		
+			
+			//	4	初始化方法    begin			
+			//	4	初始化方法    end				
+			
+			//	5	事件响应方法    begin
+			//	5	事件响应方法    end
+
+			//	6	本地方法    begin
+			//	6	本地方法   end					
+		]]>
+	</fx:Script>
+	<mx:columns>		
+		<mx:AdvancedDataGridColumn width="110" headerText="{ResourceManager.getInstance().getString('com_system_periodrolltask_advanceddatagrid','compileperiod')}"	dataField="compilePeriod"/>	
+		<mx:AdvancedDataGridColumn width="110" headerText="{ResourceManager.getInstance().getString('com_system_periodrolltask_advanceddatagrid','seqno')}"			dataField="seqNo"	/>
+		<mx:AdvancedDataGridColumn width="110" headerText="{ResourceManager.getInstance().getString('com_system_periodrolltask_advanceddatagrid','category')}"		dataField="category"		labelFunction="UtilDataGridColumnLabelFunction.getPeriodRollTaskCategoryLocale"/>
+		<mx:AdvancedDataGridColumn width="110" headerText="{ResourceManager.getInstance().getString('com_system_periodrolltask_advanceddatagrid','status')}"			dataField="status"			labelFunction="UtilDataGridColumnLabelFunction.getPeriodRollTaskStatusLocale"/>
+		<mx:AdvancedDataGridColumn width="110" headerText="{ResourceManager.getInstance().getString('com_system_periodrolltask_advanceddatagrid','createtime')}"		dataField="createTime"		labelFunction="UtilDataGridColumnLabelFunction.getDateTimeStr"/>
+		<mx:AdvancedDataGridColumn width="110" headerText="{ResourceManager.getInstance().getString('com_system_periodrolltask_advanceddatagrid','begintime')}" 		dataField="beginTime"		labelFunction="UtilDataGridColumnLabelFunction.getDateTimeStr"/>
+		<mx:AdvancedDataGridColumn width="110" headerText="{ResourceManager.getInstance().getString('com_system_periodrolltask_advanceddatagrid','endtime')}" 		dataField="endTime"			labelFunction="UtilDataGridColumnLabelFunction.getDateTimeStr"/>
+		<!--	2010.12.10 by liuzhen	数据框架中设计，期间滚动时，不会对新开的历史数据操作期间生成新的0数据，因此历史数据滚动任务不必创建	
+		<mx:AdvancedDataGridColumn width="110" headerText="{ResourceManager.getInstance().getString('com_system_periodrolltask_advanceddatagrid','organization')}" 	dataField="organization"/>
+		--> 
+		<mx:AdvancedDataGridColumn width="110" headerText="{ResourceManager.getInstance().getString('com_system_periodrolltask_advanceddatagrid','forecastinst')}" 	dataField="forecastInst"/>
+	</mx:columns>	
+</mx:AdvancedDataGrid>

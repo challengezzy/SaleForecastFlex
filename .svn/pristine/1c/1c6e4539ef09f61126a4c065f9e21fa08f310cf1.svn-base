@@ -1,0 +1,304 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Module xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		   xmlns:s="library://ns.adobe.com/flex/spark" 
+		   xmlns:mx="library://ns.adobe.com/flex/mx" layout="vertical" width="100%" height="100%" paddingLeft="10" paddingRight="10"
+		   creationComplete="creationCompleteHandler(event)" 
+		   xmlns:common="dmdd.dmddmx.com.common.*"
+		   xmlns:containers="aks.aksmx.containers.*" xmlns:uirowdata="dmdd.dmddmx.com.uirowdata.*">
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+		<s:RemoteObject endpoint="{ClientEnvironment.endpoint}" id="srvInvReport" destination="UIInvReportService">	
+			<s:method name="queryInventoryRiskByProductSummary" result="resultHandler4queryData(event)" fault="faultHandler4queryData(event)">
+			</s:method>							  
+		</s:RemoteObject>	
+	</fx:Declarations>
+
+	
+	<fx:Script>
+		<![CDATA[
+			import aks.aksas.utils.UtilUi;
+			
+			import com.cool.assets.CoolAssetsFile;
+			import com.cool.utils.DataListExportUtil;
+			
+			import dmdd.dmddas.common.constant.BizConst;
+			import dmdd.dmddas.common.constant.SkinConst;
+			import dmdd.dmddas.common.system.ClientEnvironment;
+			import dmdd.dmddas.common.utils.UtilDataGridKeyBoardEvent;
+			import dmdd.dmddas.common.utils.UtilExceptionLocale;
+			import dmdd.dmddas.common.utils.UtilPeriod;
+			import dmdd.dmddas.dataaccess.bizobject.BBizData;
+			import dmdd.dmddas.dataaccess.bizobject.BProduct;
+			import dmdd.dmddas.dataaccess.bizobject.BSysDictionaryItem;
+			import dmdd.dmddmx.com.bizdata.Com_BizData_BizData_Chooser;
+			import dmdd.dmddmx.com.product.Com_Product_FilterMulti_Chooser;
+			
+			import mx.collections.ArrayCollection;
+			import mx.controls.Alert;
+			import mx.events.FlexEvent;
+			import mx.managers.PopUpManager;
+			import mx.resources.ResourceManager;
+			import mx.rpc.events.FaultEvent;
+			import mx.rpc.events.ResultEvent;
+			
+			//	2	本地变量    begin	
+			[Bindable]
+			private var dp4adgUiRowData:ArrayCollection = new ArrayCollection();
+			
+			private var productChooserWindow:Com_Product_FilterMulti_Chooser = null;
+			
+			private var selectedProductArr:Array = null;
+			
+			[Bindable]
+			private var achieveRate:Number = 100;
+			
+			[Bindable]
+			private var arrBizDataType:ArrayCollection;
+			
+			//当前期间
+			[Bindable]
+			private var curPeriod:int = ClientEnvironment.getSysPeriod().compilePeriod;
+			
+			//	2	本地变量    end			
+			
+			//	4	初始化方法    begin	
+			protected function creationCompleteHandler(event:FlexEvent):void
+			{
+				adgUiRowData.setColumnVisible(true,true,false,false,false,false,false,false);
+				
+				arrBizDataType = new ArrayCollection([{code:"",name:""}
+					,{code:"OVER_STOCK",name:"过期库存"} ,{code:"OUTOF_STOCK",name:"缺货库存"}
+					,{code:"ENDING_STOCK",name:"期末有效库存"}
+					
+					,{code:"SUBSTRACTSS_STOCK",name:"扣减SS的期末有效库存"}
+					,{code:"OS_CDAYS_NEXT",name:"过期库存覆盖天数-基于下期"}
+					,{code:"OS_CDAYS_MULTI",name:"过期库存覆盖天数-基于循环"}
+					,{code:"OOS_CDAYS_NEXT",name:"缺货库存覆盖天数-基于下期"}
+					,{code:"OOS_CDAYS_MULTI",name:"缺货库存覆盖天数-基于循环"}
+					,{code:"ENDING_CDAYS_NEXT",name:"期末有效库存覆盖天数-基于下期"}
+					,{code:"ENDING_CDAYS_MULTI",name:"期末有效库存覆盖天数-基于循环"}
+					,{code:"SUBTRACTS_CDAYS_NEXT",name:"期末有效库存-SS覆盖天数-基于下期"}
+					,{code:"SUBTRACTS_CDAYS_MULTI",name:"期末有效库存-SS覆盖天数-基于循环"}
+					]);
+				
+				//初始化的值
+				inputAchieveRate.text = "100";
+			}
+			
+			private function onChooseProduct():void
+			{
+				if( productChooserWindow ==  null ){
+					productChooserWindow = Com_Product_FilterMulti_Chooser(PopUpManager.createPopUp(this, Com_Product_FilterMulti_Chooser, true));
+					productChooserWindow.pubFun4setParamIn4closeCallback( this, callbackFunction4ChooserWinClose_parentProduct );
+					productChooserWindow.multipleSelection = true;
+				}
+				else{
+					PopUpManager.addPopUp( productChooserWindow, this, true );
+				}	 		
+			}
+			
+			private function callbackFunction4ChooserWinClose_parentProduct():void
+			{
+				var alert_title_hint:String = resourceManager.getString('alert','alert_title_hint');
+				var alert_msg:String = "";	
+				
+				if( productChooserWindow.getWinCloseWay() == UtilUi.WINDOW_CLOSEWAY_OK )
+				{
+					selectedProductArr = productChooserWindow.selectedProductArr;
+
+				}														
+			}
+			
+			private function onQuery():void
+			{
+				var alert_title_hint:String = resourceManager.getString('alert','alert_title_hint');
+				var alert_msg:String = null;
+							
+				if( inputPeriod.text == null || inputPeriod.text ==""){
+					Alert.show( "Period is Null", alert_title_hint );	
+					return;												
+				}
+				
+				if( selectedProductArr == null || selectedProductArr.length < 1){
+					Alert.show( "Product is not selected", alert_title_hint );	
+					return;												
+				}
+				
+				if(cbBizDataType.selectedItem == null){
+					Alert.show( "BizData Type is not selected", alert_title_hint );	
+					return;
+				}
+				if( bizDataCode == null || bizDataCode == ""){
+					Alert.show( "BizData is not selected", alert_title_hint );	
+					return;	
+				}
+				
+				inputTotal.text = "";
+				
+				var codeArr:ArrayCollection = new ArrayCollection();
+				for(var i:int=0;i<selectedProductArr.length;i++){
+					
+					var product:BProduct = BProduct(selectedProductArr[i]);
+					codeArr.addItem(product.code);
+				}
+				
+				var queryCond:Object = new Object();
+				queryCond["period"] = inputPeriod.text;
+				queryCond["achieveRate"] = inputAchieveRate.text;
+				queryCond["proCodeArray"] = codeArr;
+				queryCond["isPR"] = cbISPR.selected.toString();
+				queryCond["isPO"] = cbISPO.selected.toString();
+				queryCond["periodNum"] = inputPeriodNum.text;
+				queryCond["fcValidPeriodNum"] = inputfcValidPeriodNum.text;
+				queryCond["isActualPrice"] = cbActualPrice.selected.toString();
+				queryCond["isStandardPrice"] = cbStandardPrice.selected.toString();
+				
+				queryCond["bizDataType"] = Object(cbBizDataType.selectedItem)["code"];
+					
+				queryCond["bizDataCode"] = bizDataCode;
+				
+				var periodNum:int = new Number(inputPeriodNum.text);
+				var qcondPeriodEnd:int = UtilPeriod.getPeriod(curPeriod,periodNum-1);
+				adgUiRowData.setPeriodBeginEnd( curPeriod, qcondPeriodEnd, false );
+				
+				UtilUi.pubFun4PopWaitWindow( this );
+				srvInvReport.queryInventoryRiskByProductSummary( queryCond );
+			}	
+			
+			private function faultHandler4queryData(event:FaultEvent):void
+			{
+				UtilUi.pubFun4RemoveWaitWindow();
+				Alert.show( event.fault.faultDetail );
+			}
+			
+			private function resultHandler4queryData(event:ResultEvent):void 
+			{
+				var result:Object = event.result;
+				dp4adgUiRowData = result["dataList"] as ArrayCollection;
+				
+				inputTotal.text = result["total"];
+				
+				UtilUi.pubFun4RemoveWaitWindow();
+			}		
+			
+			private function onExport():void
+			{
+				var csvstr:String = DataListExportUtil.generateCsvData(adgUiRowData);
+				System.setClipboard(csvstr);
+			}
+			
+			private var bizDataChooserWindow:Com_BizData_BizData_Chooser;
+			private var bizDataCode:String = ""; //用户选择的业务数据
+			
+			private function callbackFunction4chooserWinClose_ItemBizData4bizDataDefItemFcHand():void
+			{
+				if( bizDataChooserWindow.pubFun4getParamOut4winCloseWay() == UtilUi.WINDOW_CLOSEWAY_OK )
+				{
+					var bizData:BBizData = bizDataChooserWindow.pubFun4getParamOut4selectedBizData();
+					bizDataCode = bizData.code;
+					inputBizData.text = bizData.name;
+				}				
+			}
+			
+			private function onChooserBizData():void
+			{	
+				if( bizDataChooserWindow == null ){
+					bizDataChooserWindow = Com_BizData_BizData_Chooser(PopUpManager.createPopUp(this, Com_BizData_BizData_Chooser, true));
+					bizDataChooserWindow.pubFun4setParamIn4closeCallback( this, callbackFunction4chooserWinClose_ItemBizData4bizDataDefItemFcHand );
+					
+					var arrDictBizDataType:ArrayCollection = new ArrayCollection();
+					var arrDictBizDataType_all:ArrayCollection = ClientEnvironment.getBizDataTypeArr();
+					if( arrDictBizDataType_all != null ){
+						var i:int;
+						var sysDictionaryItem:BSysDictionaryItem = null;
+						for( i=0; i<arrDictBizDataType_all.length; i=i+1 )
+						{
+							sysDictionaryItem = BSysDictionaryItem(arrDictBizDataType_all.getItemAt(i));
+							if( sysDictionaryItem.value == BizConst.BIZDATA_TYPE_FCMODEL
+								|| sysDictionaryItem.value == BizConst.BIZDATA_TYPE_FCHAND
+								|| sysDictionaryItem.value == BizConst.BIZDATA_TYPE_FCFINAL
+								|| sysDictionaryItem.value == BizConst.BIZDATA_TYPE_FCCOMB
+							){
+								arrDictBizDataType.addItem( sysDictionaryItem );
+							}
+						}
+					}
+					
+					bizDataChooserWindow.pubFun4setParamIn4arrDictBizDataType( arrDictBizDataType );
+					bizDataChooserWindow.pubFun4setParamIn4blConstrainedByPermission(false);
+					bizDataChooserWindow.pubFun4setParamIn4blOnlyIsManaging( false );	
+				}else{
+					PopUpManager.addPopUp( bizDataChooserWindow, this, true );
+				}
+			}
+			//	6	本地方法   end				
+		]]>
+	</fx:Script>
+	
+	<s:VGroup width="100%" verticalAlign="middle">
+		<s:HGroup verticalAlign="middle">
+			<s:Spacer width="10" />
+			<s:Label text="{resourceManager.getString('label','proCode')}" textAlign="right"/>
+			<s:Button icon="{CoolAssetsFile.findIcon}" width="40" click="onChooseProduct()"/>
+			
+			<s:Spacer width="10" />
+			<s:Label text="{resourceManager.getString('label','busData')}" textAlign="right"/>
+			<mx:TextInput id="inputBizData" text="" editable="false" backgroundColor="0xDDDDDD" width="140"/>
+			<s:Button icon="{CoolAssetsFile.findIcon}" width="30" click="onChooserBizData()"/>
+			
+			<s:Spacer width="10" />
+			<s:Label text="{resourceManager.getString('label','busData')}" textAlign="right"  />
+			<s:ComboBox id="cbBizDataType" dataProvider="{arrBizDataType}" labelField="name" width="220" />
+			
+			<s:Spacer width="10" />
+			<s:Label text="{resourceManager.getString('label','standardPrice')}" textAlign="right" />
+			<s:CheckBox id="cbStandardPrice" selected="false" toolTip="calculate money by standardPrice " />
+			<s:Spacer width="10" />
+			<s:Label text="{resourceManager.getString('label','actualPrice')}" textAlign="right" />
+			<s:CheckBox id="cbActualPrice" selected="false"  toolTip="calculate money by actualPrice" />
+			
+			<s:Spacer width="10" />
+			<s:Label text="{resourceManager.getString('label','total')}" textAlign="right" fontWeight="bold"/>
+			<s:TextInput id="inputTotal" text="" restrict="0-9" maxChars="3" editable="true" width="120"/>
+			
+		</s:HGroup>
+		<s:HGroup verticalAlign="middle">
+			<s:Spacer width="10" />
+			<s:Label text="{resourceManager.getString('label','period')}" textAlign="right" />
+			<s:TextInput id="inputPeriod" text="{curPeriod}" editable="true" width="70"/>
+			
+			<s:Spacer width="10" />
+			<s:Label text="{resourceManager.getString('label','achieveRate')}" textAlign="right" />
+			<s:TextInput id="inputAchieveRate" restrict="0-9" maxChars="3" editable="true" width="50"/>
+			
+			<s:Spacer width="10" />
+			<s:Label text="{resourceManager.getString('label','periodNum')}" textAlign="right"/>
+			<s:TextInput id="inputPeriodNum" text="36" restrict="0-9" maxChars="2" editable="true" width="50"/>
+			
+			<s:Spacer width="10" />
+			<s:Label text="{resourceManager.getString('label','fcValidPeriodNum')}" textAlign="right"/>
+			<mx:TextInput id="inputfcValidPeriodNum" text="24" restrict="0-9" maxChars="2" width="40" fontWeight="bold"/>
+			
+			
+			<s:Spacer width="10" />
+			<s:Label text="{resourceManager.getString('label','includePO')}" textAlign="right" />
+			<s:CheckBox id="cbISPO" selected="true" />
+			<s:Spacer width="10" />
+			<s:Label text="{resourceManager.getString('label','includePR')}" textAlign="right" />
+			<s:CheckBox id="cbISPR" selected="true" />
+			
+			<s:Spacer width="20" />
+			<s:Button label="{resourceManager.getString('button','query')}" icon="{CoolAssetsFile.queryIcon}" click="onQuery()" id="btnSave"/> 
+			<s:Button label="{resourceManager.getString('button','export')}" icon="{CoolAssetsFile.doctableIcon}" click="onExport()" id="btnExport"/>
+		</s:HGroup>
+	</s:VGroup>
+	
+	<uirowdata:Com_UiRowData_UiRowData_AdvancedDataGrid id="adgUiRowData" dataProvider="{dp4adgUiRowData}" lockedColumnCount="4"
+														editable="false" width="100%" height="100%"/>
+	<mx:HBox width="100%">
+		<mx:Spacer width="100%"/>
+		<s:Label text="{resourceManager.getString('aks','recordnum')}"/>
+		<s:Label text="{dp4adgUiRowData.length}"/>
+		<mx:Spacer width="30"/>
+	</mx:HBox>
+</mx:Module>

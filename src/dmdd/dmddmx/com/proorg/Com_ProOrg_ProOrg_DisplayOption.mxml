@@ -1,0 +1,305 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:BorderContainer xmlns:fx="http://ns.adobe.com/mxml/2009" 
+				   xmlns:s="library://ns.adobe.com/flex/spark" 
+				   xmlns:mx="library://ns.adobe.com/flex/mx" width="100%" height="55"
+				   creationComplete="creationCompleteHandler(event)" >
+	<s:layout>
+		<s:VerticalLayout paddingLeft="10" paddingRight="10" paddingTop="0" paddingBottom="0"/>
+	</s:layout>
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+	</fx:Declarations>
+	<fx:Script>
+		<![CDATA[
+			import dmdd.dmddas.common.system.ClientEnvironment;
+			import dmdd.dmddas.dataaccess.bizobject.BOrganizationCharacterLayer;
+			import dmdd.dmddas.dataaccess.bizobject.BOrganizationLayer;
+			import dmdd.dmddas.dataaccess.bizobject.BProductCharacterLayer;
+			import dmdd.dmddas.dataaccess.bizobject.BProductLayer;
+			
+			import mx.controls.Alert;
+			import mx.events.FlexEvent;
+			
+			//	描述		begin
+			//	描述		end
+			
+			//	0	输入参数    begin
+			public var paramIn4checkboxCallback4thisObject:Object = null;
+			public var paramIn4checkboxCallback4function:Function = null;
+			//	0	输入参数    end
+			
+			//	1	输出参数    begin
+			private var paramIo4blDisplayProduct:Boolean = true;
+			private var paramIo4productLayer:BProductLayer = null;			
+			private var paramIo4blDisplayProductCharacter:Boolean = false;
+			private var paramIo4productCharacterLayer:BProductCharacterLayer = null;
+			private var paramIo4productCharacterType:String = null;
+			
+			private var paramIo4blDisplayOrganization:Boolean = true;
+			private var paramIo4organizationLayer:BOrganizationLayer = null;			
+			private var paramIo4blDisplayOrganizationCharacter:Boolean = false;
+			private var paramIo4organizationCharacterLayer:BOrganizationCharacterLayer = null;
+			private var paramIo4organizationCharacterType:String = null;
+			//	1	输出参数    end
+			
+			//	2	本地变量    begin	
+			[Bindable]
+			public var editModel:Boolean = true; //是否是编辑模式
+			//	2	本地变量    end			
+			
+			//	3	公共方法    begin	
+			public function pubFun4checkDisplayOption():Boolean
+			{
+				// 检查显示设置    begin
+				var blDisplayProduct:Boolean = true;
+				var productLayer:BProductLayer = null;
+				var blDisplayProductCharacter:Boolean = false;
+				var productCharacterLayer:BProductCharacterLayer = null;	
+				var productCharacterType:String = null;
+				
+				var blDisplayOrganization:Boolean = true;
+				var organizationLayer:BOrganizationLayer = null;
+				var blDisplayOrganizationCharacter:Boolean = false;
+				var organizationCharacterLayer:BOrganizationCharacterLayer = null;	
+				var organizationCharacterType:String = null;
+				
+				var alert_title_hint:String = resourceManager.getString('alert','alert_title_hint');
+				var alert_msg:String = "";		
+				
+				blDisplayProduct = this.checkBoxProduct.selected;
+				productLayer = BProductLayer(this.comboBoxProductLayer.selectedItem);
+				if( blDisplayProduct == true )
+				{
+					if( productLayer == null )
+					{
+						alert_msg = resourceManager.getString('alert','alert_msg_noproductlayer16');
+						Alert.show( alert_msg, alert_title_hint);
+						return false;							
+					}
+				}
+				
+				blDisplayProductCharacter = this.checkBoxProductCharacter.selected;
+				productCharacterLayer = BProductCharacterLayer(this.comboBoxProductCharacterLayer.selectedItem);
+				productCharacterType = String(this.comboBoxProductCharacterType.selectedItem);
+				if( blDisplayProductCharacter == true )
+				{
+					if( productCharacterLayer == null )
+					{
+						alert_msg = resourceManager.getString('alert','alert_msg_noproductcharacterlayer16');
+						Alert.show( alert_msg, alert_title_hint);
+						return false;							
+					}
+					
+					if( productCharacterType == null || productCharacterType == "" )
+					{
+						alert_msg = resourceManager.getString('alert','alert_msg_noproductcharactertype16');
+						Alert.show( alert_msg, alert_title_hint);
+						return false;							
+					}					
+				}
+				
+				
+				blDisplayOrganization = this.checkBoxOrganization.selected;
+				organizationLayer = BOrganizationLayer(this.comboBoxOrganizationLayer.selectedItem);
+				if( blDisplayOrganization == true )
+				{
+					if( organizationLayer == null )
+					{
+						alert_msg = resourceManager.getString('alert','alert_msg_noorganizationlayer16');
+						Alert.show( alert_msg, alert_title_hint);
+						return false;							
+					}
+				}
+				
+				blDisplayOrganizationCharacter = this.checkBoxOrganizationCharacter.selected;
+				organizationCharacterLayer = BOrganizationCharacterLayer(this.comboBoxOrganizationCharacterLayer.selectedItem);
+				organizationCharacterType = String(this.comboBoxOrganizationCharacterType.selectedItem);
+				if( blDisplayOrganizationCharacter == true )
+				{
+					if( organizationCharacterLayer == null )
+					{
+						alert_msg = resourceManager.getString('alert','alert_msg_noorganizationcharacterlayer16');
+						Alert.show( alert_msg, alert_title_hint);
+						return false;							
+					}
+					
+					if( organizationCharacterType == null || organizationCharacterType == "" )
+					{
+						alert_msg = resourceManager.getString('alert','alert_msg_noorganizationcharactertype16');
+						Alert.show( alert_msg, alert_title_hint);
+						return false;							
+					}					
+				}
+				
+				
+				this.paramIo4blDisplayProduct = blDisplayProduct;
+				this.paramIo4productLayer = productLayer;
+				this.paramIo4blDisplayProductCharacter = blDisplayProductCharacter;
+				this.paramIo4productCharacterLayer = productCharacterLayer;
+				this.paramIo4productCharacterType = productCharacterType;
+				
+				this.paramIo4blDisplayOrganization = blDisplayOrganization;
+				this.paramIo4organizationLayer = organizationLayer;
+				this.paramIo4blDisplayOrganizationCharacter = blDisplayOrganizationCharacter;
+				this.paramIo4organizationCharacterLayer = organizationCharacterLayer;
+				this.paramIo4organizationCharacterType = organizationCharacterType;				
+				
+				return true;
+			}
+			
+			public function pubFun4getParamIo4blDisplayProduct():Boolean
+			{
+				return this.paramIo4blDisplayProduct;
+			}
+			public function pubFun4getParamIo4productLayer():BProductLayer
+			{
+				return this.paramIo4productLayer;
+			}			
+			public function pubFun4getParamIo4blDisplayProductCharacter():Boolean
+			{
+				return this.paramIo4blDisplayProductCharacter;
+			}
+			public function pubFun4getParamIo4productCharacterLayer():BProductCharacterLayer
+			{
+				return this.paramIo4productCharacterLayer;
+			}	
+			public function pubFun4getParamIo4productCharacterType():String
+			{
+				return this.paramIo4productCharacterType;
+			}		
+			public function pubFun4getParamIo4blDisplayOrganization():Boolean
+			{
+				return this.paramIo4blDisplayOrganization;
+			}
+			public function pubFun4getParamIo4organizationLayer():BOrganizationLayer
+			{
+				return this.paramIo4organizationLayer;
+			}			
+			public function pubFun4getParamIo4blDisplayOrganizationCharacter():Boolean
+			{
+				return this.paramIo4blDisplayOrganizationCharacter;
+			}
+			public function pubFun4getParamIo4organizationCharacterLayer():BOrganizationCharacterLayer
+			{
+				return this.paramIo4organizationCharacterLayer;
+			}	
+			public function pubFun4getParamIo4organizationCharacterType():String
+			{
+				return this.paramIo4organizationCharacterType;
+			}				
+			//	3	公共方法    end		
+			
+			//	4	初始化方法    begin			
+			protected function creationCompleteHandler(event:FlexEvent):void
+			{
+				checkBoxProduct.selected=true&&editModel;
+				checkBoxOrganization.selected=true&&editModel;
+				
+				comboBoxProductLayer.selectedIndex = ClientEnvironment.getProductLayers().length-1;
+				comboBoxOrganizationLayer.selectedIndex = ClientEnvironment.getOrganizationLayers().length -1;
+				
+				//设置产品特征层次、组织特征层次的默认值
+				comboBoxProductCharacterLayer.selectedIndex = ClientEnvironment.getProductCharacterLayers().length -1;
+				comboBoxOrganizationCharacterLayer.selectedIndex = ClientEnvironment.getOrganizationCharacterLayers().length-1;
+				
+			}						
+			//	4	初始化方法    end				
+			
+			//	5	事件响应方法    begin	
+			private function onClick4checkBoxOrganization():void
+			{
+				// 此时的值已经是变化了的值
+				if( this.checkBoxOrganization.selected == true )
+				{
+					this.checkBoxOrganizationCharacter.selected = false;	
+				}
+				callFunction();
+			}
+			
+			private function onClick4checkBoxOrganizationCharacter():void
+			{
+				// 此时的值已经是变化了的值				
+				if( this.checkBoxOrganizationCharacter.selected == true )
+				{
+					this.checkBoxOrganization.selected = false;	
+				}
+				callFunction();
+			}		
+			
+			private function onClick4checkBoxProduct():void
+			{
+				// 此时的值已经是变化了的值
+				if( this.checkBoxProduct.selected == true )
+				{
+					this.checkBoxProductCharacter.selected = false;	
+				}	
+				callFunction();
+			}	
+			
+			private function onClick4checkBoxProductCharacter():void
+			{
+				// 此时的值已经是变化了的值
+				if( this.checkBoxProductCharacter.selected == true )
+				{
+					this.checkBoxProduct.selected = false;	
+				}	
+				callFunction();
+			}	
+			
+			private function callFunction():void
+			{
+				paramIo4blDisplayProduct = checkBoxProduct.selected;
+				paramIo4blDisplayProductCharacter = checkBoxProductCharacter.selected;
+				paramIo4blDisplayOrganization = checkBoxOrganization.selected;
+				paramIo4blDisplayOrganizationCharacter = checkBoxOrganizationCharacter.selected;
+				
+				if(paramIn4checkboxCallback4thisObject!=null)
+				{
+					this.paramIn4checkboxCallback4function.call( this.paramIn4checkboxCallback4thisObject );
+				}
+			}
+			//	5	事件响应方法    end
+			
+			//	6	本地方法    begin
+			
+			//	6	本地方法   end				
+
+		]]>
+	</fx:Script>
+	<s:VGroup width="100%" height="100%" horizontalAlign="left" verticalAlign="middle">
+		<s:HGroup verticalAlign="middle">
+			<s:CheckBox width="80" label="{resourceManager.getString('note','proLayer')}" 
+						 id="checkBoxProduct" click="onClick4checkBoxProduct()" enabled="{editModel}"/>
+			<s:ComboBox width="145" id="comboBoxProductLayer" dataProvider="{ClientEnvironment.getProductLayers()}" 
+						enabled="{checkBoxProduct.selected}" selectedIndex="0"/>
+			
+			<s:Spacer width="10" />
+			<s:CheckBox width="120" label="{resourceManager.getString('note','proCharType')}"  
+						 id="checkBoxProductCharacter" click="onClick4checkBoxProductCharacter()"  enabled="{editModel}"/>
+			<s:ComboBox width="145" id="comboBoxProductCharacterType" dataProvider="{ClientEnvironment.getProductCharacterTypes()}"
+						enabled="{checkBoxProductCharacter.selected}" selectedIndex="0" />
+			
+			<s:Label  width="100" text="{resourceManager.getString('note','proCharLayer')}" visible="false"/>
+			<s:ComboBox width="145" id="comboBoxProductCharacterLayer" dataProvider="{ClientEnvironment.getProductCharacterLayers()}" 
+						enabled="{checkBoxProductCharacter.selected}"  visible="false" />
+		</s:HGroup>
+		<s:HGroup verticalAlign="middle">
+			<s:CheckBox width="80" label="{resourceManager.getString('note','orgLayer')}" id="checkBoxOrganization" 
+						click="onClick4checkBoxOrganization()"  enabled="{editModel}"/>
+			<s:ComboBox width="145" id="comboBoxOrganizationLayer" dataProvider="{ClientEnvironment.getOrganizationLayers()}"
+						enabled="{checkBoxOrganization.selected}" selectedIndex="0" />
+			
+			<s:Spacer width="10" />
+			<s:CheckBox width="120" label="{resourceManager.getString('note','orgCharType')}" 
+						id="checkBoxOrganizationCharacter" click="onClick4checkBoxOrganizationCharacter()"  enabled="{editModel}"/>
+			
+			<s:ComboBox width="145" id="comboBoxOrganizationCharacterType" dataProvider="{ClientEnvironment.getOrganizationCharacterTypes()}" 
+						enabled="{checkBoxOrganizationCharacter.selected}"	selectedIndex="0" />
+			
+			<s:Label width="100" text="{resourceManager.getString('note','orgCharLayer')}" visible="false"/>			
+			<s:ComboBox width="140" id="comboBoxOrganizationCharacterLayer" dataProvider="{ClientEnvironment.getOrganizationCharacterLayers()}" 
+						enabled="{checkBoxOrganizationCharacter.selected}"	visible="false"/>
+			
+		</s:HGroup>
+	</s:VGroup>
+</s:BorderContainer>

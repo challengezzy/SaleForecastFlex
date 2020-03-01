@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Module xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		   xmlns:s="library://ns.adobe.com/flex/spark" 
+		   xmlns:common="dmdd.dmddmx.com.common.*"
+		   xmlns:mx="library://ns.adobe.com/flex/mx" layout="vertical" width="100%" height="100%" paddingLeft="10" paddingRight="10" paddingTop="10"
+		   creationComplete="creationCompleteHandler(event)" xmlns:buttons="com.cool.buttons.*" >
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+		<s:RemoteObject endpoint="{ClientEnvironment.endpoint}" id="srvSecurity" destination="SecurityService">
+			<s:method name="changePassword" result="resultHandler4changePassword(event)" fault="faultHandler4changePassword(event)">
+			</s:method>					
+		</s:RemoteObject>			
+	</fx:Declarations>
+	<fx:Script>
+		<![CDATA[
+			import aks.aksas.utils.UtilUi;
+			
+			import com.cool.assets.CoolAssetsFile;
+			import com.cool.utils.AlertUtil;
+			
+			import dmdd.dmddas.common.constant.SkinConst;
+			import dmdd.dmddas.common.system.ClientEnvironment;
+			import dmdd.dmddas.common.utils.UtilExceptionLocale;
+			import dmdd.dmddas.dataaccess.bizobject.BOperatorUser;
+			
+			import mx.events.FlexEvent;
+			import mx.rpc.events.FaultEvent;
+			import mx.rpc.events.ResultEvent;
+			import mx.utils.StringUtil;
+			//	描述    begin
+			//	描述    end
+			
+			//	0	输入参数    begin						
+			//	0	输入参数    end
+			
+			//	1	输出参数    begin
+			//	1	输出参数    end
+			
+			//	2	本地变量    begin			
+			//	2	本地变量    end			
+			
+			//	3	公共方法    begin			
+			//	3	公共方法    end		
+			
+			//	4	初始化方法    begin	
+			protected function creationCompleteHandler(event:FlexEvent):void
+			{
+				var a:String = 'test';
+				// TODO Auto-generated method stub
+			}			
+			//	4	初始化方法    end				
+			
+			//	5	事件响应方法    begin
+			private function onSave():void
+			{
+				var oldPassword:String = StringUtil.trim( this.txtOldPassword.text );
+				var newPassword:String = StringUtil.trim( this.txtNewPassword.text );
+				
+				var newPasswordConfirm:String = StringUtil.trim( this.txtNewPasswordConfirm.text );
+				
+				var alert_msg:String = "";
+				
+				if( oldPassword == null )
+				{
+					oldPassword = "";	
+				}
+				
+				if( newPassword == null || newPassword == "" )
+				{
+					alert_msg = resourceManager.getString('alert','alert_msg_passwordisnull11');
+					AlertUtil.show( alert_msg, AlertUtil.MESSAGE_INFO );
+					return;	
+				}
+				
+				if(newPassword.length < 8){
+					AlertUtil.show( "密码长度不能低于8位!", AlertUtil.MESSAGE_INFO );
+					return;
+				}
+
+				if( newPasswordConfirm == null || newPasswordConfirm == "" || newPasswordConfirm != newPassword )
+				{
+					alert_msg = resourceManager.getString('alert','alert_msg_passwordconfirmunmatch11');
+					AlertUtil.show( alert_msg, AlertUtil.MESSAGE_INFO );
+					this.txtNewPassword.text = "";
+					this.txtNewPasswordConfirm.text = "";
+					return;		
+				}					
+				
+				UtilUi.pubFun4PopWaitWindow( this );
+				this.srvSecurity.changePassword( ClientEnvironment.getOperatorUser(), oldPassword, newPassword );
+			} 
+			
+			
+			private function faultHandler4changePassword(event:FaultEvent):void
+			{
+				UtilUi.pubFun4RemoveWaitWindow();
+				AlertUtil.show( UtilExceptionLocale.getExceptionMessageLocaleByFaultEvent( event ), AlertUtil.MESSAGE_ERROR );
+			}	
+			
+			private function resultHandler4changePassword(event:ResultEvent):void 
+			{
+				UtilUi.pubFun4RemoveWaitWindow();
+				var pwdUpdatedOperatorUser:BOperatorUser = BOperatorUser(event.result);
+				
+				ClientEnvironment.setOperatorUser( pwdUpdatedOperatorUser );
+				
+				var alert_msg:String = resourceManager.getString('alert','alert_msg_succeed');
+				AlertUtil.show( alert_msg, AlertUtil.MESSAGE_INFO );
+				
+				this.onClear();				
+			}	
+			
+			private function onClear():void
+			{
+				this.txtOldPassword.text = "";
+				this.txtNewPassword.text = "";
+				this.txtNewPasswordConfirm.text = "";
+			}			
+			//	5	事件响应方法    end
+			
+			//	6	本地方法    begin
+			//	6	本地方法   end			
+
+
+
+		]]>
+	</fx:Script>
+	<common:LabelBoundary paddingTop="5" labelText="{resourceManager.getString('menu','changePsw')}" />
+
+	<mx:Form defaultButton="{this.btnSave}">
+		
+		<mx:FormItem label="{resourceManager.getString('note','loginName')}">
+			<s:TextInput id="txtLoginName" text="{ClientEnvironment.getOperatorUser().loginName}" enabled="false">
+			</s:TextInput>
+		</mx:FormItem>
+		<mx:FormItem label="{resourceManager.getString('note','userName')}">
+			<s:TextInput id="txtUserName" text="{ClientEnvironment.getOperatorUser().userName}" enabled="false">
+			</s:TextInput>
+		</mx:FormItem>					
+		<mx:FormItem label="{resourceManager.getString('note','oldPsw')}">
+			<s:TextInput id="txtOldPassword" displayAsPassword="true">
+			</s:TextInput>
+		</mx:FormItem>	
+		<mx:FormItem label="{resourceManager.getString('note','newPsw')}">
+			<s:TextInput id="txtNewPassword" displayAsPassword="true">
+			</s:TextInput>
+		</mx:FormItem>				
+		<mx:FormItem label="{resourceManager.getString('note','newPswConfirm')}">
+			<s:TextInput id="txtNewPasswordConfirm" displayAsPassword="true">
+			</s:TextInput>				
+		</mx:FormItem>				
+		<mx:FormItem direction="horizontal">
+			<buttons:ButtonSave id="btnSave" click="onSave()" />
+			<buttons:ButtonClear click="onClear()" />
+		</mx:FormItem>			
+	</mx:Form>		
+
+</mx:Module>

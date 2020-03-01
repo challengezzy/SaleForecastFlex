@@ -1,0 +1,443 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Scroller xmlns:fx="http://ns.adobe.com/mxml/2009" 
+			xmlns:s="library://ns.adobe.com/flex/spark" 
+			xmlns:mx="library://ns.adobe.com/flex/mx"
+			creationComplete="creationCompleteHandler(event)"  
+			xmlns:bizdata="dmdd.dmddmx.com.bizdata.*">
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+	</fx:Declarations>
+
+	<fx:Script>
+		<![CDATA[
+			import aks.aksas.utils.UtilNumber;
+			import aks.aksas.utils.UtilTime;
+			
+			import dmdd.dmddas.common.constant.BizConst;
+			import dmdd.dmddas.common.system.ClientEnvironment;
+			import dmdd.dmddas.dataaccess.bizobject.BForecastInst;
+			import dmdd.dmddas.dataaccess.bizobject.BOrganizationLayer;
+			import dmdd.dmddas.dataaccess.bizobject.BProductLayer;
+			import dmdd.dmddas.dataaccess.bizobject.BSysDictionaryItem;
+			
+			import mx.collections.ArrayCollection;
+			import mx.controls.Alert;
+			import mx.events.FlexEvent;
+			import mx.utils.StringUtil;
+			
+			//	描述    begin
+			//	描述    end
+			
+			//	0	输入参数    begin		
+			[Bindable]
+			public var paramIo4forecastInst:BForecastInst = null;
+			
+			[Bindable]
+			public var paramIn4editable:Boolean = true;						
+			//	0	输入参数    end
+			
+			//	1	输出参数    begin
+			//	1	输出参数    end
+			
+			//	2	本地变量    begin	
+			[Bindable]
+			private var prvVar4arrDictBizDataType_History:ArrayCollection = new ArrayCollection();
+			[Bindable]
+			private var prvVar4arrDictBizDataType_FcComb:ArrayCollection = new ArrayCollection();				
+			
+			[Bindable]
+			private var prvVar4arr4dictGlobalYesNo:ArrayCollection = ClientEnvironment.getSysDictionaryItems("GLOBAL", "YESNO", false);
+			[Bindable]
+			private var prvVar4arr4dictForecastFcPeriodNum:ArrayCollection = ClientEnvironment.getSysDictionaryItems("FORECAST", "FCPERIODNUM", false);									
+			[Bindable]
+			private var prvVar4arr4dictForecastFzPeriodNum:ArrayCollection = ClientEnvironment.getSysDictionaryItems("FORECAST", "FZPERIODNUM", false);						
+			[Bindable]
+			private var prvVar4arr4dictForecastDistributeRefFormula:ArrayCollection = ClientEnvironment.getSysDictionaryItems("FORECAST", "DISTRIBUTEREFFORMULA", false);
+			
+			[Bindable]
+			private var prvVar4arr4dictForecastDecomposeFormula:ArrayCollection = ClientEnvironment.getSysDictionaryItems("FORECAST", "DISTRIBUTEREFFORMULA", false);
+			//	2	本地变量    end			
+			
+			//	3	公共方法    begin	
+			public function pubFun4prepare4save():Boolean
+			{
+				var alert_title_hint:String = resourceManager.getString('alert','alert_title_hint');
+				var alert_msg:String = "";
+				
+				this.paramIo4forecastInst.code = StringUtil.trim( this.txtCode.text );
+				this.paramIo4forecastInst.name = StringUtil.trim( this.txtName.text );
+				this.paramIo4forecastInst.fcPeriodNum = BSysDictionaryItem(this.comboBoxFcPeriodNum.selectedItem).value;
+				this.paramIo4forecastInst.fzPeriodNum = BSysDictionaryItem(this.comboBoxFzPeriodNum.selectedItem).value;
+				this.paramIo4forecastInst.isValid = BSysDictionaryItem(this.comboBoxIsValid.selectedItem).value;
+				this.paramIo4forecastInst.finalFcBizData = this.comBizDataFieldFinalFcBizData.paramIo4selectedBizData;
+				
+				this.paramIo4forecastInst.nextFcPeriodNum = BSysDictionaryItem(this.comboBoxNextFcPeriodNum.selectedItem).value;
+				this.paramIo4forecastInst.nextFzPeriodNum = BSysDictionaryItem(this.comboBoxNextFzPeriodNum.selectedItem).value;
+				this.paramIo4forecastInst.nextIsValid = BSysDictionaryItem(this.comboBoxNextIsValid.selectedItem).value;
+				this.paramIo4forecastInst.nextFinalFcBizData = this.comBizDataFieldNextFinalFcBizData.paramIo4selectedBizData;
+				
+				this.paramIo4forecastInst.runProductLayer = BProductLayer(this.comboBoxRunProductLayer.selectedItem);
+				this.paramIo4forecastInst.runOrganizationLayer = BOrganizationLayer(this.comboBoxRunOrganizationLayer.selectedItem);
+				
+				this.paramIo4forecastInst.distributeRefFormula = BSysDictionaryItem(this.comboBoxDistributeRefFormula.selectedItem).value;
+				this.paramIo4forecastInst.decomposeFormula = BSysDictionaryItem(this.comboBoxDecomposeFormula.selectedItem).value;
+				
+				this.paramIo4forecastInst.distributeRefBizData = this.comBizDataFieldDistributeRefBizData.paramIo4selectedBizData;
+				this.paramIo4forecastInst.distributeRefPeriodNum = Number(StringUtil.trim(this.txtDistributeRefPeriodNum.text));
+				
+				this.paramIo4forecastInst.errorThreshold = Number(StringUtil.trim(this.txtErrorThreshold.text));
+
+				this.paramIo4forecastInst.comments = StringUtil.trim( this.txtComments.text );
+	
+				
+				if( this.paramIo4forecastInst.code == null || this.paramIo4forecastInst.code == "" )
+				{
+					alert_msg = resourceManager.getString('alert','alert_msg_codeisnull');
+					Alert.show( alert_msg, alert_title_hint );
+					return false;						
+				}	
+				
+				if( this.paramIo4forecastInst.name == null || this.paramIo4forecastInst.name == "" )
+				{
+					alert_msg = resourceManager.getString('alert','alert_msg_nameisnull');
+					Alert.show( alert_msg, alert_title_hint );
+					return false;						
+				}
+				
+				if( this.comboBoxFcPeriodNum.selectedItem == null || this.paramIo4forecastInst.fcPeriodNum == BizConst.GLOBAL_NULL_NULL )
+				{
+					alert_msg = resourceManager.getString('alert','alert_msg_fcperiodnum10');
+					Alert.show( alert_msg, alert_title_hint );
+					return false;											
+				}				
+				if( this.comboBoxFzPeriodNum.selectedItem == null || this.paramIo4forecastInst.fzPeriodNum == BizConst.GLOBAL_NULL_NULL )
+				{
+					alert_msg = resourceManager.getString('alert','alert_msg_fzperiodnum10');
+					Alert.show( alert_msg, alert_title_hint );
+					return false;											
+				}				
+				if( this.comboBoxIsValid.selectedItem == null || this.paramIo4forecastInst.isValid == BizConst.GLOBAL_NULL_NULL )
+				{
+					alert_msg = resourceManager.getString('alert','alert_msg_isvalid10');
+					Alert.show( alert_msg, alert_title_hint );
+					return false;											
+				}				
+				if( this.paramIo4forecastInst.finalFcBizData == null )
+				{
+					alert_msg = resourceManager.getString('alert','alert_msg_finalfcbizdata10');
+					Alert.show( alert_msg, alert_title_hint );
+					return false;					
+				}
+				
+				if( this.comboBoxNextFcPeriodNum.selectedItem == null || this.paramIo4forecastInst.nextFcPeriodNum == BizConst.GLOBAL_NULL_NULL )
+				{
+					alert_msg = resourceManager.getString('alert','alert_msg_nextfcperiodnum10');
+					Alert.show( alert_msg, alert_title_hint );
+					return false;											
+				}				
+				if( this.comboBoxNextFzPeriodNum.selectedItem == null || this.paramIo4forecastInst.nextFzPeriodNum == BizConst.GLOBAL_NULL_NULL )
+				{
+					alert_msg = resourceManager.getString('alert','alert_msg_nextfzperiodnum10');
+					Alert.show( alert_msg, alert_title_hint );
+					return false;											
+				}							
+				if( this.comboBoxNextIsValid.selectedItem == null || this.paramIo4forecastInst.nextIsValid == BizConst.GLOBAL_NULL_NULL )
+				{
+					alert_msg = resourceManager.getString('alert','alert_msg_nextisvalid10');
+					Alert.show( alert_msg, alert_title_hint );
+					return false;											
+				}			
+				if( this.paramIo4forecastInst.nextFinalFcBizData == null )
+				{
+					alert_msg = resourceManager.getString('alert','alert_msg_nextfinalfcbizdata10');
+					Alert.show( alert_msg, alert_title_hint );
+					return false;					
+				}				
+				
+				if( this.paramIo4forecastInst.runProductLayer == null )
+				{
+					alert_msg = resourceManager.getString('alert','alert_msg_runproductlayer10');
+					Alert.show( alert_msg, alert_title_hint );
+					return false;					
+				}	
+				if( this.paramIo4forecastInst.runOrganizationLayer == null )
+				{
+					alert_msg = resourceManager.getString('alert','alert_msg_runorganizationlayer10');
+					Alert.show( alert_msg, alert_title_hint );
+					return false;					
+				}		
+				
+				if( this.comboBoxDistributeRefFormula.selectedItem == null || this.paramIo4forecastInst.distributeRefFormula == BizConst.GLOBAL_NULL_NULL )
+				{
+					alert_msg = resourceManager.getString('alert','alert_msg_distributerefformula10');
+					Alert.show( alert_msg, alert_title_hint );
+					return false;											
+				}
+				
+				if( comboBoxDecomposeFormula.selectedItem ==null || paramIo4forecastInst.decomposeFormula == BizConst.GLOBAL_NULL_NULL ){
+					Alert.show("判断预测分解规则不能为空!",alert_title_hint);
+					return false;
+				}
+				
+				if( this.paramIo4forecastInst.distributeRefBizData == null )
+				{
+					alert_msg = resourceManager.getString('alert','alert_msg_distributerefbizdata10');
+					Alert.show( alert_msg, alert_title_hint );
+					return false;					
+				}								
+				if( isNaN(this.paramIo4forecastInst.distributeRefPeriodNum) || this.paramIo4forecastInst.distributeRefPeriodNum < 1 || UtilNumber.isInteger(this.paramIo4forecastInst.distributeRefPeriodNum) == false )
+				{
+					alert_msg = resourceManager.getString('alert','alert_msg_distributerefperiodnum10');
+					Alert.show( alert_msg, alert_title_hint );
+					return false;										
+				}
+				
+				if( isNaN(this.paramIo4forecastInst.errorThreshold) )
+				{
+					alert_msg = resourceManager.getString('alert','alert_msg_errorthreshold10');
+					Alert.show( alert_msg, alert_title_hint );
+					return false;										
+				}				
+
+				
+				return true;												
+			}				
+			//	3	公共方法    end		
+			
+			//	4	初始化方法    begin	
+			protected function creationCompleteHandler(event:FlexEvent):void
+			{
+				//	初始化界面参数	begin
+				this.prvVar4arrDictBizDataType_History = new ArrayCollection();
+				this.prvVar4arrDictBizDataType_FcComb = new ArrayCollection();
+				
+				var arrDictBizDataType:ArrayCollection = ClientEnvironment.getBizDataTypeArr();
+				if( arrDictBizDataType != null )
+				{
+					var i:int;
+					var sysDictionaryItem:BSysDictionaryItem = null;
+					for( i=0; i<arrDictBizDataType.length; i=i+1 )
+					{
+						sysDictionaryItem = BSysDictionaryItem(arrDictBizDataType.getItemAt(i));
+						if( sysDictionaryItem.value == BizConst.GLOBAL_NULL_NULL ||
+							sysDictionaryItem.value == BizConst.BIZDATA_TYPE_HISTORY ||
+							sysDictionaryItem.value == BizConst.BIZDATA_TYPE_HISTORYAD  )
+						{
+							this.prvVar4arrDictBizDataType_History.addItem( sysDictionaryItem );
+						}
+						else if( sysDictionaryItem.value == BizConst.BIZDATA_TYPE_FCCOMB )
+						{
+							this.prvVar4arrDictBizDataType_FcComb.addItem( sysDictionaryItem );	
+						}
+					}
+				}				
+				//	初始化界面参数	end
+			}			
+			
+			//	4	初始化方法    end				
+			
+			//	5	事件响应方法    begin
+			private function onChange4comboBoxDistributeRefFormula():void
+			{
+				if( this.comboBoxDistributeRefFormula.selectedItem != null )
+				{
+					if( BSysDictionaryItem(this.comboBoxDistributeRefFormula.selectedItem).value == BizConst.FORECAST_DISTRIBUTEREFFORMULA_COUNTERPARTOFLAST1YEAR )
+					{
+						//this.txtDistributeRefPeriodNum.text = String( ClientEnvironment.getSysPeriod().periodNumPerYear );
+						this.txtDistributeRefPeriodNum.enabled = false;
+					}
+					else
+					{
+						this.txtDistributeRefPeriodNum.enabled = this.paramIn4editable;
+					}
+				}
+			}	
+			
+			private function onChange4comboBoxDecomposeFormula():void
+			{
+				if( this.comboBoxDecomposeFormula.selectedItem != null )
+				{
+					if( BSysDictionaryItem(this.comboBoxDecomposeFormula.selectedItem).value == BizConst.FORECAST_DISTRIBUTEREFFORMULA_COUNTERPARTOFLAST1YEAR )
+					{
+						//this.txtDistributeRefPeriodNum.text = String( ClientEnvironment.getSysPeriod().periodNumPerYear );
+						this.txtDistributeRefPeriodNum.enabled = false;
+					}
+					else
+					{
+						this.txtDistributeRefPeriodNum.enabled = this.paramIn4editable;
+					}
+				}
+			}
+			//	5	事件响应方法    end
+			
+			//	6	本地方法    begin	
+			//	6	本地方法   end				
+
+		]]>
+	</fx:Script>
+	
+	<s:Group width="100%" height="100%" id="group">
+		<s:layout>
+			<s:VerticalLayout paddingLeft="10" paddingRight="10" paddingTop="10" paddingBottom="10"/>
+		</s:layout>
+		<mx:Grid width="100%" height="240">
+			<mx:GridRow width="100%" height="100%" verticalAlign="middle">
+				<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+					<s:Label text="{resourceManager.getString('note','code')}"/>
+				</mx:GridItem>
+				<mx:GridItem width="100%" height="100%" verticalAlign="middle">
+					<mx:TextInput width="100%" id="txtCode" maxChars="255" enabled="{this.paramIn4editable}" text="{this.paramIo4forecastInst.code}"/>
+				</mx:GridItem>
+				<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+				</mx:GridItem>
+				<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+					<s:Label text="{resourceManager.getString('note','forecastPeriod')}"/>
+				</mx:GridItem>
+				<mx:GridItem width="100%" height="100%" verticalAlign="middle">
+					<s:ComboBox id="comboBoxFcPeriodNum" dataProvider="{this.prvVar4arr4dictForecastFcPeriodNum}" selectedIndex="{ClientEnvironment.getSysDictionaryItemIndexByValue(this.prvVar4arr4dictForecastFcPeriodNum, this.paramIo4forecastInst.fcPeriodNum)}" enabled="{this.paramIn4editable}" width="100%"></s:ComboBox>
+				</mx:GridItem>
+				<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+				</mx:GridItem>
+				<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+					<s:Label text="{resourceManager.getString('note','frozenPeriod')}"/>
+				</mx:GridItem>
+				<mx:GridItem width="100%" height="100%" verticalAlign="middle">
+					<s:ComboBox id="comboBoxFzPeriodNum" dataProvider="{this.prvVar4arr4dictForecastFzPeriodNum}" selectedIndex="{ClientEnvironment.getSysDictionaryItemIndexByValue(this.prvVar4arr4dictForecastFzPeriodNum, this.paramIo4forecastInst.fzPeriodNum)}" enabled="{this.paramIn4editable}" width="100%"></s:ComboBox>
+				</mx:GridItem>
+			</mx:GridRow>	
+			<mx:GridRow width="100%" height="100%" verticalAlign="middle">
+				<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+					<s:Label text="{resourceManager.getString('note','name')}"/>
+				</mx:GridItem>
+				<mx:GridItem width="100%" height="100%" verticalAlign="middle">
+					<mx:TextInput width="100%" id="txtName" maxChars="255" enabled="{this.paramIn4editable}" text="{this.paramIo4forecastInst.name}"/>
+				</mx:GridItem>
+				<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+				</mx:GridItem>
+				<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+					<s:Label text="{resourceManager.getString('note','nextForecastPeriod')}"/>
+				</mx:GridItem>
+				<mx:GridItem width="100%" height="100%" verticalAlign="middle">
+					<s:ComboBox id="comboBoxNextFcPeriodNum" dataProvider="{this.prvVar4arr4dictForecastFcPeriodNum}" selectedIndex="{ClientEnvironment.getSysDictionaryItemIndexByValue(this.prvVar4arr4dictForecastFcPeriodNum, this.paramIo4forecastInst.nextFcPeriodNum)}" enabled="{this.paramIn4editable}" width="100%"></s:ComboBox>
+				</mx:GridItem>
+				<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+				</mx:GridItem>
+				<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+					<s:Label text="{resourceManager.getString('note','nextFrozenPeriod')}"/>
+				</mx:GridItem>
+				<mx:GridItem width="100%" height="100%" verticalAlign="middle">
+					<s:ComboBox id="comboBoxNextFzPeriodNum" dataProvider="{this.prvVar4arr4dictForecastFzPeriodNum}" selectedIndex="{ClientEnvironment.getSysDictionaryItemIndexByValue(this.prvVar4arr4dictForecastFzPeriodNum, this.paramIo4forecastInst.nextFzPeriodNum)}" enabled="{this.paramIn4editable}" width="100%"></s:ComboBox>
+				</mx:GridItem>
+			</mx:GridRow>	
+			<mx:GridRow width="100%" height="100%" verticalAlign="middle">
+				<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+					<s:Label text="{resourceManager.getString('note','isValid')}"/>
+				</mx:GridItem>
+				<mx:GridItem width="100%" height="100%" verticalAlign="middle">
+					<s:ComboBox id="comboBoxIsValid" dataProvider="{this.prvVar4arr4dictGlobalYesNo}" selectedIndex="{ClientEnvironment.getSysDictionaryItemIndexByValue( this.prvVar4arr4dictGlobalYesNo, this.paramIo4forecastInst.isValid)}" enabled="{this.paramIn4editable}" width="100%" ></s:ComboBox>
+				</mx:GridItem>
+				<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+				</mx:GridItem>
+				<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+					<s:Label text="{resourceManager.getString('note','finalForecastData')}"/>
+				</mx:GridItem>
+				<mx:GridItem width="100%" height="100%" verticalAlign="middle">
+					<bizdata:Com_BizData_BizData_Field width="100%" id="comBizDataFieldFinalFcBizData" paramIn4enabled4btnOpenChooser="{this.paramIn4editable}" paramIn4enabled4btnClear="{this.paramIn4editable}" paramIo4selectedBizData="{this.paramIo4forecastInst.finalFcBizData}" paramIn4arrDictBizDataType="{this.prvVar4arrDictBizDataType_FcComb}" paramIn4blConstrainedByPermission="false" paramIn4blOnlyIsManaging="false">
+					</bizdata:Com_BizData_BizData_Field>
+				</mx:GridItem>
+				<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+				</mx:GridItem>
+				<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+					<s:Label text="{resourceManager.getString('note','runLayerPro')}"/>
+				</mx:GridItem>
+				<mx:GridItem width="100%" height="100%" verticalAlign="middle">
+					<s:ComboBox id="comboBoxRunProductLayer" dataProvider="{ClientEnvironment.getProductLayers()}" selectedItem="{this.paramIo4forecastInst.runProductLayer}" enabled="{this.paramIn4editable}" width="100%"/>
+				</mx:GridItem>
+			</mx:GridRow>	
+			<mx:GridRow width="100%" height="100%" verticalAlign="middle">
+				<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+					<s:Label text="{resourceManager.getString('note','isNextValid')}"/>
+				</mx:GridItem>
+				<mx:GridItem width="100%" height="100%" verticalAlign="middle">
+					<s:ComboBox id="comboBoxNextIsValid" dataProvider="{this.prvVar4arr4dictGlobalYesNo}" selectedIndex="{ClientEnvironment.getSysDictionaryItemIndexByValue( this.prvVar4arr4dictGlobalYesNo, this.paramIo4forecastInst.nextIsValid)}" enabled="{this.paramIn4editable}" width="100%" ></s:ComboBox>
+				</mx:GridItem>
+				<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+				</mx:GridItem>
+				<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+					<s:Label text="{resourceManager.getString('note','nextFinalForecastData')}"/>
+				</mx:GridItem>
+				<mx:GridItem width="100%" height="100%" verticalAlign="middle">
+					<bizdata:Com_BizData_BizData_Field width="100%" id="comBizDataFieldNextFinalFcBizData" paramIn4enabled4btnOpenChooser="{this.paramIn4editable}" paramIn4enabled4btnClear="{this.paramIn4editable}" paramIo4selectedBizData="{this.paramIo4forecastInst.nextFinalFcBizData}" paramIn4arrDictBizDataType="{this.prvVar4arrDictBizDataType_FcComb}" paramIn4blConstrainedByPermission="false" paramIn4blOnlyIsManaging="false">
+					</bizdata:Com_BizData_BizData_Field>
+				</mx:GridItem>
+				<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+				</mx:GridItem>
+				<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+					<s:Label text="{resourceManager.getString('note','runLayerOrg')}"/>
+				</mx:GridItem>
+				<mx:GridItem width="100%" height="100%" verticalAlign="middle">
+					<s:ComboBox id="comboBoxRunOrganizationLayer" dataProvider="{ClientEnvironment.getOrganizationLayers()}" selectedItem="{this.paramIo4forecastInst.runOrganizationLayer}" enabled="{this.paramIn4editable}" width="100%"/>					
+				</mx:GridItem>
+			</mx:GridRow>
+			<mx:GridRow width="100%" height="100%" verticalAlign="middle">
+				<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+					<s:Label text="{resourceManager.getString('note','decomposRule')}"/>
+				</mx:GridItem>
+				<mx:GridItem width="100%" height="100%" verticalAlign="middle">
+					<s:ComboBox id="comboBoxDistributeRefFormula" dataProvider="{this.prvVar4arr4dictForecastDistributeRefFormula}" selectedIndex="{ClientEnvironment.getSysDictionaryItemIndexByValue(this.prvVar4arr4dictForecastDistributeRefFormula, this.paramIo4forecastInst.distributeRefFormula)}" enabled="{this.paramIn4editable}" change="onChange4comboBoxDistributeRefFormula()" width="100%"></s:ComboBox>
+				</mx:GridItem>
+				<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+				</mx:GridItem>
+				<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+					<s:Label text="{resourceManager.getString('note','decomposOnBusData')}"/>
+				</mx:GridItem>
+				<mx:GridItem width="100%" height="100%" verticalAlign="middle">
+					<bizdata:Com_BizData_BizData_Field width="100%" id="comBizDataFieldDistributeRefBizData" paramIn4enabled4btnOpenChooser="{this.paramIn4editable}" paramIn4enabled4btnClear="{this.paramIn4editable}" paramIo4selectedBizData="{this.paramIo4forecastInst.distributeRefBizData}" paramIn4arrDictBizDataType="{this.prvVar4arrDictBizDataType_History}" paramIn4blConstrainedByPermission="false" paramIn4blOnlyIsManaging="false">
+					</bizdata:Com_BizData_BizData_Field>					
+				</mx:GridItem>
+				<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+				</mx:GridItem>
+				<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+					<s:Label text="{resourceManager.getString('note','decomposOnPeriodNum')}"/>
+				</mx:GridItem>
+				<mx:GridItem width="100%" height="100%" verticalAlign="middle">
+					<mx:TextInput width="100%" id="txtDistributeRefPeriodNum" maxChars="4" text="{this.paramIo4forecastInst.distributeRefPeriodNum}" enabled="{this.paramIn4editable}" />					
+				</mx:GridItem>
+			</mx:GridRow>			
+			<mx:GridRow width="100%" height="100%" verticalAlign="middle">
+				<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+					<s:Label text="{resourceManager.getString('note','errorThreshould')}"/>
+				</mx:GridItem>
+				<mx:GridItem width="100%" height="100%" verticalAlign="middle">
+					<mx:TextInput width="100%" id="txtErrorThreshold" text="{this.paramIo4forecastInst.errorThreshold}" enabled="{this.paramIn4editable}" />
+				</mx:GridItem>
+				<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+				</mx:GridItem>				
+				<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+					<s:Label text="{resourceManager.getString('note','modelLastRunTime')}"/>
+				</mx:GridItem>
+				<mx:GridItem width="100%" height="100%" verticalAlign="middle">
+					<mx:TextInput width="100%" enabled="false" text="{UtilTime.formatDate(this.paramIo4forecastInst.mappingFcModelRunTime, 'YYYY-MM-DD JJ:NN:SS')}"/>
+				</mx:GridItem>
+				<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+				</mx:GridItem>
+				<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+					<s:Label text="{resourceManager.getString('note','decomposFormula')}"/>
+				</mx:GridItem>
+				<mx:GridItem width="100%" height="100%" verticalAlign="middle">
+					<s:ComboBox id="comboBoxDecomposeFormula" dataProvider="{this.prvVar4arr4dictForecastDecomposeFormula}" 
+								selectedIndex="{ClientEnvironment.getSysDictionaryItemIndexByValue(this.prvVar4arr4dictForecastDecomposeFormula, this.paramIo4forecastInst.decomposeFormula)}"
+								enabled="{this.paramIn4editable}" change="onChange4comboBoxDecomposeFormula()" width="100%"></s:ComboBox>
+				</mx:GridItem>
+			</mx:GridRow>		
+			<mx:GridRow width="100%" height="100%" verticalAlign="middle">
+				<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+					<s:Label text="{resourceManager.getString('note','remark')}"/>
+				</mx:GridItem>
+				<mx:GridItem width="100%" height="100%" verticalAlign="middle" colSpan="7">
+					<mx:TextInput width="100%" id="txtComments" maxChars="255" enabled="{this.paramIn4editable}" text="{this.paramIo4forecastInst.comments}"/>
+				</mx:GridItem>
+			</mx:GridRow>				
+		</mx:Grid>		
+	</s:Group>
+</s:Scroller>

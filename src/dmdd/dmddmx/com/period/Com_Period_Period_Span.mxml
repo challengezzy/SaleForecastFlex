@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:BorderContainer xmlns:fx="http://ns.adobe.com/mxml/2009" 
+				   xmlns:s="library://ns.adobe.com/flex/spark" 
+				   xmlns:mx="library://ns.adobe.com/flex/mx" width="100%" height="30"
+				   creationComplete="creationCompleteHandler(event)">
+	<s:layout>
+		<s:VerticalLayout paddingLeft="10" paddingRight="10" paddingTop="0"/>
+	</s:layout>
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+	</fx:Declarations>
+	<fx:Script>
+		<![CDATA[
+			import dmdd.dmddas.common.constant.SysConst;
+			import dmdd.dmddas.common.system.ClientEnvironment;
+			import dmdd.dmddas.common.system.UiConfigVo;
+			import dmdd.dmddas.common.utils.UtilPeriod;
+			
+			import mx.controls.Alert;
+			import mx.events.FlexEvent;
+			import mx.utils.StringUtil;
+			
+			//	描述		begin
+			//	描述		end
+			
+			//	0	输入参数    begin
+			[Bindable]
+			public var paramIn4visible4forecast:Boolean = false;
+			
+			[Bindable]
+			public var paramIn4visible4span:Boolean = true;
+			
+			[Bindable]
+			public var paramIn4fcPeriodNum:int = 0;
+			[Bindable]
+			public var paramIn4fzPeriodNum:int = 0;			
+			//	0	输入参数    end
+			
+			//	1	输出参数    begin 
+			private var paramOut4periodBegin:int = SysConst.PERIOD_NULL;
+			private var paramOut4periodEnd:int = SysConst.PERIOD_NULL;
+			//	1	输出参数    end
+			
+			//	2	本地变量    begin	
+			[Bindable]
+			public var editModel:Boolean = true; //是否是编辑模式
+			//	2	本地变量    end			
+			
+			//	3	公共方法    begin	
+			public function pubFun4checkPeriodSpan():Boolean
+			{
+				var periodBegin:int = UtilPeriod.parse( StringUtil.trim(this.txtPeriodBegin.text) );
+				var periodEnd:int = UtilPeriod.parse( StringUtil.trim(this.txtPeriodEnd.text) );
+				
+				var alert_title_hint:String = resourceManager.getString('alert','alert_title_hint');
+				var alert_msg:String = "";					
+				if( periodBegin == SysConst.PERIOD_NULL )
+				{
+					alert_msg = resourceManager.getString('alert','alert_msg_periodbegin13');
+					Alert.show( alert_msg, alert_title_hint);
+					return false;						
+				}
+				if( periodEnd == SysConst.PERIOD_NULL )
+				{
+					alert_msg = resourceManager.getString('alert','alert_msg_periodend13');
+					Alert.show( alert_msg, alert_title_hint);
+					return false;						
+				}				
+				
+				if( UtilPeriod.getPeriodDifference( periodBegin, periodEnd ) < 0 )
+				{
+					alert_msg = resourceManager.getString('alert','alert_msg_begingtend13');
+					Alert.show( alert_msg, alert_title_hint);
+					return false;						
+				}
+				
+				if( UtilPeriod.getPeriodDifference( periodBegin, periodEnd ) >= SysConst.PERIODNUM_MAX_NUM )
+				{
+					alert_msg = resourceManager.getString('alert','alert_msg_diffover13');
+					Alert.show( alert_msg, alert_title_hint);
+					return false;						
+				}	
+				
+				this.paramOut4periodBegin = periodBegin;
+				this.paramOut4periodEnd = periodEnd;
+				return true;
+				
+			}		
+			
+			public function pubFun4getParamOut4periodBegin():int
+			{
+				return this.paramOut4periodBegin;
+			}
+			public function pubFun4getParamOut4periodEnd():int
+			{
+				return this.paramOut4periodEnd;
+			}			
+			//	3	公共方法    end		
+			
+			//	4	初始化方法    begin			
+			protected function creationCompleteHandler(event:FlexEvent):void
+			{
+				if(mainBox.contains(boxFc) && !paramIn4visible4forecast ){
+					mainBox.removeChild(boxFc);
+				}
+				
+				if(mainBox.contains(boxSpan) && !paramIn4visible4span ){
+					mainBox.removeChild(boxSpan);
+				}else{
+					//默认期间设置
+//					txtPeriodBegin.text = String( UtilPeriod.getPeriod( ClientEnvironment.getSysPeriod().compilePeriod, -12)  ); 
+//					txtPeriodEnd.text =  String( UtilPeriod.getPeriod( ClientEnvironment.getSysPeriod().compilePeriod, 2) );
+					var uiconfig:UiConfigVo = ClientEnvironment.uiConfig;
+					var pBegin:String = String( UtilPeriod.getPeriod( ClientEnvironment.getSysPeriod().compilePeriod, uiconfig.periodBegin) );
+					var pEnd:String = String( UtilPeriod.getPeriod( ClientEnvironment.getSysPeriod().compilePeriod, uiconfig.periodEnd) );
+					
+					txtPeriodBegin.text = pBegin;
+					txtPeriodEnd.text = pEnd;
+				}
+				
+			}						
+			//	4	初始化方法    end				
+			
+			//	5	事件响应方法    begin												
+			//	5	事件响应方法    end
+			
+			//	6	本地方法    begin
+			
+			//	6	本地方法   end				
+			
+		]]>
+	</fx:Script>		
+	
+	<mx:HBox width="100%" height="100%" id="mainBox" verticalAlign="middle">
+		<mx:HBox>
+			<mx:Label text="{resourceManager.getString('note','currentPeriod')}"/>
+			<mx:TextInput enabled="false" maxChars="6" text="{ClientEnvironment.getSysPeriod().compilePeriod}" width="70"/>
+		</mx:HBox>
+		<mx:HBox id="boxSpan" >
+			<s:Spacer width="10" />
+			<mx:Label text="{resourceManager.getString('note','periodScope')}"  visible="{this.paramIn4visible4span}"/>
+			<!-- 
+			<mx:Label text="{resourceManager.getString('note','from')}" visible="{this.paramIn4visible4span}"/>
+			<mx:Label text="{resourceManager.getString('note','to')}" visible="{this.paramIn4visible4span}"/>
+			-->
+			<mx:HBox horizontalGap="0" >
+				<mx:TextInput id="txtPeriodBegin" maxChars="6" width="70" text="{ClientEnvironment.getSysPeriod().compilePeriod}"  
+							 visible="{this.paramIn4visible4span}" editable="{editModel}"/>
+				<mx:Label text="-->" visible="{this.paramIn4visible4span}"/>
+				<mx:TextInput id="txtPeriodEnd" maxChars="6" width="70" text="{ClientEnvironment.getSysPeriod().compilePeriod}"  
+							 visible="{this.paramIn4visible4span}" editable="{editModel}"/>
+			</mx:HBox>
+		</mx:HBox>
+		<mx:HBox id="boxFc" >
+			<s:Spacer width="10" />
+			<mx:Label text="{resourceManager.getString('note','forecastPeriodNum')}" visible="{this.paramIn4visible4forecast}"/>
+			<mx:TextInput enabled="false" text="{this.paramIn4fcPeriodNum}" visible="{this.paramIn4visible4forecast}" width="45"/>
+			<mx:Label text="{resourceManager.getString('note','frozenPeriodNum')}" visible="{this.paramIn4visible4forecast}"/>
+			<mx:TextInput enabled="false" text="{this.paramIn4fzPeriodNum}" visible="{this.paramIn4visible4forecast}" width="45"/>
+		</mx:HBox>
+	</mx:HBox>		
+</s:BorderContainer>

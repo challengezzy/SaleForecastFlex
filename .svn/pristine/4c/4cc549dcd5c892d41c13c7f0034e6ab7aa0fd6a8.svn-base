@@ -1,0 +1,39 @@
+
+uipopbscope=Show
+btn_save=Save As
+btn_set=Condition Definition 
+btn_set_close=Hide Condition
+chkbox_pageproorg=Page Business Scope
+btn_execute=Go
+## 范围部分	begin
+
+proorg=Scope
+product=Product
+organization=Sales Org
+
+bizdata=Key Figure
+
+btn_add=Add
+btn_del=Remove
+
+basebizedata=Weighted By
+cb_itemlabel_sum=Sum
+
+## 范围部分	end
+
+
+
+alert_title_hint=Alert
+alter_msg_proorgisnull=Scope is missing
+alter_msg_bizdataisnull=Key Figure is missing
+alter_msg_multiunitgroup=Business Scope exceeds several Unit Group!
+alter_msg_unitgroupisnull=Unit Grout of Deatil Product in Business Scope is missing!
+alter_msg_nobaseunit=Data cannot be retrived, please re-logon!
+
+alter_msg_savesucceed=Save successfully!
+
+
+
+
+
+

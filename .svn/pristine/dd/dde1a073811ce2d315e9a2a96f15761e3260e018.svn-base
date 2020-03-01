@@ -1,0 +1,278 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Module xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		   xmlns:s="library://ns.adobe.com/flex/spark" 
+		   xmlns:mx="library://ns.adobe.com/flex/mx" layout="vertical" width="100%" height="100%" paddingLeft="10" paddingRight="10"
+		   creationComplete="creationCompleteHandler(event)"  
+		   xmlns:containers="aks.aksmx.containers.*" xmlns:product="dmdd.dmddmx.com.product.*" xmlns:common="dmdd.dmddmx.com.common.*">
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+		<s:RemoteObject endpoint="{ClientEnvironment.endpoint}" id="srvProduct" destination="ProductService">		
+			<s:method name="getAllProductLayers" result="resultHandler4getAllProductLayers(event)" fault="faultHandler4getAllProductLayers(event)">
+			</s:method>
+			<s:method name="delProductLayer" result="resultHandler4delProductLayer(event)" fault="faultHandler4delProductLayer(event)">
+			</s:method>			
+		</s:RemoteObject>		
+	</fx:Declarations>
+
+	<fx:Script>
+		<![CDATA[
+			import aks.aksas.utils.UtilUi;
+			
+			import dmdd.dmddas.common.constant.BizConst;
+			import dmdd.dmddas.common.constant.FunPermiConst;
+			import dmdd.dmddas.common.system.ClientEnvironment;
+			import dmdd.dmddas.common.utils.UtilExceptionLocale;
+			import dmdd.dmddas.dataaccess.bizobject.BProductLayer;
+			import dmdd.dmddmx.com.product.Com_Product_ProductLayer_AU;
+			import dmdd.dmddas.common.constant.SkinConst;
+			import com.cool.assets.CoolAssetsFile;
+			import mx.collections.ArrayCollection;
+			import mx.controls.Alert;
+			import mx.events.CloseEvent;
+			import mx.events.FlexEvent;
+			import mx.events.MenuEvent;
+			import mx.managers.PopUpManager;
+			import mx.rpc.events.FaultEvent;
+			import mx.rpc.events.ResultEvent;
+			
+			//	描述    begin
+			//	描述    end
+			
+			//	0	输入参数    begin						
+			//	0	输入参数    end
+			
+			//	1	输出参数    begin
+			//	1	输出参数    end
+			
+			//	2	本地变量    begin			
+			private var prvVar4auWindow:Com_Product_ProductLayer_AU = null;
+			
+			[Bindable]
+			private var prvVar4blFunPermission4manage:Boolean = true;
+			[Bindable]
+			private var prvVar4blFunPermission4query:Boolean = true;			
+			//	2	本地变量    end			
+			
+			//	3	公共方法    begin			
+			//	3	公共方法    end		
+			
+			//	4	初始化方法    begin	
+			protected function creationCompleteHandler(event:FlexEvent):void
+			{
+				prvVar4blFunPermission4manage = ClientEnvironment.checkIsPermission( FunPermiConst.MAINDATA_PRODUCTLAYER_MANAGE );
+				var rightClickMenuItems:Array = [];
+				
+				if(prvVar4blFunPermission4manage){
+					rightClickMenuItems.push({label:resourceManager.getString('button','new'),keyname:"new"});
+					rightClickMenuItems.push({label:resourceManager.getString('button','del'),keyname:"del"});
+					rightClickMenuItems.push({label:resourceManager.getString('button','edit'),keyname:"edit"});
+				}
+				if(prvVar4blFunPermission4query){
+					rightClickMenuItems.push({label:resourceManager.getString('button','refresh'),keyname:"refresh"});
+				}
+				
+				comAdgProductLayer.setRightClickMenuItems(rightClickMenuItems);
+				comAdgProductLayer.rightClickMenu.addEventListener(MenuEvent.ITEM_CLICK,productLayerRightMenuClicked);
+			}			
+			//	4	初始化方法    end				
+			
+			//	5	事件响应方法    begin
+			private function productLayerRightMenuClicked(event:MenuEvent):void{
+				var item:Object = event.item;
+				if(item == null)
+					return;
+				
+				if(item.keyname == "refresh"){
+					onQuery();
+					return;
+				}
+				
+				if( comAdgProductLayer != null && comAdgProductLayer.selectedItem == null ){
+					Alert.show("Please select one item !");
+					return ;
+				}
+				
+				if(item.keyname == "new"){
+					onNew();
+				}else if(item.keyname == "del"){
+					onDel();
+				}else if(item.keyname == "edit"){
+					onUpd();
+				}
+				
+			}
+			private function onQuery():void
+			{	
+				//	不分页查询
+				UtilUi.pubFun4PopWaitWindow( this );
+				this.srvProduct.getAllProductLayers();				
+			}	
+			
+			
+			private function faultHandler4getAllProductLayers(event:FaultEvent):void
+			{
+				UtilUi.pubFun4RemoveWaitWindow();
+				Alert.show( UtilExceptionLocale.getExceptionMessageLocaleByFaultEvent( event ), resourceManager.getString('main','alt_title_warn') );
+			}	
+			
+			private function resultHandler4getAllProductLayers(event:ResultEvent):void 
+			{
+				ClientEnvironment.setProductLayers( ArrayCollection(event.result) );
+				UtilUi.pubFun4RemoveWaitWindow();
+			}					
+			
+			
+			private function onNew():void
+			{
+				if( this.prvVar4auWindow == null )
+				{
+					this.prvVar4auWindow = Com_Product_ProductLayer_AU(PopUpManager.createPopUp(this, Com_Product_ProductLayer_AU, true));
+					this.prvVar4auWindow.pubFun4setParamIn4closeCallback( this, callbackFunction4auWinClose );
+				}
+				else
+				{
+					PopUpManager.addPopUp( this.prvVar4auWindow, this, true );
+				}	
+				
+				this.prvVar4auWindow.title = resourceManager.getString('menu','newProLayer');
+				
+				// 这里的代码须如此：先准备好后再设置给 auWindow
+				// 如果直接设置一个新建对象给auWindow，然后再操作其准备其内容，则可能不能触发auWindow内部的相关绑定动作
+				var currentMaxProductLayer:BProductLayer = ClientEnvironment.getProductLayerWithMaxValue();
+				
+				var newProductLayer:BProductLayer = new BProductLayer();					
+				newProductLayer.value = currentMaxProductLayer.value + 1;
+				
+				this.prvVar4auWindow.pubFun4setParamIo4productLayer( newProductLayer, UtilUi.AUWINDOW_USE_NEW );								
+			} 
+			
+			private function onUpd():void
+			{
+				var selectedProductLayer:BProductLayer = BProductLayer( this.comAdgProductLayer.selectedItem );
+				// 不必检查，这个方法被调用的前提已经保证 
+				
+				if( this.prvVar4auWindow == null )
+				{
+					this.prvVar4auWindow = Com_Product_ProductLayer_AU(PopUpManager.createPopUp(this, Com_Product_ProductLayer_AU, true));
+					this.prvVar4auWindow.pubFun4setParamIn4closeCallback( this, callbackFunction4auWinClose );	
+				}
+				else
+				{
+					PopUpManager.addPopUp( this.prvVar4auWindow, this, true );
+				}	
+				
+				this.prvVar4auWindow.title = resourceManager.getString('menu','editProLayer');
+				
+				// 这里的代码须如此：先准备好后再设置给 auWindow
+				// 如果直接设置一个新建对象给auWindow，然后再操作其准备其内容，则可能不能触发auWindow内部的相关绑定动作	
+				var updProductLayer:BProductLayer = new BProductLayer();	
+				updProductLayer.copyDeep( selectedProductLayer );			
+				this.prvVar4auWindow.pubFun4setParamIo4productLayer( updProductLayer, UtilUi.AUWINDOW_USE_UPD );							 
+				
+			} 
+			
+			private function callbackFunction4auWinClose():void
+			{
+				if( this.prvVar4auWindow.pubFun4getParamOut4winCloseWay() == UtilUi.WINDOW_CLOSEWAY_OK )
+				{
+					this.onQuery();
+				}
+				//this.prvVar4auWindow = null;														
+			}			
+			
+			
+			private function onDel():void
+			{
+				var alert_title_hint:String = resourceManager.getString('alert','alert_title_hint');
+				var alert_msg:String = "";
+				
+				var selectedProductLayer:BProductLayer = BProductLayer(this.comAdgProductLayer.selectedItem);	
+				
+				if( selectedProductLayer.id != ClientEnvironment.getProductLayerWithMaxValue().id )
+				{
+					alert_msg = resourceManager.getString('alert','alert_msg_deletenomax4');
+					Alert.show( alert_msg , alert_title_hint);
+					return;						
+				}
+				else if( selectedProductLayer.value == 0 )
+				{
+					alert_msg = resourceManager.getString('alert','alert_msg_deletezero4');
+					Alert.show( alert_msg , alert_title_hint);
+					return;						
+				}
+				
+				alert_msg = resourceManager.getString('alert','alert_msg_deleteconfirm4');
+				
+				Alert.show( alert_msg, alert_title_hint, Alert.OK | Alert.CANCEL, this, deleteConfirmHandler, null, Alert.OK );
+				
+			}				
+			
+			private function deleteConfirmHandler(event:CloseEvent):void
+			{
+				if( event.detail == Alert.OK )
+				{
+					// 相关检查都已在 prvFun4getEnabled4BtnDel中执行，此处不再检查    begin
+					var selectedProductLayer:BProductLayer = BProductLayer(this.comAdgProductLayer.selectedItem);
+					// 相关检查都已在 prvFun4getEnabled4BtnDel中执行，此处不再检查    end					
+					UtilUi.pubFun4PopWaitWindow( this );
+					this.srvProduct.delProductLayer( selectedProductLayer );										
+				}
+			}	
+			
+			private function faultHandler4delProductLayer(event:FaultEvent):void
+			{
+				UtilUi.pubFun4RemoveWaitWindow();
+				Alert.show( UtilExceptionLocale.getExceptionMessageLocaleByFaultEvent( event ), resourceManager.getString('main','alt_title_warn') );
+			}	
+			
+			private function resultHandler4delProductLayer(event:ResultEvent):void 
+			{
+				UtilUi.pubFun4RemoveWaitWindow();
+				var alert_title_hint:String = resourceManager.getString('alert','alert_title_hint');
+				var alert_msg:String = null;
+				
+				var blSucceed:Boolean = Boolean(event.result);
+				if( blSucceed == true )
+				{
+					alert_msg = resourceManager.getString('alert','alert_msg_succeed');
+					Alert.show(alert_msg, alert_title_hint);
+					this.onQuery();					
+				}
+				else
+				{
+					alert_msg = resourceManager.getString('alert','alert_msg_fail');
+					Alert.show(alert_msg, alert_title_hint);
+				}				
+			}			
+			//	5	事件响应方法    end
+			
+			//	6	本地方法    begin
+			private function prvFun4getEnabled4BtnManage( _selectedItem:Object ):Boolean
+			{
+				// todo
+				if( _selectedItem == null )
+				{
+					return false;
+				}
+				
+				if( this.prvVar4blFunPermission4manage == false )
+				{
+					return false;
+				}
+				
+				return true;
+			}
+			//	6	本地方法   end	
+			
+		]]>
+	</fx:Script>	
+	<common:LabelBoundary paddingTop="5" labelText="{resourceManager.getString('menu','proLayer')}" />
+	<containers:AksControlBar>
+		<s:Button label="{resourceManager.getString('button','refresh')}" icon="{CoolAssetsFile.refresh3Icon}"	enabled="{this.prvVar4blFunPermission4query}" click="onQuery()" />
+		<s:Button label="{resourceManager.getString('button','new')}" icon="{CoolAssetsFile.newIcon}"	enabled="{this.prvVar4blFunPermission4manage}" click="onNew()"/>
+		<s:Button label="{resourceManager.getString('button','edit')}"  icon="{CoolAssetsFile.editIcon}"	enabled="{this.prvFun4getEnabled4BtnManage(this.comAdgProductLayer.selectedItem)}" click="onUpd()"/>
+		<s:Button label="{resourceManager.getString('button','del')}" icon="{CoolAssetsFile.deleteIcon}" 	enabled="{this.prvFun4getEnabled4BtnManage(this.comAdgProductLayer.selectedItem)}" click="onDel()"/>			
+	</containers:AksControlBar>
+	<product:Com_Product_ProductLayer_AdvancedDataGrid id="comAdgProductLayer" dataProvider="{ClientEnvironment.getProductLayers()}" doubleClickEnabled="true" itemDoubleClick="onUpd()" width="100%" height="100%"/>
+
+</mx:Module>

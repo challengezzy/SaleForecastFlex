@@ -1,0 +1,300 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:TitleWindow xmlns:fx="http://ns.adobe.com/mxml/2009" 
+			   xmlns:s="library://ns.adobe.com/flex/spark" 
+			   xmlns:mx="library://ns.adobe.com/flex/mx" width="880" height="500" close="onCancel()"
+			   creationComplete="creationCompleteHandler(event)" 
+			   xmlns:controls="aks.aksmx.controls.*" xmlns:containers="aks.aksmx.containers.*" 
+			   xmlns:security="dmdd.dmddmx.com.security.*" xmlns:buttons="com.cool.buttons.*" >
+	<s:layout>
+		<s:VerticalLayout paddingTop="5" paddingBottom="5" paddingLeft="10" paddingRight="10"/>
+	</s:layout>
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+		<s:RemoteObject endpoint="{ClientEnvironment.endpoint}" id="srvSecurity" destination="SecurityService">
+			<s:method name="getOperatorUsersStat" result="resultHandler4getOperatorUsersStat(event)" fault="faultHandler4getOperatorUsersStat(event)">
+			</s:method>			
+			<s:method name="getOperatorUsers" result="resultHandler4getOperatorUsers(event)" fault="faultHandler4getOperatorUsers(event)">
+			</s:method>
+			<s:method name="getOperatorUserById" result="resultHandler4getOperatorUserById(event)" fault="faultHandler4getOperatorUserById(event)">
+			</s:method>
+		</s:RemoteObject>		
+	</fx:Declarations>
+	<fx:Script>
+		<![CDATA[
+			import aks.aksas.utils.UtilUi;
+			
+			import dmdd.dmddas.common.constant.SysConst;
+			import dmdd.dmddas.common.constant.UIConst;
+			import dmdd.dmddas.common.system.ClientEnvironment;
+			import dmdd.dmddas.common.utils.UtilExceptionLocale;
+			import dmdd.dmddas.dataaccess.bizobject.BOperatorUser;
+			
+			import mx.collections.ArrayCollection;
+			import mx.controls.Alert;
+			import mx.events.FlexEvent;
+			import mx.events.ListEvent;
+			import mx.managers.PopUpManager;
+			import mx.rpc.events.FaultEvent;
+			import mx.rpc.events.ResultEvent;
+			
+			//	描述		begin
+			//	描述		end
+			
+			//	0	输入参数    begin	
+			private var paramIn4closeCallback4thisObject:Object = null;
+			private var paramIn4closeCallback4function:Function = null;
+			
+			private var paramIn4blConstrainedByCurrentOperatorUser:Boolean = true;
+			//	0	输入参数    end
+			
+			//	1	输出参数    begin
+			private var paramOut4selectedOperatorUser:BOperatorUser = null;	
+			private var paramOut4selectedOperatorUsers:ArrayCollection = null;
+			
+			private var paramOut4winCloseWay:int = UtilUi.WINDOW_CLOSEWAY_CANCEL;		
+			//	1	输出参数    end
+			
+			//	2	本地变量    begin				
+			[Bindable]
+			private var prvVar4dp4comAdgOperatorUser:ArrayCollection = new ArrayCollection();
+			
+			private var prvVar4sqlRestriction:String = null;		
+			
+			[Bindable]
+			private var prvVar4selectedNum:int = -1;
+			//	2	本地变量    end			
+			
+			//	3	公共方法    begin	
+			//	关闭回调函数参数													
+			public function pubFun4setParamIn4closeCallback( _thisObject:Object, _function:Function ):void
+			{
+				this.paramIn4closeCallback4thisObject = _thisObject;
+				this.paramIn4closeCallback4function = _function;	
+			}
+			//	关闭方式参数
+			public function pubFun4getParamOut4winCloseWay():int
+			{
+				return this.paramOut4winCloseWay;
+			}				
+			//	关闭窗口
+			private function prvFun4close():void
+			{
+				PopUpManager.removePopUp( this );						
+				this.paramIn4closeCallback4function.call( this.paramIn4closeCallback4thisObject );				
+			}							
+			
+			
+			//	处理对象参数
+			public function pubFun4getParamOut4selectedOperatorUser():BOperatorUser
+			{
+				return this.paramOut4selectedOperatorUser;
+			}		
+			
+			public function pubFun4getParamOut4selectedOperatorUsers():ArrayCollection
+			{
+				return this.paramOut4selectedOperatorUsers;
+			}	
+			
+			public function pubFun4setParamIn4blConstrainedByCurrentOperatorUser( _paramIn4blConstrainedByCurrentOperatorUser:Boolean ):void
+			{
+				this.paramIn4blConstrainedByCurrentOperatorUser = _paramIn4blConstrainedByCurrentOperatorUser;
+			}
+			//	3	公共方法    end		
+			
+			//	4	初始化方法    begin			
+			protected function creationCompleteHandler(event:FlexEvent):void
+			{
+				this.title = resourceManager.getString('menu','selectUser');	
+				this.x = 150;
+				this.y = 100;						
+			}				
+					
+			//	4	初始化方法    end				
+			
+			//	5	事件响应方法    begin	
+			private function callbackFunction4query4comQCond():void
+			{				
+				this.prvVar4sqlRestriction = this.comQCond.pubFun4getParamOut4sqlRestriction();
+				var blPageQuery:Boolean = this.comQCond.pubFun4getParamOut4blPageQuery();
+				
+				if( blPageQuery == true )
+				{	
+					UtilUi.pubFun4PopWaitWindow( this );
+					if( this.paramIn4blConstrainedByCurrentOperatorUser == true )
+					{
+						this.srvSecurity.getOperatorUsersStat( this.prvVar4sqlRestriction, ClientEnvironment.getOperatorUser().id );
+					}
+					else
+					{
+						this.srvSecurity.getOperatorUsersStat( this.prvVar4sqlRestriction, null );
+					}	
+				}
+				else
+				{	
+					//	不分页查询
+					UtilUi.pubFun4PopWaitWindow( this );
+					if( this.paramIn4blConstrainedByCurrentOperatorUser == true )
+					{
+						this.srvSecurity.getOperatorUsers( this.prvVar4sqlRestriction, ClientEnvironment.getOperatorUser().id, true, -1, ClientEnvironment.getSysParamPageSize() );
+					}
+					else
+					{
+						this.srvSecurity.getOperatorUsers( this.prvVar4sqlRestriction, null, true, -1, ClientEnvironment.getSysParamPageSize() );
+					}
+				}								
+			}			
+			
+			//	分页查询相关		begin
+			private function faultHandler4getOperatorUsersStat(event:FaultEvent):void
+			{
+				UtilUi.pubFun4RemoveWaitWindow();
+				Alert.show( UtilExceptionLocale.getExceptionMessageLocaleByFaultEvent( event ), resourceManager.getString('alert','alt_title_warn') );
+			}	
+			
+			private function resultHandler4getOperatorUsersStat(event:ResultEvent):void 
+			{
+				//	初始化数据表格控制板
+				var rstSize:Number = Number(event.result);
+				if(rstSize<1)
+				{
+					rstSize = 0;
+				}
+				else
+				{
+					rstSize = rstSize-1;
+				}
+				this.comAksDataGridControlBar.pubFun4setResultParams( true, rstSize, ClientEnvironment.getSysParamPageSize() );
+				
+				//	去执行第一页查询
+				if( this.paramIn4blConstrainedByCurrentOperatorUser == true )
+				{
+					this.srvSecurity.getOperatorUsers( this.prvVar4sqlRestriction, ClientEnvironment.getOperatorUser().id, true, 1, ClientEnvironment.getSysParamPageSize() );
+				}
+				else
+				{
+					this.srvSecurity.getOperatorUsers( this.prvVar4sqlRestriction, null, true, 1, ClientEnvironment.getSysParamPageSize() );	
+				}
+				
+			}
+			
+			private function prvFun4pageQueryOperatorUsers( _pageIndex:int ):void
+			{
+				UtilUi.pubFun4PopWaitWindow( this );
+				if( this.paramIn4blConstrainedByCurrentOperatorUser == true )
+				{
+					this.srvSecurity.getOperatorUsers( this.prvVar4sqlRestriction, ClientEnvironment.getOperatorUser().id, true, _pageIndex, ClientEnvironment.getSysParamPageSize() );
+				}
+				else
+				{
+					this.srvSecurity.getOperatorUsers( this.prvVar4sqlRestriction, null, true, _pageIndex, ClientEnvironment.getSysParamPageSize() );
+				}
+									
+			}			
+			//	分页查询相关		end
+			
+			
+			private function faultHandler4getOperatorUsers(event:FaultEvent):void
+			{
+				UtilUi.pubFun4RemoveWaitWindow();
+				Alert.show( UtilExceptionLocale.getExceptionMessageLocaleByFaultEvent( event ), resourceManager.getString('alert','alt_title_warn') );
+			}	
+			
+			private function resultHandler4getOperatorUsers(event:ResultEvent):void 
+			{
+				this.prvVar4dp4comAdgOperatorUser = ArrayCollection(event.result);
+				
+				//过滤sa begin
+				var bOperatorUser:BOperatorUser = null;
+				var i:int = -1;
+//				for(i=0;i<prvVar4dp4comAdgOperatorUser.length;i++)
+//				{
+//					bOperatorUser = prvVar4dp4comAdgOperatorUser.getItemAt(i) as BOperatorUser;
+//					if(bOperatorUser.superiorOperatorUser == null)
+//					{
+//						prvVar4dp4comAdgOperatorUser.removeItemAt(i);	
+//						break;
+//					}	
+//				}
+				//过滤sa end
+				
+				if( this.comQCond.pubFun4getParamOut4blPageQuery() == false )
+				{
+					//	不是分页查询，需要根据查询结果初始化数据表格控制板
+					this.comAksDataGridControlBar.pubFun4setResultParams( false, this.prvVar4dp4comAdgOperatorUser.length, this.prvVar4dp4comAdgOperatorUser.length );
+				}
+				
+				UtilUi.pubFun4RemoveWaitWindow();
+			}		
+			
+			
+			
+			private function onOk():void
+			{
+				this.paramOut4selectedOperatorUser = BOperatorUser( this.comAdgOperatorUser.selectedItem );
+				this.paramOut4selectedOperatorUsers = new ArrayCollection( this.comAdgOperatorUser.selectedItems );
+				
+				this.paramOut4winCloseWay = UtilUi.WINDOW_CLOSEWAY_OK;
+				this.prvFun4close();
+			}	
+			
+			private function onCancel():void
+			{	
+				this.paramOut4winCloseWay = UtilUi.WINDOW_CLOSEWAY_CANCEL;
+				this.prvFun4close();
+			}		
+			
+			protected function comAdgOperatorUser_changeHandler(event:ListEvent):void
+			{
+//				if(this.comAdgOperatorUser.selectedIndex>-1)
+//				{
+//					var selectedOperatorUser:BOperatorUser = BOperatorUser(this.comAdgOperatorUser.selectedItem);
+//					this.prvVar4selectedNum = this.comAdgOperatorUser.selectedIndex;
+//					if(selectedOperatorUser.isGetDetail==false)
+//					{
+//						this.srvSecurity.getOperatorUserById(selectedOperatorUser.id,true);
+//						UtilUi.pubFun4PopWaitWindow(this);
+//					}
+//					
+//				}
+			}
+			
+			private function faultHandler4getOperatorUserById(event:FaultEvent):void
+			{
+				UtilUi.pubFun4RemoveWaitWindow();
+				Alert.show( UtilExceptionLocale.getExceptionMessageLocaleByFaultEvent( event ), resourceManager.getString('alert','alt_title_warn') );
+			}
+			
+			private function resultHandler4getOperatorUserById(event:ResultEvent):void
+			{
+				UtilUi.pubFun4RemoveWaitWindow();
+				var selectedOperatorUser:BOperatorUser = BOperatorUser(event.result);
+				selectedOperatorUser.isGetDetail = true;
+				this.prvVar4dp4comAdgOperatorUser.removeItemAt(this.prvVar4selectedNum);
+				this.prvVar4dp4comAdgOperatorUser.addItemAt(selectedOperatorUser,this.prvVar4selectedNum);
+				this.comAdgOperatorUser.selectedItem = 	selectedOperatorUser;
+			}
+			
+			//	5	事件响应方法    end
+			
+			//	6	本地方法    begin
+			//	6	本地方法   end				
+
+
+
+		]]>
+	</fx:Script>	
+	<security:Com_Security_OperatorUser_QueryCond id="comQCond" paramIn4queryCallback4thisObject="{this}" paramIn4queryCallback4function="{this.callbackFunction4query4comQCond}">
+	</security:Com_Security_OperatorUser_QueryCond>
+	
+	<security:Com_Security_OperatorUser_AdvancedDataGrid id="comAdgOperatorUser" width="100%" height="100%" 
+														dataProvider="{this.prvVar4dp4comAdgOperatorUser}" change="comAdgOperatorUser_changeHandler(event)"/>
+	<controls:AksDataGridControlBar id="comAksDataGridControlBar" paramIn4callback4thisObject="{this}" 
+									paramIn4callback4queryFunction="{this.prvFun4pageQueryOperatorUsers}" paramIn4dataGrid="{this.comAdgOperatorUser}">
+	</controls:AksDataGridControlBar>
+	<s:HGroup width="100%" horizontalAlign="center">
+		<buttons:ButtonOk enabled="{this.comAdgOperatorUser.selectedItems.pop()}" click="onOk()"/>
+		<buttons:ButtonCancel click="onCancel()"/>
+	</s:HGroup>
+	
+</s:TitleWindow>
+

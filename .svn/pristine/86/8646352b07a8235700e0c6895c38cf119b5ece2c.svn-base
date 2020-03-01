@@ -1,0 +1,23 @@
+
+sysperiod=System Period
+periodrolltask=Period Rolling Task
+
+currentperiod=Current Period
+nextperiod=Next Period
+compileperiod=Planning Period
+historyvalidperiod=End Month of Valid History Data 
+forecastrunperiod=Forecast Start On
+historyopenperiod=Applicable History Data End On 
+
+btn_refreshperiod=Refresh
+btn_createperiodrolltask=Rolling
+btn_refreshperiodrolltask=Refresh
+
+
+
+alert_title_hint=Alert
+alert_msg_createtasksucceed=Period rolling tasks are created successfully! System is running period rolling! Please logoff!
+alert_msg_taskallrunned=All period rolling tasks are finished, please re-logon!
+alert_msg_taskrunning=Rolling! Please wait!
+alert_msg_taskrunning_exception=Period rolling has an exception, please contact your technical support!
+alert_msg_runconfirm=Do you really want to roll period?

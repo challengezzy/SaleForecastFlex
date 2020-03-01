@@ -1,0 +1,17 @@
+﻿btn_query=刷新
+btn_new=新建
+btn_upd=编辑
+btn_del=删除
+btn_expandall=全部展开
+btn_collapseall=全部收起
+
+autitle_new=新建业务数据
+autitle_upd=编辑业务数据
+
+bizdata=业务数据
+bizdatadefitem=数据定义
+
+alert_title_hint=提示
+alert_msg_deleteconfirm=确认要删除该业务数据？
+alert_msg_succeed=操作成功!
+alert_msg_fail=操作失败!

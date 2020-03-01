@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:VGroup xmlns:fx="http://ns.adobe.com/mxml/2009" 
+				   xmlns:s="library://ns.adobe.com/flex/spark" 
+				   xmlns:mx="library://ns.adobe.com/flex/mx" 
+				   creationComplete="creationCompleteHandler(event)"
+				   xmlns:setting="dmdd.dmddmx.com.setting.*" xmlns:security="dmdd.dmddmx.com.security.*" 
+				   paddingTop="0" paddingLeft="10" paddingRight="10" verticalAlign="middle" xmlns:buttons="com.cool.buttons.*"
+				   >
+	<fx:Metadata>
+	</fx:Metadata>
+	<fx:Script>
+		<![CDATA[
+			import aks.aksas.utils.UtilUi;
+			
+			import com.cool.assets.CoolAssetsFile;
+			import com.cool.utils.AlertUtil;
+			
+			import dmdd.dmddas.common.system.ClientEnvironment;
+			import dmdd.dmddas.dataaccess.bizobject.BUiPopbScope;
+			import dmdd.dmddmx.com.setting.SetCom_ProOrg_BizData_Period;
+			
+			import mx.collections.ArrayCollection;
+			import mx.events.FlexEvent;
+			import mx.managers.PopUpManager;
+			
+			public var executeCallback4thisObject:Object = null; 
+			public var executeCallback4function:Function = null;//点击执行后的回调函数
+			
+			public var condSetOkCallbackFunction:Function = null;//条件设置OK的回调函数
+			
+			[Bindable]
+			public var uiCode:String = "UICODE";
+			
+			public var arrDictBizDataType:ArrayCollection;
+			public var blOnlyIsManagingBizData:Boolean = false;
+			public var blAllowMultipleSelectionBizData:Boolean = true;//是否允许选择多个业务数据
+			public var visiableBaseBizData:Boolean = false; //是否显示基准业务数据
+			
+			public var showDisplayOption:Boolean = true;
+			
+			public var visible4span4periodSpan:Boolean = true;
+			public var visible4forecast4periodspan:Boolean = false;
+			public var fcPeriodNum4periodSpan:int;
+			public var fzPeriodNum4periodSpan:int;
+			
+			public var isPageProOrg:Boolean = false;
+			
+			private var uiPopbScope:BUiPopbScope;
+			/** 详细内容设置框 */
+			private var condSetWindow:SetCom_ProOrg_BizData_Period;
+			
+			[Bindable]
+			public var visible4ExeBtn:Boolean = true; //是否显示执行 按钮
+			
+			protected function creationCompleteHandler(event:FlexEvent):void
+			{
+				if(visible4ExeBtn == false){
+					hgroup.removeElement(btn_exe);
+				}
+				
+			}
+			
+			public function getUiPopbScope():BUiPopbScope{
+				return this.uiPopbScope;
+			}
+			
+			//查询基准数据的选择索引
+			public function getBaseBizDataSelectedIndex():int{
+				if(condSetWindow != null){
+					return condSetWindow.cbBaseBizData.selectedIndex;
+				}else{
+					return 0; //如果没有进入选择界面，默认选择第一个
+				}
+			}
+			
+			private function onChange4comUiPopbScopeField():void
+			{
+				//记录旧查询条件
+				uiPopbScope = comUiPopbScopeField.paramIo4selectedUiPopbScope;
+				
+				if(condSetWindow != null){
+					condSetWindow.setUiPopbScope(uiPopbScope);
+				}
+				
+				if( uiPopbScope != null && condSetOkCallbackFunction != null){
+					condSetOkCallbackFunction();
+				}
+				
+				//执行查询 zhangzy 20150417
+				onExecute();
+			}
+			
+			private function onSetCond():void
+			{
+				if(condSetWindow == null){
+					condSetWindow = new SetCom_ProOrg_BizData_Period();
+					condSetWindow.setOkCallbackFun = onCondSetCallbackFun;
+					condSetWindow.uicode = uiCode;
+					condSetWindow.arrDictBizDataType = arrDictBizDataType;
+					condSetWindow.blOnlyIsManagingBizData = blOnlyIsManagingBizData;
+					condSetWindow.blAllowMultipleSelectionBizData = blAllowMultipleSelectionBizData;
+					condSetWindow.visiableBaseBizData = visiableBaseBizData;
+					
+					condSetWindow.showDisplayOption = showDisplayOption;
+					condSetWindow.visible4span4periodSpan = visible4span4periodSpan;
+					condSetWindow.visible4forecast4periodspan = visible4forecast4periodspan;
+					condSetWindow.fcPeriodNum4periodSpan = fcPeriodNum4periodSpan;
+					condSetWindow.fzPeriodNum4periodSpan = fzPeriodNum4periodSpan;
+				}
+				
+				PopUpManager.addPopUp(condSetWindow,ClientEnvironment.modWork,true);
+				PopUpManager.centerPopUp(condSetWindow);
+				
+				condSetWindow.setUiPopbScope(uiPopbScope);
+				condSetWindow.updateUIControl();
+			}
+			
+			private function onCondSetCallbackFun():void{
+				uiPopbScope = condSetWindow.getUiPopbScope();
+				
+				if(condSetOkCallbackFunction != null ){
+					condSetOkCallbackFunction();
+				}
+				
+				//执行查询 zhangzy 20150417
+				onExecute();
+			}
+			
+			private function onExecute():void
+			{
+				if(uiPopbScope == null){
+					//未选择查询条件
+					AlertUtil.show(resourceManager.getString('alert','alert_msg_proorgisnull14'));
+					return;
+				}
+				executeCallback4function.call( executeCallback4thisObject );
+			}
+			
+		]]>
+	</fx:Script>
+	
+	<s:HGroup id="hgroup" width="100%" verticalAlign="middle">
+		<s:Label text="{resourceManager.getString('note','quick')}"/>
+		<security:Com_Security_UiPopbScope_Field id="comUiPopbScopeField" paramIn4uiCode="{uiCode}" 
+							paramIn4selectChangeCallback4function="{onChange4comUiPopbScopeField}" paramIn4selectChangeCallback4thisObject="{this}" >
+		</security:Com_Security_UiPopbScope_Field>
+		<buttons:ButtonQuery id="btn_exe" click="onExecute()" />
+		<s:Button label="{resourceManager.getString('button','advQuery')}" click="onSetCond()" icon="{CoolAssetsFile.queryIcon}" />
+	</s:HGroup>
+</s:VGroup>

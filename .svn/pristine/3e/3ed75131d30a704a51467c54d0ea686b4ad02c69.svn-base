@@ -1,0 +1,298 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Module xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		   xmlns:s="library://ns.adobe.com/flex/spark" 
+		   xmlns:mx="library://ns.adobe.com/flex/mx" layout="vertical" width="100%" height="100%" paddingLeft="10" paddingRight="10"
+		   creationComplete="creationCompleteHandler(event)" 
+		   xmlns:common="dmdd.dmddmx.com.common.*"
+		   xmlns:containers="aks.aksmx.containers.*" xmlns:uirowdata="dmdd.dmddmx.com.uirowdata.*">
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+		<s:RemoteObject endpoint="{ClientEnvironment.endpoint}" id="srvInvReport" destination="UIInvReportService">	
+			<s:method name="queryInventoryRiskByProduct" result="resultHandler4queryData(event)" fault="faultHandler4queryData(event)">
+			</s:method>							  
+		</s:RemoteObject>	
+	</fx:Declarations>
+
+	
+	<fx:Script>
+		<![CDATA[
+			import aks.aksas.utils.UtilUi;
+			
+			import com.cool.assets.CoolAssetsFile;
+			import com.cool.utils.DataListExportUtil;
+			
+			import dmdd.dmddas.common.constant.BizConst;
+			import dmdd.dmddas.common.constant.SkinConst;
+			import dmdd.dmddas.common.system.ClientEnvironment;
+			import dmdd.dmddas.common.utils.UtilExceptionLocale;
+			import dmdd.dmddas.common.utils.UtilPeriod;
+			import dmdd.dmddas.dataaccess.bizobject.BBizData;
+			import dmdd.dmddas.dataaccess.bizobject.BProduct;
+			import dmdd.dmddas.dataaccess.bizobject.BSysDictionaryItem;
+			import dmdd.dmddmx.com.bizdata.Com_BizData_BizData_Chooser;
+			import dmdd.dmddmx.com.product.Com_Product_Filter_Chooser;
+			
+			import mx.collections.ArrayCollection;
+			import mx.controls.Alert;
+			import mx.events.FlexEvent;
+			import mx.managers.PopUpManager;
+			import mx.resources.ResourceManager;
+			import mx.rpc.events.FaultEvent;
+			import mx.rpc.events.ResultEvent;
+			
+			//	2	本地变量    begin	
+			[Bindable]
+			private var dp4adgUiRowData:ArrayCollection = new ArrayCollection();
+			
+			private var productChooserWindow:Com_Product_Filter_Chooser = null;
+			
+			[Bindable]
+			private var achieveRate:Number = 100;
+			
+			//当前期间
+			[Bindable]
+			private var curPeriod:int = ClientEnvironment.getSysPeriod().compilePeriod;
+			
+			//	2	本地变量    end			
+			
+			//	4	初始化方法    begin	
+			protected function creationCompleteHandler(event:FlexEvent):void
+			{
+				//arrOrderType = new ArrayCollection([{val:""},{val:"PO"},{val:"PR"}]);
+				adgUiRowData.setColumnVisible(true,true,false,false,false,false,false,false);
+				
+				//初始化的值
+				inputAchieveRate.text = "100";
+			}
+			
+			private function onChooseProduct():void
+			{
+				if( productChooserWindow ==  null ){
+					productChooserWindow = Com_Product_Filter_Chooser(PopUpManager.createPopUp(this, Com_Product_Filter_Chooser, true));
+					productChooserWindow.pubFun4setParamIn4closeCallback( this, callbackFunction4ChooserWinClose_parentProduct );
+				}
+				else{
+					PopUpManager.addPopUp( productChooserWindow, this, true );
+				}	 		
+			}
+			
+			private function callbackFunction4ChooserWinClose_parentProduct():void
+			{
+				var alert_title_hint:String = resourceManager.getString('alert','alert_title_hint');
+				var alert_msg:String = "";	
+				
+				if( productChooserWindow.getWinCloseWay() == UtilUi.WINDOW_CLOSEWAY_OK )
+				{
+					var selectedProduct:BProduct = this.productChooserWindow.getSelectedProduct();
+					if( selectedProduct == null ){
+						return;
+					}
+					
+					//设置其它值
+					inputProCode.text = selectedProduct.code;
+					inputProName.text = selectedProduct.name;
+					inputShelfLife.text = selectedProduct.shelfLife + "";
+					inputWithdrawLeadTime.text = selectedProduct.withdrawLeadTime +"";
+
+				}														
+			}
+			
+			private function onQuery():void
+			{
+				var alert_title_hint:String = resourceManager.getString('alert','alert_title_hint');
+				var alert_msg:String = null;
+							
+				if( inputPeriod.text == null || inputPeriod.text ==""){
+					Alert.show( "Period is Null", alert_title_hint );	
+					return;												
+				}
+				
+				if( inputProCode.text == null || inputProCode.text ==""){
+					Alert.show( "Product is Null", alert_title_hint );	
+					return;												
+				}
+				if( bizDataCode == null || bizDataCode == ""){
+					Alert.show( "BizData is not selected", alert_title_hint );	
+					return;	
+				}
+				
+				inputTotalOffShelf.text = "";
+				inputCurPeriodStockValid.text = "";
+				inputCurPeriodStockOffShelf.text = "";
+				
+				var queryCond:Object = new Object();
+				queryCond["period"] = inputPeriod.text;
+				queryCond["achieveRate"] = inputAchieveRate.text;
+				queryCond["proCode"] = inputProCode.text;
+				queryCond["periodNum"] = inputPeriodNum.text;
+				queryCond["fcValidPeriodNum"] = inputfcValidPeriodNum.text;
+				queryCond["isPO"] = cbISPO.selected.toString();
+				queryCond["isPR"] = cbISPR.selected.toString(); //是否包括PR数据
+				
+				queryCond["isBaseNext"] = cbBaseNext.selected.toString();
+				queryCond["isBaseCycle"] = cbBaseCycle.selected.toString();
+				queryCond["isBaseSubSS"] = cbBaseSubSS.selected.toString();
+				
+				
+				queryCond["bizDataCode"] = bizDataCode;
+				
+				var periodNum:int = new Number(inputPeriodNum.text);
+				var qcondPeriodEnd:int = UtilPeriod.getPeriod(curPeriod,periodNum-1);
+				adgUiRowData.setPeriodBeginEnd( curPeriod, qcondPeriodEnd, false );
+				
+				UtilUi.pubFun4PopWaitWindow( this );
+				srvInvReport.queryInventoryRiskByProduct( queryCond );
+			}	
+			
+			private function faultHandler4queryData(event:FaultEvent):void
+			{
+				UtilUi.pubFun4RemoveWaitWindow();
+				Alert.show( event.fault.faultDetail );
+			}
+			
+			private function resultHandler4queryData(event:ResultEvent):void 
+			{
+				var result:Object = event.result;
+				dp4adgUiRowData = result["dataList"] as ArrayCollection;
+				
+				inputTotalOffShelf.text = result["totalOffShelf"];
+				inputCurPeriodStockValid.text = result["curPeriodStockValid"];
+				inputCurPeriodStockOffShelf.text = result["curPeriodStockOffShelf"];
+				//inputStandardPrice.text = result["standardPrice"];
+				
+				UtilUi.pubFun4RemoveWaitWindow();
+			}		
+			
+			private function onExport():void
+			{
+				//DataListExportUtil.dataGridExport2UTF8CSV(datagridPopr,"popr_data");
+				var csvstr:String = DataListExportUtil.generateCsvData(adgUiRowData);
+				System.setClipboard(csvstr);
+			}
+			
+			private var bizDataChooserWindow:Com_BizData_BizData_Chooser;
+			private var bizDataCode:String = ""; //用户选择的业务数据
+			
+			private function callbackFunction4chooserWinClose_ItemBizData4bizDataDefItemFcHand():void
+			{
+				if( bizDataChooserWindow.pubFun4getParamOut4winCloseWay() == UtilUi.WINDOW_CLOSEWAY_OK )
+				{
+					var bizData:BBizData = bizDataChooserWindow.pubFun4getParamOut4selectedBizData();
+					bizDataCode = bizData.code;
+					inputBizData.text = bizData.name;
+				}				
+			}
+			
+			private function onChooserBizData():void
+			{	
+				if( bizDataChooserWindow == null ){
+					bizDataChooserWindow = Com_BizData_BizData_Chooser(PopUpManager.createPopUp(this, Com_BizData_BizData_Chooser, true));
+					bizDataChooserWindow.pubFun4setParamIn4closeCallback( this, callbackFunction4chooserWinClose_ItemBizData4bizDataDefItemFcHand );
+					
+					var arrDictBizDataType:ArrayCollection = new ArrayCollection();
+					var arrDictBizDataType_all:ArrayCollection = ClientEnvironment.getBizDataTypeArr();
+					if( arrDictBizDataType_all != null ){
+						var i:int;
+						var sysDictionaryItem:BSysDictionaryItem = null;
+						for( i=0; i<arrDictBizDataType_all.length; i=i+1 )
+						{
+							sysDictionaryItem = BSysDictionaryItem(arrDictBizDataType_all.getItemAt(i));
+							if( sysDictionaryItem.value == BizConst.BIZDATA_TYPE_FCMODEL
+								|| sysDictionaryItem.value == BizConst.BIZDATA_TYPE_FCHAND
+								|| sysDictionaryItem.value == BizConst.BIZDATA_TYPE_FCFINAL
+								|| sysDictionaryItem.value == BizConst.BIZDATA_TYPE_FCCOMB
+							){
+								arrDictBizDataType.addItem( sysDictionaryItem );
+							}
+						}
+					}
+					
+					bizDataChooserWindow.pubFun4setParamIn4arrDictBizDataType( arrDictBizDataType );
+					bizDataChooserWindow.pubFun4setParamIn4blConstrainedByPermission(false);
+					bizDataChooserWindow.pubFun4setParamIn4blOnlyIsManaging( false );	
+				}else{
+					PopUpManager.addPopUp( bizDataChooserWindow, this, true );
+				}
+			}
+			
+			//	6	本地方法   end				
+		]]>
+	</fx:Script>
+	
+	<s:VGroup width="100%" verticalAlign="middle">
+		<s:HGroup verticalAlign="middle">
+			<s:Label text="{resourceManager.getString('label','proCode')}" textAlign="right"/>
+			<mx:TextInput id="inputProCode" text="" editable="false" width="75" backgroundColor="0xDDDDDD"/>
+			<s:Button icon="{CoolAssetsFile.findIcon}" width="30" click="onChooseProduct()"/>
+			
+			<s:Spacer width="10" />
+			<s:Label text="{resourceManager.getString('label','busData')}" textAlign="right"/>
+			<mx:TextInput id="inputBizData" text="" editable="false" backgroundColor="0xDDDDDD" width="120"/>
+			<s:Button icon="{CoolAssetsFile.findIcon}" width="30" click="onChooserBizData()"/>
+			
+			<s:Spacer width="10" />
+			<s:Label text="{resourceManager.getString('label','proName')}" textAlign="right" />
+			<mx:TextInput id="inputProName" text="" editable="false" width="120"  backgroundColor="0xDDDDDD"/>
+			
+			<s:Spacer width="10" />
+			<s:Label text="{resourceManager.getString('note','shelfLife')}" textAlign="right"/>
+			<mx:TextInput id="inputShelfLife" editable="false" width="50" backgroundColor="0xDDDDDD"/>
+			
+			<s:Spacer width="10" />
+			<s:Label text="{resourceManager.getString('note','offShelfLT')}" textAlign="right"/>
+			<mx:TextInput id="inputWithdrawLeadTime" editable="false" width="50" backgroundColor="0xDDDDDD"/>
+			
+			<s:Spacer width="10" />
+			<s:Label text="{resourceManager.getString('label','includePO')}" textAlign="right" />
+			<s:CheckBox id="cbISPO" selected="true" />
+			<s:Spacer width="10" />
+			<s:Label text="{resourceManager.getString('label','includePR')}" textAlign="right" />
+			<s:CheckBox id="cbISPR" selected="true" />
+			
+			<s:Spacer width="10" />
+			<s:Label text="{resourceManager.getString('label','showRiskBaseNext')}" textAlign="right" />
+			<s:CheckBox id="cbBaseNext" selected="false" />
+			<s:Spacer width="10" />
+			<s:Label text="{resourceManager.getString('label','showRiskBaseCycle')}" textAlign="right" />
+			<s:CheckBox id="cbBaseCycle" selected="false" />
+			<s:Spacer width="10" />
+			<s:Label text="{resourceManager.getString('label','showRiskBaseSubSS')}" textAlign="right" />
+			<s:CheckBox id="cbBaseSubSS" selected="false" />
+		</s:HGroup>
+		<s:HGroup verticalAlign="middle">
+			<s:Label text="{resourceManager.getString('label','achieveRate')}" textAlign="right" />
+			<mx:TextInput id="inputAchieveRate" restrict="0-9" maxChars="3" editable="true" width="50" fontWeight="bold"/>
+			<s:Spacer width="10" />
+			<s:Label text="{resourceManager.getString('label','period')}" textAlign="right" />
+			<mx:TextInput id="inputPeriod" text="{curPeriod}" editable="true" width="70" fontWeight="bold"/>
+			
+			<s:Spacer width="10" />
+			<s:Label text="{resourceManager.getString('label','periodNum')}" textAlign="right"/>
+			<mx:TextInput id="inputPeriodNum" text="36" restrict="0-9" maxChars="3" editable="true" width="40"  fontWeight="bold"/>
+			
+			<s:Spacer width="10" />
+			<s:Label text="{resourceManager.getString('label','fcValidPeriodNum')}" textAlign="right"/>
+			<mx:TextInput id="inputfcValidPeriodNum" text="24" restrict="0-9" maxChars="2" width="40" fontWeight="bold"/>
+			
+			<s:Spacer width="10" />
+			<s:Label text="{resourceManager.getString('label','curPeriodStockValid')}" textAlign="right"/>
+			<mx:TextInput id="inputCurPeriodStockValid" editable="false" width="70"  fontWeight="bold" backgroundColor="0xDDDDDD"/>
+			
+			<s:Spacer width="10" />
+			<s:Label text="{resourceManager.getString('label','curPeriodStockOffShelf')}" textAlign="right"/>
+			<mx:TextInput id="inputCurPeriodStockOffShelf" editable="false" width="70"  fontWeight="bold" backgroundColor="0xDDDDDD"/>
+			
+			<s:Spacer width="10" />
+			<s:Label text="{resourceManager.getString('label','totalOffShelf')}" textAlign="right"/>
+			<mx:TextInput id="inputTotalOffShelf" editable="false" width="70" fontWeight="bold" backgroundColor="0xDDDDDD"/>
+			
+			<s:Spacer width="10" />
+			<s:Button label="{resourceManager.getString('button','query')}" icon="{CoolAssetsFile.queryIcon}" click="onQuery()" id="btnSave"/> 
+			<s:Button label="{resourceManager.getString('button','export')}" icon="{CoolAssetsFile.doctableIcon}" click="onExport()" id="btnExport"/>
+		</s:HGroup>
+	</s:VGroup>
+	
+	<uirowdata:Com_UiRowData_UiRowData_AdvancedDataGrid id="adgUiRowData" dataProvider="{dp4adgUiRowData}" lockedColumnCount="4"
+														editable="false" width="100%" height="100%"/>
+	
+</mx:Module>

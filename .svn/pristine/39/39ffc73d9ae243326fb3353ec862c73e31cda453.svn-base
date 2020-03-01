@@ -1,0 +1,11 @@
+excuteTime=执行时间
+beginPeroid=起始期间
+endPeroid=结束期间
+bakHistoryData=备份历史数据
+bakHistoryAdjustLog=备份历史操作日志
+bakPriceData=备份价格数据
+bakForecastData=备份预测数据
+bakForecastMakeLog=备份预测调整日志
+operatorUserName=操作人员
+description=描述
+comments=备注

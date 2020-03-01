@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Module xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		   xmlns:s="library://ns.adobe.com/flex/spark" 
+		   xmlns:mx="library://ns.adobe.com/flex/mx" layout="vertical" width="100%" height="100%"
+		   creationComplete="creationCompleteHandler(event)">
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+	</fx:Declarations>
+	<fx:Metadata>
+		[ResourceBundle("mod_forecast_forecastdata_forecastmodel")]
+	</fx:Metadata>		
+	<fx:Script>
+		<![CDATA[
+			import dmdd.dmddas.common.constant.BizConst;
+			import dmdd.dmddas.common.system.ClientEnvironment;
+			
+			import mx.events.FlexEvent;
+			//	描述    begin
+			//	描述    end
+			
+			//	0	输入参数    begin						
+			//	0	输入参数    end
+			
+			//	1	输出参数    begin
+			//	1	输出参数    end
+			
+			//	2	本地变量    begin			
+			//	2	本地变量    end			
+			
+			//	3	公共方法    begin			
+			//	3	公共方法    end		
+			
+			//	4	初始化方法    begin	
+			protected function creationCompleteHandler(event:FlexEvent):void
+			{				
+			}			
+			//	4	初始化方法    end				
+			
+			//	5	事件响应方法    begin
+			//	5	事件响应方法    end
+			
+			//	6	本地方法    begin
+			//	6	本地方法   end			
+			
+		]]>
+	</fx:Script>
+	
+	<mx:TabBar dataProvider="{viewStack}"/> 
+	<mx:ViewStack id="viewStack" 
+				  borderStyle="solid" width="100%" height="100%"> 
+		
+		<mx:ModuleLoader id="modloader_forecast_forecastdata_forecastmodel_create" applicationDomain="{ApplicationDomain.currentDomain}" label="{resourceManager.getString('mod_forecast_forecastdata_forecastmodel','forecastruntaskcreate')}" width="100%" height="100%" url="dmdd/dmddmx/mod/forecast/Mod_Forecast_ForecastData_ForecastModel_Create.swf">
+		</mx:ModuleLoader>
+		<mx:ModuleLoader id="modloader_forecast_forecastdata_forecastmodel_latest" applicationDomain="{ApplicationDomain.currentDomain}" label="{resourceManager.getString('mod_forecast_forecastdata_forecastmodel','forecastruntasklatest')}" width="100%" height="100%" url="dmdd/dmddmx/mod/forecast/Mod_Forecast_ForecastData_ForecastModel_Latest.swf">
+		</mx:ModuleLoader>		
+		<mx:ModuleLoader id="modloader_forecast_forecastdata_forecastmodel_query" applicationDomain="{ApplicationDomain.currentDomain}" label="{resourceManager.getString('mod_forecast_forecastdata_forecastmodel','forecastruntaskquery')}" width="100%" height="100%" url="dmdd/dmddmx/mod/forecast/Mod_Forecast_ForecastData_ForecastModel_Query.swf">
+		</mx:ModuleLoader>
+		
+	</mx:ViewStack> 	
+</mx:Module>

@@ -1,0 +1,474 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Module xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		   xmlns:s="library://ns.adobe.com/flex/spark" 
+		   xmlns:mx="library://ns.adobe.com/flex/mx" 
+		   layout="vertical" width="100%" height="100%" paddingLeft="10" paddingRight="10"
+		   creationComplete="creationCompleteHandler(event)"  keyDown="dataGridKeyDownHandler(event)"
+		   xmlns:containers="aks.aksmx.containers.*" xmlns:replenlish="dmdd.dmddmx.com.replenish.*" xmlns:bizdata="dmdd.dmddmx.com.bizdata.*" xmlns:common="dmdd.dmddmx.com.common.*">
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+		<s:RemoteObject endpoint="{ClientEnvironment.endpoint}" id="srvReplenish" destination="ReplenishService">	
+			<s:method name="saveTermEndDatas4ImportUI" result="resultHandler4saveStockDaysDatas4ImportUI(event)" fault="faultHandler4saveStockDaysDatas4ImportUI(event)">
+			</s:method>							  
+		</s:RemoteObject>			
+	</fx:Declarations>
+	<fx:Metadata>
+		[ResourceBundle("mod_replenish")]
+	</fx:Metadata>
+	<fx:Script>
+		<![CDATA[
+			import aks.aksas.utils.UtilUi;
+			
+			import com.cool.assets.CoolAssetsFile;
+			import com.cool.utils.AlertUtil;
+			
+			import dmdd.dmddas.common.constant.BizConst;
+			import dmdd.dmddas.common.constant.SysConst;
+			import dmdd.dmddas.common.system.ClientEnvironment;
+			import dmdd.dmddas.common.utils.UtilExceptionLocale;
+			import dmdd.dmddas.common.utils.UtilPeriod;
+			import dmdd.dmddas.dataaccess.aidobject.ABImHistoryData;
+			import dmdd.dmddas.dataaccess.aidobject.ABImReplenishStockDays;
+			import dmdd.dmddas.dataaccess.bizobject.BBizData;
+			import dmdd.dmddas.dataaccess.bizobject.BSysDictionaryItem;
+			import dmdd.dmddas.dataaccess.bizobject.BUnit;
+			import dmdd.dmddas.dataaccess.bizobject.BUnitGroup;
+			
+			import mx.collections.ArrayCollection;
+			import mx.collections.IViewCursor;
+			import mx.controls.DataGrid;
+			import mx.controls.dataGridClasses.DataGridColumn;
+			import mx.events.FlexEvent;
+			import mx.rpc.events.FaultEvent;
+			import mx.rpc.events.ResultEvent;
+			
+			
+			
+			//	描述    begin
+			//	描述    end
+			
+			//	0	输入参数    begin						
+			//	0	输入参数    end
+			
+			//	1	输出参数    begin
+			//	1	输出参数    end
+			
+			//	2	本地变量    begin	
+			[Bindable]
+			private var prvVar4dp4comAdgImReplenishData:ArrayCollection = new ArrayCollection();
+			[Bindable]
+			private var prvVar4arrDictBizDataType:ArrayCollection = new ArrayCollection();		
+			
+			[Bindable]
+			private var prvVar4arrDictBizDataType_last:ArrayCollection = new ArrayCollection();		
+			
+			private var prvVar4arrFailedRecord:ArrayCollection = new ArrayCollection();
+			
+			private var prvVar4arrOkButFailedRecord:ArrayCollection = new ArrayCollection();
+			//	2	本地变量    end			
+			
+			//	3	公共方法    begin			
+			//	3	公共方法    end		
+			
+			//	4	初始化方法    begin	
+			protected function creationCompleteHandler(event:FlexEvent):void
+			{
+				//	初始化界面参数	begin
+				this.prvVar4arrDictBizDataType = new ArrayCollection();
+				this.prvVar4arrDictBizDataType_last= new ArrayCollection();
+				
+				var arrDictBizDataType:ArrayCollection = ClientEnvironment.getBizDataTypeArr();
+				if( arrDictBizDataType != null )
+				{
+					var i:int;
+					var sysDictionaryItem:BSysDictionaryItem = null;
+					for( i=0; i<arrDictBizDataType.length; i=i+1 )
+					{
+						sysDictionaryItem = BSysDictionaryItem(arrDictBizDataType.getItemAt(i));
+						if( sysDictionaryItem.value == BizConst.BIZDATA_TYPE_DC_TERMEND )
+						{
+							this.prvVar4arrDictBizDataType.addItem( sysDictionaryItem );
+						}
+						if(sysDictionaryItem.value == BizConst.BIZDATA_TYPE_DC_LASTTERMEND )
+						{
+							this.prvVar4arrDictBizDataType_last.addItem( sysDictionaryItem );
+						}
+					}
+				}				
+				//	初始化界面参数	end				
+			}			
+			//	4	初始化方法    end				
+			
+			//	5	事件响应方法    begin
+			
+			
+			private function onClear():void
+			{
+				this.prvVar4dp4comAdgImReplenishData = new ArrayCollection();
+				this.comAdgImReplenishData.columnImportResult.visible = false;
+				this.btnSave.enabled = false;
+				this.btnExport.enabled = false;
+			}
+			
+			private function onSave():void
+			{
+				var alert_msg:String = null;  
+			
+				
+				if( this.prvVar4dp4comAdgImReplenishData.length <= 0 )
+				{
+					alert_msg = resourceManager.getString('mod_replenish','alert_msg_nodatatosave');
+					AlertUtil.show( alert_msg );	
+					return;												
+				}
+				
+				UtilUi.pubFun4PopWaitWindow( this );
+				
+				
+				this.srvReplenish.saveTermEndDatas4ImportUI(   prvVar4dp4comAdgImReplenishData );
+			}	
+			
+			private function faultHandler4saveStockDaysDatas4ImportUI(event:FaultEvent):void
+			{
+				UtilUi.pubFun4RemoveWaitWindow();
+				AlertUtil.show("期末库存数据导入失败!",AlertUtil.MESSAGE_ERROR,UtilExceptionLocale.getExceptionMessageLocaleByFaultEvent( event ));
+			}
+			
+			private function resultHandler4saveStockDaysDatas4ImportUI(event:ResultEvent):void 
+			{
+				this.prvVar4dp4comAdgImReplenishData = ArrayCollection(event.result);
+				
+				this.prvVar4arrFailedRecord = new ArrayCollection();
+				this.prvVar4arrOkButFailedRecord = new ArrayCollection();
+				var totalNum:int = 0; 
+				var failNum:int = 0;
+				var i:int;
+				var rstImReplenishData:ABImReplenishStockDays = null;
+				if( this.prvVar4dp4comAdgImReplenishData != null )
+				{
+					totalNum = this.prvVar4dp4comAdgImReplenishData.length;
+					for( i=0; i<this.prvVar4dp4comAdgImReplenishData.length; i=i+1 )
+					{
+						rstImReplenishData = ABImReplenishStockDays(this.prvVar4dp4comAdgImReplenishData.getItemAt(i));
+						if( rstImReplenishData.importResult != BizConst.IMPORT_RESULT_SUCCESS )
+						{
+							rstImReplenishData.importResult = UtilExceptionLocale.getExceptionMessageLocaleByCauseMessage( rstImReplenishData.importResult );
+							
+							this.prvVar4arrFailedRecord.addItem( rstImReplenishData );
+						}
+						
+					}
+					failNum = this.prvVar4arrFailedRecord.length;
+				}
+				
+				UtilUi.pubFun4RemoveWaitWindow();
+				this.comAdgImReplenishData.columnImportResult.visible = true;
+				
+				var alert_msg:String = null;  	
+				
+				alert_msg = resourceManager.getString('mod_replenish','alert_msg_totalnum');
+				alert_msg = alert_msg + totalNum + "\n";
+				alert_msg = alert_msg + resourceManager.getString('mod_replenish','alert_msg_failnum');
+				alert_msg = alert_msg + failNum + "\n";
+				
+				AlertUtil.show( alert_msg );
+				
+				if( failNum > 0 )
+				{
+					this.btnExport.enabled = true;					
+				}
+				else
+				{
+					this.btnExport.enabled = false;					
+				}		
+				
+				
+			}		
+			private function onExport():void
+			{
+				//	只导出错误的，所以先把组件显示的内容换成错误的，处理完后再换回来	begin
+				var arrdp4comAdgImHistoryData_bak:ArrayCollection = new ArrayCollection();
+				arrdp4comAdgImHistoryData_bak.addAll( this.prvVar4dp4comAdgImReplenishData );
+				
+				this.prvVar4dp4comAdgImReplenishData.removeAll();
+				this.prvVar4dp4comAdgImReplenishData.addAll( this.prvVar4arrFailedRecord );
+				//	this.prvVar4dp4comAdgImHistoryData.addAll(this.prvVar4arrOkButFailedRecord);
+				
+				var TSVString:String = this.exportCSV( this.comAdgImReplenishData ) ;
+				
+				this.prvVar4dp4comAdgImReplenishData.removeAll();
+				this.prvVar4dp4comAdgImReplenishData.addAll( arrdp4comAdgImHistoryData_bak );
+				//	只导出错误的，所以先把组件显示的内容换成错误的，处理完后再换回来	end
+				
+				// Copy the TSV string to the clipboard
+				System.setClipboard(TSVString);					
+			}
+			
+			
+			//	5	事件响应方法    end
+			
+			//	6	本地方法    begin
+			private function exportCSV(dg:DataGrid, csvSeparator:String="\t", lineSeparator:String="\n"):String
+			{
+				var data:String = "";
+				var columns:Array = dg.columns;
+				var columnCount:int = columns.length;
+				var column:DataGridColumn;
+				var header:String = "";
+				var headerGenerated:Boolean = false;
+				var dataProvider:Object = dg.dataProvider;
+				var rowCount:int = dataProvider.length;
+				var dp:Object = null;
+				
+				var cursor:IViewCursor = dataProvider.createCursor ();
+				var j:int = 0;
+				
+				//loop through rows
+				while (!cursor.afterLast)
+				{
+					var obj:Object = null;
+					obj = cursor.current;
+					
+					//loop through all columns for the row
+					for(var k:int = 0; k < columnCount; k++)
+					{
+						column = columns[k];
+						//Exclude column data which is invisible (hidden)
+						if(!column.visible)
+						{
+							continue;
+						}
+						
+						data += "\""+ column.itemToLabel(obj)+ "\"";
+						if(k < (columnCount -1))
+						{
+							data += csvSeparator;
+						}
+						//generate header of CSV, only if it's not genereted yet
+						if (!headerGenerated)
+						{
+							header += "\"" + column.headerText + "\"";
+							if (k < columnCount - 1)
+							{
+								header += csvSeparator;
+							}
+						}
+						
+						
+					}
+					
+					headerGenerated = true;
+					if (j < (rowCount - 1))
+					{
+						data += lineSeparator;
+					}
+					j++;
+					cursor.moveNext ();
+				}
+				
+				//set references to null:
+				dataProvider = null;
+				columns = null;
+				column = null;
+				
+				return (header + "\r\n" + data);
+			} 
+			
+			
+			
+			private function dataGridKeyDownHandler( event:KeyboardEvent ):void   
+			{     
+				if (event.ctrlKey )     
+				{       
+					// Add an invisible TextField object to the DataGrid       
+					var textFieldClipboard:TextField = new TextField();       
+					textFieldClipboard.name = "clipboardProxy";       
+					this.comAdgImReplenishData.addChild(textFieldClipboard);       
+					// Set player-level focus to the TextField       
+					
+					textFieldClipboard.visible = false;       
+					textFieldClipboard.type = TextFieldType.INPUT;       
+					textFieldClipboard.multiline = true;       
+					// Populate the TextField with selected data in TSV format       
+					// textField.text = getTextFromItems(dataGrid.selectedItems);       
+					// textField.setSelection(0, textField.text.length - 1);       
+					// Listen for textInput event       
+					textFieldClipboard.addEventListener(TextEvent.TEXT_INPUT, clipboardProxyPasteHandler,false,0,true);    
+					systemManager.stage.focus = textFieldClipboard;
+				}
+			}
+			
+			private function clipboardProxyPasteHandler(event:TextEvent):void   
+			{     
+				// Extract values from TSV format and populate the DataGrid
+				if( this.comAdgImReplenishData.columnImportResult.visible == true )
+				{
+					this.comAdgImReplenishData.columnImportResult.visible = false;
+				}
+				
+				this.prvVar4dp4comAdgImReplenishData = new ArrayCollection();
+				
+				UtilUi.pubFun4PopWaitWindowAndConent(this,"处理中...");
+				
+				this.getImHistoryDatasFromText( event.text );
+				
+				UtilUi.pubFun4RemoveWaitWindow();
+				
+				this.btnSave.enabled = true;
+				
+				// 一定要在这里把 textField移除，不然会报 Flash.events.event 到 indexChang eEvent 的类型转换错误
+				 //移去 textField
+				var textFieldClipboard:TextField = TextField(this.comAdgImReplenishData.getChildByName("clipboardProxy"));       
+				if ( textFieldClipboard != null )
+				{   
+					var keepFocus:Boolean;
+					if (focusManager && focusManager.getFocus() == textFieldClipboard)
+					{
+						keepFocus = true;
+					}
+					
+					textFieldClipboard.removeEventListener(TextEvent.TEXT_INPUT,clipboardProxyPasteHandler);
+					comAdgImReplenishData.removeChild(textFieldClipboard);
+					textFieldClipboard = null;
+					
+					//转换焦点
+					if (keepFocus){
+						setFocus();
+					}
+					event.stopImmediatePropagation();
+				}   								
+			}   
+			
+			private function getImHistoryDatasFromText(text:String):void   
+			{   
+				var alert_msg:String = null;  
+				
+				var rstArrayImHistoryData:Array = new Array();
+				var rows:Array = text.split("\n");
+				if( rows == null )
+				{
+					alert_msg = resourceManager.getString('mod_replenish','alert_msg_nohistorydata');
+					AlertUtil.show( alert_msg );	
+					return;	
+				}     
+				if (!rows[rows.length - 1])
+				{       
+					rows.pop();
+				}     
+				
+				if( rows.length <= 1 )
+				{
+					alert_msg = resourceManager.getString('mod_replenish','alert_msg_nohistorydata');
+					AlertUtil.show( alert_msg );						
+					return;
+				}
+				
+				var rwHeader:String = rows[0];
+				var fieldsHeader:Array = rwHeader.split( "\t" );
+				if(!(fieldsHeader[fieldsHeader.length-1]))
+				{
+					fieldsHeader.pop();
+				} 				
+				if( fieldsHeader.length <= 2 )
+				{
+					alert_msg = resourceManager.getString('mod_replenish','alert_msg_nohistorydatacolumen');
+					AlertUtil.show( alert_msg );						
+					return;					
+				}
+				
+				var colIdx:int;
+				var periodBegin:int = UtilPeriod.parse( fieldsHeader[2] );
+				var period:int = SysConst.PERIOD_NULL;
+				if( periodBegin == SysConst.PERIOD_NULL )
+				{
+					alert_msg = resourceManager.getString('mod_replenish','alert_msg_errorhistorydatacolumnheader');
+					AlertUtil.show( alert_msg );
+					return;																	
+				}
+				
+				for( colIdx = 3; colIdx < fieldsHeader.length; colIdx=colIdx+1 )
+				{
+					period = UtilPeriod.parse( fieldsHeader[ colIdx ] );
+					if( period == SysConst.PERIOD_NULL )
+					{
+						alert_msg = resourceManager.getString('mod_replenish','alert_msg_errorhistorydatacolumnheader');
+						AlertUtil.show( alert_msg );
+						return;												
+					}
+					if( UtilPeriod.getPeriodDifference( periodBegin, period ) != (colIdx - 2) )
+					{
+						alert_msg = resourceManager.getString('mod_replenish','alert_msg_historydatacolumnheaderperiodnotsucceed');
+						AlertUtil.show( alert_msg );
+						return;																		
+					}
+				}
+				var periodEnd:int = period;
+				if( periodEnd == SysConst.PERIOD_NULL )
+				{
+					periodEnd = periodBegin;	
+				}
+				if( UtilPeriod.getPeriodDifference(periodEnd, ClientEnvironment.getSysPeriod().historyOpenPeriod) < 0 )
+				{
+					alert_msg = resourceManager.getString('mod_replenish','alert_msg_periodendgtopen');
+					AlertUtil.show( alert_msg );
+					return;																							
+				}
+				
+				var periodDiff:int = UtilPeriod.getPeriodDifference(periodBegin, periodEnd);
+				if( periodDiff >= SysConst.PERIODNUM_MAX_NUM )
+				{
+					alert_msg = resourceManager.getString('mod_replenish','alter_msg_perioddiffover');
+					AlertUtil.show( alert_msg );
+					return;																							
+				}
+				
+				this.comAdgImReplenishData.pubFun4setParamIo4periodBeginEnd( periodBegin, periodEnd, true );
+				
+				var row:String = null;
+				var rowIdx:int;
+				var fields:Array = null;
+				var periodIdx:int;
+				var periodNum:int;
+				
+				var newImReplenishData:ABImReplenishStockDays = null;
+				for( rowIdx=1; rowIdx<rows.length; rowIdx=rowIdx+1 )
+				{
+					newImReplenishData = new ABImReplenishStockDays();
+					newImReplenishData.periodBegin = periodBegin;
+					newImReplenishData.periodEnd = periodEnd;
+					newImReplenishData.importResult = null;
+					
+					row = rows[rowIdx];
+					fields = row.split("\t");
+					if( fields.length <= 2 )
+					{
+						continue;
+					}
+					newImReplenishData.productCode = fields[0];
+					newImReplenishData.dcCode = fields[1];
+					
+					periodNum = Math.min( periodDiff+1, fields.length-2 );
+					for( periodIdx=0; periodIdx < periodNum; periodIdx=periodIdx+1 )
+					{
+						newImReplenishData.pubFun4setPeriodDataValue( periodIdx, Number( fields[2+periodIdx] ) );	
+					}
+					
+					this.prvVar4dp4comAdgImReplenishData.addItem( newImReplenishData );
+				}
+			}   			
+			//	6	本地方法   end	
+			
+		]]>
+	</fx:Script>
+	
+	<common:LabelBoundary labelText="{resourceManager.getString('mod_replenish','termend_import')}" paddingTop="5" />
+	<s:VGroup width="100%" height="100%" paddingBottom="3">
+		<s:HGroup width="100%" paddingLeft="10">
+			<s:Button id="btnSave" label="{resourceManager.getString('button','save')}" click="onSave()" enabled="false" icon="{CoolAssetsFile.saveIcon}"/> 
+			<s:Button label="{resourceManager.getString('button','clear')}" click="onClear()" icon="{CoolAssetsFile.clearIcon}"/>
+			<s:Button id="btnExport" label="{resourceManager.getString('button','expLogFailed')}" click="onExport()"  enabled="false" icon="{CoolAssetsFile.doctableIcon}"/>
+		</s:HGroup>
+		<replenlish:Com_Replenish_Import_StockDays_AdvancedDataGrid id="comAdgImReplenishData" width="100%" height="100%"
+													dataProvider="{this.prvVar4dp4comAdgImReplenishData}" />
+	</s:VGroup>
+</mx:Module>

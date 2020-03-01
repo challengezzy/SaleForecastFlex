@@ -1,0 +1,17 @@
+﻿operatoruserproorgdata=用户业务范围
+
+btn_save=保存
+btn_clear=清除
+btn_export=导出出错记录
+alert_hint_title=提示
+alert_msg_nooperatoruserproorgdata=粘贴数据为空
+alert_msg_nooperatoruserproorgcolumen=数据不全
+
+alert_msg_nodatatosave=没有数据需要保存
+alert_msg_savesucceed=保存成功
+alert_msg_errordetail=下列数据未能保存
+alert_msg_totalnum=记录总数：
+alert_msg_failnum=导入失败记录总数：
+
+
+

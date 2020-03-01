@@ -1,0 +1,450 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Module xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		   xmlns:s="library://ns.adobe.com/flex/spark" 
+		   xmlns:mx="library://ns.adobe.com/flex/mx" 
+		   layout="vertical" width="100%" height="100%" paddingLeft="10" paddingRight="10" 
+		   creationComplete="creationCompleteHandler(event)" xmlns:product="dmdd.dmddmx.com.product.*"  xmlns:dc="dmdd.dmddmx.com.distributioncenter.*"
+		   xmlns:replenish="dmdd.dmddmx.com.replenish.*" xmlns:uirowdata="dmdd.dmddmx.com.uirowdata.*" xmlns:period="dmdd.dmddmx.com.period.*"
+		   xmlns:controls="aks.aksmx.controls.*" xmlns:charts="aks.aksmx.charts.*" xmlns:containers="aks.aksmx.containers.*" xmlns:common="dmdd.dmddmx.com.common.*" xmlns:buttons="com.cool.buttons.*">
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+		<s:RemoteObject endpoint="{ClientEnvironment.endpoint}" id="srvReplenish" destination="ReplenishService">	
+			<s:method name="getDataGroupByDC" result="resultHandler4getDataGroupByDC(event)" fault="faultHandler4getDataGroupByDC(event)">
+			</s:method>	
+			<s:method name="getDetailDataByProDC" result="resultHandler4getDetailDataByProDC(event)" fault="faultHandler4getDetailDataByProDC(event)">
+			</s:method>
+		</s:RemoteObject>		
+	</fx:Declarations>
+	<fx:Metadata>
+		[ResourceBundle("mod_replenish")]
+		[ResourceBundle("com_period_period_span")]
+	</fx:Metadata>
+	<fx:Script>
+		<![CDATA[
+			import aks.aksas.charts.AksChartDataObject;
+			import aks.aksas.controls.AksLockDataGridObject;
+			import aks.aksas.utils.UtilArrayCollection;
+			import aks.aksas.utils.UtilExportDataGird;
+			import aks.aksas.utils.UtilUi;
+			
+			import com.cool.assets.CoolAssetsFile;
+			
+			import dmdd.dmddas.common.constant.BizConst;
+			import dmdd.dmddas.common.constant.SysConst;
+			import dmdd.dmddas.common.constant.UIConst;
+			import dmdd.dmddas.common.system.ClientEnvironment;
+			import dmdd.dmddas.common.utils.UtilExceptionLocale;
+			import dmdd.dmddas.common.utils.UtilPeriod;
+			import dmdd.dmddas.common.utils.UtilProDC;
+			import dmdd.dmddas.common.utils.UtilUiRowData;
+			import dmdd.dmddas.dataaccess.aidobject.ABProDC;
+			import dmdd.dmddas.dataaccess.aidobject.ABUiRowData;
+			import dmdd.dmddas.dataaccess.aidobject.ABUiRowDataProDC;
+			import dmdd.dmddas.dataaccess.bizobject.BBizDataDefItemKpi;
+			import dmdd.dmddas.dataaccess.bizobject.BDistributionCenter;
+			import dmdd.dmddas.dataaccess.bizobject.BProduct;
+			import dmdd.dmddas.dataaccess.bizobject.BSysDictionaryItem;
+			import dmdd.dmddas.dataaccess.bizobject.BUnit;
+			import dmdd.dmddas.dataaccess.bizobject.BUnitGroup;
+			import dmdd.dmddmx.com.replenish.Com_Replenish_Report_ProDC_Detail;
+			
+			import mx.collections.ArrayCollection;
+			import mx.collections.IViewCursor;
+			import mx.controls.AdvancedDataGrid;
+			import mx.controls.Alert;
+			import mx.controls.advancedDataGridClasses.AdvancedDataGridColumn;
+			import mx.events.FlexEvent;
+			import mx.events.IndexChangedEvent;
+			import mx.events.ListEvent;
+			import mx.events.MenuEvent;
+			import mx.formatters.NumberFormatter;
+			import mx.managers.PopUpManager;
+			import mx.rpc.events.FaultEvent;
+			import mx.rpc.events.ResultEvent;
+			import mx.utils.StringUtil;
+			
+			
+			
+			//	描述    begin
+			//	描述    end
+			
+			//	0	输入参数    begin						
+			//	0	输入参数    end
+			
+			//	1	输出参数    begin
+			//	1	输出参数    end
+			
+			//	2	本地变量    begin	
+			[Bindable]
+			private var prvVar4dp4comAdgUiRowData:ArrayCollection = new ArrayCollection();
+			
+			[Bindable]
+			private var prvVar4dp4comAdgProDC:ArrayCollection = new ArrayCollection();
+			
+			[Bindable]
+			private var prvVar4dp4chart4scale:ArrayCollection = new ArrayCollection();
+			
+		
+			private var prvVar4win4Detail:Com_Replenish_Report_ProDC_Detail = null;
+			
+			[Bindable]
+			public var paramIn4visible4span4periodSpan:Boolean = true;
+			[Bindable]
+			public var paramIn4visible4forecast4periodspan:Boolean = false;
+				
+			//	 显示设置		end
+			[Bindable]
+			private var dp4DataType:ArrayCollection = new ArrayCollection([{label:"SellIn", data:"SELLIN"}
+				,{label:"SellOut", data:"SELLOUT"},{label:"Closing Inv.", data:"TERMEND"},{label:"Beginning Inv.", data:"TERMBEGIN"}
+				,{label:"DOS", data:"STOCKDAY"}]);
+			
+			//	查询条件		begin	
+			private var paramPeriodBegin:int = SysConst.PERIOD_NULL;
+			private var paramPeriodEnd:int = SysConst.PERIOD_NULL;
+			//	查询条件		end
+			
+			//	2	本地变量    end			
+			
+			//	3	公共方法    begin			
+			//	3	公共方法    end		
+			
+			//	4	初始化方法    begin	
+			protected function creationCompleteHandler(event:FlexEvent):void
+			{	
+				txtPeriodBegin.text = String(  ClientEnvironment.getSysPeriod().compilePeriod  ); 
+				txtPeriodEnd.text =  String( UtilPeriod.getPeriod( ClientEnvironment.getSysPeriod().compilePeriod, 12) );
+				//增加右键锁定模块 begin
+				//添加右键菜单
+				var rightClickMenuItems:Array = [];
+				rightClickMenuItems.push({label:resourceManager.getString('button','expand'),keyname:"expand"});
+				rightClickMenuItems.push({label:resourceManager.getString('button','collapse'),keyname:"collapse"});
+				
+				comAdgUiRowData.setRightClickMenuItems(rightClickMenuItems);
+				comAdgUiRowData.rightClickMenu.addEventListener(MenuEvent.ITEM_CLICK,rowDataRightMenuClicked);
+				
+				comAdgDC.setRightClickMenuItems(rightClickMenuItems);
+				comAdgDC.rightClickMenu.addEventListener(MenuEvent.ITEM_CLICK,dcRightMenuClicked);
+				
+				comAdgProduct.setRightClickMenuItems(rightClickMenuItems);
+				comAdgProduct.rightClickMenu.addEventListener(MenuEvent.ITEM_CLICK,productRightMenuClicked);
+				//增加右键锁定模块 end
+			}					
+			//	4	初始化方法    end				
+			
+			//	5	事件响应方法    begin	
+			private function rowDataRightMenuClicked(event:MenuEvent):void{
+				//判断右键的表格
+				if( comAdgUiRowData != null && comAdgUiRowData.selectedItem == null ){
+					Alert.show("Please select one item !");
+					return ;
+				}
+				
+				var item:Object = event.item;
+				if(item == null)
+					return;
+				if(item.keyname == "expand"){
+					onExpandAll(comAdgUiRowData);
+				}else if(item.keyname == "collapse"){
+					onCollapseAll(comAdgUiRowData);
+				}
+			}
+			
+			private function dcRightMenuClicked(event:MenuEvent):void{
+				//判断右键的表格
+				if( comAdgDC != null && comAdgDC.selectedItem == null ){
+					Alert.show("Please select one item !");
+					return ;
+				}
+				
+				var item:Object = event.item;
+				if(item == null)
+					return;
+				if(item.keyname == "expand"){
+					onExpandAll(comAdgDC);
+				}else if(item.keyname == "collapse"){
+					onCollapseAll(comAdgDC);
+				}
+				
+			}
+			
+			private function onExpandAll(rightAdg:AdvancedDataGrid):void
+			{
+				//rightAdg.expandAll();
+				rightAdg.expandChildrenOf(rightAdg.selectedItem,true);
+			}		
+			
+			private function onCollapseAll(rightAdg:AdvancedDataGrid):void
+			{
+				//rightAdg.collapseAll();
+				rightAdg.expandChildrenOf(rightAdg.selectedItem,false);
+			}
+			
+			private function productRightMenuClicked(event:MenuEvent):void{
+				//判断右键的表格
+				if( comAdgProduct != null && comAdgProduct.selectedItem == null ){
+					Alert.show("Please select one item !");
+					return ;
+				}
+				
+				var item:Object = event.item;
+				if(item == null)
+					return;
+				if(item.keyname == "expand"){
+					onExpandAll(comAdgProduct);
+				}else if(item.keyname == "collapse"){
+					onCollapseAll(comAdgProduct);
+				}
+				
+			}
+			
+			//查询
+			private function onQuery():void
+			{
+				var alert_title_hint:String = resourceManager.getString('mod_replenish','alert_title_hint');
+				var alert_msg:String = "";
+				if(comAdgProduct.selectedItems.length<1)
+				{
+					alert_msg = resourceManager.getString('mod_replenish','alert_msg_nopro');
+					Alert.show( alert_msg , alert_title_hint);
+					return ;		
+				}
+				if(comAdgDC.selectedItems.length<1)
+				{
+					alert_msg = resourceManager.getString('mod_replenish','alert_msg_nodc');
+					Alert.show( alert_msg , alert_title_hint);
+					return ;		
+				}
+				
+				var arr4selectedPro:ArrayCollection =new ArrayCollection(comAdgProduct.selectedItems);
+				var arr4selectedDC:ArrayCollection =new ArrayCollection(comAdgDC.selectedItems);
+				
+				if( this.pubFun4checkPeriodSpan() == false )
+				{
+					return;
+				}
+				
+				var arr4proIds:ArrayCollection = new ArrayCollection();
+				var arr4dcIds:ArrayCollection = new ArrayCollection();
+				for each(var pro:BProduct in arr4selectedPro)
+					arr4proIds.addItem(pro.id+"");
+				for each(var dc:BDistributionCenter in arr4selectedDC)
+					arr4dcIds.addItem(dc.id+"");
+				
+				var dataType:String = "SELLIN";
+				if(comboBox4DataType.selectedItem != null){
+					dataType = comboBox4DataType.selectedItem.data;
+				}
+				
+				srvReplenish.getDataGroupByDC(	arr4proIds,arr4dcIds,paramPeriodBegin,paramPeriodEnd,dataType);
+				
+				UtilUi.pubFun4PopWaitWindow( this );
+			
+			}
+			private function faultHandler4getDataGroupByDC(event:FaultEvent):void
+			{
+				UtilUi.pubFun4RemoveWaitWindow();
+				Alert.show( UtilExceptionLocale.getExceptionMessageLocaleByFaultEvent( event ), resourceManager.getString('main','alt_title_warn') );
+			}
+			
+			private function resultHandler4getDataGroupByDC(event:ResultEvent):void 
+			{
+				UtilUi.pubFun4RemoveWaitWindow();	
+				queryPanel.pubFun4CloseWin();
+				this.prvVar4dp4comAdgUiRowData = new ArrayCollection();
+				this.prvVar4dp4comAdgUiRowData = event.result as ArrayCollection;
+				this.comAdgUiRowData.pubsetPeriod(paramPeriodBegin,paramPeriodEnd);
+			}
+			
+			private function onExportData():void
+			{
+				
+				var TSVString:String = UtilExportDataGird.exportCSV4AdvancedDataGrid( this.comAdgUiRowData ) ;
+				
+				// Copy the TSV string to the clipboard
+				System.setClipboard(TSVString);	
+			}				
+			//查询明细，先要判断是否选择的SKU产品的数据
+			private function onViewDetail():void
+			{
+				var alert_title_hint:String = resourceManager.getString('mod_replenish','alert_title_hint');
+				var alert_msg:String = "";
+				if(comAdgUiRowData.selectedIndex<0)
+				{
+					alert_msg = resourceManager.getString('mod_replenish','alert_msg_noselect');
+					Alert.show( alert_msg , alert_title_hint);
+					return ;	
+				}
+				var prodc:ABUiRowDataProDC = ABUiRowDataProDC(comAdgUiRowData.selectedItem);
+				
+				this.srvReplenish.getDetailDataByProDC(prodc.proId,prodc.dcId,paramPeriodBegin,paramPeriodEnd);
+				
+			}	
+			
+			private function faultHandler4getDetailDataByProDC(event:FaultEvent):void
+			{
+				UtilUi.pubFun4RemoveWaitWindow();
+				Alert.show( UtilExceptionLocale.getExceptionMessageLocaleByFaultEvent( event ), resourceManager.getString('main','alt_title_warn') );
+			}
+			
+			private function resultHandler4getDetailDataByProDC(event:ResultEvent):void 
+			{
+				if(event.result==null)
+				{
+					return ;
+				}
+				
+				var arr4details:ArrayCollection = ArrayCollection(event.result);
+				if( this.prvVar4win4Detail == null )
+				{
+					this.prvVar4win4Detail = Com_Replenish_Report_ProDC_Detail(PopUpManager.createPopUp(this, Com_Replenish_Report_ProDC_Detail, true));					
+				}
+				else
+				{
+					PopUpManager.addPopUp( this.prvVar4win4Detail, ClientEnvironment.modWork, true );
+				}
+				PopUpManager.centerPopUp(this.prvVar4win4Detail);
+				var prodc:ABUiRowDataProDC = ABUiRowDataProDC(comAdgUiRowData.selectedItem);
+				prvVar4win4Detail.pubFun4SetProudctDcCode(prodc.proName,prodc.dcName);//显示名称
+				prvVar4win4Detail.pubFun4SetProDc(arr4details);
+			}
+			
+			private function onRefreshChart():void
+			{
+					
+				
+			}
+			
+			protected function tabNav4chart_changeHandler(event:IndexChangedEvent):void
+			{
+				
+							
+			}			
+			
+			private function prvFun4ShowZero():void
+			{
+				
+			}
+			
+			private function prvFun4pageQueryReportDatas():void
+			{
+				
+			}
+			//判断是否显示明细按钮
+			protected function comAdgUiRowData_changeHandler(event:ListEvent):void
+			{
+				
+				if(comAdgUiRowData.selectedIndex>-1)
+				{
+					var _uirow:ABUiRowDataProDC = ABUiRowDataProDC(comAdgUiRowData.selectedItem);
+					if(_uirow.proCode==null || _uirow.proName=="")
+						btnViewDetail.enabled=false;
+					else 
+						btnViewDetail.enabled = true;
+				}
+				
+			}
+			//	5	事件响应方法    end
+			
+			//	6	本地方法    begin
+			public function pubFun4checkPeriodSpan():Boolean
+			{
+				var periodBegin:int = UtilPeriod.parse( StringUtil.trim(this.txtPeriodBegin.text) );
+				var periodEnd:int = UtilPeriod.parse( StringUtil.trim(this.txtPeriodEnd.text) );
+				
+				var alert_title_hint:String = resourceManager.getString('com_period_period_span','alert_title_hint');
+				var alert_msg:String = "";					
+				if( periodBegin == SysConst.PERIOD_NULL )
+				{
+					alert_msg = resourceManager.getString('com_period_period_span','alert_msg_periodbegin');
+					Alert.show( alert_msg, alert_title_hint);
+					return false;						
+				}
+				if( periodEnd == SysConst.PERIOD_NULL )
+				{
+					alert_msg = resourceManager.getString('com_period_period_span','alert_msg_periodend');
+					Alert.show( alert_msg, alert_title_hint);
+					return false;						
+				}				
+				
+				if( UtilPeriod.getPeriodDifference( periodBegin, periodEnd ) < 0 )
+				{
+					alert_msg = resourceManager.getString('com_period_period_span','alert_msg_begingtend');
+					Alert.show( alert_msg, alert_title_hint);
+					return false;						
+				}
+				
+				if( UtilPeriod.getPeriodDifference( periodBegin, periodEnd ) >= SysConst.PERIODNUM_MAX_NUM )
+				{
+					alert_msg = resourceManager.getString('com_period_period_span','alert_msg_diffover');
+					Alert.show( alert_msg, alert_title_hint);
+					return false;						
+				}	
+				
+				this.paramPeriodBegin = periodBegin;
+				this.paramPeriodEnd = periodEnd;
+				return true;
+				
+			}
+			
+			//	6	本地方法   end	
+			
+			
+			
+		]]>
+	</fx:Script>
+	
+	<s:VGroup width="100%" height="100%">
+		<containers:AksAdvancedPanel id="queryPanel" paramIn4expandable="true" width="100%" height="100%" minHeight="30" title="{resourceManager.getString('mod_replenish','querycondition')}">
+			<containers:layout>
+				<s:VerticalLayout/>
+			</containers:layout>
+			<s:BorderContainer width="100%" height="100%">
+				<s:layout>
+					<s:HorizontalLayout/>
+				</s:layout>    
+				
+				<s:Group width="50%" height="100%">
+					<s:layout>
+						<s:VerticalLayout/>
+					</s:layout>
+					<product:Com_Product_Product_AdvancedDataGrid paramIo4dp4adgProduct="{ClientEnvironment.getProductTreeRootArr()}" width="100%" height="100%" 
+							id="comAdgProduct"  allowMultipleSelection="true" paramIo4ShowUnit="false" />
+				</s:Group>
+				<s:Group width="50%" height="100%">
+					<s:layout>
+						<s:VerticalLayout/>
+					</s:layout>
+					<dc:Com_DistributionCenter_DistributionCenter_AdvancedDataGrid id="comAdgDC" paramIo4dp4adgDC="{ClientEnvironment.getDCTreeRootArr()}" allowMultipleSelection="true" width="100%" height="100%" paramIo4ShowOtherInfo="false"/>
+				</s:Group>
+			</s:BorderContainer>
+			<mx:HBox width="100%" verticalAlign="middle" paddingRight="25" paddingBottom="3">
+				<mx:HBox>
+					<mx:Label text="{resourceManager.getString('note','currentPeriod')}"/>
+					<s:TextInput enabled="false" maxChars="6" text="{ClientEnvironment.getSysPeriod().compilePeriod}" width="70"/>
+				</mx:HBox>
+				<mx:HBox id="boxSpan" >
+					<s:Spacer width="20" />
+					<mx:Label text="{resourceManager.getString('note','periodspan')}" />
+					<s:Spacer width="5" />
+					<mx:Label text="{resourceManager.getString('note','from')}"/>
+					<s:TextInput id="txtPeriodBegin" maxChars="6" width="70" text="{ClientEnvironment.getSysPeriod().compilePeriod}"  />
+					<mx:Label text="{resourceManager.getString('note','to')}" />
+					<s:TextInput id="txtPeriodEnd" maxChars="6" width="70" text="{ClientEnvironment.getSysPeriod().compilePeriod}" />
+				</mx:HBox>
+				<mx:Label width="80" text="{resourceManager.getString('mod_replenish','dataType')}" paddingLeft="10"/>
+				<s:ComboBox id="comboBox4DataType" dataProvider="{dp4DataType}" width="120" selectedIndex="0" />
+				<s:Spacer width="150" />
+				<buttons:ButtonQuery click="onQuery()" />
+			</mx:HBox>
+		</containers:AksAdvancedPanel>
+		<s:VGroup width="100%" height="100%">
+			<common:LabelBoundary labelText="{resourceManager.getString('mod_replenish','reportdata_table')}" />
+			<s:HGroup width="100%" paddingLeft="10">
+				<s:Button id="btnExportData" label="{resourceManager.getString('mod_replenish','btn_exportdata')}" click="onExportData()" icon="{CoolAssetsFile.excelIcon}"/>
+				<s:Button id="btnViewDetail" label="{resourceManager.getString('mod_replenish','btn_viewdetail')}" click="onViewDetail()" visible="false" icon="{CoolAssetsFile.detailIcon}"/>
+			</s:HGroup>				
+			<replenish:Com_Replenish_UiRowData_advancedDataGrid id="comAdgUiRowData" width="100%" height="100%" 
+							paramIo4dp4adgProDC="{this.prvVar4dp4comAdgUiRowData}" editable="true" change="comAdgUiRowData_changeHandler(event)"/>
+		</s:VGroup>
+	</s:VGroup>
+</mx:Module>

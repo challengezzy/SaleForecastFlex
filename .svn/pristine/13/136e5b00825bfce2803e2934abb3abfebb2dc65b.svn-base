@@ -1,0 +1,21 @@
+﻿historydata=History Data Import
+btn_load=LoadData
+btn_save=Save
+btn_clear=Clear
+btn_export=ImportErrorRecord
+btn_exportwarninfo=ImportWarningRecord
+btn_del=Del
+btn_loaderror=ImportErrorRecord
+btn_deleteall=DeleteAllRecord
+
+alert_title_hint=Reminder
+
+
+alert_msg_nodatatosave=No data needs to be saved!
+
+alert_msg_nohistorydata=No paste data!
+
+alert_msg_totalnum=Number of total record：
+alert_msg_failnum=Number of error record：
+
+alert_msg_waitforgetdata=Data will be loaded soon, it will take several minutes, continue?

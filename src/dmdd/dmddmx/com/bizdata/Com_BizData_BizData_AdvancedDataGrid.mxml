@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:DataGrid xmlns:fx="http://ns.adobe.com/mxml/2009" 
+					 xmlns:s="library://ns.adobe.com/flex/spark" 
+					 xmlns:mx="library://ns.adobe.com/flex/mx" horizontalScrollPolicy="on"
+					 creationComplete="creationCompleteHandler(event)">
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+	</fx:Declarations>
+
+	<fx:Script>
+		<![CDATA[
+			import dmdd.dmddas.common.utils.UtilDataGridColumnLabelFunction;
+			import dmdd.dmddas.common.utils.UtilDataGridKeyBoardEvent;
+			
+			import mx.events.FlexEvent;
+			import mx.resources.ResourceManager;
+			//	描述    begin
+			//	描述    end
+			
+			//	0	输入参数    begin						
+			//	0	输入参数    end
+			
+			//	1	输出参数    begin
+			//	1	输出参数    end
+			
+			//	2	本地变量    begin			
+			//	2	本地变量    end			
+			
+			//	3	公共方法    begin			
+			//	3	公共方法    end		
+			
+			//	4	初始化方法    begin	
+			protected function creationCompleteHandler(event:FlexEvent):void
+			{
+				this.addEventListener(KeyboardEvent.KEY_UP,UtilDataGridKeyBoardEvent.onDataGridCtrlA);
+			}
+			//	4	初始化方法    end				
+			
+			//	5	事件响应方法    begin
+			//	5	事件响应方法    end
+			
+			//	6	本地方法    begin
+			//	6	本地方法   end					
+		]]>
+	</fx:Script>
+	<mx:columns>
+		<mx:DataGridColumn width="130"  headerText="{ResourceManager.getInstance().getString('label','busDataCode')}" 			dataField="code"/>
+		<mx:DataGridColumn width="130" headerText="{ResourceManager.getInstance().getString('label','busDataName')}" 			dataField="name"/>
+		<mx:DataGridColumn width="100"  headerText="{ResourceManager.getInstance().getString('label','busDataType')}" 			dataField="type" 	labelFunction="UtilDataGridColumnLabelFunction.getBizDataTypeLocale"/>
+		<mx:DataGridColumn width="80"  headerText="{ResourceManager.getInstance().getString('label','isValid')}" 		dataField="isValid" labelFunction="UtilDataGridColumnLabelFunction.getGlobalYesNoLocale"/>
+		<mx:DataGridColumn width="100"  headerText="{ResourceManager.getInstance().getString('label','busDataDescp')}" 	dataField="description"/>
+	</mx:columns>	
+</mx:DataGrid>

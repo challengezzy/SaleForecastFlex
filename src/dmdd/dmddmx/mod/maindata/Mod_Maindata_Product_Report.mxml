@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Module xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		   xmlns:s="library://ns.adobe.com/flex/spark" 
+		   xmlns:mx="library://ns.adobe.com/flex/mx" layout="vertical" width="100%" height="100%" paddingLeft="10" paddingRight="10"
+		   creationComplete="creationCompleteHandler(event)"  
+		   xmlns:common="dmdd.dmddmx.com.common.*"
+		   xmlns:containers="aks.aksmx.containers.*" xmlns:product="dmdd.dmddmx.com.product.*">
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+		<s:RemoteObject endpoint="{ClientEnvironment.endpoint}" id="srvProduct" destination="ProductService">		
+			<s:method name="getProductDataReport" result="resultHandler4queryData(event)" fault="faultHandler4queryData(event)">
+			</s:method>
+			
+		</s:RemoteObject>		
+	</fx:Declarations>
+	<fx:Script>
+		<![CDATA[
+			import aks.aksas.utils.UtilUi;
+			
+			import com.cool.assets.CoolAssetsFile;
+			import com.cool.utils.DataListExportUtil;
+			
+			import dmdd.dmddas.common.constant.BizConst;
+			import dmdd.dmddas.common.system.ClientEnvironment;
+			import dmdd.dmddas.common.utils.UtilDataGridColumnLabelFunction;
+			import dmdd.dmddas.common.utils.UtilExceptionLocale;
+			import dmdd.dmddas.dataaccess.bizobject.BProduct;
+			import dmdd.dmddas.dataaccess.bizobject.BProductLayer;
+			import dmdd.dmddas.dataaccess.bizobject.BSysDictionaryItem;
+			
+			import mx.collections.ArrayCollection;
+			import mx.controls.Alert;
+			import mx.events.CloseEvent;
+			import mx.events.FlexEvent;
+			import mx.events.ListEvent;
+			import mx.managers.PopUpManager;
+			import mx.resources.ResourceManager;
+			import mx.rpc.events.FaultEvent;
+			import mx.rpc.events.ResultEvent;
+			
+			[Bindable]
+			private var productArr:ArrayCollection = new ArrayCollection();
+			
+			[Bindable]
+			private var arrDictGlobalYesNo:ArrayCollection ;
+			
+			
+			protected function creationCompleteHandler(event:FlexEvent):void
+			{
+				
+				arrDictGlobalYesNo = new ArrayCollection([{value:"",name:""}
+					,{value:"1",name:"是"} ,{value:"0",name:"否"}
+				]);
+			}
+			
+			private function onQuery():void
+			{
+				var alert_title_hint:String = resourceManager.getString('alert','alert_title_hint');
+				var alert_msg:String = null;
+				
+				var queryCond:Object = new Object();
+				queryCond["proCode"] = inputProCode.text;
+				queryCond["proName"] = inputProName.text;
+				
+				if(cbProLayer.selectedItem != null ){
+					queryCond["proLayer"] = BProductLayer(cbProLayer.selectedItem).id.toString();
+				}
+				
+				if(cbIsValid.selectedItem != null ){
+					queryCond["isValid"] = Object(cbIsValid.selectedItem).value;
+				}
+				
+				if(cbIsSuit.selectedItem != null ){
+					queryCond["isSuit"] = Object(cbIsSuit.selectedItem).value;
+				}
+				
+				UtilUi.pubFun4PopWaitWindow( this );
+				srvProduct.getProductDataReport( queryCond );
+			}	
+			
+			private function faultHandler4queryData(event:FaultEvent):void
+			{
+				UtilUi.pubFun4RemoveWaitWindow();
+				Alert.show( event.fault.faultDetail );
+			}
+			
+			private function resultHandler4queryData(event:ResultEvent):void 
+			{
+				productArr = ArrayCollection(event.result);
+				
+				UtilUi.pubFun4RemoveWaitWindow();
+			}		
+			
+			private function onExport():void
+			{
+				var csvstr:String = DataListExportUtil.generateCsvData(datagridProduct);
+				System.setClipboard(csvstr);
+			}
+			
+		]]>
+	</fx:Script>	
+	
+	<s:VGroup width="100%" verticalAlign="middle">
+		<s:HGroup verticalAlign="middle">
+			<s:Label text="{resourceManager.getString('label','proCode')}"  textAlign="right"/>
+			<s:TextInput id="inputProCode" text="" editable="true" width="85"/>
+			
+			<s:Spacer width="20" />
+			<s:Label text="{resourceManager.getString('label','proName')}" textAlign="right" />
+			<s:TextInput id="inputProName" text="" editable="true" width="85"/>
+			
+			<s:Spacer width="20" />
+			<s:Label text="{resourceManager.getString('label','proLayer')}" textAlign="right"  />
+			<s:ComboBox id="cbProLayer" dataProvider="{ClientEnvironment.getProductLayers()}" labelField="description" width="100" />
+			
+			<s:Spacer width="20" />
+			<s:Label text="{resourceManager.getString('note','isValid')}" textAlign="right" />
+			<s:ComboBox id="cbIsValid" dataProvider="{arrDictGlobalYesNo}" labelField="name" width="60">
+			</s:ComboBox>
+			
+			<s:Spacer width="20" />
+			<s:Label text="{resourceManager.getString('note','isKit')}"  textAlign="right"/>
+			<s:ComboBox id="cbIsSuit" dataProvider="{arrDictGlobalYesNo}" labelField="name" width="60" />
+			
+			<s:Spacer width="20" />
+			<s:Button label="{resourceManager.getString('button','query')}" icon="{CoolAssetsFile.queryIcon}" click="onQuery()" id="btnSave"/> 
+			<s:Button label="{resourceManager.getString('button','export')}" icon="{CoolAssetsFile.doctableIcon}" click="onExport()" id="btnExport"/>
+		</s:HGroup>
+	</s:VGroup>
+	
+	<mx:DataGrid id="datagridProduct" dataProvider="{productArr}" height="100%" width="100%" horizontalScrollPolicy="on">
+		<mx:columns>
+			<mx:DataGridColumn headerText="{resourceManager.getString('label','parentProCode')}" dataField="PARENT_CODE" width="80"/>
+			<mx:DataGridColumn headerText="{resourceManager.getString('label','layerValue')}" dataField="LAYER_VALUE" width="60"/>
+			<mx:DataGridColumn headerText="{resourceManager.getString('label','layerDesc')}" dataField="LAYER_NAME" width="80"/>
+			<mx:DataGridColumn headerText="{resourceManager.getString('label','unitGroupCode')}" dataField="UNITGROUP_CODE" width="80"/>
+			<mx:DataGridColumn headerText="{resourceManager.getString('label','unitCodeManage')}" dataField="UNIT_CODE" width="80"/>
+			
+			<mx:DataGridColumn headerText="{resourceManager.getString('label','code')}" dataField="CODE" width="100"/>
+			<mx:DataGridColumn headerText="{resourceManager.getString('label','name')}" dataField="NAME" width="150"/>
+			<mx:DataGridColumn headerText="{resourceManager.getString('label','isProGroup')}" dataField="ISCATALOG" width="80"/>
+			<mx:DataGridColumn headerText="{resourceManager.getString('label','isValid')}" 	dataField="ISVALID" width="80"/>
+			<mx:DataGridColumn headerText="{resourceManager.getString('label','desc')}" dataField="DESCRIPTION" width="120"/>
+			<mx:DataGridColumn headerText="{resourceManager.getString('label','remark')}" dataField="COMMENTS" width="80"/>
+			
+			<mx:DataGridColumn headerText="{resourceManager.getString('note','isKit')}" dataField="IS_SUIT" width="80"/>
+			<mx:DataGridColumn headerText="{resourceManager.getString('note','kitDetail')}" dataField="SUITDETAIL" width="150"/>
+			<mx:DataGridColumn headerText="{resourceManager.getString('note','shelfLife')}" dataField="SHELF_LIFE" width="80"/>
+			<mx:DataGridColumn headerText="{resourceManager.getString('note','productionLT')}" dataField="PURCHASE_LEAD_TIME" width="80"/>
+			<mx:DataGridColumn headerText="{resourceManager.getString('note','offShelfLT')}" dataField="WITHDRAW_LEAD_TIME" width="80"/>
+		</mx:columns>
+	</mx:DataGrid>
+	
+	<mx:HBox width="100%">
+		<mx:Spacer width="100%"/>
+		<s:Label text="{resourceManager.getString('aks','recordnum')}"/>
+		<s:Label text="{productArr.length}"/>
+		<mx:Spacer width="30"/>
+	</mx:HBox>
+	
+</mx:Module>

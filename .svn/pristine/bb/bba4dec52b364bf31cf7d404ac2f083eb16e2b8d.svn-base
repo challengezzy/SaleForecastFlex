@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:TitleWindow xmlns:fx="http://ns.adobe.com/mxml/2009" 
+			   xmlns:s="library://ns.adobe.com/flex/spark" 
+			   xmlns:mx="library://ns.adobe.com/flex/mx" width="800" height="600" close="onCancel()"
+			   creationComplete="creationCompleteHandler(event)" >
+	<s:layout>
+		<s:VerticalLayout/>
+	</s:layout>
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+	</fx:Declarations>
+	<fx:Metadata>
+		[ResourceBundle("aks")]
+	</fx:Metadata>
+	<fx:Script>
+		<![CDATA[
+			import aks.aksas.controls.AksDataGridColumn;
+			
+			import mx.collections.ArrayCollection;
+			import mx.controls.AdvancedDataGrid;
+			import mx.controls.DataGrid;
+			import mx.events.FlexEvent;
+			import mx.managers.PopUpManager;
+			
+			//	描述		begin
+			//	描述		end
+			
+			//	0	输入参数    begin	
+			private var paramIn4dataGrid:Object = null;
+
+			//	0	输入参数    end
+			
+			//	1	输出参数    begin	
+			//	1	输出参数    end
+			
+			//	2	本地变量    begin
+			[Bindable]
+			private var prvVar4dp4adgAksDataGridColumns:ArrayCollection = new ArrayCollection();
+			//	2	本地变量    end			
+			
+			//	3	公共方法    begin
+			public function pubFun4setParamIn4dataGrid( _dataGrid:Object ):void
+			{	
+				this.prvVar4dp4adgAksDataGridColumns = new ArrayCollection(); 
+					
+				var arr4columns:ArrayCollection = null;
+				var i:int;
+				var aksDataGridColumn:AksDataGridColumn = null;
+				
+				if( _dataGrid is DataGrid )
+				{
+					this.paramIn4dataGrid = DataGrid(_dataGrid);
+					arr4columns = new ArrayCollection( DataGrid(this.paramIn4dataGrid).columns );
+				}
+				else if( _dataGrid is AdvancedDataGrid )
+				{
+					this.paramIn4dataGrid = AdvancedDataGrid(_dataGrid);
+					arr4columns = new ArrayCollection( AdvancedDataGrid(this.paramIn4dataGrid).columns );
+				}
+				
+				for( i=0; i<arr4columns.length; i=i+1 )
+				{
+					aksDataGridColumn = new AksDataGridColumn();
+					aksDataGridColumn.setObjColumn( arr4columns.getItemAt(i) );
+					
+					this.prvVar4dp4adgAksDataGridColumns.addItem( aksDataGridColumn );
+				}				
+			}
+			//	3	公共方法    end		
+			
+			//	4	初始化方法    begin			
+			protected function creationCompleteHandler(event:FlexEvent):void
+			{
+				this.x = 100;
+				this.y = 50;
+				this.title = resourceManager.getString('aks','title_setcolumns');
+			}							
+			//	4	初始化方法    end				
+			
+			//	5	事件响应方法    begin	
+			private function onOk():void
+			{
+				if( this.prvVar4dp4adgAksDataGridColumns == null )
+				{
+					return;	
+				}
+				
+				var i:int;
+				var aksDataGridColumn:AksDataGridColumn = null;
+				
+				for( i=0; i<this.prvVar4dp4adgAksDataGridColumns.length; i=i+1 )
+				{
+					aksDataGridColumn = AksDataGridColumn( this.prvVar4dp4adgAksDataGridColumns.getItemAt( i ) );
+					aksDataGridColumn.updObjColumn();	
+				}
+				
+				PopUpManager.removePopUp( this );
+			}	
+			
+			private function onCancel():void
+			{
+				PopUpManager.removePopUp( this );
+			}			
+			//	5	事件响应方法    end
+			
+			//	6	本地方法    begin		
+			
+			//	6	本地方法   end					
+
+
+		]]>
+	</fx:Script>
+	<!--
+	<s:controlBarLayout>
+		<s:HorizontalLayout horizontalAlign="center">
+		</s:HorizontalLayout>
+	</s:controlBarLayout>
+	<s:controlBarContent>
+		<s:Button label="{resourceManager.getString('aks','btn_ok')}" click="onOk()"/>
+		<s:Button label="{resourceManager.getString('aks','btn_cancel')}" click="onCancel()"/>
+	</s:controlBarContent>
+	-->
+	<mx:AdvancedDataGrid editable="true" dataProvider="{this.prvVar4dp4adgAksDataGridColumns}" width="100%" height="100%">
+		<mx:columns>
+			<mx:AdvancedDataGridColumn headerText="是否显示" 	dataField="aksVisible" 	 		width="100" textAlign="center" itemRenderer="mx.controls.CheckBox" rendererIsEditor="true" editorDataField="selected" editable="true"/>
+			<mx:AdvancedDataGridColumn headerText="表头"			dataField="aksHeaderText" 	 	editable="true"/>
+			<mx:AdvancedDataGridColumn headerText="字段"			dataField="aksDataField"	 	editable="false"/>
+		</mx:columns>
+	</mx:AdvancedDataGrid>
+	<s:BorderContainer width="100%" height="25" borderColor="#E4ECF7">
+		<s:layout>
+			<s:HorizontalLayout horizontalAlign="center"/>
+		</s:layout>
+		<s:Button label="{resourceManager.getString('aks','btn_ok')}" click="onOk()"/>
+		<s:Button label="{resourceManager.getString('aks','btn_cancel')}" click="onCancel()"/>
+	</s:BorderContainer>
+
+</s:TitleWindow>

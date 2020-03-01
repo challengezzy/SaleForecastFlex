@@ -1,0 +1,216 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:BorderContainer xmlns:fx="http://ns.adobe.com/mxml/2009" 
+				   xmlns:s="library://ns.adobe.com/flex/spark" 
+				   xmlns:mx="library://ns.adobe.com/flex/mx" height="110" width="100%"
+				   creationComplete="creationCompleteHandler(event)" xmlns:bizdata="dmdd.dmddmx.com.bizdata.*">
+	<s:layout>
+		<s:VerticalLayout />
+	</s:layout>
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+		<mx:NumberValidator id="numberValidator4InitDataPeriodNum" source="{this.txtInitDataPeriodNum}" property="text" allowNegative="false" 
+							negativeError="{resourceManager.getString('alert','alert_msg_initdataperiodnum_3_249')}" 
+							invalidCharError="{resourceManager.getString('alert','alert_msg_initdataperiodnum_3_249')}" 
+							lowerThanMinError="{resourceManager.getString('alert','alert_msg_initdataperiodnum_3_249')}" 
+							exceedsMaxError="{resourceManager.getString('alert','alert_msg_initdataperiodnum_3_249')}"   
+							minValue="3" maxValue="24" domain="int" 
+							trigger="{this.txtInitDataPeriodNum}" triggerEvent="change">
+		</mx:NumberValidator>	
+		<mx:NumberValidator id="numberValidator4LevelSmoothingingFactor" source="{this.txtLevelSmoothingFactor}" property="text" allowNegative="false" 
+							negativeError="{resourceManager.getString('alert','alert_msg_levelsmoothingfactor9')}" 
+							invalidCharError="{resourceManager.getString('alert','alert_msg_levelsmoothingfactor9')}" 
+							lowerThanMinError="{resourceManager.getString('alert','alert_msg_levelsmoothingfactor9')}" 
+							exceedsMaxError="{resourceManager.getString('alert','alert_msg_levelsmoothingfactor9')}"  
+							minValue="0" maxValue="1.0" domain="real" 
+							trigger="{this.txtLevelSmoothingFactor}" triggerEvent="change">
+		</mx:NumberValidator>	
+		<mx:NumberValidator id="numberValidator4TrendSmoothingingFactor" source="{this.txtTrendSmoothingFactor}" property="text" allowNegative="false" 
+							negativeError="{resourceManager.getString('alert','alert_msg_trendsmoothingfactor9')}" 
+							invalidCharError="{resourceManager.getString('alert','alert_msg_trendsmoothingfactor9')}" 
+							lowerThanMinError="{resourceManager.getString('alert','alert_msg_trendsmoothingfactor9')}" 
+							exceedsMaxError="{resourceManager.getString('alert','alert_msg_trendsmoothingfactor9')}" 
+							minValue="0" maxValue="1.0" domain="real" 
+							trigger="{this.txtTrendSmoothingFactor}" triggerEvent="change">
+		</mx:NumberValidator>	
+		<mx:NumberValidator id="numberValidator4TrendDampingFactor" source="{this.txTtrendDampingFactor}" property="text" allowNegative="false" 
+							negativeError="{resourceManager.getString('alert','alert_msg_trenddampingfactor9')}" 
+							invalidCharError="{resourceManager.getString('alert','alert_msg_trenddampingfactor9')}" 
+							lowerThanMinError="{resourceManager.getString('alert','alert_msg_trenddampingfactor9')}" 
+							exceedsMaxError="{resourceManager.getString('alert','alert_msg_trenddampingfactor9')}" 
+							minValue="0" maxValue="1.0" domain="real" 
+							trigger="{this.txTtrendDampingFactor}" triggerEvent="change">
+		</mx:NumberValidator>			
+	</fx:Declarations>
+
+	<fx:Script>
+		<![CDATA[
+			import dmdd.dmddas.common.constant.BizConst;
+			import dmdd.dmddas.common.system.ClientEnvironment;
+			import dmdd.dmddas.dataaccess.bizobject.BForecastModelMTEs;
+			import dmdd.dmddas.dataaccess.bizobject.BSysDictionaryItem;
+			
+			import mx.collections.ArrayCollection;
+			import mx.controls.Alert;
+			import mx.events.FlexEvent;
+			import mx.utils.StringUtil;
+
+			//	描述    begin
+			//	描述    end
+			
+			//	0	输入参数    begin		
+			[Bindable]
+			public var paramIo4forecastModelMTEs:BForecastModelMTEs = null;
+			
+			[Bindable]
+			public var paramIn4editable:Boolean = false;				
+			//	0	输入参数    end
+			
+			//	1	输出参数    begin
+			[Bindable]
+			public var paramOut4historyDependPeriodNum:int = 1;			
+			//	1	输出参数    end
+
+			//	2	本地变量    begin	
+			[Bindable]
+			private var prvVar4arrDictGlobalYesNo:ArrayCollection = ClientEnvironment.getSysDictionaryItems("GLOBAL", "YESNO", false);			
+			//	2	本地变量    end			
+			
+			//	3	公共方法    begin	
+			public function pubFun4prepare4save():Boolean
+			{
+				this.paramIo4forecastModelMTEs.levelSmoothingFactor = Number( StringUtil.trim(this.txtLevelSmoothingFactor.text) );
+				this.paramIo4forecastModelMTEs.trendSmoothingFactor = Number( StringUtil.trim(this.txtTrendSmoothingFactor.text) );
+				this.paramIo4forecastModelMTEs.trendDampingIsValid = BSysDictionaryItem(this.comboBoxTrendDampingIsValid.selectedItem).value;
+				this.paramIo4forecastModelMTEs.trendDampingFactor = Number( StringUtil.trim(this.txTtrendDampingFactor.text) );
+				this.paramIo4forecastModelMTEs.initDataPeriodNum = Number( StringUtil.trim(this.txtInitDataPeriodNum.text) );
+				
+				var alert_title_hint:String = resourceManager.getString('alert','alert_title_hint')
+				var alert_msg:String = null;
+				if( this.numberValidator4InitDataPeriodNum.validate(this.txtInitDataPeriodNum.text).results != null )
+				{
+					alert_msg = resourceManager.getString('alert','alert_msg_initdataperiodnum_3_249');
+					Alert.show( alert_msg, alert_title_hint );
+					return false;
+				}					
+				if( this.numberValidator4LevelSmoothingingFactor.validate(this.txtLevelSmoothingFactor.text).results != null )
+				{
+					alert_msg = resourceManager.getString('alert','alert_msg_levelsmoothingfactor9');
+					Alert.show( alert_msg, alert_title_hint );
+					return false;
+				}
+				if( this.numberValidator4TrendSmoothingingFactor.validate(this.txtTrendSmoothingFactor.text).results != null )
+				{
+					alert_msg = resourceManager.getString('alert','alert_msg_trendsmoothingfactor9');
+					Alert.show( alert_msg, alert_title_hint );
+					return false;
+				}				
+				if( this.numberValidator4TrendDampingFactor.validate(this.txTtrendDampingFactor.text).results != null )
+				{
+					alert_msg = resourceManager.getString('alert','alert_msg_trenddampingfactor9');
+					Alert.show( alert_msg, alert_title_hint );
+					return false;
+				}								
+				
+				
+				return true;										
+			}				
+			//	3	公共方法    end		
+			
+			//	4	初始化方法    begin	
+			protected function creationCompleteHandler(event:FlexEvent):void
+			{
+				this.onChange4comboBoxTrendDampingIsValid();
+			}			
+			//	4	初始化方法    end				
+			
+			//	5	事件响应方法    begin
+			private function onChange4comboBoxTrendDampingIsValid():void
+			{
+				if( this.comboBoxTrendDampingIsValid.selectedItem == null )
+				{
+					return;
+				}
+				
+				var trendDampingIsValid:int = BSysDictionaryItem(this.comboBoxTrendDampingIsValid.selectedItem).value;
+				if( trendDampingIsValid == BizConst.GLOBAL_YESNO_YES )
+				{
+					this.txTtrendDampingFactor.editable = true;
+				}
+				else
+				{
+					this.txTtrendDampingFactor.editable = false;					
+				}				
+			}
+			
+			protected function onChange4historyDependPeriodNum( txt:String ):Boolean
+			{
+				// TODO Auto-generated method stub
+				if( this.numberValidator4InitDataPeriodNum.validate(this.txtInitDataPeriodNum.text).results != null )
+				{
+					return false;
+				}
+				
+				this.paramOut4historyDependPeriodNum = Number( StringUtil.trim(this.txtInitDataPeriodNum.text) );
+				return false;
+			}			
+			//	5	事件响应方法    end
+			
+			//	6	本地方法    begin	
+			//	6	本地方法   end				
+
+
+
+		]]>
+	</fx:Script>
+	
+
+	<mx:Grid width="100%" height="100%">
+		<mx:GridRow width="100%" height="100%" verticalAlign="middle">
+			<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+				<s:Label text="{resourceManager.getString('note','modelPara')}" fontWeight="bold"/>
+			</mx:GridItem>
+		</mx:GridRow>
+		<mx:GridRow width="100%" height="100%" verticalAlign="middle">
+			<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+				<s:Label text="{resourceManager.getString('note','levelSmoothFactor')}"/>
+			</mx:GridItem>
+			<mx:GridItem width="100%" height="100%" verticalAlign="middle">
+				<s:TextInput width="100%" id="txtLevelSmoothingFactor" maxChars="20" enabled="{this.paramIn4editable}" text="{this.paramIo4forecastModelMTEs.levelSmoothingFactor}"/>
+			</mx:GridItem>	
+			<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+			</mx:GridItem>		
+			<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+				<s:Label text="{resourceManager.getString('note','trendSmoothFactor')}"/>
+			</mx:GridItem>
+			<mx:GridItem width="100%" height="100%" verticalAlign="middle">
+				<s:TextInput width="100%" id="txtTrendSmoothingFactor" maxChars="20" enabled="{this.paramIn4editable}" text="{this.paramIo4forecastModelMTEs.trendSmoothingFactor}"/>
+			</mx:GridItem>
+		</mx:GridRow>		
+		<mx:GridRow width="100%" height="100%" verticalAlign="middle">
+			<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+				<s:Label text="{resourceManager.getString('note','initialOnHistoryPeriodN')}"/>
+			</mx:GridItem>
+			<mx:GridItem width="100%" height="100%" verticalAlign="middle">
+				<s:TextInput width="100%" id="txtInitDataPeriodNum" maxChars="20" enabled="{this.paramIn4editable}" text="{this.paramIo4forecastModelMTEs.initDataPeriodNum}"/>
+				<s:Button width="0" visible="false" enabled="{this.onChange4historyDependPeriodNum(this.txtInitDataPeriodNum.text)}"/>
+			</mx:GridItem>	
+			<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+			</mx:GridItem>
+			<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+				<s:Label text="{resourceManager.getString('note','isDecay')}"/>
+			</mx:GridItem>
+			<mx:GridItem width="100%" height="100%" verticalAlign="middle">
+				<s:ComboBox dataProvider="{this.prvVar4arrDictGlobalYesNo}" id="comboBoxTrendDampingIsValid" selectedIndex="{ClientEnvironment.getSysDictionaryItemIndexByValue(this.prvVar4arrDictGlobalYesNo,this.paramIo4forecastModelMTEs.trendDampingIsValid)}" enabled="{this.paramIn4editable}" width="100%" change="onChange4comboBoxTrendDampingIsValid()"></s:ComboBox>
+			</mx:GridItem>
+			<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+			</mx:GridItem>
+			<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+				<s:Label text="{resourceManager.getString('note','decayFactor')}"/>
+			</mx:GridItem>
+			<mx:GridItem width="100%" height="100%" verticalAlign="middle">
+				<s:TextInput width="100%" id="txTtrendDampingFactor" maxChars="20" enabled="{this.paramIn4editable}" text="{this.paramIo4forecastModelMTEs.trendDampingFactor}"/>
+			</mx:GridItem>
+		</mx:GridRow>
+	</mx:Grid>
+	
+</s:BorderContainer>

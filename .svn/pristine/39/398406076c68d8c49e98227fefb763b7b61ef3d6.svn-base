@@ -1,0 +1,3513 @@
+<report>
+  <scripts>
+    <script name="_dmdd_dmddmx_mod_Mod_WorkFrameWatcherSetupUtil.as" mod="1537890874221" size="1449" optimizedsize="1358">
+      <def id="_dmdd_dmddmx_mod_Mod_WorkFrameWatcherSetupUtil" />
+      <pre id="mx.binding:IWatcherSetupUtil2" />
+      <pre id="Object" />
+      <dep id="AS3" />
+      <dep id="mx.binding:FunctionReturnWatcher" />
+      <dep id="com.cool.assets:CoolAssetsFile" />
+      <dep id="dmdd.dmddas.common.system:ClientEnvironment" />
+      <dep id="mx.binding:StaticPropertyWatcher" />
+      <dep id="dmdd.dmddmx.mod:Mod_WorkFrame" />
+      <dep id="mx.core:IFlexModuleFactory" />
+      <dep id="mx.binding:PropertyWatcher" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\libs\flexlib.swc(flexlib.controls:ScrollableArrowMenu)" mod="1269246018000" size="6215" optimizedsize="3681">
+      <def id="flexlib.controls:ScrollableArrowMenu" />
+      <pre id="flexlib.controls:ScrollableMenu" />
+      <dep id="AS3" />
+      <dep id="flexlib.controls:ScrollableArrowMenu_DEFAULT_UP_BUTTON" />
+      <dep id="mx.controls.scrollClasses:ScrollBar" />
+      <dep id="mx.styles:StyleManager" />
+      <dep id="flash.utils:Timer" />
+      <dep id="String" />
+      <dep id="flash.events:MouseEvent" />
+      <dep id="flash.events:Event" />
+      <dep id="flash.display:DisplayObjectContainer" />
+      <dep id="flash.events:TimerEvent" />
+      <dep id="mx.events:ScrollEvent" />
+      <dep id="mx.styles:CSSStyleDeclaration" />
+      <dep id="mx.core:ScrollPolicy" />
+      <dep id="mx.core:Application" />
+      <dep id="mx.controls:Button" />
+      <dep id="mx.controls:Menu" />
+      <dep id="flexlib.controls:ScrollableArrowMenu_DEFAULT_DOWN_BUTTON" />
+      <dep id="mx.core:mx_internal" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\src\dmdd\dmddas\dataaccess\bizobject\BProductLayer.as" mod="1525171156576" size="1647" optimizedsize="1521">
+      <def id="dmdd.dmddas.dataaccess.bizobject:BProductLayer" />
+      <pre id="flash.events:IEventDispatcher" />
+      <pre id="Object" />
+      <dep id="AS3" />
+      <dep id="flash.events:EventDispatcher" />
+      <dep id="mx.events:PropertyChangeEvent" />
+      <dep id="dmdd.dmddas.common.constant:SysConst" />
+      <dep id="flash.events:Event" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\src\dmdd\dmddas\common\utils\UtilProOrg.as" mod="1525171155084" size="6770" optimizedsize="6337">
+      <def id="dmdd.dmddas.common.utils:UtilProOrg" />
+      <pre id="Object" />
+      <dep id="AS3" />
+      <dep id="dmdd.dmddas.common.constant:BizConst" />
+      <dep id="mx.collections:ArrayCollection" />
+      <dep id="dmdd.dmddas.common.system:ClientEnvironment" />
+      <dep id="dmdd.dmddas.dataaccess.bizobject:BOrganization" />
+      <dep id="mx.utils:StringUtil" />
+      <dep id="aks.aksas.collections:HashMap" />
+      <dep id="dmdd.dmddas.common.utils:UtilProduct" />
+      <dep id="aks.aksas.utils:UtilArrayCollection" />
+      <dep id="dmdd.dmddas.common.constant:UIConst" />
+      <dep id="dmdd.dmddas.common.utils:UtilOrganization" />
+      <dep id="dmdd.dmddas.dataaccess.aidobject:ABProOrg" />
+      <dep id="dmdd.dmddas.dataaccess.bizobject:BProduct" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\libs\CoolFlex.swc(com.cool.assets:CoolAssetsFile_assemblyIcon)" mod="1144808302000" size="520" optimizedsize="340">
+      <def id="com.cool.assets:CoolAssetsFile_assemblyIcon" />
+      <pre id="mx.core:BitmapAsset" />
+      <dep id="AS3" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\libs\CoolFlex.swc(com.cool.components:FileUploadPanel)" mod="1386819575597" size="9695" optimizedsize="6730">
+      <def id="com.cool.components:FileUploadPanel" />
+      <pre id="spark.components:TitleWindow" />
+      <pre id="flash.events:IEventDispatcher" />
+      <pre id="mx.binding:IBindingClient" />
+      <dep id="com.cool.utils:AlertUtil" />
+      <dep id="flash.utils:getDefinitionByName" />
+      <dep id="AS3" />
+      <dep id="mx.core:IFlexModuleFactory" />
+      <dep id="com.cool.events:BasicEvent" />
+      <dep id="spark.components:Button" />
+      <dep id="flash.events:MouseEvent" />
+      <dep id="flash.events:Event" />
+      <dep id="mx.controls:TextInput" />
+      <dep id="mx.binding:IWatcherSetupUtil2" />
+      <dep id="com.cool.assets:CoolAssetsFile" />
+      <dep id="mx.containers:HBox" />
+      <dep id="flash.net:FileReference" />
+      <dep id="_com_cool_components_FileUploadPanelWatcherSetupUtil" />
+      <dep id="mx.containers:VBox" />
+      <dep id="mx.rpc.remoting:RemoteObject" />
+      <dep id="com.cool.components:LoadingWindow" />
+      <dep id="mx.events:FlexEvent" />
+      <dep id="mx.binding:Binding" />
+      <dep id="com.cool.constant:DataViewConst" />
+      <dep id="mx.managers:PopUpManager" />
+      <dep id="mx.core:IFlexDisplayObject" />
+      <dep id="mx.rpc.events:ResultEvent" />
+      <dep id="mx.core:DeferredInstanceFromFunction" />
+      <dep id="mx.core:UIComponentDescriptor" />
+      <dep id="mx.events:PropertyChangeEvent" />
+      <dep id="flash.net:FileFilter" />
+      <dep id="mx.rpc.events:FaultEvent" />
+      <dep id="mx.controls:Label" />
+      <dep id="mx.core:mx_internal" />
+    </script>
+    <script name="D:\ProgramFile\Adobe\sdks\4.5.1\frameworks\locale\zh_CN\spark_rb.swc$locale/zh_CN/layout.properties" mod="1306828670875" size="1216" optimizedsize="1167">
+      <def id="en_US$layout_properties" />
+      <def id="zh_CN$layout_properties" />
+      <pre id="mx.resources:ResourceBundle" />
+      <dep id="AS3" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\libs\CoolFlex.swc(com.cool.collections:IHashMapEntry)" mod="1386819575490" size="747" optimizedsize="212">
+      <def id="com.cool.collections:IHashMapEntry" />
+      <pre id="Object" />
+      <dep id="AS3" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\libs\CoolFlex.swc(com.cool.assets:CoolAssetsFile_arrow_downIcon)" mod="1315470746093" size="528" optimizedsize="344">
+      <def id="com.cool.assets:CoolAssetsFile_arrow_downIcon" />
+      <pre id="mx.core:BitmapAsset" />
+      <dep id="AS3" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\libs\CoolFlex.swc(_com_cool_components_LoadingWindowWatcherSetupUtil)" mod="1501383998606" size="972" optimizedsize="532">
+      <def id="_com_cool_components_LoadingWindowWatcherSetupUtil" />
+      <pre id="mx.binding:IWatcherSetupUtil2" />
+      <pre id="Object" />
+      <dep id="com.cool.components:LoadingWindow" />
+      <dep id="AS3" />
+      <dep id="mx.core:IFlexModuleFactory" />
+      <dep id="mx.binding:PropertyWatcher" />
+    </script>
+    <script name="D:\ProgramFile\Adobe\sdks\4.5.1\frameworks\libs\framework.swc(mx.utils:LoaderUtil)" mod="1306872047124" size="5991" optimizedsize="3443">
+      <def id="mx.utils:LoaderUtil" />
+      <pre id="Object" />
+      <dep id="AS3" />
+      <dep id="flash.utils:Dictionary" />
+      <dep id="mx.events:Request" />
+      <dep id="mx.managers:SystemManagerGlobals" />
+      <dep id="flash.display:LoaderInfo" />
+      <dep id="mx.core:IFlexModuleFactory" />
+      <dep id="Error" />
+      <dep id="Math" />
+      <dep id="mx.core:RSLData" />
+      <dep id="flash.display:DisplayObject" />
+      <dep id="flash.system:Capabilities" />
+      <dep id="__AS3__.vec:Vector" />
+      <dep id="mx.core:ApplicationDomainTarget" />
+      <dep id="mx.core:mx_internal" />
+    </script>
+    <script name="_dmddweb_mx_managers_SystemManager.as" mod="1537890877265" size="5414" optimizedsize="5299">
+      <def id="_dmddweb_mx_managers_SystemManager" />
+      <pre id="flashx.textLayout.compose:ISWFContext" />
+      <pre id="mx.core:IFlexModuleFactory" />
+      <pre id="mx.managers:SystemManager" />
+      <dep id="mx.core:CrossDomainRSLItem" />
+      <dep id="AS3" />
+      <dep id="mx.events:RSLEvent" />
+      <dep id="flash.utils:Dictionary" />
+      <dep id="flash.display:LoaderInfo" />
+      <dep id="mx.core:IFlexModule" />
+      <dep id="flash.system:Security" />
+      <dep id="mx.preloaders:SparkDownloadProgressBar" />
+      <dep id="flash.system:ApplicationDomain" />
+      <dep id="mx.core:RSLData" />
+    </script>
+    <script name="D:\ProgramFile\Adobe\sdks\4.5.1\frameworks\locale\zh_CN\rpc_rb.swc$locale/zh_CN/core.properties" mod="1306828900872" size="2491" optimizedsize="2425">
+      <def id="en_US$core_properties" />
+      <def id="zh_CN$core_properties" />
+      <pre id="mx.resources:ResourceBundle" />
+      <dep id="AS3" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\libs\CoolFlex.swc(com.cool.assets:CoolAssetsFile_questionIcon)" mod="1104402860000" size="520" optimizedsize="340">
+      <def id="com.cool.assets:CoolAssetsFile_questionIcon" />
+      <pre id="mx.core:BitmapAsset" />
+      <dep id="AS3" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\libs\CoolFlex.swc(com.cool.assets:CoolAssetsFile_pictureIcon)" mod="1104402894000" size="516" optimizedsize="338">
+      <def id="com.cool.assets:CoolAssetsFile_pictureIcon" />
+      <pre id="mx.core:BitmapAsset" />
+      <dep id="AS3" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\libs\CoolFlex.swc(com.cool.assets:CoolAssetsFile_findIcon)" mod="1201505940000" size="504" optimizedsize="332">
+      <def id="com.cool.assets:CoolAssetsFile_findIcon" />
+      <pre id="mx.core:BitmapAsset" />
+      <dep id="AS3" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\libs\CoolFlex.swc(com.cool.assets:CoolAssetsFile_save_asIcon)" mod="1201505940000" size="516" optimizedsize="338">
+      <def id="com.cool.assets:CoolAssetsFile_save_asIcon" />
+      <pre id="mx.core:BitmapAsset" />
+      <dep id="AS3" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\libs\CoolFlex.swc(com.cool.assets:CoolAssetsFile_sort_descIcon)" mod="1201505942000" size="524" optimizedsize="342">
+      <def id="com.cool.assets:CoolAssetsFile_sort_descIcon" />
+      <pre id="mx.core:BitmapAsset" />
+      <dep id="AS3" />
+    </script>
+    <script name="D:\ProgramFile\Adobe\sdks\4.5.1\frameworks\libs\framework.swc(mx.events:Request)" mod="1306872053874" size="815" optimizedsize="481">
+      <def id="mx.events:Request" />
+      <pre id="flash.events:Event" />
+      <dep id="AS3" />
+      <dep id="mx.core:mx_internal" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\libs\CoolFlex.swc(com.cool.assets:CoolAssetsFile_red_glowIcon_dataClass)" mod="1382950626396" size="481" optimizedsize="287">
+      <def id="com.cool.assets:CoolAssetsFile_red_glowIcon_dataClass" />
+      <pre id="mx.core:ByteArrayAsset" />
+      <dep id="AS3" />
+    </script>
+    <script name="_aks_aksmx_controls_AksWindowWaitWatcherSetupUtil.as" mod="1537890876271" size="936" optimizedsize="856">
+      <def id="_aks_aksmx_controls_AksWindowWaitWatcherSetupUtil" />
+      <pre id="mx.binding:IWatcherSetupUtil2" />
+      <pre id="Object" />
+      <dep id="AS3" />
+      <dep id="mx.binding:FunctionReturnWatcher" />
+      <dep id="mx.core:IFlexModuleFactory" />
+      <dep id="aks.aksmx.controls:AksWindowWait" />
+      <dep id="mx.binding:PropertyWatcher" />
+    </script>
+    <script name="D:\ProgramFile\Adobe\sdks\4.5.1\frameworks\libs\framework.swc(mx.core:IFlexModuleFactory)" mod="1306872039405" size="1991" optimizedsize="627">
+      <def id="mx.core:IFlexModuleFactory" />
+      <pre id="Object" />
+      <dep id="AS3" />
+      <dep id="flash.utils:Dictionary" />
+      <dep id="flash.display:LoaderInfo" />
+      <dep id="__AS3__.vec:Vector" />
+      <dep id="mx.core:RSLData" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\src\dmdd\dmddas\dataaccess\bizobject\BSysParam.as" mod="1525171156678" size="1727" optimizedsize="1596">
+      <def id="dmdd.dmddas.dataaccess.bizobject:BSysParam" />
+      <pre id="flash.events:IEventDispatcher" />
+      <pre id="Object" />
+      <dep id="AS3" />
+      <dep id="flash.events:EventDispatcher" />
+      <dep id="mx.events:PropertyChangeEvent" />
+      <dep id="dmdd.dmddas.common.constant:SysConst" />
+      <dep id="flash.events:Event" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\libs\CoolFlex.swc(com.cool.collections:HashMap)" mod="1386819575473" size="3224" optimizedsize="1601">
+      <def id="com.cool.collections:HashMap" />
+      <pre id="com.cool.collections:IMap" />
+      <pre id="Object" />
+      <dep id="com.cool.collections:HashMapEntry" />
+      <dep id="AS3" />
+      <dep id="flash.utils:Dictionary" />
+      <dep id="mx.collections:ArrayCollection" />
+      <dep id="com.cool.collections:IHashMapEntry" />
+    </script>
+    <script name="_class_embed_css_Assets_swf_569979602_CloseButtonUp_235354284.as" mod="1306828826645" size="399" optimizedsize="362">
+      <def id="_class_embed_css_Assets_swf_569979602_CloseButtonUp_235354284" />
+      <pre id="mx.core:SpriteAsset" />
+      <dep id="AS3" />
+    </script>
+    <script name="D:\ProgramFile\Adobe\sdks\4.5.1\frameworks\libs\framework.swc(mx.utils:NameUtil)" mod="1306872046765" size="1669" optimizedsize="1094">
+      <def id="mx.utils:NameUtil" />
+      <pre id="Object" />
+      <dep id="flash.display:DisplayObject" />
+      <dep id="AS3" />
+      <dep id="flash.utils:getQualifiedClassName" />
+      <dep id="mx.core:IRepeaterClient" />
+      <dep id="SecurityError" />
+      <dep id="mx.core:mx_internal" />
+    </script>
+    <script name="D:\ProgramFile\Adobe\sdks\4.5.1\frameworks\locale\zh_CN\textLayout_rb.swc$locale/zh_CN/textLayout.properties" mod="1306828716878" size="2681" optimizedsize="2602">
+      <def id="en_US$textLayout_properties" />
+      <def id="zh_CN$textLayout_properties" />
+      <pre id="mx.resources:ResourceBundle" />
+      <dep id="AS3" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\src\dmdd\dmddas\common\constant\UIConst.as" mod="1525171155231" size="6777" optimizedsize="6270">
+      <def id="dmdd.dmddas.common.constant:UIConst" />
+      <pre id="flash.events:IEventDispatcher" />
+      <pre id="Object" />
+      <dep id="AS3" />
+      <dep id="flash.events:EventDispatcher" />
+      <dep id="mx.events:PropertyChangeEvent" />
+      <dep id="flash.events:Event" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\libs\CoolFlex.swc(com.cool.assets:CoolAssetsFile_arrow_lastIcon)" mod="1341195165488" size="528" optimizedsize="344">
+      <def id="com.cool.assets:CoolAssetsFile_arrow_lastIcon" />
+      <pre id="mx.core:BitmapAsset" />
+      <dep id="AS3" />
+    </script>
+    <script name="D:\ProgramFile\Adobe\sdks\4.5.1\frameworks\libs\framework.swc(mx.preloaders:SparkDownloadProgressBar)" mod="1306872047452" size="12760" optimizedsize="6814">
+      <def id="mx.preloaders:SparkDownloadProgressBar" />
+      <pre id="mx.preloaders:IPreloaderDisplay" />
+      <pre id="flash.display:Sprite" />
+      <dep id="mx.graphics:RectangularDropShadow" />
+      <dep id="flash.utils:getDefinitionByName" />
+      <dep id="AS3" />
+      <dep id="flash.display:LoaderInfo" />
+      <dep id="flash.geom:ColorTransform" />
+      <dep id="Math" />
+      <dep id="flash.text:TextFieldAutoSize" />
+      <dep id="flash.text:TextField" />
+      <dep id="flash.events:Event" />
+      <dep id="flash.utils:getTimer" />
+      <dep id="flash.events:ProgressEvent" />
+      <dep id="mx.managers:ISystemManager" />
+      <dep id="mx.events:FlexEvent" />
+      <dep id="flash.net:URLRequest" />
+      <dep id="Error" />
+      <dep id="flash.geom:Matrix" />
+      <dep id="flash.system:ApplicationDomain" />
+      <dep id="flash.display:Graphics" />
+      <dep id="flash.display:DisplayObject" />
+      <dep id="flash.display:Loader" />
+      <dep id="flash.system:Capabilities" />
+      <dep id="mx.events:RSLEvent" />
+      <dep id="flash.events:IOErrorEvent" />
+      <dep id="flash.system:LoaderContext" />
+      <dep id="flash.text:TextFormat" />
+      <dep id="mx.core:mx_internal" />
+    </script>
+    <script name="D:\ProgramFile\Adobe\sdks\4.5.1\frameworks\libs\framework.swc(mx.managers:ISystemManager)" mod="1306872044515" size="3304" optimizedsize="1012">
+      <def id="mx.managers:ISystemManager" />
+      <pre id="mx.core:IChildList" />
+      <pre id="flash.events:IEventDispatcher" />
+      <pre id="mx.core:IFlexModuleFactory" />
+      <pre id="Object" />
+      <dep id="flash.display:DisplayObject" />
+      <dep id="AS3" />
+      <dep id="flash.display:Stage" />
+      <dep id="flash.display:LoaderInfo" />
+      <dep id="flash.display:Sprite" />
+      <dep id="flash.geom:Rectangle" />
+      <dep id="flash.text:TextFormat" />
+    </script>
+    <script name="D:\ProgramFile\Adobe\sdks\4.5.1\frameworks\libs\framework.swc(mx.core:ApplicationDomainTarget)" mod="1306872041124" size="669" optimizedsize="396">
+      <def id="mx.core:ApplicationDomainTarget" />
+      <pre id="Object" />
+      <dep id="AS3" />
+      <dep id="mx.core:mx_internal" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\libs\flexlib.swc(flexlib.controls:SuperTabBar)" mod="1269246018000" size="10654" optimizedsize="6009">
+      <def id="flexlib.controls:SuperTabBar" />
+      <pre id="mx.controls:TabBar" />
+      <dep id="AS3" />
+      <dep id="flexlib.controls:SuperTabBar_DEFAULT_CLOSE_DISABLED" />
+      <dep id="mx.core:IUIComponent" />
+      <dep id="flexlib.controls:SuperTabBar_DEFAULT_CLOSE_DOWN" />
+      <dep id="mx.core:UIComponent" />
+      <dep id="mx.styles:StyleManager" />
+      <dep id="flexlib.events:SuperTabEvent" />
+      <dep id="flash.events:MouseEvent" />
+      <dep id="flexlib.controls:SuperTabBar_DEFAULT_CLOSE_OVER" />
+      <dep id="flash.events:Event" />
+      <dep id="flexlib.controls.tabBarClasses:SuperTab" />
+      <dep id="flexlib.controls:SuperTabBar_DEFAULT_INDICATOR" />
+      <dep id="mx.containers:ViewStack" />
+      <dep id="mx.styles:CSSStyleDeclaration" />
+      <dep id="flash.display:BitmapData" />
+      <dep id="mx.core:DragSource" />
+      <dep id="mx.core:ClassFactory" />
+      <dep id="mx.managers:DragManager" />
+      <dep id="flexlib.containers:SuperTabNavigator" />
+      <dep id="flexlib.events:TabReorderEvent" />
+      <dep id="mx.core:IFlexDisplayObject" />
+      <dep id="mx.events:DragEvent" />
+      <dep id="flash.display:DisplayObject" />
+      <dep id="mx.collections:IList" />
+      <dep id="flash.display:Bitmap" />
+      <dep id="mx.controls:Button" />
+      <dep id="flexlib.controls:SuperTabBar_DEFAULT_CLOSE_UP" />
+      <dep id="mx.core:mx_internal" />
+    </script>
+    <script name="_class_embed_css_Assets_swf_569979602_MenuRadioDisabled_92833647.as" mod="1306828826645" size="402" optimizedsize="365">
+      <def id="_class_embed_css_Assets_swf_569979602_MenuRadioDisabled_92833647" />
+      <pre id="mx.core:SpriteAsset" />
+      <dep id="AS3" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\src\dmdd\dmddas\common\utils\UtilFunPermission.as" mod="1525171155054" size="1858" optimizedsize="1753">
+      <def id="dmdd.dmddas.common.utils:UtilFunPermission" />
+      <pre id="Object" />
+      <dep id="AS3" />
+      <dep id="en_US$sys_funpermission_properties" />
+      <dep id="com.cool.collections:HashMap" />
+      <dep id="mx.collections:ArrayCollection" />
+      <dep id="dmdd.dmddas.common.system:ClientEnvironment" />
+      <dep id="XML" />
+      <dep id="zh_CN$sys_funpermission_properties" />
+      <dep id="mx.utils:StringUtil" />
+      <dep id="dmdd.dmddas.common.system:MenuItemVo" />
+      <dep id="mx.resources:ResourceManager" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\src\dmdd\dmddas\common\utils\UtilProductCharacter.as" mod="1525171155044" size="1775" optimizedsize="1720">
+      <def id="dmdd.dmddas.common.utils:UtilProductCharacter" />
+      <pre id="Object" />
+      <dep id="AS3" />
+      <dep id="dmdd.dmddas.common.constant:BizConst" />
+      <dep id="dmdd.dmddas.dataaccess.bizobject:BProductProCharacter" />
+      <dep id="mx.collections:ArrayCollection" />
+      <dep id="dmdd.dmddas.common.system:ClientEnvironment" />
+      <dep id="dmdd.dmddas.dataaccess.bizobject:BProduct" />
+      <dep id="dmdd.dmddas.dataaccess.bizobject:BProductCharacter" />
+    </script>
+    <script name="D:\ProgramFile\Adobe\sdks\4.5.1\frameworks\libs\framework.swc(mx.utils:SHA256)" mod="1306872046952" size="3460" optimizedsize="2330">
+      <def id="mx.utils:SHA256" />
+      <pre id="Object" />
+      <dep id="AS3" />
+      <dep id="flash.utils:ByteArray" />
+      <dep id="Math" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\libs\flexlib.swc(flexlib.containers:SuperTabNavigator_DEFAULT_CLOSE_DISABLED)" mod="1269246017000" size="1017" optimizedsize="427">
+      <def id="flexlib.containers:SuperTabNavigator_DEFAULT_CLOSE_DISABLED" />
+      <pre id="mx.core:SpriteAsset" />
+      <dep id="AS3" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\src\dmdd\dmddas\dataaccess\bizobject\BOrganizationOrgCharacter.as" mod="1525171156752" size="1482" optimizedsize="1350">
+      <def id="dmdd.dmddas.dataaccess.bizobject:BOrganizationOrgCharacter" />
+      <pre id="flash.events:IEventDispatcher" />
+      <pre id="Object" />
+      <dep id="AS3" />
+      <dep id="dmdd.dmddas.dataaccess.bizobject:BOrganizationCharacter" />
+      <dep id="flash.events:EventDispatcher" />
+      <dep id="mx.events:PropertyChangeEvent" />
+      <dep id="dmdd.dmddas.dataaccess.bizobject:BOrganization" />
+      <dep id="dmdd.dmddas.common.constant:SysConst" />
+      <dep id="flash.events:Event" />
+    </script>
+    <script name="D:\ProgramFile\Adobe\sdks\4.5.1\frameworks\libs\framework.swc(mx.preloaders:IPreloaderDisplay)" mod="1306872047468" size="1996" optimizedsize="508">
+      <def id="mx.preloaders:IPreloaderDisplay" />
+      <pre id="flash.events:IEventDispatcher" />
+      <pre id="Object" />
+      <dep id="AS3" />
+      <dep id="flash.display:Sprite" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\libs\CoolFlex.swc(com.cool.assets:CoolAssetsFile_z_infoIcon)" mod="1386034426386" size="512" optimizedsize="336">
+      <def id="com.cool.assets:CoolAssetsFile_z_infoIcon" />
+      <pre id="mx.core:BitmapAsset" />
+      <dep id="AS3" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\libs\CoolFlex.swc(com.cool.assets:CoolAssetsFile_savereturnIcon)" mod="1309341232687" size="528" optimizedsize="344">
+      <def id="com.cool.assets:CoolAssetsFile_savereturnIcon" />
+      <pre id="mx.core:BitmapAsset" />
+      <dep id="AS3" />
+    </script>
+    <script name="_dmddwebWatcherSetupUtil.as" mod="1537890874180" size="1920" optimizedsize="1851">
+      <def id="_dmddwebWatcherSetupUtil" />
+      <pre id="mx.binding:IWatcherSetupUtil2" />
+      <pre id="Object" />
+      <dep id="AS3" />
+      <dep id="mx.binding:FunctionReturnWatcher" />
+      <dep id="dmddweb" />
+      <dep id="dmdd.dmddas.common.system:ClientEnvironment" />
+      <dep id="mx.binding:StaticPropertyWatcher" />
+      <dep id="mx.core:IFlexModuleFactory" />
+      <dep id="mx.binding:PropertyWatcher" />
+    </script>
+    <script name="dmddweb__embed_mxml_dmdd_dmddassets_icons_logo_login_png_1794612649.as" mod="1525171154672" size="351" optimizedsize="318">
+      <def id="dmddweb__embed_mxml_dmdd_dmddassets_icons_logo_login_png_1794612649" />
+      <pre id="mx.core:BitmapAsset" />
+      <dep id="AS3" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\libs\CoolFlex.swc(com.cool.assets:CoolAssetsFile_excelIcon)" mod="1316762646132" size="508" optimizedsize="334">
+      <def id="com.cool.assets:CoolAssetsFile_excelIcon" />
+      <pre id="mx.core:BitmapAsset" />
+      <dep id="AS3" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\libs\CoolFlex.swc(com.cool.assets:CoolAssetsFile_designIcon)" mod="1309341232640" size="512" optimizedsize="336">
+      <def id="com.cool.assets:CoolAssetsFile_designIcon" />
+      <pre id="mx.core:BitmapAsset" />
+      <dep id="AS3" />
+    </script>
+    <script name="_class_embed_css_Assets_swf_569979602_openDateOver_1326298435.as" mod="1306828826645" size="399" optimizedsize="362">
+      <def id="_class_embed_css_Assets_swf_569979602_openDateOver_1326298435" />
+      <pre id="mx.core:SpriteAsset" />
+      <dep id="AS3" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\libs\CoolFlex.swc(com.cool.assets:CoolAssetsFile_stopIcon)" mod="1201505942000" size="504" optimizedsize="332">
+      <def id="com.cool.assets:CoolAssetsFile_stopIcon" />
+      <pre id="mx.core:BitmapAsset" />
+      <dep id="AS3" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\libs\flexlib.swc(flexlib.skins:TabPopUpButtonSkin)" mod="1269246018000" size="5719" optimizedsize="3830">
+      <def id="flexlib.skins:TabPopUpButtonSkin" />
+      <pre id="mx.core:UIComponent" />
+      <dep id="AS3" />
+      <dep id="mx.styles:IStyleClient" />
+      <dep id="mx.containers:TabNavigator" />
+      <dep id="flash.display:GradientType" />
+      <dep id="mx.styles:StyleManager" />
+      <dep id="mx.core:IFlexDisplayObject" />
+      <dep id="Math" />
+      <dep id="flash.display:DisplayObject" />
+      <dep id="flash.display:DisplayObjectContainer" />
+      <dep id="mx.skins.halo:PopUpIcon" />
+      <dep id="mx.core:EdgeMetrics" />
+      <dep id="mx.skins.halo:HaloColors" />
+      <dep id="mx.utils:ColorUtil" />
+      <dep id="mx.core:mx_internal" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\src\dmdd\dmddas\dataaccess\bizobject\BOrganizationLayer.as" mod="1525171156876" size="1662" optimizedsize="1531">
+      <def id="dmdd.dmddas.dataaccess.bizobject:BOrganizationLayer" />
+      <pre id="flash.events:IEventDispatcher" />
+      <pre id="Object" />
+      <dep id="AS3" />
+      <dep id="flash.events:EventDispatcher" />
+      <dep id="mx.events:PropertyChangeEvent" />
+      <dep id="dmdd.dmddas.common.constant:SysConst" />
+      <dep id="flash.events:Event" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\libs\flexlib.swc(flexlib.containers:ButtonScrollingCanvas_DEFAULT_DOWN_BUTTON)" mod="1269246017000" size="1013" optimizedsize="429">
+      <def id="flexlib.containers:ButtonScrollingCanvas_DEFAULT_DOWN_BUTTON" />
+      <pre id="mx.core:SpriteAsset" />
+      <dep id="AS3" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\libs\CoolFlex.swc(com.cool.assets:CoolAssetsFile_aggregationIcon)" mod="1201505942000" size="532" optimizedsize="346">
+      <def id="com.cool.assets:CoolAssetsFile_aggregationIcon" />
+      <pre id="mx.core:BitmapAsset" />
+      <dep id="AS3" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\libs\CoolFlex.swc(com.cool.assets:CoolAssetsFile_helpIcon)" mod="1201505940000" size="504" optimizedsize="332">
+      <def id="com.cool.assets:CoolAssetsFile_helpIcon" />
+      <pre id="mx.core:BitmapAsset" />
+      <dep id="AS3" />
+    </script>
+    <script name="D:\ProgramFile\Adobe\sdks\4.5.1\frameworks\locale\zh_CN\framework_rb.swc$locale/zh_CN/SharedResources.properties" mod="1306828900855" size="956" optimizedsize="901">
+      <def id="en_US$SharedResources_properties" />
+      <def id="zh_CN$SharedResources_properties" />
+      <pre id="mx.resources:ResourceBundle" />
+      <dep id="AS3" />
+    </script>
+    <script name="_class_embed_css_Assets_swf_569979602_MenuBranchEnabled_1415727943.as" mod="1306828826645" size="404" optimizedsize="367">
+      <def id="_class_embed_css_Assets_swf_569979602_MenuBranchEnabled_1415727943" />
+      <pre id="mx.core:SpriteAsset" />
+      <dep id="AS3" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\src\dmdd\dmddas\dataaccess\bizobject\BUnit.as" mod="1525171156811" size="2011" optimizedsize="1877">
+      <def id="dmdd.dmddas.dataaccess.bizobject:BUnit" />
+      <pre id="flash.events:IEventDispatcher" />
+      <pre id="Object" />
+      <dep id="AS3" />
+      <dep id="dmdd.dmddas.common.constant:BizConst" />
+      <dep id="flash.events:EventDispatcher" />
+      <dep id="mx.events:PropertyChangeEvent" />
+      <dep id="dmdd.dmddas.dataaccess.bizobject:BUnitGroup" />
+      <dep id="dmdd.dmddas.common.constant:SysConst" />
+      <dep id="flash.events:Event" />
+    </script>
+    <script name="D:\ProgramFile\Adobe\sdks\4.5.1\frameworks\libs\framework.swc(mx.core:FlexShape)" mod="1306872039484" size="760" optimizedsize="490">
+      <def id="mx.core:FlexShape" />
+      <pre id="flash.display:Shape" />
+      <dep id="AS3" />
+      <dep id="Error" />
+      <dep id="mx.utils:NameUtil" />
+      <dep id="mx.core:mx_internal" />
+    </script>
+    <script name="D:\ProgramFile\Adobe\sdks\4.5.1\frameworks\locale\zh_CN\rpc_rb.swc$locale/zh_CN/rpc.properties" mod="1306828742872" size="7111" optimizedsize="6973">
+      <def id="zh_CN$rpc_properties" />
+      <def id="en_US$rpc_properties" />
+      <pre id="mx.resources:ResourceBundle" />
+      <dep id="AS3" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\libs\CoolFlex.swc(com.cool.assets:CoolAssetsFile_breakdownIcon)" mod="1144808318000" size="524" optimizedsize="342">
+      <def id="com.cool.assets:CoolAssetsFile_breakdownIcon" />
+      <pre id="mx.core:BitmapAsset" />
+      <dep id="AS3" />
+    </script>
+    <script name="_class_embed_css_Assets_swf_569979602_TreeDisclosureClosed_1368319554.as" mod="1306828826645" size="407" optimizedsize="370">
+      <def id="_class_embed_css_Assets_swf_569979602_TreeDisclosureClosed_1368319554" />
+      <pre id="mx.core:SpriteAsset" />
+      <dep id="AS3" />
+    </script>
+    <script name="D:\ProgramFile\Adobe\sdks\4.5.1\frameworks\libs\framework.swc(mx.core:IChildList)" mod="1306872040405" size="1371" optimizedsize="497">
+      <def id="mx.core:IChildList" />
+      <pre id="Object" />
+      <dep id="flash.display:DisplayObject" />
+      <dep id="AS3" />
+      <dep id="flash.geom:Point" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\src\aks\aksas\collections\IMap.as" mod="1525171162684" size="605" optimizedsize="605">
+      <def id="aks.aksas.collections:IMap" />
+      <pre id="Object" />
+      <dep id="AS3" />
+      <dep id="flash.utils:Dictionary" />
+      <dep id="mx.collections:ArrayCollection" />
+      <dep id="aks.aksas.collections:IHashMapEntry" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\src\dmdd\dmddas\dataaccess\bizobject\BBizDataDefItemHistoryAd.as" mod="1525171156787" size="843" optimizedsize="724">
+      <def id="dmdd.dmddas.dataaccess.bizobject:BBizDataDefItemHistoryAd" />
+      <pre id="dmdd.dmddas.dataaccess.bizobject:BBizDataDefItem" />
+      <pre id="flash.events:IEventDispatcher" />
+      <dep id="dmdd.dmddas.dataaccess.bizobject:BBizData" />
+      <dep id="AS3" />
+      <dep id="dmdd.dmddas.common.constant:BizConst" />
+      <dep id="mx.events:PropertyChangeEvent" />
+    </script>
+    <script name="_class_embed_css_Assets_swf_569979602_mx_skins_BoxDividerSkin_1333810061.as" mod="1306828826645" size="410" optimizedsize="373">
+      <def id="_class_embed_css_Assets_swf_569979602_mx_skins_BoxDividerSkin_1333810061" />
+      <pre id="mx.core:SpriteAsset" />
+      <dep id="AS3" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\libs\flexlib.swc(flexlib.containers:ButtonScrollingCanvas_DEFAULT_UP_BUTTON)" mod="1269246017000" size="1001" optimizedsize="425">
+      <def id="flexlib.containers:ButtonScrollingCanvas_DEFAULT_UP_BUTTON" />
+      <pre id="mx.core:SpriteAsset" />
+      <dep id="AS3" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\libs\CoolFlex.swc(com.cool.assets:CoolAssetsFile_arrow_rightIcon)" mod="1352187124878" size="532" optimizedsize="346">
+      <def id="com.cool.assets:CoolAssetsFile_arrow_rightIcon" />
+      <pre id="mx.core:BitmapAsset" />
+      <dep id="AS3" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\src\dmdd\dmddas\common\constant\BizConst.as" mod="1525171155245" size="92605" optimizedsize="86398">
+      <def id="dmdd.dmddas.common.constant:BizConst" />
+      <pre id="flash.events:IEventDispatcher" />
+      <pre id="Object" />
+      <dep id="AS3" />
+      <dep id="flash.events:EventDispatcher" />
+      <dep id="mx.events:PropertyChangeEvent" />
+      <dep id="flash.events:Event" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\src\aks\aksmx\controls\AksWindowWait4LoadMainData.mxml" mod="1525171162772" size="4050" optimizedsize="3887">
+      <def id="aks.aksmx.controls:AksWindowWait4LoadMainData" />
+      <pre id="spark.components:TitleWindow" />
+      <pre id="flash.events:IEventDispatcher" />
+      <pre id="mx.binding:IBindingClient" />
+      <dep id="flash.utils:getDefinitionByName" />
+      <dep id="AS3" />
+      <dep id="mx.events:FlexEvent" />
+      <dep id="spark.layouts:VerticalLayout" />
+      <dep id="mx.binding:Binding" />
+      <dep id="mx.core:IFlexModuleFactory" />
+      <dep id="_aks_aksmx_controls_AksWindowWait4LoadMainDataWatcherSetupUtil" />
+      <dep id="mx.binding:BindingManager" />
+      <dep id="mx.binding:IWatcherSetupUtil2" />
+      <dep id="flash.system:Capabilities" />
+      <dep id="zh_CN$main_properties" />
+      <dep id="spark.components:Label" />
+      <dep id="mx.core:DeferredInstanceFromFunction" />
+      <dep id="mx.events:PropertyChangeEvent" />
+      <dep id="en_US$main_properties" />
+      <dep id="mx.core:mx_internal" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\src\dmdd\dmddas\dataaccess\bizobject\BBizDataDefItemPeriodVersion.as" mod="1525171156827" size="1005" optimizedsize="877">
+      <def id="dmdd.dmddas.dataaccess.bizobject:BBizDataDefItemPeriodVersion" />
+      <pre id="dmdd.dmddas.dataaccess.bizobject:BBizDataDefItem" />
+      <pre id="flash.events:IEventDispatcher" />
+      <dep id="dmdd.dmddas.dataaccess.bizobject:BBizData" />
+      <dep id="AS3" />
+      <dep id="dmdd.dmddas.common.constant:BizConst" />
+      <dep id="mx.events:PropertyChangeEvent" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\locale\zh_CN\main.properties" mod="1525171153724" size="3158" optimizedsize="3065">
+      <def id="zh_CN$main_properties" />
+      <def id="en_US$main_properties" />
+      <pre id="mx.resources:ResourceBundle" />
+      <dep id="AS3" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\libs\CoolFlex.swc(com.cool.assets:CoolAssetsFile_arrow_upIcon)" mod="1315470746125" size="520" optimizedsize="340">
+      <def id="com.cool.assets:CoolAssetsFile_arrow_upIcon" />
+      <pre id="mx.core:BitmapAsset" />
+      <dep id="AS3" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\libs\CoolFlex.swc(_com_cool_components_FileUploadPanelWatcherSetupUtil)" mod="1501383998572" size="782" optimizedsize="390">
+      <def id="_com_cool_components_FileUploadPanelWatcherSetupUtil" />
+      <pre id="mx.binding:IWatcherSetupUtil2" />
+      <pre id="Object" />
+      <dep id="AS3" />
+      <dep id="mx.core:IFlexModuleFactory" />
+      <dep id="com.cool.components:FileUploadPanel" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\libs\CoolFlex.swc(com.cool.assets:CoolAssetsFile_minusIcon)" mod="1201505944000" size="508" optimizedsize="334">
+      <def id="com.cool.assets:CoolAssetsFile_minusIcon" />
+      <pre id="mx.core:BitmapAsset" />
+      <dep id="AS3" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\libs\flexlib.swc(flexlib.events:SuperTabEvent)" mod="1269246018000" size="885" optimizedsize="421">
+      <def id="flexlib.events:SuperTabEvent" />
+      <pre id="flash.events:Event" />
+      <dep id="AS3" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\libs\CoolFlex.swc(com.cool.assets:CoolAssetsFile_refreshIcon)" mod="1373601289009" size="516" optimizedsize="338">
+      <def id="com.cool.assets:CoolAssetsFile_refreshIcon" />
+      <pre id="mx.core:BitmapAsset" />
+      <dep id="AS3" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\src\dmdd\dmddas\dataaccess\bizobject\BBizDataDefItemAddHis.as" mod="1525171156947" size="825" optimizedsize="709">
+      <def id="dmdd.dmddas.dataaccess.bizobject:BBizDataDefItemAddHis" />
+      <pre id="dmdd.dmddas.dataaccess.bizobject:BBizDataDefItem" />
+      <pre id="flash.events:IEventDispatcher" />
+      <dep id="dmdd.dmddas.dataaccess.bizobject:BBizData" />
+      <dep id="AS3" />
+      <dep id="dmdd.dmddas.common.constant:BizConst" />
+      <dep id="mx.events:PropertyChangeEvent" />
+    </script>
+    <script name="D:\ProgramFile\Adobe\sdks\4.5.1\frameworks\libs\framework.swc(mx.events:SandboxMouseEvent)" mod="1306872053984" size="1596" optimizedsize="973">
+      <def id="mx.events:SandboxMouseEvent" />
+      <pre id="flash.events:Event" />
+      <dep id="AS3" />
+      <dep id="mx.core:mx_internal" />
+    </script>
+    <script name="D:\ProgramFile\Adobe\sdks\4.5.1\frameworks\locale\zh_CN\spark_rb.swc$locale/zh_CN/sparkEffects.properties" mod="1306828670875" size="1752" optimizedsize="1701">
+      <def id="zh_CN$sparkEffects_properties" />
+      <def id="en_US$sparkEffects_properties" />
+      <pre id="mx.resources:ResourceBundle" />
+      <dep id="AS3" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\libs\CoolFlex.swc(com.cool.assets:CoolAssetsFile_save_allIcon)" mod="1201505940000" size="520" optimizedsize="340">
+      <def id="com.cool.assets:CoolAssetsFile_save_allIcon" />
+      <pre id="mx.core:BitmapAsset" />
+      <dep id="AS3" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\libs\flexlib.swc(flexlib.controls:ScrollableArrowMenu_DEFAULT_UP_BUTTON)" mod="1269246017000" size="979" optimizedsize="417">
+      <def id="flexlib.controls:ScrollableArrowMenu_DEFAULT_UP_BUTTON" />
+      <pre id="mx.core:SpriteAsset" />
+      <dep id="AS3" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\libs\CoolFlex.swc(com.cool.assets:CoolAssetsFile_collapseallIcon)" mod="1384136050224" size="532" optimizedsize="346">
+      <def id="com.cool.assets:CoolAssetsFile_collapseallIcon" />
+      <pre id="mx.core:BitmapAsset" />
+      <dep id="AS3" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\libs\CoolFlex.swc(com.cool.assets:CoolAssetsFile_minus2Icon)" mod="1309341232593" size="512" optimizedsize="336">
+      <def id="com.cool.assets:CoolAssetsFile_minus2Icon" />
+      <pre id="mx.core:BitmapAsset" />
+      <dep id="AS3" />
+    </script>
+    <script name="D:\ProgramFile\Adobe\sdks\4.5.1\frameworks\libs\framework.swc(mx.core:ResourceModuleRSLItem)" mod="1306872039609" size="2015" optimizedsize="1281">
+      <def id="mx.core:ResourceModuleRSLItem" />
+      <pre id="mx.core:RSLItem" />
+      <dep id="AS3" />
+      <dep id="flash.events:IOErrorEvent" />
+      <dep id="flash.events:IEventDispatcher" />
+      <dep id="mx.events:ResourceEvent" />
+      <dep id="mx.resources:IResourceManager" />
+      <dep id="flash.system:ApplicationDomain" />
+      <dep id="mx.core:mx_internal" />
+    </script>
+    <script name="_class_embed_css_Assets_swf_569979602_MenuCheckEnabled_442314929.as" mod="1306828826645" size="402" optimizedsize="365">
+      <def id="_class_embed_css_Assets_swf_569979602_MenuCheckEnabled_442314929" />
+      <pre id="mx.core:SpriteAsset" />
+      <dep id="AS3" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\src\dmdd\dmddas\common\constant\ExceptionConst.as" mod="1525171155235" size="2157" optimizedsize="2151">
+      <def id="dmdd.dmddas.common.constant:ExceptionConst" />
+      <pre id="Object" />
+      <dep id="AS3" />
+    </script>
+    <script name="D:\ProgramFile\Adobe\sdks\4.5.1\frameworks\locale\zh_CN\framework_rb.swc$locale/zh_CN/controls.properties" mod="1306828900855" size="4783" optimizedsize="4667">
+      <def id="en_US$controls_properties" />
+      <def id="zh_CN$controls_properties" />
+      <pre id="mx.resources:ResourceBundle" />
+      <dep id="AS3" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\libs\CoolFlex.swc(com.cool.assets:CoolAssetsFile_arrow_leftIcon)" mod="1352187124883" size="528" optimizedsize="344">
+      <def id="com.cool.assets:CoolAssetsFile_arrow_leftIcon" />
+      <pre id="mx.core:BitmapAsset" />
+      <dep id="AS3" />
+    </script>
+    <script name="D:\ProgramFile\Adobe\sdks\4.5.1\frameworks\locale\zh_CN\rpc_rb.swc$locale/zh_CN/utils.properties" mod="1306828900872" size="572" optimizedsize="535">
+      <def id="zh_CN$utils_properties" />
+      <def id="en_US$utils_properties" />
+      <pre id="mx.resources:ResourceBundle" />
+      <dep id="AS3" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\libs\CoolFlex.swc(com.cool.assets:CoolAssetsFile_detailIcon)" mod="1201505940000" size="512" optimizedsize="336">
+      <def id="com.cool.assets:CoolAssetsFile_detailIcon" />
+      <pre id="mx.core:BitmapAsset" />
+      <dep id="AS3" />
+    </script>
+    <script name="_class_embed_css_Assets_swf_569979602_mx_skins_cursor_DragCopy_610616429.as" mod="1306828826645" size="410" optimizedsize="373">
+      <def id="_class_embed_css_Assets_swf_569979602_mx_skins_cursor_DragCopy_610616429" />
+      <pre id="mx.core:SpriteAsset" />
+      <dep id="AS3" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\libs\flexlib.swc(flexlib.containers:SuperTabNavigator_DEFAULT_RIGHT_BUTTON)" mod="1269246017000" size="996" optimizedsize="423">
+      <def id="flexlib.containers:SuperTabNavigator_DEFAULT_RIGHT_BUTTON" />
+      <pre id="mx.core:SpriteAsset" />
+      <dep id="AS3" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\libs\CoolFlex.swc(com.cool.assets:CoolAssetsFile_refresh3Icon)" mod="1201505940000" size="520" optimizedsize="340">
+      <def id="com.cool.assets:CoolAssetsFile_refresh3Icon" />
+      <pre id="mx.core:BitmapAsset" />
+      <dep id="AS3" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\src\dmdd\dmddas\common\system\ClientEnvironment.as" mod="1525171155140" size="13350" optimizedsize="12528">
+      <def id="dmdd.dmddas.common.system:ClientEnvironment" />
+      <pre id="flash.events:IEventDispatcher" />
+      <pre id="Object" />
+      <dep id="dmdd.dmddas.dataaccess.bizobject:BBizData" />
+      <dep id="AS3" />
+      <dep id="dmdd.dmddas.dataaccess.bizobject:BDistributionCenter" />
+      <dep id="dmdd.dmddas.dataaccess.bizobject:BSysPeriod" />
+      <dep id="dmdd.dmddas.dataaccess.bizobject:BOperatorUser" />
+      <dep id="mx.collections:ArrayCollection" />
+      <dep id="mx.core:UIComponent" />
+      <dep id="dmdd.dmddas.common.utils:UtilProOrg" />
+      <dep id="dmdd.dmddas.common.constant:SysConst" />
+      <dep id="dmdd.dmddas.dataaccess.bizobject:BFunPermission" />
+      <dep id="flash.events:Event" />
+      <dep id="dmdd.dmddas.dataaccess.bizobject:BOrganizationCharacter" />
+      <dep id="dmdd.dmddas.dataaccess.bizobject:BOrganizationLayer" />
+      <dep id="dmdd.dmddas.dataaccess.bizobject:BUnitGroup" />
+      <dep id="dmdd.dmddas.dataaccess.bizobject:BProductLayer" />
+      <dep id="dmdd.dmddas.dataaccess.aidobject:ABProOrg" />
+      <dep id="dmdd.dmddas.common.system:UiConfigVo" />
+      <dep id="dmdd.dmddas.dataaccess.bizobject:BOperatorUserProOrg" />
+      <dep id="dmdd.dmddas.dataaccess.bizobject:BOperatorUserBizData" />
+      <dep id="dmdd.dmddas.dataaccess.bizobject:BProduct" />
+      <dep id="dmdd.dmddas.dataaccess.bizobject:BProductCharacter" />
+      <dep id="dmdd.dmddas.dataaccess.bizobject:BOperatorUserFunPermission" />
+      <dep id="dmdd.dmddas.common.constant:BizConst" />
+      <dep id="dmdd.dmddas.dataaccess.bizobject:BOrganization" />
+      <dep id="dmdd.dmddas.dataaccess.bizobject:BProductCharacterLayer" />
+      <dep id="mx.collections:SortField" />
+      <dep id="mx.utils:StringUtil" />
+      <dep id="dmdd.dmddas.dataaccess.bizobject:BSysDictionaryItem" />
+      <dep id="aks.aksas.collections:HashMap" />
+      <dep id="dmdd.dmddas.dataaccess.bizobject:BOrganizationCharacterLayer" />
+      <dep id="flash.events:EventDispatcher" />
+      <dep id="XML" />
+      <dep id="mx.events:PropertyChangeEvent" />
+      <dep id="dmdd.dmddas.dataaccess.bizobject:BSysParam" />
+      <dep id="mx.collections:Sort" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\src\dmdd\dmddas\dataaccess\bizobject\BSysDictionaryItem.as" mod="1525171156937" size="1918" optimizedsize="1761">
+      <def id="dmdd.dmddas.dataaccess.bizobject:BSysDictionaryItem" />
+      <pre id="flash.events:IEventDispatcher" />
+      <pre id="Object" />
+      <dep id="zh_CN$sys_sysdictionaryitem_properties" />
+      <dep id="AS3" />
+      <dep id="flash.events:EventDispatcher" />
+      <dep id="en_US$sys_sysdictionaryitem_properties" />
+      <dep id="mx.events:PropertyChangeEvent" />
+      <dep id="mx.resources:ResourceManager" />
+      <dep id="dmdd.dmddas.common.constant:SysConst" />
+      <dep id="flash.events:Event" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\src\dmdd\dmddas\dataaccess\bizobject\BProductCharacterLayer.as" mod="1525171156757" size="1674" optimizedsize="1539">
+      <def id="dmdd.dmddas.dataaccess.bizobject:BProductCharacterLayer" />
+      <pre id="flash.events:IEventDispatcher" />
+      <pre id="Object" />
+      <dep id="AS3" />
+      <dep id="flash.events:EventDispatcher" />
+      <dep id="mx.events:PropertyChangeEvent" />
+      <dep id="dmdd.dmddas.common.constant:SysConst" />
+      <dep id="flash.events:Event" />
+    </script>
+    <script name="_class_embed_css_Assets_swf_569979602_MenuSeparator_1460423827.as" mod="1306828826645" size="400" optimizedsize="363">
+      <def id="_class_embed_css_Assets_swf_569979602_MenuSeparator_1460423827" />
+      <pre id="mx.core:SpriteAsset" />
+      <dep id="AS3" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\libs\flexlib.swc(flexlib.controls:SuperTabBar_DEFAULT_CLOSE_DOWN)" mod="1269246017000" size="947" optimizedsize="403">
+      <def id="flexlib.controls:SuperTabBar_DEFAULT_CLOSE_DOWN" />
+      <pre id="mx.core:SpriteAsset" />
+      <dep id="AS3" />
+    </script>
+    <script name="D:\ProgramFile\Adobe\sdks\4.5.1\frameworks\libs\framework.swc(mx.managers:ISystemManagerChildManager)" mod="1306872045140" size="1092" optimizedsize="349">
+      <def id="mx.managers:ISystemManagerChildManager" />
+      <pre id="Object" />
+      <dep id="flash.display:DisplayObject" />
+      <dep id="AS3" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\src\aks\aksas\controls\AksOptions.as" mod="1525171162589" size="3029" optimizedsize="2911">
+      <def id="aks.aksas.controls:AksOptions" />
+      <pre id="flash.events:IEventDispatcher" />
+      <pre id="Object" />
+      <dep id="AS3" />
+      <dep id="flash.events:EventDispatcher" />
+      <dep id="mx.events:PropertyChangeEvent" />
+      <dep id="flash.events:Event" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\libs\CoolFlex.swc(com.cool.assets:CoolAssetsFile_cancelIcon)" mod="1388029459005" size="512" optimizedsize="336">
+      <def id="com.cool.assets:CoolAssetsFile_cancelIcon" />
+      <pre id="mx.core:BitmapAsset" />
+      <dep id="AS3" />
+    </script>
+    <script name="D:\ProgramFile\Adobe\sdks\4.5.1\frameworks\libs\framework.swc(mx.core:RSLData)" mod="1306872040468" size="1658" optimizedsize="839">
+      <def id="mx.core:RSLData" />
+      <pre id="Object" />
+      <dep id="AS3" />
+      <dep id="mx.core:IFlexModuleFactory" />
+      <dep id="mx.core:mx_internal" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\libs\flexlib.swc(flexlib.controls:ScrollableArrowMenu_DEFAULT_DOWN_BUTTON)" mod="1269246017000" size="991" optimizedsize="421">
+      <def id="flexlib.controls:ScrollableArrowMenu_DEFAULT_DOWN_BUTTON" />
+      <pre id="mx.core:SpriteAsset" />
+      <dep id="AS3" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\libs\CoolFlex.swc(com.cool.assets:CoolAssetsFile_z_confirmIcon)" mod="1386034426359" size="524" optimizedsize="342">
+      <def id="com.cool.assets:CoolAssetsFile_z_confirmIcon" />
+      <pre id="mx.core:BitmapAsset" />
+      <dep id="AS3" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\src\aks\aksas\utils\UtilUi.as" mod="1525171162512" size="803" optimizedsize="767">
+      <def id="aks.aksas.utils:UtilUi" />
+      <pre id="Object" />
+      <dep id="flash.display:DisplayObject" />
+      <dep id="AS3" />
+      <dep id="aks.aksmx.controls:AksWindowWait" />
+      <dep id="mx.managers:PopUpManager" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\libs\CoolFlex.swc(com.cool.assets:CoolAssetsFile_plusIcon)" mod="1201505940000" size="504" optimizedsize="332">
+      <def id="com.cool.assets:CoolAssetsFile_plusIcon" />
+      <pre id="mx.core:BitmapAsset" />
+      <dep id="AS3" />
+    </script>
+    <script name="D:\ProgramFile\Adobe\sdks\4.5.1\frameworks\locale\zh_CN\rpc_rb.swc$locale/zh_CN/messaging.properties" mod="1306828742872" size="9545" optimizedsize="9362">
+      <def id="zh_CN$messaging_properties" />
+      <def id="en_US$messaging_properties" />
+      <pre id="mx.resources:ResourceBundle" />
+      <dep id="AS3" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\src\dmdd\dmddas\dataaccess\bizobject\BDistributionCenter.as" mod="1525171156729" size="3032" optimizedsize="2845">
+      <def id="dmdd.dmddas.dataaccess.bizobject:BDistributionCenter" />
+      <pre id="flash.events:IEventDispatcher" />
+      <pre id="Object" />
+      <dep id="AS3" />
+      <dep id="flash.events:EventDispatcher" />
+      <dep id="mx.collections:ArrayCollection" />
+      <dep id="dmdd.dmddas.common.system:ClientEnvironment" />
+      <dep id="mx.events:PropertyChangeEvent" />
+      <dep id="dmdd.dmddas.common.constant:SysConst" />
+      <dep id="flash.events:Event" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\libs\CoolFlex.swc(com.siloon.plugin.rightClick:RightClickManager)" mod="1228372175453" size="4453" optimizedsize="3751">
+      <def id="com.siloon.plugin.rightClick:RightClickManager" />
+      <pre id="Object" />
+      <dep id="flash.display:DisplayObject" />
+      <dep id="AS3" />
+      <dep id="flash.external:ExternalInterface" />
+      <dep id="XML" />
+      <dep id="mx.core:Application" />
+      <dep id="flash.events:MouseEvent" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\libs\flexlib.swc(flexlib.containers:ButtonScrollingCanvas_DEFAULT_RIGHT_BUTTON)" mod="1269246017000" size="1019" optimizedsize="431">
+      <def id="flexlib.containers:ButtonScrollingCanvas_DEFAULT_RIGHT_BUTTON" />
+      <pre id="mx.core:SpriteAsset" />
+      <dep id="AS3" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\libs\CoolFlex.swc(com.cool.components:LoadingWindow)" mod="1381398814112" size="4676" optimizedsize="3639">
+      <def id="com.cool.components:LoadingWindow" />
+      <pre id="flash.events:IEventDispatcher" />
+      <pre id="mx.binding:IBindingClient" />
+      <pre id="mx.containers:VBox" />
+      <dep id="flash.utils:getDefinitionByName" />
+      <dep id="AS3" />
+      <dep id="mx.controls:ProgressBar" />
+      <dep id="mx.binding:Binding" />
+      <dep id="mx.core:IFlexModuleFactory" />
+      <dep id="mx.managers:PopUpManager" />
+      <dep id="flash.events:MouseEvent" />
+      <dep id="flash.display:DisplayObject" />
+      <dep id="mx.binding:IWatcherSetupUtil2" />
+      <dep id="_com_cool_components_LoadingWindowWatcherSetupUtil" />
+      <dep id="mx.styles:CSSStyleDeclaration" />
+      <dep id="mx.core:UIComponentDescriptor" />
+      <dep id="mx.events:PropertyChangeEvent" />
+      <dep id="mx.core:mx_internal" />
+    </script>
+    <script name="D:\ProgramFile\Adobe\sdks\4.5.1\frameworks\locale\zh_CN\framework_rb.swc$locale/zh_CN/skins.properties" mod="1306828900855" size="454" optimizedsize="417">
+      <def id="zh_CN$skins_properties" />
+      <def id="en_US$skins_properties" />
+      <pre id="mx.resources:ResourceBundle" />
+      <dep id="AS3" />
+    </script>
+    <script name="D:\ProgramFile\Adobe\sdks\4.5.1\frameworks\libs\framework.swc(mx.events:FlexEvent)" mod="1306872053921" size="3715" optimizedsize="2479">
+      <def id="mx.events:FlexEvent" />
+      <pre id="flash.events:Event" />
+      <dep id="AS3" />
+      <dep id="mx.core:mx_internal" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\src\dmdd\dmddas\common\constant\SysConst.as" mod="1525171155240" size="731" optimizedsize="725">
+      <def id="dmdd.dmddas.common.constant:SysConst" />
+      <pre id="Object" />
+      <dep id="AS3" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\src\dmdd\dmddmx\mod\Mod_WorkFrame.mxml" mod="1525171158974" size="15543" optimizedsize="15115">
+      <def id="dmdd.dmddmx.mod:Mod_WorkFrame" />
+      <pre id="flash.events:IEventDispatcher" />
+      <pre id="mx.binding:IBindingClient" />
+      <pre id="mx.containers:VBox" />
+      <dep id="com.cool.collections:HashMap" />
+      <dep id="spark.components:Image" />
+      <dep id="com.siloon.plugin.rightClick:RightClickManager" />
+      <dep id="aks.aksmx.containers:AksControlBar" />
+      <dep id="flash.events:Event" />
+      <dep id="flexlib.controls.tabBarClasses:SuperTab" />
+      <dep id="flash.net:navigateToURL" />
+      <dep id="spark.layouts:HorizontalLayout" />
+      <dep id="spark.components:Label" />
+      <dep id="mx.styles:CSSSelector" />
+      <dep id="dmdd.dmddas.common.utils:UtilFunPermission" />
+      <dep id="spark.components:VGroup" />
+      <dep id="spark.events:IndexChangeEvent" />
+      <dep id="_dmdd_dmddmx_mod_Mod_WorkFrameWatcherSetupUtil" />
+      <dep id="dmdd.dmddas.common.system:ClientEnvironment" />
+      <dep id="flexlib.containers:SuperTabNavigator" />
+      <dep id="spark.components:ComboBox" />
+      <dep id="flash.display:StageDisplayState" />
+      <dep id="mx.controls:Alert" />
+      <dep id="mx.resources:ResourceManager" />
+      <dep id="flash.system:ApplicationDomain" />
+      <dep id="mx.rpc.remoting.mxml:RemoteObject" />
+      <dep id="mx.controls:LinkButton" />
+      <dep id="mx.core:DeferredInstanceFromFunction" />
+      <dep id="mx.controls:MenuBar" />
+      <dep id="dmdd.dmddas.common.system:MenuItemVo" />
+      <dep id="mx.events:CloseEvent" />
+      <dep id="mx.core:mx_internal" />
+      <dep id="com.cool.utils:AlertUtil" />
+      <dep id="flash.utils:getDefinitionByName" />
+      <dep id="dmdd.dmddas.common.utils:UtilExceptionLocale" />
+      <dep id="AS3" />
+      <dep id="mx.collections:ArrayCollection" />
+      <dep id="mx.core:UIComponent" />
+      <dep id="mx.rpc.remoting.mxml:Operation" />
+      <dep id="mx.core:IFlexModuleFactory" />
+      <dep id="mx.core:Container" />
+      <dep id="flexlib.events:SuperTabEvent" />
+      <dep id="flash.events:MouseEvent" />
+      <dep id="dmdd.dmddas.common.constant:SysConst" />
+      <dep id="mx.events:MenuEvent" />
+      <dep id="mx.modules:ModuleLoader" />
+      <dep id="mx.binding:IWatcherSetupUtil2" />
+      <dep id="mx.controls:Spacer" />
+      <dep id="com.cool.assets:CoolAssetsFile" />
+      <dep id="mx.styles:CSSStyleDeclaration" />
+      <dep id="mx.containers:HBox" />
+      <dep id="com.cool.utils:MemoryUtil" />
+      <dep id="mx.events:FlexEvent" />
+      <dep id="aks.aksmx.controls:AksWindowWait4LoadMainData" />
+      <dep id="mx.graphics:SolidColor" />
+      <dep id="mx.binding:Binding" />
+      <dep id="mx.containers:FormItem" />
+      <dep id="flash.net:URLRequest" />
+      <dep id="mx.rpc.events:ResultEvent" />
+      <dep id="mx.styles:CSSCondition" />
+      <dep id="mx.binding:BindingManager" />
+      <dep id="Date" />
+      <dep id="dmdd.dmddmx.mod:Mod_WorkFrame__embed_mxml__dmdd_dmddassets_icons_logo_work_png_1030774042" />
+      <dep id="mx.core:UIComponentDescriptor" />
+      <dep id="spark.components:HGroup" />
+      <dep id="mx.events:PropertyChangeEvent" />
+      <dep id="mx.rpc.events:FaultEvent" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\src\dmdd\dmddas\dataaccess\bizobject\BBizDataDefItemFcHand.as" mod="1525171156607" size="982" optimizedsize="861">
+      <def id="dmdd.dmddas.dataaccess.bizobject:BBizDataDefItemFcHand" />
+      <pre id="dmdd.dmddas.dataaccess.bizobject:BBizDataDefItem" />
+      <pre id="flash.events:IEventDispatcher" />
+      <dep id="dmdd.dmddas.dataaccess.bizobject:BBizData" />
+      <dep id="AS3" />
+      <dep id="dmdd.dmddas.common.constant:BizConst" />
+      <dep id="mx.events:PropertyChangeEvent" />
+    </script>
+    <script name="_aks_aksmx_controls_AksWindowWait4LoadMainDataWatcherSetupUtil.as" mod="1537890873845" size="979" optimizedsize="884">
+      <def id="_aks_aksmx_controls_AksWindowWait4LoadMainDataWatcherSetupUtil" />
+      <pre id="mx.binding:IWatcherSetupUtil2" />
+      <pre id="Object" />
+      <dep id="AS3" />
+      <dep id="mx.binding:FunctionReturnWatcher" />
+      <dep id="aks.aksmx.controls:AksWindowWait4LoadMainData" />
+      <dep id="mx.core:IFlexModuleFactory" />
+      <dep id="mx.binding:PropertyWatcher" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\libs\CoolFlex.swc(com.cool.assets:CoolAssetsFile_edit_batchIcon)" mod="1201505940000" size="528" optimizedsize="344">
+      <def id="com.cool.assets:CoolAssetsFile_edit_batchIcon" />
+      <pre id="mx.core:BitmapAsset" />
+      <dep id="AS3" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\locale\zh_CN\aks.properties" mod="1525171153690" size="2074" optimizedsize="1971">
+      <def id="zh_CN$aks_properties" />
+      <def id="en_US$aks_properties" />
+      <pre id="mx.resources:ResourceBundle" />
+      <dep id="AS3" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\libs\CoolFlex.swc(com.cool.assets:CoolAssetsFile_returnIcon)" mod="1309341232687" size="512" optimizedsize="336">
+      <def id="com.cool.assets:CoolAssetsFile_returnIcon" />
+      <pre id="mx.core:BitmapAsset" />
+      <dep id="AS3" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\src\aks\aksas\collections\IHashMapEntry.as" mod="1525171162688" size="214" optimizedsize="214">
+      <def id="aks.aksas.collections:IHashMapEntry" />
+      <pre id="Object" />
+      <dep id="AS3" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\src\dmdd\dmddas\dataaccess\bizobject\BBizDataDefItemFcComb.as" mod="1525171156835" size="982" optimizedsize="861">
+      <def id="dmdd.dmddas.dataaccess.bizobject:BBizDataDefItemFcComb" />
+      <pre id="dmdd.dmddas.dataaccess.bizobject:BBizDataDefItem" />
+      <pre id="flash.events:IEventDispatcher" />
+      <dep id="dmdd.dmddas.dataaccess.bizobject:BBizData" />
+      <dep id="AS3" />
+      <dep id="dmdd.dmddas.common.constant:BizConst" />
+      <dep id="mx.events:PropertyChangeEvent" />
+    </script>
+    <script name="_class_embed_css_Assets_swf_569979602_CloseButtonOver_1308238901.as" mod="1306828826645" size="402" optimizedsize="365">
+      <def id="_class_embed_css_Assets_swf_569979602_CloseButtonOver_1308238901" />
+      <pre id="mx.core:SpriteAsset" />
+      <dep id="AS3" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\src\dmdd\dmddas\dataaccess\bizobject\BBizDataDefItem.as" mod="1525171156908" size="1502" optimizedsize="1379">
+      <def id="dmdd.dmddas.dataaccess.bizobject:BBizDataDefItem" />
+      <pre id="flash.events:IEventDispatcher" />
+      <pre id="Object" />
+      <dep id="dmdd.dmddas.dataaccess.bizobject:BBizData" />
+      <dep id="AS3" />
+      <dep id="flash.events:EventDispatcher" />
+      <dep id="mx.events:PropertyChangeEvent" />
+      <dep id="dmdd.dmddas.common.constant:SysConst" />
+      <dep id="flash.events:Event" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\locale\zh_CN\sys_funpermission.properties" mod="1525171153767" size="7528" optimizedsize="7362">
+      <def id="en_US$sys_funpermission_properties" />
+      <def id="zh_CN$sys_funpermission_properties" />
+      <pre id="mx.resources:ResourceBundle" />
+      <dep id="AS3" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\libs\CoolFlex.swc(com.cool.utils:StringUtils)" mod="1386819575898" size="2689" optimizedsize="1431">
+      <def id="com.cool.utils:StringUtils" />
+      <pre id="Object" />
+      <dep id="mx.utils:Base64Decoder" />
+      <dep id="AS3" />
+      <dep id="RegExp" />
+      <dep id="mx.utils:Base64Encoder" />
+      <dep id="mx.utils:StringUtil" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\src\aks\aksas\utils\UtilArrayCollection.as" mod="1525171162503" size="626" optimizedsize="603">
+      <def id="aks.aksas.utils:UtilArrayCollection" />
+      <pre id="Object" />
+      <dep id="AS3" />
+      <dep id="mx.collections:ArrayCollection" />
+      <dep id="Date" />
+    </script>
+    <script name="D:\ProgramFile\Adobe\sdks\4.5.1\frameworks\libs\framework.swc(mx.core:IFlexDisplayObject)" mod="1306872041312" size="5953" optimizedsize="1339">
+      <def id="mx.core:IFlexDisplayObject" />
+      <pre id="flash.events:IEventDispatcher" />
+      <pre id="flash.display:IBitmapDrawable" />
+      <pre id="Object" />
+      <dep id="flash.display:DisplayObject" />
+      <dep id="AS3" />
+      <dep id="flash.display:DisplayObjectContainer" />
+      <dep id="flash.geom:Point" />
+      <dep id="flash.display:Stage" />
+      <dep id="flash.display:LoaderInfo" />
+      <dep id="flash.geom:Transform" />
+      <dep id="flash.geom:Rectangle" />
+      <dep id="flash.accessibility:AccessibilityProperties" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\libs\CoolFlex.swc(com.cool.utils:MemoryUtil)" mod="1386819575859" size="554" optimizedsize="331">
+      <def id="com.cool.utils:MemoryUtil" />
+      <pre id="Object" />
+      <dep id="AS3" />
+      <dep id="trace" />
+      <dep id="Error" />
+      <dep id="flash.net:LocalConnection" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\src\dmdd\dmddas\common\utils\UtilOrganizationCharacter.as" mod="1525171155020" size="1865" optimizedsize="1805">
+      <def id="dmdd.dmddas.common.utils:UtilOrganizationCharacter" />
+      <pre id="Object" />
+      <dep id="dmdd.dmddas.dataaccess.bizobject:BOrganizationCharacter" />
+      <dep id="AS3" />
+      <dep id="dmdd.dmddas.common.constant:BizConst" />
+      <dep id="mx.collections:ArrayCollection" />
+      <dep id="dmdd.dmddas.common.system:ClientEnvironment" />
+      <dep id="dmdd.dmddas.dataaccess.bizobject:BOrganizationOrgCharacter" />
+      <dep id="dmdd.dmddas.dataaccess.bizobject:BOrganization" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\libs\CoolFlex.swc(com.cool.constant:DataViewConst)" mod="1386819575665" size="3105" optimizedsize="2236">
+      <def id="com.cool.constant:DataViewConst" />
+      <pre id="Object" />
+      <dep id="AS3" />
+    </script>
+    <script name="_class_embed_css_Assets_swf_569979602_cursorStretch_1668984570.as" mod="1306828826645" size="400" optimizedsize="363">
+      <def id="_class_embed_css_Assets_swf_569979602_cursorStretch_1668984570" />
+      <pre id="mx.core:SpriteAsset" />
+      <dep id="AS3" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\src\dmdd\dmddas\dataaccess\bizobject\BBizDataDefItemKpi.as" mod="1525171156929" size="1098" optimizedsize="975">
+      <def id="dmdd.dmddas.dataaccess.bizobject:BBizDataDefItemKpi" />
+      <pre id="dmdd.dmddas.dataaccess.bizobject:BBizDataDefItem" />
+      <pre id="flash.events:IEventDispatcher" />
+      <dep id="dmdd.dmddas.dataaccess.bizobject:BBizData" />
+      <dep id="AS3" />
+      <dep id="dmdd.dmddas.common.constant:BizConst" />
+      <dep id="mx.events:PropertyChangeEvent" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\libs\CoolFlex.swc(com.cool.assets:CoolAssetsFile_mailIcon)" mod="1104402948000" size="504" optimizedsize="332">
+      <def id="com.cool.assets:CoolAssetsFile_mailIcon" />
+      <pre id="mx.core:BitmapAsset" />
+      <dep id="AS3" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\libs\CoolFlex.swc(com.cool.assets:CoolAssetsFile_tipIcon)" mod="1104402974000" size="500" optimizedsize="330">
+      <def id="com.cool.assets:CoolAssetsFile_tipIcon" />
+      <pre id="mx.core:BitmapAsset" />
+      <dep id="AS3" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\libs\CoolFlex.swc(com.cool.assets:CoolAssetsFile_red_glowIcon)" mod="1382950626396" size="978" optimizedsize="710">
+      <def id="com.cool.assets:CoolAssetsFile_red_glowIcon" />
+      <pre id="mx.core:MovieClipLoaderAsset" />
+      <dep id="AS3" />
+      <dep id="flash.utils:ByteArray" />
+      <dep id="com.cool.assets:CoolAssetsFile_red_glowIcon_dataClass" />
+    </script>
+    <script name="_class_embed_css_Assets_swf_569979602_mx_skins_cursor_HBoxDivider_2116575248.as" mod="1306828826645" size="414" optimizedsize="377">
+      <def id="_class_embed_css_Assets_swf_569979602_mx_skins_cursor_HBoxDivider_2116575248" />
+      <pre id="mx.core:SpriteAsset" />
+      <dep id="AS3" />
+    </script>
+    <script name="D:\ProgramFile\Adobe\sdks\4.5.1\frameworks\libs\framework.swc(mx.utils:DensityUtil)" mod="1306872046999" size="989" optimizedsize="564">
+      <def id="mx.utils:DensityUtil" />
+      <pre id="Object" />
+      <dep id="AS3" />
+      <dep id="mx.core:DPIClassification" />
+      <dep id="mx.core:RuntimeDPIProvider" />
+      <dep id="mx.core:Singleton" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\locale\zh_CN\button.properties" mod="1525171153668" size="3864" optimizedsize="3665">
+      <def id="en_US$button_properties" />
+      <def id="zh_CN$button_properties" />
+      <pre id="mx.resources:ResourceBundle" />
+      <dep id="AS3" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\libs\CoolFlex.swc(com.cool.assets:CoolAssetsFile_tree_leftIcon)" mod="1201505942000" size="524" optimizedsize="342">
+      <def id="com.cool.assets:CoolAssetsFile_tree_leftIcon" />
+      <pre id="mx.core:BitmapAsset" />
+      <dep id="AS3" />
+    </script>
+    <script name="_class_embed_css_Assets_swf_569979602_MenuCheckDisabled_1203708844.as" mod="1306828826645" size="404" optimizedsize="367">
+      <def id="_class_embed_css_Assets_swf_569979602_MenuCheckDisabled_1203708844" />
+      <pre id="mx.core:SpriteAsset" />
+      <dep id="AS3" />
+    </script>
+    <script name="D:\ProgramFile\Adobe\sdks\4.5.1\frameworks\libs\framework.swc(mx.core:FlexSprite)" mod="1306872041327" size="826" optimizedsize="548">
+      <def id="mx.core:FlexSprite" />
+      <pre id="flash.display:Sprite" />
+      <dep id="AS3" />
+      <dep id="Error" />
+      <dep id="mx.utils:NameUtil" />
+      <dep id="mx.core:mx_internal" />
+    </script>
+    <script name="dmddweb__embed_mxml_dmdd_dmddassets_images_login_GIF_420481079.as" mod="1525171154137" size="346" optimizedsize="313">
+      <def id="dmddweb__embed_mxml_dmdd_dmddassets_images_login_GIF_420481079" />
+      <pre id="mx.core:BitmapAsset" />
+      <dep id="AS3" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\libs\CoolFlex.swc(com.cool.assets:CoolAssetsFile_sort_ascIcon)" mod="1201505942000" size="520" optimizedsize="340">
+      <def id="com.cool.assets:CoolAssetsFile_sort_ascIcon" />
+      <pre id="mx.core:BitmapAsset" />
+      <dep id="AS3" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\locale\zh_CN\menu.properties" mod="1525171153626" size="10791" optimizedsize="10379">
+      <def id="en_US$menu_properties" />
+      <def id="zh_CN$menu_properties" />
+      <pre id="mx.resources:ResourceBundle" />
+      <dep id="AS3" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\src\dmdd\dmddas\dataaccess\bizobject\BOperatorUserProOrg.as" mod="1525171156620" size="1574" optimizedsize="1443">
+      <def id="dmdd.dmddas.dataaccess.bizobject:BOperatorUserProOrg" />
+      <pre id="flash.events:IEventDispatcher" />
+      <pre id="Object" />
+      <dep id="AS3" />
+      <dep id="flash.events:EventDispatcher" />
+      <dep id="dmdd.dmddas.dataaccess.bizobject:BOperatorUser" />
+      <dep id="mx.events:PropertyChangeEvent" />
+      <dep id="dmdd.dmddas.dataaccess.bizobject:BOrganization" />
+      <dep id="dmdd.dmddas.dataaccess.bizobject:BProduct" />
+      <dep id="dmdd.dmddas.common.constant:SysConst" />
+      <dep id="flash.events:Event" />
+    </script>
+    <script name="D:\ProgramFile\Adobe\sdks\4.5.1\frameworks\libs\textLayout.swc(flashx.textLayout.compose:ISWFContext)" mod="1295643053953" size="679" optimizedsize="234">
+      <def id="flashx.textLayout.compose:ISWFContext" />
+      <pre id="Object" />
+      <dep id="AS3" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\libs\CoolFlex.swc(_com_cool_utils_AlertUtilWatcherSetupUtil)" mod="1501383998630" size="912" optimizedsize="517">
+      <def id="_com_cool_utils_AlertUtilWatcherSetupUtil" />
+      <pre id="mx.binding:IWatcherSetupUtil2" />
+      <pre id="Object" />
+      <dep id="com.cool.utils:AlertUtil" />
+      <dep id="AS3" />
+      <dep id="mx.core:IFlexModuleFactory" />
+      <dep id="mx.binding:PropertyWatcher" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\src\dmdd\dmddas\dataaccess\bizobject\BBizData.as" mod="1525171156593" size="2611" optimizedsize="2458">
+      <def id="dmdd.dmddas.dataaccess.bizobject:BBizData" />
+      <pre id="flash.events:IEventDispatcher" />
+      <pre id="Object" />
+      <dep id="dmdd.dmddas.dataaccess.bizobject:BBizDataDefItem" />
+      <dep id="AS3" />
+      <dep id="dmdd.dmddas.common.constant:BizConst" />
+      <dep id="flash.events:EventDispatcher" />
+      <dep id="mx.collections:ArrayCollection" />
+      <dep id="mx.events:PropertyChangeEvent" />
+      <dep id="dmdd.dmddas.common.constant:SysConst" />
+      <dep id="dmdd.dmddas.dataaccess.utils:UtilFactoryBizDataDefItem" />
+      <dep id="flash.events:Event" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\libs\CoolFlex.swc(com.cool.assets:CoolAssetsFile_personIcon)" mod="1104402908000" size="512" optimizedsize="336">
+      <def id="com.cool.assets:CoolAssetsFile_personIcon" />
+      <pre id="mx.core:BitmapAsset" />
+      <dep id="AS3" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\libs\CoolFlex.swc(com.cool.assets:CoolAssetsFile_chart_scatterIcon)" mod="1381890422228" size="540" optimizedsize="350">
+      <def id="com.cool.assets:CoolAssetsFile_chart_scatterIcon" />
+      <pre id="mx.core:BitmapAsset" />
+      <dep id="AS3" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\libs\CoolFlex.swc(com.cool.assets:CoolAssetsFile_startIcon)" mod="1201505940000" size="508" optimizedsize="334">
+      <def id="com.cool.assets:CoolAssetsFile_startIcon" />
+      <pre id="mx.core:BitmapAsset" />
+      <dep id="AS3" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\libs\CoolFlex.swc(com.cool.assets:CoolAssetsFile_chart_lineIcon)" mod="1381889855178" size="528" optimizedsize="344">
+      <def id="com.cool.assets:CoolAssetsFile_chart_lineIcon" />
+      <pre id="mx.core:BitmapAsset" />
+      <dep id="AS3" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\locale\zh_CN\note.properties" mod="1525171153637" size="10535" optimizedsize="10135">
+      <def id="en_US$note_properties" />
+      <def id="zh_CN$note_properties" />
+      <pre id="mx.resources:ResourceBundle" />
+      <dep id="AS3" />
+    </script>
+    <script name="D:\ProgramFile\Adobe\sdks\4.5.1\frameworks\libs\framework.swc(mx.graphics:RectangularDropShadow)" mod="1306872050187" size="6752" optimizedsize="3389">
+      <def id="mx.graphics:RectangularDropShadow" />
+      <pre id="Object" />
+      <dep id="mx.core:FlexShape" />
+      <dep id="AS3" />
+      <dep id="flash.geom:Point" />
+      <dep id="mx.utils:GraphicsUtil" />
+      <dep id="flash.filters:DropShadowFilter" />
+      <dep id="flash.geom:Matrix" />
+      <dep id="flash.display:BitmapData" />
+      <dep id="Math" />
+      <dep id="flash.display:Shape" />
+      <dep id="flash.geom:Rectangle" />
+      <dep id="flash.display:Graphics" />
+      <dep id="mx.core:mx_internal" />
+    </script>
+    <script name="_aks_aksmx_controls_AksOptionsAUWatcherSetupUtil.as" mod="1537890873831" size="1735" optimizedsize="1647">
+      <def id="_aks_aksmx_controls_AksOptionsAUWatcherSetupUtil" />
+      <pre id="mx.binding:IWatcherSetupUtil2" />
+      <pre id="Object" />
+      <dep id="AS3" />
+      <dep id="mx.binding:FunctionReturnWatcher" />
+      <dep id="aks.aksmx.controls:AksOptionsAU" />
+      <dep id="mx.core:IFlexModuleFactory" />
+      <dep id="mx.binding:PropertyWatcher" />
+    </script>
+    <script name="D:\ProgramFile\Adobe\sdks\4.5.1\frameworks\libs\framework.swc(mx.core:RSLItem)" mod="1306872039109" size="2632" optimizedsize="1678">
+      <def id="mx.core:RSLItem" />
+      <pre id="Object" />
+      <dep id="AS3" />
+      <dep id="flash.net:URLRequest" />
+      <dep id="mx.utils:LoaderUtil" />
+      <dep id="mx.core:IFlexModuleFactory" />
+      <dep id="flash.system:ApplicationDomain" />
+      <dep id="flash.events:Event" />
+      <dep id="flash.display:Loader" />
+      <dep id="trace" />
+      <dep id="mx.events:RSLEvent" />
+      <dep id="flash.events:IOErrorEvent" />
+      <dep id="flash.events:ProgressEvent" />
+      <dep id="flash.system:LoaderContext" />
+      <dep id="flash.events:SecurityErrorEvent" />
+      <dep id="mx.core:mx_internal" />
+      <dep id="flash.events:ErrorEvent" />
+    </script>
+    <script name="D:\ProgramFile\Adobe\sdks\4.5.1\frameworks\libs\framework.swc(mx.core:IRawChildrenContainer)" mod="1306872039046" size="443" optimizedsize="178">
+      <def id="mx.core:IRawChildrenContainer" />
+      <pre id="Object" />
+      <dep id="AS3" />
+      <dep id="mx.core:IChildList" />
+    </script>
+    <script name="D:\ProgramFile\Adobe\sdks\4.5.1\frameworks\libs\framework.swc(mx.events:RSLEvent)" mod="1306872054171" size="1357" optimizedsize="835">
+      <def id="mx.events:RSLEvent" />
+      <pre id="flash.events:ProgressEvent" />
+      <dep id="AS3" />
+      <dep id="flash.display:LoaderInfo" />
+      <dep id="flash.net:URLRequest" />
+      <dep id="mx.core:mx_internal" />
+      <dep id="flash.events:Event" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\src\dmdd\dmddas\dataaccess\bizobject\BOrganizationCharacter.as" mod="1525171156933" size="2903" optimizedsize="2728">
+      <def id="dmdd.dmddas.dataaccess.bizobject:BOrganizationCharacter" />
+      <pre id="flash.events:IEventDispatcher" />
+      <pre id="Object" />
+      <dep id="AS3" />
+      <dep id="flash.events:EventDispatcher" />
+      <dep id="mx.collections:ArrayCollection" />
+      <dep id="mx.events:PropertyChangeEvent" />
+      <dep id="dmdd.dmddas.dataaccess.bizobject:BOrganizationCharacterLayer" />
+      <dep id="dmdd.dmddas.common.constant:SysConst" />
+      <dep id="flash.events:Event" />
+    </script>
+    <script name="_class_embed_css_Assets_swf_569979602_TreeNodeIcon_1289041040.as" mod="1306828826645" size="399" optimizedsize="362">
+      <def id="_class_embed_css_Assets_swf_569979602_TreeNodeIcon_1289041040" />
+      <pre id="mx.core:SpriteAsset" />
+      <dep id="AS3" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\libs\CoolFlex.swc(com.cool.assets:CoolAssetsFile_printIcon)" mod="1313640803031" size="508" optimizedsize="334">
+      <def id="com.cool.assets:CoolAssetsFile_printIcon" />
+      <pre id="mx.core:BitmapAsset" />
+      <dep id="AS3" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\locale\zh_CN\sys_exception.properties" mod="1525171153608" size="23031" optimizedsize="22705">
+      <def id="en_US$sys_exception_properties" />
+      <def id="zh_CN$sys_exception_properties" />
+      <pre id="mx.resources:ResourceBundle" />
+      <dep id="AS3" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\src\dmdd\dmddas\dataaccess\bizobject\BOrganization.as" mod="1525171156883" size="3495" optimizedsize="3311">
+      <def id="dmdd.dmddas.dataaccess.bizobject:BOrganization" />
+      <pre id="flash.events:IEventDispatcher" />
+      <pre id="Object" />
+      <dep id="AS3" />
+      <dep id="dmdd.dmddas.dataaccess.bizobject:BDistributionCenter" />
+      <dep id="flash.events:EventDispatcher" />
+      <dep id="dmdd.dmddas.dataaccess.bizobject:BOrganizationLayer" />
+      <dep id="mx.collections:ArrayCollection" />
+      <dep id="dmdd.dmddas.common.system:ClientEnvironment" />
+      <dep id="mx.events:PropertyChangeEvent" />
+      <dep id="dmdd.dmddas.dataaccess.bizobject:BOrganizationOrgCharacter" />
+      <dep id="dmdd.dmddas.common.constant:SysConst" />
+      <dep id="flash.events:Event" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\src\dmdd\dmddmx\skins\MenuBarNoBorderFillSkin.as" mod="1525171159510" size="361" optimizedsize="345">
+      <def id="dmdd.dmddmx.skins:MenuBarNoBorderFillSkin" />
+      <pre id="mx.skins:ProgrammaticSkin" />
+      <dep id="AS3" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\libs\CoolFlex.swc(com.cool.assets:CoolAssetsFile_commentIcon)" mod="1104403070000" size="516" optimizedsize="338">
+      <def id="com.cool.assets:CoolAssetsFile_commentIcon" />
+      <pre id="mx.core:BitmapAsset" />
+      <dep id="AS3" />
+    </script>
+    <script name="_class_embed_css_Assets_swf_569979602_MenuBranchDisabled_552591948.as" mod="1306828826645" size="404" optimizedsize="367">
+      <def id="_class_embed_css_Assets_swf_569979602_MenuBranchDisabled_552591948" />
+      <pre id="mx.core:SpriteAsset" />
+      <dep id="AS3" />
+    </script>
+    <script name="_class_embed_css_assets_ErrorIndicator_png__1047465486_544331096.as" mod="1306828620698" size="343" optimizedsize="310">
+      <def id="_class_embed_css_assets_ErrorIndicator_png__1047465486_544331096" />
+      <pre id="mx.core:BitmapAsset" />
+      <dep id="AS3" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\libs\CoolFlex.swc(com.cool.assets:CoolAssetsFile_exitIcon)" mod="1309341232640" size="504" optimizedsize="332">
+      <def id="com.cool.assets:CoolAssetsFile_exitIcon" />
+      <pre id="mx.core:BitmapAsset" />
+      <dep id="AS3" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\src\aks\aksas\collections\HashMap.as" mod="1525171162676" size="1644" optimizedsize="1607">
+      <def id="aks.aksas.collections:HashMap" />
+      <pre id="aks.aksas.collections:IMap" />
+      <pre id="Object" />
+      <dep id="AS3" />
+      <dep id="flash.utils:Dictionary" />
+      <dep id="mx.collections:ArrayCollection" />
+      <dep id="aks.aksas.collections:IHashMapEntry" />
+      <dep id="aks.aksas.collections:HashMapEntry" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\libs\CoolFlex.swc(com.cool.assets:CoolAssetsFile_importIcon)" mod="1309341232640" size="512" optimizedsize="336">
+      <def id="com.cool.assets:CoolAssetsFile_importIcon" />
+      <pre id="mx.core:BitmapAsset" />
+      <dep id="AS3" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\libs\CoolFlex.swc(com.cool.assets:CoolAssetsFile_to_lastIcon)" mod="1201505942000" size="516" optimizedsize="338">
+      <def id="com.cool.assets:CoolAssetsFile_to_lastIcon" />
+      <pre id="mx.core:BitmapAsset" />
+      <dep id="AS3" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\src\dmdd\dmddas\dataaccess\bizobject\BUnitGroup.as" mod="1525171156645" size="2442" optimizedsize="2290">
+      <def id="dmdd.dmddas.dataaccess.bizobject:BUnitGroup" />
+      <pre id="flash.events:IEventDispatcher" />
+      <pre id="Object" />
+      <dep id="AS3" />
+      <dep id="dmdd.dmddas.common.constant:BizConst" />
+      <dep id="flash.events:EventDispatcher" />
+      <dep id="dmdd.dmddas.dataaccess.bizobject:BUnit" />
+      <dep id="mx.collections:ArrayCollection" />
+      <dep id="mx.events:PropertyChangeEvent" />
+      <dep id="dmdd.dmddas.common.constant:SysConst" />
+      <dep id="flash.events:Event" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\src\dmdd\dmddas\dataaccess\bizobject\BProductProCharacter.as" mod="1525171156725" size="1438" optimizedsize="1311">
+      <def id="dmdd.dmddas.dataaccess.bizobject:BProductProCharacter" />
+      <pre id="flash.events:IEventDispatcher" />
+      <pre id="Object" />
+      <dep id="AS3" />
+      <dep id="flash.events:EventDispatcher" />
+      <dep id="mx.events:PropertyChangeEvent" />
+      <dep id="dmdd.dmddas.dataaccess.bizobject:BProduct" />
+      <dep id="dmdd.dmddas.dataaccess.bizobject:BProductCharacter" />
+      <dep id="dmdd.dmddas.common.constant:SysConst" />
+      <dep id="flash.events:Event" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\locale\zh_CN\alert.properties" mod="1525171153798" size="27628" optimizedsize="27137">
+      <def id="en_US$alert_properties" />
+      <def id="zh_CN$alert_properties" />
+      <pre id="mx.resources:ResourceBundle" />
+      <dep id="AS3" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\libs\flexlib.swc(flexlib.containers:SuperTabNavigator_DEFAULT_CLOSE_UP)" mod="1269246017000" size="981" optimizedsize="415">
+      <def id="flexlib.containers:SuperTabNavigator_DEFAULT_CLOSE_UP" />
+      <pre id="mx.core:SpriteAsset" />
+      <dep id="AS3" />
+    </script>
+    <script name="_dmddweb_Styles.as" mod="1537890876454" size="42634" optimizedsize="41907">
+      <def id="_dmddweb_Styles" />
+      <pre id="Object" />
+      <dep id="mx.skins.halo:ListDropIndicator" />
+      <dep id="mx.skins.halo:MenuBarBackgroundSkin" />
+      <dep id="mx.skins.halo:AccordionHeaderSkin" />
+      <dep id="_class_embed_css_Assets_swf_569979602_mx_skins_cursor_VBoxDivider_878299566" />
+      <dep id="mx.skins.halo:LinkSeparator" />
+      <dep id="spark.skins.spark:ImageSkin" />
+      <dep id="_class_embed_css_Assets_swf_569979602_TreeNodeIcon_1289041040" />
+      <dep id="_class_embed_css_Assets_swf_569979602_mx_skins_cursor_BusyCursor_292436995" />
+      <dep id="spark.components.supportClasses:ListItemDragProxy" />
+      <dep id="mx.styles:IStyleManager2" />
+      <dep id="mx.skins.halo:ScrollTrackSkin" />
+      <dep id="spark.skins.spark:VScrollBarSkin" />
+      <dep id="spark.skins.spark:SkinnableContainerSkin" />
+      <dep id="spark.skins.spark:PanelSkin" />
+      <dep id="_class_embed_css_Assets_swf_569979602_CloseButtonOver_1308238901" />
+      <dep id="_class_embed_css_Assets_swf_569979602_TreeFolderClosed_1240695151" />
+      <dep id="spark.skins.spark:ErrorSkin" />
+      <dep id="_class_embed_css_Assets_swf_569979602_TreeFolderOpen_1344671395" />
+      <dep id="mx.skins.halo:DataGridHeaderBackgroundSkin" />
+      <dep id="_class_embed_css_Assets_swf_569979602_mx_skins_cursor_HBoxDivider_2116575248" />
+      <dep id="spark.skins.spark:DataGridSkin" />
+      <dep id="spark.skins.spark:TextInputSkin" />
+      <dep id="mx.skins.halo:ProgressTrackSkin" />
+      <dep id="spark.skins.spark:ApplicationSkin" />
+      <dep id="mx.skins.halo:NumericStepperUpSkin" />
+      <dep id="_class_embed_css_Assets_swf_569979602_mx_containers_FormItem_Required_1961307308" />
+      <dep id="spark.skins.spark:VideoPlayerSkin" />
+      <dep id="mx.skins.halo:ActivatorSkin" />
+      <dep id="AS3" />
+      <dep id="mx.skins.halo:ColorPickerSkin" />
+      <dep id="spark.skins.spark:DefaultButtonSkin" />
+      <dep id="mx.skins.halo:SliderThumbSkin" />
+      <dep id="mx.skins.halo:TabSkin" />
+      <dep id="mx.skins.halo:DateChooserYearArrowSkin" />
+      <dep id="spark.skins.spark:ComboBoxSkin" />
+      <dep id="mx.skins.halo:ProgressIndeterminateSkin" />
+      <dep id="mx.skins.halo:HaloBorder" />
+      <dep id="mx.skins.halo:DateChooserMonthArrowSkin" />
+      <dep id="mx.skins.halo:ButtonSkin" />
+      <dep id="mx.skins.halo:DefaultDragImage" />
+      <dep id="_class_embed_css_Assets_swf_569979602_TreeDisclosureOpen_1783642532" />
+      <dep id="_class_embed_css_Assets_swf_569979602_mx_skins_cursor_DragLink_610878434" />
+      <dep id="spark.skins.spark.mediaClasses.normal:VolumeBarSkin" />
+      <dep id="_class_embed_css_Assets_swf_569979602___brokenImage_853624595" />
+      <dep id="_class_embed_css_Assets_swf_569979602_MenuBranchEnabled_1415727943" />
+      <dep id="mx.skins.halo:PopUpButtonSkin" />
+      <dep id="mx.skins.halo:RadioButtonIcon" />
+      <dep id="mx.skins.halo:LinkButtonSkin" />
+      <dep id="_class_embed_css_Assets_swf_569979602_MenuBranchDisabled_552591948" />
+      <dep id="spark.skins.spark:BorderContainerSkin" />
+      <dep id="spark.skins.spark:RadioButtonSkin" />
+      <dep id="_class_embed_css_Assets_swf_569979602_mx_skins_cursor_DragCopy_610616429" />
+      <dep id="mx.skins.halo:CheckBoxIcon" />
+      <dep id="spark.skins.spark:VSliderSkin" />
+      <dep id="mx.skins.halo:DateChooserIndicator" />
+      <dep id="mx.skins.halo:ProgressBarSkin" />
+      <dep id="spark.skins.spark:ToggleButtonSkin" />
+      <dep id="spark.skins.spark:SkinnablePopUpContainerSkin" />
+      <dep id="_class_embed_css_Assets_swf_569979602_MenuCheckDisabled_1203708844" />
+      <dep id="mx.skins.halo:ProgressMaskSkin" />
+      <dep id="spark.skins.spark:HSliderSkin" />
+      <dep id="_class_embed_css_Assets_swf_569979602_CloseButtonUp_235354284" />
+      <dep id="spark.skins.spark:TextAreaSkin" />
+      <dep id="spark.skins.spark:DropDownListSkin" />
+      <dep id="_class_embed_css_Assets_swf_569979602_mx_skins_cursor_DragReject_876636105" />
+      <dep id="mx.skins.halo:ApplicationBackground" />
+      <dep id="spark.skins.spark:FocusSkin" />
+      <dep id="spark.skins.spark:FormItemSkin" />
+      <dep id="spark.skins.spark:HScrollBarSkin" />
+      <dep id="mx.skins.halo:SliderTrackSkin" />
+      <dep id="mx.skins.halo:ScrollArrowSkin" />
+      <dep id="spark.skins.spark:ScrollerSkin" />
+      <dep id="_class_embed_css_Assets_swf_569979602_mx_skins_cursor_DragMove_610904009" />
+      <dep id="mx.skins.halo:ComboBoxArrowSkin" />
+      <dep id="mx.styles:CSSSelector" />
+      <dep id="spark.skins.spark.mediaClasses.normal:MuteButtonSkin" />
+      <dep id="_class_embed_css_assets_RequiredIndicator_png__1302083301_1875546551" />
+      <dep id="mx.skins.halo:TitleBackground" />
+      <dep id="spark.skins.spark:FormSkin" />
+      <dep id="mx.skins.halo:SliderHighlightSkin" />
+      <dep id="mx.skins.halo:BusyCursor" />
+      <dep id="spark.skins.spark:SkinnableDataContainerSkin" />
+      <dep id="mx.skins.halo:ScrollThumbSkin" />
+      <dep id="_class_embed_css_Assets_swf_569979602_CloseButtonDown_1472408867" />
+      <dep id="mx.skins.halo:HaloFocusRect" />
+      <dep id="spark.skins.spark:ButtonSkin" />
+      <dep id="_class_embed_css_Assets_swf_569979602_mx_skins_BoxDividerSkin_1333810061" />
+      <dep id="spark.skins.spark:TabBarSkin" />
+      <dep id="mx.skins.halo:WindowBackground" />
+      <dep id="mx.skins.halo:DataGridSortArrow" />
+      <dep id="mx.skins.halo:DataGridColumnDropIndicator" />
+      <dep id="_class_embed_css_Assets_swf_569979602_TreeDisclosureClosed_1368319554" />
+      <dep id="mx.core:mx_internal" />
+      <dep id="mx.core:IFlexModuleFactory" />
+      <dep id="spark.skins.spark:SpinnerSkin" />
+      <dep id="_class_embed_css_Assets_swf_569979602_MenuSeparator_1460423827" />
+      <dep id="mx.skins.halo:DataGridHeaderSeparator" />
+      <dep id="mx.skins.halo:PopUpIcon" />
+      <dep id="mx.styles:CSSStyleDeclaration" />
+      <dep id="spark.skins.spark:TitleWindowSkin" />
+      <dep id="mx.skins.halo:ToolTipBorder" />
+      <dep id="_class_embed_css_assets_ErrorIndicator_png__1047465486_544331096" />
+      <dep id="mx.skins.halo:BrokenImageBorderSkin" />
+      <dep id="spark.skins.spark:ButtonBarSkin" />
+      <dep id="_class_embed_css_Assets_swf_569979602_cursorStretch_1668984570" />
+      <dep id="mx.skins.halo:PopUpMenuIcon" />
+      <dep id="_class_embed_css_Assets_swf_569979602_CloseButtonDisabled_1121432563" />
+      <dep id="_class_embed_css_Assets_swf_569979602_MenuRadioDisabled_92833647" />
+      <dep id="mx.core:UITextField" />
+      <dep id="spark.skins.spark:FormHeadingSkin" />
+      <dep id="spark.skins.spark.mediaClasses.normal:ScrubBarSkin" />
+      <dep id="mx.skins.halo:DataGridColumnResizeSkin" />
+      <dep id="mx.styles:CSSCondition" />
+      <dep id="mx.skins.halo:NumericStepperDownSkin" />
+      <dep id="mx.skins.halo:PanelSkin" />
+      <dep id="_class_embed_css_Assets_swf_569979602_MenuRadioEnabled_1738544684" />
+      <dep id="spark.skins.spark:ListDropIndicator" />
+      <dep id="_class_embed_css_Assets_swf_569979602_MenuCheckEnabled_442314929" />
+      <dep id="spark.skins.spark:NumericStepperSkin" />
+      <dep id="_class_embed_css_Assets_swf_569979602_openDateOver_1326298435" />
+      <dep id="spark.skins.spark:CheckBoxSkin" />
+      <dep id="mx.skins.halo:ButtonBarButtonSkin" />
+      <dep id="spark.skins.spark:ListSkin" />
+    </script>
+    <script name="D:\ProgramFile\Adobe\sdks\4.5.1\frameworks\libs\framework.swc(mx.resources:IResourceBundle)" mod="1306872057390" size="636" optimizedsize="221">
+      <def id="mx.resources:IResourceBundle" />
+      <pre id="Object" />
+      <dep id="AS3" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\libs\CoolFlex.swc(com.cool.assets:CoolAssetsFile_editIcon)" mod="1201505942000" size="504" optimizedsize="332">
+      <def id="com.cool.assets:CoolAssetsFile_editIcon" />
+      <pre id="mx.core:BitmapAsset" />
+      <dep id="AS3" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\libs\CoolFlex.swc(com.cool.assets:CoolAssetsFile_deleteIcon)" mod="1104403054000" size="512" optimizedsize="336">
+      <def id="com.cool.assets:CoolAssetsFile_deleteIcon" />
+      <pre id="mx.core:BitmapAsset" />
+      <dep id="AS3" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\libs\flexlib.swc(flexlib.controls:ScrollableMenu)" mod="1269826624000" size="8124" optimizedsize="5054">
+      <def id="flexlib.controls:ScrollableMenu" />
+      <pre id="mx.controls:Menu" />
+      <dep id="AS3" />
+      <dep id="mx.managers:PopUpManager" />
+      <dep id="Math" />
+      <dep id="flash.events:MouseEvent" />
+      <dep id="mx.collections:ICollectionView" />
+      <dep id="flash.events:Event" />
+      <dep id="flash.utils:clearInterval" />
+      <dep id="flash.display:DisplayObjectContainer" />
+      <dep id="flash.geom:Point" />
+      <dep id="mx.events:ScrollEvent" />
+      <dep id="mx.core:EdgeMetrics" />
+      <dep id="mx.core:ScrollPolicy" />
+      <dep id="mx.core:Application" />
+      <dep id="mx.controls.menuClasses:IMenuItemRenderer" />
+      <dep id="mx.controls.listClasses:IListItemRenderer" />
+      <dep id="mx.core:mx_internal" />
+    </script>
+    <script name="_class_embed_css_Assets_swf_569979602_MenuRadioEnabled_1738544684.as" mod="1306828826645" size="403" optimizedsize="366">
+      <def id="_class_embed_css_Assets_swf_569979602_MenuRadioEnabled_1738544684" />
+      <pre id="mx.core:SpriteAsset" />
+      <dep id="AS3" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\libs\CoolFlex.swc(com.cool.assets:CoolAssetsFile_triangle_rightIcon)" mod="1201505940000" size="544" optimizedsize="352">
+      <def id="com.cool.assets:CoolAssetsFile_triangle_rightIcon" />
+      <pre id="mx.core:BitmapAsset" />
+      <dep id="AS3" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\src\dmdd\dmddas\dataaccess\bizobject\BOperatorUser.as" mod="1525171156954" size="5409" optimizedsize="5167">
+      <def id="dmdd.dmddas.dataaccess.bizobject:BOperatorUser" />
+      <pre id="flash.events:IEventDispatcher" />
+      <pre id="Object" />
+      <dep id="AS3" />
+      <dep id="flash.events:EventDispatcher" />
+      <dep id="mx.collections:ArrayCollection" />
+      <dep id="mx.events:PropertyChangeEvent" />
+      <dep id="dmdd.dmddas.dataaccess.bizobject:BOperatorUserProOrg" />
+      <dep id="dmdd.dmddas.dataaccess.bizobject:BOperatorUserBizData" />
+      <dep id="dmdd.dmddas.dataaccess.bizobject:BOperatorUserFunPermission" />
+      <dep id="dmdd.dmddas.common.constant:SysConst" />
+      <dep id="Date" />
+      <dep id="flash.events:Event" />
+    </script>
+    <script name="D:\ProgramFile\Adobe\sdks\4.5.1\frameworks\locale\zh_CN\framework_rb.swc$locale/zh_CN/modules.properties" mod="1306828900855" size="486" optimizedsize="449">
+      <def id="zh_CN$modules_properties" />
+      <def id="en_US$modules_properties" />
+      <pre id="mx.resources:ResourceBundle" />
+      <dep id="AS3" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\libs\CoolFlex.swc(com.cool.assets:CoolAssetsFile_abcIcon)" mod="1201505942000" size="500" optimizedsize="330">
+      <def id="com.cool.assets:CoolAssetsFile_abcIcon" />
+      <pre id="mx.core:BitmapAsset" />
+      <dep id="AS3" />
+    </script>
+    <script name="D:\ProgramFile\Adobe\sdks\4.5.1\frameworks\libs\framework.swc(mx.events:ResourceEvent)" mod="1306872053890" size="976" optimizedsize="571">
+      <def id="mx.events:ResourceEvent" />
+      <pre id="flash.events:ProgressEvent" />
+      <dep id="AS3" />
+      <dep id="mx.core:mx_internal" />
+      <dep id="flash.events:Event" />
+    </script>
+    <script name="D:\ProgramFile\Adobe\sdks\4.5.1\frameworks\libs\framework.swc(mx.resources:IResourceManager)" mod="1306872057390" size="3482" optimizedsize="1039">
+      <def id="mx.resources:IResourceManager" />
+      <pre id="flash.events:IEventDispatcher" />
+      <pre id="Object" />
+      <dep id="AS3" />
+      <dep id="mx.resources:IResourceBundle" />
+      <dep id="flash.system:SecurityDomain" />
+      <dep id="flash.system:ApplicationDomain" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\libs\CoolFlex.swc(com.cool.assets:CoolAssetsFile_optsetIcon)" mod="1356791555425" size="512" optimizedsize="336">
+      <def id="com.cool.assets:CoolAssetsFile_optsetIcon" />
+      <pre id="mx.core:BitmapAsset" />
+      <dep id="AS3" />
+    </script>
+    <script name="D:\ProgramFile\Adobe\sdks\4.5.1\frameworks\libs\framework.swc(mx.core:IUIComponent)" mod="1306872041202" size="4393" optimizedsize="1152">
+      <def id="mx.core:IUIComponent" />
+      <pre id="Object" />
+      <pre id="mx.core:IFlexDisplayObject" />
+      <dep id="flash.display:DisplayObject" />
+      <dep id="AS3" />
+      <dep id="flash.display:DisplayObjectContainer" />
+      <dep id="mx.managers:ISystemManager" />
+      <dep id="flash.display:Sprite" />
+    </script>
+    <script name="_class_embed_css_Assets_swf_569979602___brokenImage_853624595.as" mod="1306828826645" size="399" optimizedsize="362">
+      <def id="_class_embed_css_Assets_swf_569979602___brokenImage_853624595" />
+      <pre id="mx.core:SpriteAsset" />
+      <dep id="AS3" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\src\dmdd\dmddmx\skins\MenuBarActiveSkin.as" mod="1525171159517" size="561" optimizedsize="540">
+      <def id="dmdd.dmddmx.skins:MenuBarActiveSkin" />
+      <pre id="mx.skins:ProgrammaticSkin" />
+      <dep id="AS3" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\libs\flexlib.swc(flexlib.controls:SuperTabBar_DEFAULT_CLOSE_UP)" mod="1269246017000" size="935" optimizedsize="399">
+      <def id="flexlib.controls:SuperTabBar_DEFAULT_CLOSE_UP" />
+      <pre id="mx.core:SpriteAsset" />
+      <dep id="AS3" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\src\dmdd\dmddas\dataaccess\bizobject\BSysPeriod.as" mod="1525171156819" size="2180" optimizedsize="2038">
+      <def id="dmdd.dmddas.dataaccess.bizobject:BSysPeriod" />
+      <pre id="flash.events:IEventDispatcher" />
+      <pre id="Object" />
+      <dep id="AS3" />
+      <dep id="flash.events:EventDispatcher" />
+      <dep id="mx.events:PropertyChangeEvent" />
+      <dep id="dmdd.dmddas.common.constant:SysConst" />
+      <dep id="flash.events:Event" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\src\dmdd\dmddas\dataaccess\bizobject\BBizDataDefItemHistoryAdR.as" mod="1525171156630" size="852" optimizedsize="732">
+      <def id="dmdd.dmddas.dataaccess.bizobject:BBizDataDefItemHistoryAdR" />
+      <pre id="dmdd.dmddas.dataaccess.bizobject:BBizDataDefItem" />
+      <pre id="flash.events:IEventDispatcher" />
+      <dep id="dmdd.dmddas.dataaccess.bizobject:BBizData" />
+      <dep id="AS3" />
+      <dep id="dmdd.dmddas.common.constant:BizConst" />
+      <dep id="mx.events:PropertyChangeEvent" />
+    </script>
+    <script name="_class_embed_css_Assets_swf_569979602_mx_skins_cursor_DragLink_610878434.as" mod="1306828826645" size="410" optimizedsize="373">
+      <def id="_class_embed_css_Assets_swf_569979602_mx_skins_cursor_DragLink_610878434" />
+      <pre id="mx.core:SpriteAsset" />
+      <dep id="AS3" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\src\dmdd\dmddas\common\utils\UtilOrganization.as" mod="1525171155071" size="3371" optimizedsize="3227">
+      <def id="dmdd.dmddas.common.utils:UtilOrganization" />
+      <pre id="Object" />
+      <dep id="mx.formatters:DateFormatter" />
+      <dep id="dmdd.dmddas.common.constant:UIConst" />
+      <dep id="AS3" />
+      <dep id="dmdd.dmddas.dataaccess.bizobject:BOrganizationCharacter" />
+      <dep id="dmdd.dmddas.common.constant:BizConst" />
+      <dep id="dmdd.dmddas.common.utils:UtilOrganizationCharacter" />
+      <dep id="dmdd.dmddas.dataaccess.bizobject:BOrganizationLayer" />
+      <dep id="mx.collections:ArrayCollection" />
+      <dep id="dmdd.dmddas.common.system:ClientEnvironment" />
+      <dep id="dmdd.dmddas.dataaccess.bizobject:BOrganizationOrgCharacter" />
+      <dep id="dmdd.dmddas.dataaccess.bizobject:BOrganization" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\libs\CoolFlex.swc(com.cool.events:BasicEvent)" mod="1386819575676" size="973" optimizedsize="582">
+      <def id="com.cool.events:BasicEvent" />
+      <pre id="flash.events:Event" />
+      <dep id="AS3" />
+    </script>
+    <script name="D:\ProgramFile\Adobe\sdks\4.5.1\frameworks\libs\framework.swc(mx.core:IRepeaterClient)" mod="1306872039140" size="1116" optimizedsize="321">
+      <def id="mx.core:IRepeaterClient" />
+      <pre id="Object" />
+      <dep id="AS3" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\src\dmdd\dmddas\dataaccess\bizobject\BOperatorUserFunPermission.as" mod="1525171156913" size="1461" optimizedsize="1328">
+      <def id="dmdd.dmddas.dataaccess.bizobject:BOperatorUserFunPermission" />
+      <pre id="flash.events:IEventDispatcher" />
+      <pre id="Object" />
+      <dep id="AS3" />
+      <dep id="flash.events:EventDispatcher" />
+      <dep id="dmdd.dmddas.dataaccess.bizobject:BOperatorUser" />
+      <dep id="mx.events:PropertyChangeEvent" />
+      <dep id="dmdd.dmddas.common.constant:SysConst" />
+      <dep id="dmdd.dmddas.dataaccess.bizobject:BFunPermission" />
+      <dep id="flash.events:Event" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\src\aks\aksmx\containers\AksControlBar.mxml" mod="1525171162882" size="2030" optimizedsize="1972">
+      <def id="aks.aksmx.containers:AksControlBar" />
+      <pre id="spark.components:BorderContainer" />
+      <dep id="AS3" />
+      <dep id="spark.layouts:HorizontalLayout" />
+      <dep id="mx.styles:CSSStyleDeclaration" />
+      <dep id="mx.core:IFlexModuleFactory" />
+      <dep id="mx.core:mx_internal" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\libs\flexlib.swc(flexlib.containers:ButtonScrollingCanvas_DEFAULT_LEFT_BUTTON)" mod="1269246017000" size="1013" optimizedsize="429">
+      <def id="flexlib.containers:ButtonScrollingCanvas_DEFAULT_LEFT_BUTTON" />
+      <pre id="mx.core:SpriteAsset" />
+      <dep id="AS3" />
+    </script>
+    <script name="D:\ProgramFile\Adobe\sdks\4.5.1\frameworks\libs\framework.swc(mx.core:CrossDomainRSLItem)" mod="1306872039187" size="4129" optimizedsize="2675">
+      <def id="mx.core:CrossDomainRSLItem" />
+      <pre id="mx.core:RSLItem" />
+      <dep id="AS3" />
+      <dep id="flash.net:URLLoader" />
+      <dep id="flash.net:URLRequest" />
+      <dep id="mx.utils:LoaderUtil" />
+      <dep id="mx.core:IFlexModuleFactory" />
+      <dep id="flash.system:ApplicationDomain" />
+      <dep id="flash.utils:ByteArray" />
+      <dep id="mx.core:RSLData" />
+      <dep id="flash.events:Event" />
+      <dep id="flash.display:Loader" />
+      <dep id="trace" />
+      <dep id="flash.net:URLLoaderDataFormat" />
+      <dep id="mx.events:RSLEvent" />
+      <dep id="flash.events:IOErrorEvent" />
+      <dep id="flash.events:ProgressEvent" />
+      <dep id="mx.utils:SHA256" />
+      <dep id="flash.system:Security" />
+      <dep id="flash.system:LoaderContext" />
+      <dep id="flash.events:SecurityErrorEvent" />
+      <dep id="flash.events:ErrorEvent" />
+      <dep id="mx.core:mx_internal" />
+    </script>
+    <script name="D:\ProgramFile\Adobe\sdks\4.5.1\frameworks\locale\zh_CN\framework_rb.swc$locale/zh_CN/effects.properties" mod="1306828900855" size="644" optimizedsize="605">
+      <def id="zh_CN$effects_properties" />
+      <def id="en_US$effects_properties" />
+      <pre id="mx.resources:ResourceBundle" />
+      <dep id="AS3" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\locale\zh_CN\label.properties" mod="1537877914260" size="12311" optimizedsize="11847">
+      <def id="en_US$label_properties" />
+      <def id="zh_CN$label_properties" />
+      <pre id="mx.resources:ResourceBundle" />
+      <dep id="AS3" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\libs\flexlib.swc(flexlib.controls:SuperTabBar_DEFAULT_INDICATOR)" mod="1269246017000" size="933" optimizedsize="401">
+      <def id="flexlib.controls:SuperTabBar_DEFAULT_INDICATOR" />
+      <pre id="mx.core:SpriteAsset" />
+      <dep id="AS3" />
+    </script>
+    <script name="D:\ProgramFile\Adobe\sdks\4.5.1\frameworks\locale\zh_CN\spark_rb.swc$locale/zh_CN/components.properties" mod="1306828670875" size="7124" optimizedsize="6998">
+      <def id="en_US$components_properties" />
+      <def id="zh_CN$components_properties" />
+      <pre id="mx.resources:ResourceBundle" />
+      <dep id="AS3" />
+    </script>
+    <script name="_class_embed_css_assets_RequiredIndicator_png__1302083301_1875546551.as" mod="1306828620699" size="347" optimizedsize="314">
+      <def id="_class_embed_css_assets_RequiredIndicator_png__1302083301_1875546551" />
+      <pre id="mx.core:BitmapAsset" />
+      <dep id="AS3" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\libs\CoolFlex.swc(com.cool.assets:CoolAssetsFile_triangle_leftIcon)" mod="1201505942000" size="540" optimizedsize="350">
+      <def id="com.cool.assets:CoolAssetsFile_triangle_leftIcon" />
+      <pre id="mx.core:BitmapAsset" />
+      <dep id="AS3" />
+    </script>
+    <script name="D:\ProgramFile\Adobe\sdks\4.5.1\frameworks\libs\framework.swc(mx.core:mx_internal)" mod="1306872039530" size="184" optimizedsize="109">
+      <def id="mx.core:mx_internal" />
+      <dep id="AS3" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\libs\CoolFlex.swc(com.cool.vo:MetadataTempletVO)" mod="1386819575934" size="3773" optimizedsize="1949">
+      <def id="com.cool.vo:MetadataTempletVO" />
+      <pre id="flash.events:IEventDispatcher" />
+      <pre id="Object" />
+      <dep id="AS3" />
+      <dep id="flash.events:EventDispatcher" />
+      <dep id="XML" />
+      <dep id="mx.events:PropertyChangeEvent" />
+      <dep id="Date" />
+      <dep id="flash.events:Event" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\libs\flexlib.swc(flexlib.containers:SuperTabNavigator_DEFAULT_CLOSE_OVER)" mod="1269246017000" size="993" optimizedsize="419">
+      <def id="flexlib.containers:SuperTabNavigator_DEFAULT_CLOSE_OVER" />
+      <pre id="mx.core:SpriteAsset" />
+      <dep id="AS3" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\libs\CoolFlex.swc(com.cool.assets:CoolAssetsFile_chart_pieIcon)" mod="1381890335663" size="524" optimizedsize="342">
+      <def id="com.cool.assets:CoolAssetsFile_chart_pieIcon" />
+      <pre id="mx.core:BitmapAsset" />
+      <dep id="AS3" />
+    </script>
+    <script name="D:\ProgramFile\Adobe\sdks\4.5.1\frameworks\locale\zh_CN\rpc_rb.swc$locale/zh_CN/collections.properties" mod="1306828900872" size="2294" optimizedsize="2223">
+      <def id="en_US$collections_properties" />
+      <def id="zh_CN$collections_properties" />
+      <pre id="mx.resources:ResourceBundle" />
+      <dep id="AS3" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\libs\CoolFlex.swc(com.cool.assets:CoolAssetsFile_calendarIcon)" mod="1104403080000" size="520" optimizedsize="340">
+      <def id="com.cool.assets:CoolAssetsFile_calendarIcon" />
+      <pre id="mx.core:BitmapAsset" />
+      <dep id="AS3" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\libs\CoolFlex.swc(com.cool.assets:CoolAssetsFile_arrow_nextIcon)" mod="1273040494000" size="528" optimizedsize="344">
+      <def id="com.cool.assets:CoolAssetsFile_arrow_nextIcon" />
+      <pre id="mx.core:BitmapAsset" />
+      <dep id="AS3" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\src\dmdd\dmddas\dataaccess\bizobject\BBizDataDefItemMoney.as" mod="1525171156625" size="963" optimizedsize="843">
+      <def id="dmdd.dmddas.dataaccess.bizobject:BBizDataDefItemMoney" />
+      <pre id="dmdd.dmddas.dataaccess.bizobject:BBizDataDefItem" />
+      <pre id="flash.events:IEventDispatcher" />
+      <dep id="dmdd.dmddas.dataaccess.bizobject:BBizData" />
+      <dep id="AS3" />
+      <dep id="dmdd.dmddas.common.constant:BizConst" />
+      <dep id="mx.events:PropertyChangeEvent" />
+    </script>
+    <script name="D:\ProgramFile\Adobe\sdks\4.5.1\frameworks\locale\zh_CN\rpc_rb.swc$locale/zh_CN/styles.properties" mod="1306828900872" size="482" optimizedsize="445">
+      <def id="en_US$styles_properties" />
+      <def id="zh_CN$styles_properties" />
+      <pre id="mx.resources:ResourceBundle" />
+      <dep id="AS3" />
+    </script>
+    <script name="_class_embed_css_Assets_swf_569979602_mx_skins_cursor_DragMove_610904009.as" mod="1306828826645" size="410" optimizedsize="373">
+      <def id="_class_embed_css_Assets_swf_569979602_mx_skins_cursor_DragMove_610904009" />
+      <pre id="mx.core:SpriteAsset" />
+      <dep id="AS3" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\src\dmdd\dmddas\dataaccess\bizobject\BOperatorUserBizData.as" mod="1525171156951" size="1731" optimizedsize="1592">
+      <def id="dmdd.dmddas.dataaccess.bizobject:BOperatorUserBizData" />
+      <pre id="flash.events:IEventDispatcher" />
+      <pre id="Object" />
+      <dep id="dmdd.dmddas.dataaccess.bizobject:BBizData" />
+      <dep id="AS3" />
+      <dep id="dmdd.dmddas.common.constant:BizConst" />
+      <dep id="flash.events:EventDispatcher" />
+      <dep id="dmdd.dmddas.dataaccess.bizobject:BOperatorUser" />
+      <dep id="mx.events:PropertyChangeEvent" />
+      <dep id="dmdd.dmddas.common.constant:SysConst" />
+      <dep id="flash.events:Event" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\src\dmdd\dmddas\dataaccess\bizobject\BBizDataDefItemMoneyComb.as" mod="1525171156941" size="994" optimizedsize="870">
+      <def id="dmdd.dmddas.dataaccess.bizobject:BBizDataDefItemMoneyComb" />
+      <pre id="dmdd.dmddas.dataaccess.bizobject:BBizDataDefItem" />
+      <pre id="flash.events:IEventDispatcher" />
+      <dep id="dmdd.dmddas.dataaccess.bizobject:BBizData" />
+      <dep id="AS3" />
+      <dep id="dmdd.dmddas.common.constant:BizConst" />
+      <dep id="mx.events:PropertyChangeEvent" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\src\dmdd\dmddas\dataaccess\utils\UtilFactoryBizDataDefItem.as" mod="1525171155283" size="955" optimizedsize="921">
+      <def id="dmdd.dmddas.dataaccess.utils:UtilFactoryBizDataDefItem" />
+      <pre id="Object" />
+      <dep id="dmdd.dmddas.dataaccess.bizobject:BBizDataDefItem" />
+      <dep id="AS3" />
+      <dep id="dmdd.dmddas.dataaccess.bizobject:BBizDataDefItemTimeFc" />
+      <dep id="dmdd.dmddas.dataaccess.bizobject:BBizDataDefItemFcComb" />
+      <dep id="dmdd.dmddas.dataaccess.bizobject:BBizDataDefItemMoney" />
+      <dep id="dmdd.dmddas.dataaccess.bizobject:BBizDataDefItemFcHand" />
+      <dep id="dmdd.dmddas.dataaccess.bizobject:BBizDataDefItemHistoryAdR" />
+      <dep id="dmdd.dmddas.dataaccess.bizobject:BBizDataDefItemAddHis" />
+      <dep id="dmdd.dmddas.dataaccess.bizobject:BBizDataDefItemKpi" />
+      <dep id="dmdd.dmddas.dataaccess.bizobject:BBizDataDefItemAvgHis" />
+      <dep id="dmdd.dmddas.dataaccess.bizobject:BBizDataDefItemAddFc" />
+      <dep id="dmdd.dmddas.dataaccess.bizobject:BBizDataDefItemPeriodVersion" />
+      <dep id="dmdd.dmddas.dataaccess.bizobject:BBizDataDefItemForecastAssessment" />
+      <dep id="dmdd.dmddas.dataaccess.bizobject:BBizDataDefItemMoneyComb" />
+      <dep id="dmdd.dmddas.dataaccess.bizobject:BBizDataDefItemHistoryAd" />
+      <dep id="dmdd.dmddas.dataaccess.bizobject:BBizDataDefItemTimeHis" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\libs\CoolFlex.swc(com.cool.assets:CoolAssetsFile)" mod="1402040671846" size="6961" optimizedsize="4862">
+      <def id="com.cool.assets:CoolAssetsFile" />
+      <pre id="Object" />
+      <dep id="com.cool.assets:CoolAssetsFile_arrow_nextIcon" />
+      <dep id="com.cool.assets:CoolAssetsFile_aggregationIcon" />
+      <dep id="com.cool.assets:CoolAssetsFile_chart_pieIcon" />
+      <dep id="com.cool.assets:CoolAssetsFile_savereturnIcon" />
+      <dep id="com.cool.assets:CoolAssetsFile_triangle_rightIcon" />
+      <dep id="com.cool.assets:CoolAssetsFile_arrow_lastIcon" />
+      <dep id="com.cool.assets:CoolAssetsFile_warnIcon" />
+      <dep id="com.cool.assets:CoolAssetsFile_floppyIcon" />
+      <dep id="com.cool.assets:CoolAssetsFile_arrow_downIcon" />
+      <dep id="com.cool.assets:CoolAssetsFile_queryIcon" />
+      <dep id="com.cool.assets:CoolAssetsFile_returnIcon" />
+      <dep id="com.cool.assets:CoolAssetsFile_save_allIcon" />
+      <dep id="com.cool.assets:CoolAssetsFile_mailIcon" />
+      <dep id="com.cool.assets:CoolAssetsFile_chart_barIcon" />
+      <dep id="com.cool.assets:CoolAssetsFile_designIcon" />
+      <dep id="com.cool.assets:CoolAssetsFile_calendarIcon" />
+      <dep id="com.cool.assets:CoolAssetsFile_plusIcon" />
+      <dep id="com.cool.assets:CoolAssetsFile_commentIcon" />
+      <dep id="com.cool.assets:CoolAssetsFile_videoIcon" />
+      <dep id="com.cool.assets:CoolAssetsFile_search_goIcon" />
+      <dep id="com.cool.assets:CoolAssetsFile_saveIcon" />
+      <dep id="com.cool.assets:CoolAssetsFile_expandIcon" />
+      <dep id="com.cool.assets:CoolAssetsFile_newIcon" />
+      <dep id="com.cool.assets:CoolAssetsFile_questionIcon" />
+      <dep id="com.cool.assets:CoolAssetsFile_doctableIcon" />
+      <dep id="com.cool.assets:CoolAssetsFile_refresh3Icon" />
+      <dep id="com.cool.assets:CoolAssetsFile_tree_sigIcon" />
+      <dep id="com.cool.assets:CoolAssetsFile_to_lastIcon" />
+      <dep id="com.cool.assets:CoolAssetsFile_z_warningIcon" />
+      <dep id="com.cool.assets:CoolAssetsFile_editIcon" />
+      <dep id="com.cool.assets:CoolAssetsFile_addIcon" />
+      <dep id="com.cool.assets:CoolAssetsFile_arrow_leftIcon" />
+      <dep id="com.cool.assets:CoolAssetsFile_double_rightIcon" />
+      <dep id="com.cool.assets:CoolAssetsFile_deleteIcon" />
+      <dep id="com.cool.assets:CoolAssetsFile_personIcon" />
+      <dep id="com.cool.assets:CoolAssetsFile_z_infoIcon" />
+      <dep id="com.cool.assets:CoolAssetsFile_importIcon" />
+      <dep id="com.cool.assets:CoolAssetsFile_triangle_leftIcon" />
+      <dep id="com.cool.assets:CoolAssetsFile_searchIcon" />
+      <dep id="com.cool.assets:CoolAssetsFile_assemblyIcon" />
+      <dep id="com.cool.assets:CoolAssetsFile_refreshIcon" />
+      <dep id="AS3" />
+      <dep id="com.cool.assets:CoolAssetsFile_double_leftIcon" />
+      <dep id="com.cool.assets:CoolAssetsFile_excelIcon" />
+      <dep id="com.cool.assets:CoolAssetsFile_to_firstIcon" />
+      <dep id="com.cool.assets:CoolAssetsFile_tipIcon" />
+      <dep id="com.cool.assets:CoolAssetsFile_pictureIcon" />
+      <dep id="com.cool.assets:CoolAssetsFile_minus2Icon" />
+      <dep id="com.cool.assets:CoolAssetsFile_chart_lineIcon" />
+      <dep id="com.cool.assets:CoolAssetsFile_copyIcon" />
+      <dep id="com.cool.assets:CoolAssetsFile_save_asIcon" />
+      <dep id="com.cool.assets:CoolAssetsFile_tree_leftIcon" />
+      <dep id="com.cool.assets:CoolAssetsFile_exportIcon" />
+      <dep id="com.cool.assets:CoolAssetsFile_sort_ascIcon" />
+      <dep id="com.cool.assets:CoolAssetsFile_expandallIcon" />
+      <dep id="com.cool.assets:CoolAssetsFile_z_confirmIcon" />
+      <dep id="com.cool.assets:CoolAssetsFile_pdfIcon" />
+      <dep id="com.cool.assets:CoolAssetsFile_pasteIcon" />
+      <dep id="com.cool.assets:CoolAssetsFile_sort_descIcon" />
+      <dep id="com.cool.assets:CoolAssetsFile_arrow_upIcon" />
+      <dep id="com.cool.assets:CoolAssetsFile_exitIcon" />
+      <dep id="com.cool.assets:CoolAssetsFile_arrow_rightIcon" />
+      <dep id="com.cool.assets:CoolAssetsFile_computeIcon" />
+      <dep id="com.cool.assets:CoolAssetsFile_refresh2Icon" />
+      <dep id="com.cool.assets:CoolAssetsFile_optsetIcon" />
+      <dep id="com.cool.assets:CoolAssetsFile_breakdownIcon" />
+      <dep id="com.cool.assets:CoolAssetsFile_cancelIcon" />
+      <dep id="com.cool.assets:CoolAssetsFile_chart_scatterIcon" />
+      <dep id="com.cool.assets:CoolAssetsFile_startIcon" />
+      <dep id="com.cool.assets:CoolAssetsFile_okIcon" />
+      <dep id="com.cool.assets:CoolAssetsFile_red_glowIcon" />
+      <dep id="com.cool.assets:CoolAssetsFile_edit_batchIcon" />
+      <dep id="com.cool.assets:CoolAssetsFile_goIcon" />
+      <dep id="com.cool.assets:CoolAssetsFile_collapseallIcon" />
+      <dep id="com.cool.assets:CoolAssetsFile_findIcon" />
+      <dep id="com.cool.assets:CoolAssetsFile_z_errorIcon" />
+      <dep id="com.cool.assets:CoolAssetsFile_minusIcon" />
+      <dep id="com.cool.assets:CoolAssetsFile_helpIcon" />
+      <dep id="com.cool.assets:CoolAssetsFile_printIcon" />
+      <dep id="com.cool.assets:CoolAssetsFile_abcIcon" />
+      <dep id="com.cool.assets:CoolAssetsFile_clearIcon" />
+      <dep id="com.cool.assets:CoolAssetsFile_detailIcon" />
+      <dep id="com.cool.assets:CoolAssetsFile_stopIcon" />
+    </script>
+    <script name="D:\ProgramFile\Adobe\sdks\4.5.1\frameworks\locale\zh_CN\framework_rb.swc$locale/zh_CN/formatters.properties" mod="1306828900855" size="1124" optimizedsize="1055">
+      <def id="en_US$formatters_properties" />
+      <def id="zh_CN$formatters_properties" />
+      <pre id="mx.resources:ResourceBundle" />
+      <dep id="AS3" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\src\dmddweb.mxml" mod="1525171154107" size="30233" optimizedsize="29171">
+      <def id="dmddweb" />
+      <pre id="flash.events:IEventDispatcher" />
+      <pre id="mx.binding:IBindingClient" />
+      <pre id="spark.components:Application" />
+      <dep id="dmdd.dmddas.dataaccess.bizobject:BOperatorUser" />
+      <dep id="spark.layouts:VerticalLayout" />
+      <dep id="en_US$button_properties" />
+      <dep id="spark.components:CheckBox" />
+      <dep id="com.cool.vo:MetadataTempletVO" />
+      <dep id="spark.layouts:HorizontalLayout" />
+      <dep id="aks.aksas.aidobject:AksOptionObj" />
+      <dep id="spark.components:Label" />
+      <dep id="spark.components:VGroup" />
+      <dep id="spark.skins.spark:PanelSkin" />
+      <dep id="en_US$label_properties" />
+      <dep id="dmdd.dmddas.common.constant:BizConst" />
+      <dep id="com.cool.constant:DataViewConst" />
+      <dep id="spark.components:ComboBox" />
+      <dep id="zh_CN$button_properties" />
+      <dep id="mx.managers:PopUpManager" />
+      <dep id="mx.controls:Alert" />
+      <dep id="mx.rpc.remoting.mxml:RemoteObject" />
+      <dep id="com.cool.events:MetadataTempletUtilEvent" />
+      <dep id="com.cool.system:CoolClientEnv" />
+      <dep id="AS3" />
+      <dep id="dmdd.dmddas.dataaccess.bizobject:BDistributionCenter" />
+      <dep id="mx.collections:ArrayCollection" />
+      <dep id="en_US$note_properties" />
+      <dep id="mx.rpc.remoting.mxml:Operation" />
+      <dep id="spark.components:Button" />
+      <dep id="flash.events:MouseEvent" />
+      <dep id="mx.binding:IWatcherSetupUtil2" />
+      <dep id="dmdd.dmddmx.skins:MenuBarNoBorderFillSkin" />
+      <dep id="mx.containers:HBox" />
+      <dep id="zh_CN$label_properties" />
+      <dep id="en_US$menu_properties" />
+      <dep id="dmdd.dmddas.dataaccess.bizobject:BProduct" />
+      <dep id="_dmddweb_Styles" />
+      <dep id="mx.graphics:SolidColor" />
+      <dep id="mx.binding:Binding" />
+      <dep id="mx.containers:FormItem" />
+      <dep id="dmdd.dmddas.dataaccess.bizobject:BOrganization" />
+      <dep id="mx.utils:StringUtil" />
+      <dep id="mx.core:FlexGlobals" />
+      <dep id="com.cool.utils:MetadataTempletUtil" />
+      <dep id="zh_CN$main_properties" />
+      <dep id="flash.net:SharedObjectFlushStatus" />
+      <dep id="com.cool.vo:SimpleHashVO" />
+      <dep id="_dmddwebWatcherSetupUtil" />
+      <dep id="aks.aksmx.controls:AksOptionMgAU" />
+      <dep id="dmddweb__embed_mxml_dmdd_dmddassets_images_login_GIF_420481079" />
+      <dep id="en_US$alert_properties" />
+      <dep id="spark.components:BorderContainer" />
+      <dep id="mx.containers:ViewStack" />
+      <dep id="mx.styles:CSSSelector" />
+      <dep id="dmdd.dmddas.common.system:UiConfigVo" />
+      <dep id="en_US$main_properties" />
+      <dep id="aks.aksas.utils:UtilUi" />
+      <dep id="spark.events:IndexChangeEvent" />
+      <dep id="com.cool.components:LoadingWindow" />
+      <dep id="spark.events:TextOperationEvent" />
+      <dep id="_dmddweb_FlexInit" />
+      <dep id="dmdd.dmddas.common.system:ClientEnvironment" />
+      <dep id="mx.controls:Image" />
+      <dep id="dmddweb__embed_mxml_dmdd_dmddassets_icons_logo_login_png_1794612649" />
+      <dep id="mx.core:DeferredInstanceFromFunction" />
+      <dep id="dmdd.dmddmx.skins:MenuBarActiveSkin" />
+      <dep id="dmdd.dmddmx.mod:Mod_WorkFrame" />
+      <dep id="mx.managers:BrowserManager" />
+      <dep id="mx.core:mx_internal" />
+      <dep id="flash.utils:getDefinitionByName" />
+      <dep id="dmdd.dmddas.common.utils:UtilExceptionLocale" />
+      <dep id="dmdd.dmddas.dataaccess.bizobject:BSysPeriod" />
+      <dep id="spark.components:TextInput" />
+      <dep id="flash.net:SharedObject" />
+      <dep id="mx.core:UIComponent" />
+      <dep id="mx.core:IFlexModuleFactory" />
+      <dep id="zh_CN$alert_properties" />
+      <dep id="dmdd.dmddas.common.constant:SysConst" />
+      <dep id="dmdd.dmddas.dataaccess.bizobject:BOrganizationCharacter" />
+      <dep id="mx.controls:Spacer" />
+      <dep id="aks.aksas.controls:AksOptions" />
+      <dep id="flash.events:NetStatusEvent" />
+      <dep id="mx.styles:CSSStyleDeclaration" />
+      <dep id="mx.containers:Form" />
+      <dep id="dmdd.dmddas.dataaccess.bizobject:BProductCharacter" />
+      <dep id="mx.events:FlexEvent" />
+      <dep id="Error" />
+      <dep id="mx.rpc.events:ResultEvent" />
+      <dep id="mx.styles:CSSCondition" />
+      <dep id="zh_CN$menu_properties" />
+      <dep id="mx.binding:BindingManager" />
+      <dep id="Date" />
+      <dep id="mx.collections:IList" />
+      <dep id="mx.modules:IModuleInfo" />
+      <dep id="XML" />
+      <dep id="mx.core:UIComponentDescriptor" />
+      <dep id="spark.components:HGroup" />
+      <dep id="mx.events:PropertyChangeEvent" />
+      <dep id="mx.rpc.events:FaultEvent" />
+      <dep id="zh_CN$note_properties" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\src\dmdd\dmddas\dataaccess\bizobject\BOrganizationCharacterLayer.as" mod="1525171156584" size="1689" optimizedsize="1549">
+      <def id="dmdd.dmddas.dataaccess.bizobject:BOrganizationCharacterLayer" />
+      <pre id="flash.events:IEventDispatcher" />
+      <pre id="Object" />
+      <dep id="AS3" />
+      <dep id="flash.events:EventDispatcher" />
+      <dep id="mx.events:PropertyChangeEvent" />
+      <dep id="dmdd.dmddas.common.constant:SysConst" />
+      <dep id="flash.events:Event" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\src\dmdd\dmddas\dataaccess\bizobject\BBizDataDefItemForecastAssessment.as" mod="1525171156901" size="1154" optimizedsize="1016">
+      <def id="dmdd.dmddas.dataaccess.bizobject:BBizDataDefItemForecastAssessment" />
+      <pre id="dmdd.dmddas.dataaccess.bizobject:BBizDataDefItem" />
+      <pre id="flash.events:IEventDispatcher" />
+      <dep id="dmdd.dmddas.dataaccess.bizobject:BBizData" />
+      <dep id="AS3" />
+      <dep id="dmdd.dmddas.common.constant:BizConst" />
+      <dep id="mx.events:PropertyChangeEvent" />
+    </script>
+    <script name="D:\ProgramFile\Adobe\sdks\4.5.1\frameworks\libs\framework.swc(mx.preloaders:Preloader)" mod="1306872047421" size="6835" optimizedsize="4285">
+      <def id="mx.preloaders:Preloader" />
+      <pre id="flash.display:Sprite" />
+      <dep id="mx.events:FlexEvent" />
+      <dep id="AS3" />
+      <dep id="flash.display:LoaderInfo" />
+      <dep id="flash.events:IEventDispatcher" />
+      <dep id="Error" />
+      <dep id="flash.utils:Timer" />
+      <dep id="flash.system:ApplicationDomain" />
+      <dep id="flash.events:Event" />
+      <dep id="flash.display:DisplayObject" />
+      <dep id="mx.events:RSLEvent" />
+      <dep id="mx.core:RSLItem" />
+      <dep id="flash.events:TimerEvent" />
+      <dep id="flash.events:IOErrorEvent" />
+      <dep id="flash.events:ProgressEvent" />
+      <dep id="mx.preloaders:IPreloaderDisplay" />
+      <dep id="flash.display:MovieClip" />
+      <dep id="mx.core:ResourceModuleRSLItem" />
+      <dep id="mx.core:RSLListLoader" />
+      <dep id="mx.core:mx_internal" />
+      <dep id="flash.events:ErrorEvent" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\libs\CoolFlex.swc(com.cool.vo:SimpleHashVO)" mod="1386819575935" size="477" optimizedsize="198">
+      <def id="com.cool.vo:SimpleHashVO" />
+      <pre id="Object" />
+      <dep id="AS3" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\libs\flexlib.swc(flexlib.controls.tabBarClasses:SuperTab)" mod="1269246018000" size="6635" optimizedsize="3415">
+      <def id="flexlib.controls.tabBarClasses:SuperTab" />
+      <pre id="mx.controls.tabBarClasses:Tab" />
+      <dep id="flash.display:DisplayObject" />
+      <dep id="AS3" />
+      <dep id="mx.core:UIComponent" />
+      <dep id="flash.text:TextFieldType" />
+      <dep id="flash.events:KeyboardEvent" />
+      <dep id="mx.controls:Button" />
+      <dep id="String" />
+      <dep id="flash.events:FocusEvent" />
+      <dep id="flexlib.events:SuperTabEvent" />
+      <dep id="flash.events:MouseEvent" />
+      <dep id="flash.events:Event" />
+      <dep id="mx.core:mx_internal" />
+    </script>
+    <script name="_dmddweb_FlexInit-generated.as" mod="1537890877244" size="16545" optimizedsize="15576">
+      <def id="_dmddweb_FlexInit" />
+      <pre id="Object" />
+      <dep id="mx.messaging.config:ServerConfig" />
+      <dep id="flash.net:getClassByAlias" />
+      <dep id="spark.accessibility:ButtonBarBaseAccImpl" />
+      <dep id="dmdd.dmddas.dataaccess.bizobject:BOperatorUser" />
+      <dep id="dmdd.dmddas.dataaccess.bizobject:BBizDataDefItemFcHand" />
+      <dep id="com.cool.vo:MetadataTempletVO" />
+      <dep id="mx.managers.systemClasses:ChildManager" />
+      <dep id="spark.accessibility:ListBaseAccImpl" />
+      <dep id="en_US$effects_properties" />
+      <dep id="spark.accessibility:TabBarAccImpl" />
+      <dep id="en_US$controls_properties" />
+      <dep id="mx.styles:IStyleManager2" />
+      <dep id="mx.accessibility:MenuBarAccImpl" />
+      <dep id="mx.messaging.config:ConfigMap" />
+      <dep id="spark.accessibility:DataGridAccImpl" />
+      <dep id="spark.accessibility:RichEditableTextAccImpl" />
+      <dep id="dmdd.dmddas.dataaccess.bizobject:BUnitGroup" />
+      <dep id="dmdd.dmddas.dataaccess.aidobject:ABProOrg" />
+      <dep id="spark.accessibility:PanelAccImpl" />
+      <dep id="mx.messaging.messages:AcknowledgeMessage" />
+      <dep id="en_US$modules_properties" />
+      <dep id="en_US$components_properties" />
+      <dep id="en_US$styles_properties" />
+      <dep id="en_US$collections_properties" />
+      <dep id="mx.messaging.messages:CommandMessage" />
+      <dep id="zh_CN$messaging_properties" />
+      <dep id="spark.accessibility:SpinnerAccImpl" />
+      <dep id="en_US$utils_properties" />
+      <dep id="spark.accessibility:TextBaseAccImpl" />
+      <dep id="flash.display:DisplayObject" />
+      <dep id="dmdd.dmddas.dataaccess.bizobject:BBizDataDefItemAvgHis" />
+      <dep id="flash.net:registerClassAlias" />
+      <dep id="dmdd.dmddas.dataaccess.bizobject:BOrganizationOrgCharacter" />
+      <dep id="dmdd.dmddas.dataaccess.bizobject:BSysParam" />
+      <dep id="zh_CN$core_properties" />
+      <dep id="dmdd.dmddas.dataaccess.bizobject:BBizDataDefItemTimeHis" />
+      <dep id="AS3" />
+      <dep id="mx.accessibility:AlertAccImpl" />
+      <dep id="dmdd.dmddas.dataaccess.bizobject:BDistributionCenter" />
+      <dep id="zh_CN$effects_properties" />
+      <dep id="mx.events:Request" />
+      <dep id="dmdd.dmddas.dataaccess.bizobject:BProductProCharacter" />
+      <dep id="mx.accessibility:ListAccImpl" />
+      <dep id="mx.collections:ArrayCollection" />
+      <dep id="mx.collections:ArrayList" />
+      <dep id="en_US$rpc_properties" />
+      <dep id="mx.accessibility:LinkButtonAccImpl" />
+      <dep id="zh_CN$SharedResources_properties" />
+      <dep id="dmdd.dmddas.dataaccess.bizobject:BBizDataDefItemKpi" />
+      <dep id="mx.utils:ObjectProxy" />
+      <dep id="en_US$sparkEffects_properties" />
+      <dep id="mx.core:TextFieldFactory" />
+      <dep id="dmdd.dmddas.dataaccess.bizobject:BOperatorUserProOrg" />
+      <dep id="dmdd.dmddas.dataaccess.bizobject:BProduct" />
+      <dep id="en_US$core_properties" />
+      <dep id="zh_CN$containers_properties" />
+      <dep id="mx.messaging.channels:SecureAMFChannel" />
+      <dep id="zh_CN$collections_properties" />
+      <dep id="mx.messaging.messages:AcknowledgeMessageExt" />
+      <dep id="dmdd.dmddas.dataaccess.bizobject:BOrganization" />
+      <dep id="dmdd.dmddas.dataaccess.bizobject:BSysDictionaryItem" />
+      <dep id="en_US$skins_properties" />
+      <dep id="spark.accessibility:CheckBoxAccImpl" />
+      <dep id="dmdd.dmddas.dataaccess.bizobject:BOrganizationCharacterLayer" />
+      <dep id="spark.accessibility:ComboBoxAccImpl" />
+      <dep id="spark.accessibility:VideoPlayerAccImpl" />
+      <dep id="zh_CN$styles_properties" />
+      <dep id="com.cool.vo:SimpleHashVO" />
+      <dep id="dmdd.dmddas.dataaccess.bizobject:BBizDataDefItemAddFc" />
+      <dep id="dmdd.dmddas.dataaccess.bizobject:BBizDataDefItemMoneyComb" />
+      <dep id="mx.accessibility:LabelAccImpl" />
+      <dep id="en_US$textLayout_properties" />
+      <dep id="spark.accessibility:ButtonBaseAccImpl" />
+      <dep id="dmdd.dmddas.dataaccess.bizobject:BBizDataDefItemHistoryAd" />
+      <dep id="dmdd.dmddas.dataaccess.bizobject:BBizData" />
+      <dep id="dmdd.dmddas.dataaccess.bizobject:BBizDataDefItem" />
+      <dep id="mx.messaging.channels:AMFChannel" />
+      <dep id="dmdd.dmddas.dataaccess.bizobject:BBizDataDefItemMoney" />
+      <dep id="dmdd.dmddas.dataaccess.bizobject:BBizDataDefItemHistoryAdR" />
+      <dep id="spark.accessibility:DropDownListBaseAccImpl" />
+      <dep id="mx.accessibility:PanelAccImpl" />
+      <dep id="zh_CN$controls_properties" />
+      <dep id="dmdd.dmddas.dataaccess.bizobject:BOrganizationLayer" />
+      <dep id="zh_CN$components_properties" />
+      <dep id="mx.accessibility:ListBaseAccImpl" />
+      <dep id="en_US$formatters_properties" />
+      <dep id="en_US$logging_properties" />
+      <dep id="en_US$layout_properties" />
+      <dep id="en_US$osmf_properties" />
+      <dep id="zh_CN$utils_properties" />
+      <dep id="mx.messaging.messages:AsyncMessageExt" />
+      <dep id="dmdd.dmddas.dataaccess.bizobject:BBizDataDefItemFcComb" />
+      <dep id="en_US$messaging_properties" />
+      <dep id="mx.accessibility:TabBarAccImpl" />
+      <dep id="spark.accessibility:ListAccImpl" />
+      <dep id="mx.accessibility:ButtonAccImpl" />
+      <dep id="mx.messaging.messages:ErrorMessage" />
+      <dep id="dmdd.dmddas.dataaccess.bizobject:BBizDataDefItemForecastAssessment" />
+      <dep id="mx.styles:StyleManagerImpl" />
+      <dep id="zh_CN$formatters_properties" />
+      <dep id="zh_CN$layout_properties" />
+      <dep id="spark.accessibility:NumericStepperAccImpl" />
+      <dep id="spark.accessibility:TitleWindowAccImpl" />
+      <dep id="mx.core:mx_internal" />
+      <dep id="mx.messaging.messages:MessagePerformanceInfo" />
+      <dep id="dmdd.dmddas.dataaccess.bizobject:BSysPeriod" />
+      <dep id="mx.effects:EffectManager" />
+      <dep id="mx.core:IFlexModuleFactory" />
+      <dep id="mx.messaging.messages:CommandMessageExt" />
+      <dep id="en_US$SharedResources_properties" />
+      <dep id="mx.accessibility:UIComponentAccProps" />
+      <dep id="dmdd.dmddas.dataaccess.bizobject:BFunPermission" />
+      <dep id="spark.accessibility:ToggleButtonAccImpl" />
+      <dep id="zh_CN$skins_properties" />
+      <dep id="dmdd.dmddas.dataaccess.bizobject:BOrganizationCharacter" />
+      <dep id="dmdd.dmddas.dataaccess.bizobject:BProductLayer" />
+      <dep id="dmdd.dmddas.dataaccess.bizobject:BOperatorUserBizData" />
+      <dep id="dmdd.dmddas.dataaccess.bizobject:BProductCharacter" />
+      <dep id="spark.accessibility:RadioButtonAccImpl" />
+      <dep id="dmdd.dmddas.dataaccess.bizobject:BOperatorUserFunPermission" />
+      <dep id="zh_CN$textLayout_properties" />
+      <dep id="dmdd.dmddas.dataaccess.bizobject:BBizDataDefItemTimeFc" />
+      <dep id="dmdd.dmddas.dataaccess.bizobject:BUnit" />
+      <dep id="zh_CN$rpc_properties" />
+      <dep id="zh_CN$modules_properties" />
+      <dep id="dmdd.dmddas.dataaccess.bizobject:BProductCharacterLayer" />
+      <dep id="Error" />
+      <dep id="mx.accessibility:MenuAccImpl" />
+      <dep id="dmdd.dmddas.dataaccess.bizobject:BBizDataDefItemAddHis" />
+      <dep id="mx.messaging.messages:AsyncMessage" />
+      <dep id="spark.accessibility:SliderBaseAccImpl" />
+      <dep id="en_US$containers_properties" />
+      <dep id="flash.system:Capabilities" />
+      <dep id="zh_CN$sparkEffects_properties" />
+      <dep id="dmdd.dmddas.dataaccess.bizobject:BBizDataDefItemPeriodVersion" />
+      <dep id="mx.messaging.messages:RemotingMessage" />
+      <dep id="zh_CN$logging_properties" />
+      <dep id="zh_CN$osmf_properties" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\src\aks\aksmx\controls\AksOptionsAU.mxml" mod="1525171162776" size="10079" optimizedsize="9805">
+      <def id="aks.aksmx.controls:AksOptionsAU" />
+      <pre id="spark.components:TitleWindow" />
+      <pre id="flash.events:IEventDispatcher" />
+      <pre id="mx.binding:IBindingClient" />
+      <dep id="flash.utils:getDefinitionByName" />
+      <dep id="spark.components:BorderContainer" />
+      <dep id="AS3" />
+      <dep id="spark.layouts:VerticalLayout" />
+      <dep id="spark.components:TextInput" />
+      <dep id="_aks_aksmx_controls_AksOptionsAUWatcherSetupUtil" />
+      <dep id="mx.core:IFlexModuleFactory" />
+      <dep id="spark.components:Button" />
+      <dep id="flash.events:MouseEvent" />
+      <dep id="mx.binding:IWatcherSetupUtil2" />
+      <dep id="spark.layouts:HorizontalLayout" />
+      <dep id="aks.aksas.controls:AksOptions" />
+      <dep id="mx.containers:Grid" />
+      <dep id="spark.components:Label" />
+      <dep id="en_US$aks_properties" />
+      <dep id="aks.aksas.utils:UtilUi" />
+      <dep id="aks.aksas.controls:AksOptionsSetting" />
+      <dep id="mx.events:FlexEvent" />
+      <dep id="mx.containers:GridRow" />
+      <dep id="mx.binding:Binding" />
+      <dep id="mx.utils:StringUtil" />
+      <dep id="mx.managers:PopUpManager" />
+      <dep id="mx.containers:GridItem" />
+      <dep id="mx.binding:BindingManager" />
+      <dep id="zh_CN$aks_properties" />
+      <dep id="mx.core:DeferredInstanceFromFunction" />
+      <dep id="XML" />
+      <dep id="mx.core:UIComponentDescriptor" />
+      <dep id="mx.events:PropertyChangeEvent" />
+      <dep id="mx.events:CloseEvent" />
+      <dep id="mx.core:mx_internal" />
+    </script>
+    <script name="D:\ProgramFile\Adobe\sdks\4.5.1\frameworks\libs\framework.swc(mx.core:DPIClassification)" mod="1306872039593" size="480" optimizedsize="256">
+      <def id="mx.core:DPIClassification" />
+      <pre id="Object" />
+      <dep id="AS3" />
+    </script>
+    <script name="D:\ProgramFile\Adobe\sdks\4.5.1\frameworks\libs\framework.swc(mx.core:RSLListLoader)" mod="1306872040218" size="2217" optimizedsize="1111">
+      <def id="mx.core:RSLListLoader" />
+      <pre id="Object" />
+      <dep id="AS3" />
+      <dep id="mx.core:RSLItem" />
+      <dep id="mx.core:mx_internal" />
+      <dep id="flash.events:Event" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\libs\CoolFlex.swc(com.cool.assets:CoolAssetsFile_exportIcon)" mod="1309341232640" size="512" optimizedsize="336">
+      <def id="com.cool.assets:CoolAssetsFile_exportIcon" />
+      <pre id="mx.core:BitmapAsset" />
+      <dep id="AS3" />
+    </script>
+    <script name="_class_embed_css_Assets_swf_569979602_mx_skins_cursor_VBoxDivider_878299566.as" mod="1306828826645" size="413" optimizedsize="376">
+      <def id="_class_embed_css_Assets_swf_569979602_mx_skins_cursor_VBoxDivider_878299566" />
+      <pre id="mx.core:SpriteAsset" />
+      <dep id="AS3" />
+    </script>
+    <script name="_class_embed_css_Assets_swf_569979602_mx_skins_cursor_BusyCursor_292436995.as" mod="1306828826645" size="412" optimizedsize="375">
+      <def id="_class_embed_css_Assets_swf_569979602_mx_skins_cursor_BusyCursor_292436995" />
+      <pre id="mx.core:SpriteAsset" />
+      <dep id="AS3" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\src\dmdd\dmddas\dataaccess\bizobject\BBizDataDefItemAvgHis.as" mod="1525171156598" size="966" optimizedsize="845">
+      <def id="dmdd.dmddas.dataaccess.bizobject:BBizDataDefItemAvgHis" />
+      <pre id="dmdd.dmddas.dataaccess.bizobject:BBizDataDefItem" />
+      <pre id="flash.events:IEventDispatcher" />
+      <dep id="dmdd.dmddas.dataaccess.bizobject:BBizData" />
+      <dep id="AS3" />
+      <dep id="dmdd.dmddas.common.constant:BizConst" />
+      <dep id="mx.events:PropertyChangeEvent" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\src\dmdd\dmddas\dataaccess\bizobject\BProductCharacter.as" mod="1525171156654" size="2843" optimizedsize="2673">
+      <def id="dmdd.dmddas.dataaccess.bizobject:BProductCharacter" />
+      <pre id="flash.events:IEventDispatcher" />
+      <pre id="Object" />
+      <dep id="AS3" />
+      <dep id="flash.events:EventDispatcher" />
+      <dep id="mx.collections:ArrayCollection" />
+      <dep id="mx.events:PropertyChangeEvent" />
+      <dep id="dmdd.dmddas.dataaccess.bizobject:BProductCharacterLayer" />
+      <dep id="dmdd.dmddas.common.constant:SysConst" />
+      <dep id="flash.events:Event" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\libs\CoolFlex.swc(com.cool.assets:CoolAssetsFile_saveIcon)" mod="1201505940000" size="504" optimizedsize="332">
+      <def id="com.cool.assets:CoolAssetsFile_saveIcon" />
+      <pre id="mx.core:BitmapAsset" />
+      <dep id="AS3" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\libs\CoolFlex.swc(com.cool.assets:CoolAssetsFile_pasteIcon)" mod="1144808288000" size="508" optimizedsize="334">
+      <def id="com.cool.assets:CoolAssetsFile_pasteIcon" />
+      <pre id="mx.core:BitmapAsset" />
+      <dep id="AS3" />
+    </script>
+    <script name="_aks_aksmx_controls_AksOptionMgAUWatcherSetupUtil.as" mod="1537890873769" size="2916" optimizedsize="2813">
+      <def id="_aks_aksmx_controls_AksOptionMgAUWatcherSetupUtil" />
+      <pre id="mx.binding:IWatcherSetupUtil2" />
+      <pre id="Object" />
+      <dep id="AS3" />
+      <dep id="mx.binding:FunctionReturnWatcher" />
+      <dep id="mx.core:IFlexModuleFactory" />
+      <dep id="mx.binding:PropertyWatcher" />
+      <dep id="aks.aksmx.controls:AksOptionMgAU" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\libs\CoolFlex.swc(com.cool.assets:CoolAssetsFile_computeIcon)" mod="1201505940000" size="516" optimizedsize="338">
+      <def id="com.cool.assets:CoolAssetsFile_computeIcon" />
+      <pre id="mx.core:BitmapAsset" />
+      <dep id="AS3" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\libs\CoolFlex.swc(com.cool.assets:CoolAssetsFile_searchIcon)" mod="1104402820000" size="512" optimizedsize="336">
+      <def id="com.cool.assets:CoolAssetsFile_searchIcon" />
+      <pre id="mx.core:BitmapAsset" />
+      <dep id="AS3" />
+    </script>
+    <script name="_class_embed_css_Assets_swf_569979602_TreeDisclosureOpen_1783642532.as" mod="1306828826645" size="405" optimizedsize="368">
+      <def id="_class_embed_css_Assets_swf_569979602_TreeDisclosureOpen_1783642532" />
+      <pre id="mx.core:SpriteAsset" />
+      <dep id="AS3" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\libs\CoolFlex.swc(com.cool.system:CoolClientEnv)" mod="1386819575806" size="2602" optimizedsize="1474">
+      <def id="com.cool.system:CoolClientEnv" />
+      <pre id="flash.events:IEventDispatcher" />
+      <pre id="Object" />
+      <dep id="AS3" />
+      <dep id="trace" />
+      <dep id="flash.events:EventDispatcher" />
+      <dep id="flash.events:Event" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\src\dmdd\dmddas\common\utils\UtilProduct.as" mod="1537674278341" size="4320" optimizedsize="4112">
+      <def id="dmdd.dmddas.common.utils:UtilProduct" />
+      <pre id="Object" />
+      <dep id="mx.formatters:DateFormatter" />
+      <dep id="AS3" />
+      <dep id="dmdd.dmddas.common.constant:BizConst" />
+      <dep id="dmdd.dmddas.common.utils:UtilProductCharacter" />
+      <dep id="dmdd.dmddas.dataaccess.bizobject:BProductProCharacter" />
+      <dep id="dmdd.dmddas.dataaccess.bizobject:BUnit" />
+      <dep id="mx.collections:ArrayCollection" />
+      <dep id="dmdd.dmddas.common.system:ClientEnvironment" />
+      <dep id="aks.aksas.collections:HashMap" />
+      <dep id="dmdd.dmddas.common.constant:UIConst" />
+      <dep id="dmdd.dmddas.dataaccess.bizobject:BProductLayer" />
+      <dep id="dmdd.dmddas.dataaccess.bizobject:BProduct" />
+      <dep id="dmdd.dmddas.dataaccess.bizobject:BProductCharacter" />
+    </script>
+    <script name="_class_embed_css_Assets_swf_569979602_CloseButtonDisabled_1121432563.as" mod="1306828826645" size="406" optimizedsize="369">
+      <def id="_class_embed_css_Assets_swf_569979602_CloseButtonDisabled_1121432563" />
+      <pre id="mx.core:SpriteAsset" />
+      <dep id="AS3" />
+    </script>
+    <script name="D:\ProgramFile\Adobe\sdks\4.5.1\frameworks\locale\zh_CN\mx_rb.swc$locale/zh_CN/containers.properties" mod="1306828774861" size="758" optimizedsize="715">
+      <def id="en_US$containers_properties" />
+      <def id="zh_CN$containers_properties" />
+      <pre id="mx.resources:ResourceBundle" />
+      <dep id="AS3" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\src\dmdd\dmddas\dataaccess\bizobject\BBizDataDefItemTimeHis.as" mod="1525171156961" size="973" optimizedsize="851">
+      <def id="dmdd.dmddas.dataaccess.bizobject:BBizDataDefItemTimeHis" />
+      <pre id="dmdd.dmddas.dataaccess.bizobject:BBizDataDefItem" />
+      <pre id="flash.events:IEventDispatcher" />
+      <dep id="dmdd.dmddas.dataaccess.bizobject:BBizData" />
+      <dep id="AS3" />
+      <dep id="dmdd.dmddas.common.constant:BizConst" />
+      <dep id="mx.events:PropertyChangeEvent" />
+    </script>
+    <script name="D:\ProgramFile\Adobe\sdks\4.5.1\frameworks\locale\zh_CN\osmf_rb.swc$locale/zh_CN/osmf.properties" mod="1306828946864" size="8295" optimizedsize="8140">
+      <def id="en_US$osmf_properties" />
+      <def id="zh_CN$osmf_properties" />
+      <pre id="mx.resources:ResourceBundle" />
+      <dep id="AS3" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\libs\CoolFlex.swc(com.cool.assets:CoolAssetsFile_z_warningIcon)" mod="1386034426391" size="524" optimizedsize="342">
+      <def id="com.cool.assets:CoolAssetsFile_z_warningIcon" />
+      <pre id="mx.core:BitmapAsset" />
+      <dep id="AS3" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\libs\CoolFlex.swc(com.cool.collections:IMap)" mod="1386819575500" size="2006" optimizedsize="603">
+      <def id="com.cool.collections:IMap" />
+      <pre id="Object" />
+      <dep id="AS3" />
+      <dep id="flash.utils:Dictionary" />
+      <dep id="mx.collections:ArrayCollection" />
+      <dep id="com.cool.collections:IHashMapEntry" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\src\aks\aksas\utils\UtilFaultEvent.as" mod="1525171162508" size="612" optimizedsize="579">
+      <def id="aks.aksas.utils:UtilFaultEvent" />
+      <pre id="Object" />
+      <dep id="AS3" />
+      <dep id="mx.messaging.messages:ErrorMessage" />
+      <dep id="mx.rpc.events:FaultEvent" />
+      <dep id="mx.messaging.events:ChannelFaultEvent" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\libs\CoolFlex.swc(com.cool.utils:AlertUtil)" mod="1386819575823" size="11198" optimizedsize="7877">
+      <def id="com.cool.utils:AlertUtil" />
+      <pre id="flash.events:IEventDispatcher" />
+      <pre id="mx.binding:IBindingClient" />
+      <pre id="spark.components:Panel" />
+      <dep id="flash.utils:getDefinitionByName" />
+      <dep id="AS3" />
+      <dep id="spark.layouts:VerticalLayout" />
+      <dep id="mx.core:UIComponent" />
+      <dep id="mx.core:IFlexModuleFactory" />
+      <dep id="spark.components:Button" />
+      <dep id="flash.events:MouseEvent" />
+      <dep id="mx.binding:IWatcherSetupUtil2" />
+      <dep id="com.cool.assets:CoolAssetsFile" />
+      <dep id="mx.containers:HBox" />
+      <dep id="mx.managers:ISystemManager" />
+      <dep id="mx.containers:VBox" />
+      <dep id="mx.binding:Binding" />
+      <dep id="_com_cool_utils_AlertUtilWatcherSetupUtil" />
+      <dep id="mx.core:IFlexModule" />
+      <dep id="flash.events:KeyboardEvent" />
+      <dep id="mx.core:IFlexDisplayObject" />
+      <dep id="mx.managers:PopUpManager" />
+      <dep id="mx.core:FlexGlobals" />
+      <dep id="mx.controls:Alert" />
+      <dep id="mx.binding:BindingManager" />
+      <dep id="mx.controls:Text" />
+      <dep id="mx.controls:Image" />
+      <dep id="mx.controls:TextArea" />
+      <dep id="mx.core:UIComponentDescriptor" />
+      <dep id="mx.events:PropertyChangeEvent" />
+      <dep id="mx.events:CloseEvent" />
+      <dep id="flash.display:Sprite" />
+      <dep id="mx.core:mx_internal" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\src\aks\aksas\collections\HashMapEntry.as" mod="1525171162680" size="369" optimizedsize="363">
+      <def id="aks.aksas.collections:HashMapEntry" />
+      <pre id="aks.aksas.collections:IHashMapEntry" />
+      <pre id="Object" />
+      <dep id="AS3" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\libs\CoolFlex.swc(com.cool.assets:CoolAssetsFile_to_firstIcon)" mod="1201505940000" size="520" optimizedsize="340">
+      <def id="com.cool.assets:CoolAssetsFile_to_firstIcon" />
+      <pre id="mx.core:BitmapAsset" />
+      <dep id="AS3" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\libs\CoolFlex.swc(com.cool.assets:CoolAssetsFile_pdfIcon)" mod="1338792533905" size="500" optimizedsize="330">
+      <def id="com.cool.assets:CoolAssetsFile_pdfIcon" />
+      <pre id="mx.core:BitmapAsset" />
+      <dep id="AS3" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\libs\CoolFlex.swc(com.cool.assets:CoolAssetsFile_refresh2Icon)" mod="1201505940000" size="520" optimizedsize="340">
+      <def id="com.cool.assets:CoolAssetsFile_refresh2Icon" />
+      <pre id="mx.core:BitmapAsset" />
+      <dep id="AS3" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\libs\flexlib.swc(flexlib.containers:SuperTabNavigator_DEFAULT_CLOSE_DOWN)" mod="1269246017000" size="993" optimizedsize="419">
+      <def id="flexlib.containers:SuperTabNavigator_DEFAULT_CLOSE_DOWN" />
+      <pre id="mx.core:SpriteAsset" />
+      <dep id="AS3" />
+    </script>
+    <script name="D:\ProgramFile\Adobe\sdks\4.5.1\frameworks\libs\framework.swc(mx.managers:SystemRawChildrenList)" mod="1306872045187" size="2326" optimizedsize="1198">
+      <def id="mx.managers:SystemRawChildrenList" />
+      <pre id="mx.core:IChildList" />
+      <pre id="Object" />
+      <dep id="flash.display:DisplayObject" />
+      <dep id="AS3" />
+      <dep id="flash.geom:Point" />
+      <dep id="mx.managers:SystemManager" />
+      <dep id="mx.core:mx_internal" />
+    </script>
+    <script name="_class_embed_css_Assets_swf_569979602_mx_containers_FormItem_Required_1961307308.as" mod="1306828826645" size="418" optimizedsize="381">
+      <def id="_class_embed_css_Assets_swf_569979602_mx_containers_FormItem_Required_1961307308" />
+      <pre id="mx.core:SpriteAsset" />
+      <dep id="AS3" />
+    </script>
+    <script name="D:\ProgramFile\Adobe\sdks\4.5.1\frameworks\libs\framework.swc(mx.managers:SystemManagerGlobals)" mod="1306872044499" size="745" optimizedsize="429">
+      <def id="mx.managers:SystemManagerGlobals" />
+      <pre id="Object" />
+      <dep id="AS3" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\libs\CoolFlex.swc(com.cool.assets:CoolAssetsFile_copyIcon)" mod="1201505940000" size="504" optimizedsize="332">
+      <def id="com.cool.assets:CoolAssetsFile_copyIcon" />
+      <pre id="mx.core:BitmapAsset" />
+      <dep id="AS3" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\libs\CoolFlex.swc(com.cool.assets:CoolAssetsFile_videoIcon)" mod="1104402770000" size="508" optimizedsize="334">
+      <def id="com.cool.assets:CoolAssetsFile_videoIcon" />
+      <pre id="mx.core:BitmapAsset" />
+      <dep id="AS3" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\libs\CoolFlex.swc(com.cool.assets:CoolAssetsFile_goIcon)" mod="1195395420000" size="496" optimizedsize="328">
+      <def id="com.cool.assets:CoolAssetsFile_goIcon" />
+      <pre id="mx.core:BitmapAsset" />
+      <dep id="AS3" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\libs\CoolFlex.swc(com.cool.assets:CoolAssetsFile_double_leftIcon)" mod="1104402848000" size="532" optimizedsize="346">
+      <def id="com.cool.assets:CoolAssetsFile_double_leftIcon" />
+      <pre id="mx.core:BitmapAsset" />
+      <dep id="AS3" />
+    </script>
+    <script name="D:\ProgramFile\Adobe\sdks\4.5.1\frameworks\libs\framework.swc(mx.managers:SystemChildrenList)" mod="1306872044530" size="2903" optimizedsize="1609">
+      <def id="mx.managers:SystemChildrenList" />
+      <pre id="mx.core:IChildList" />
+      <pre id="Object" />
+      <dep id="flash.display:DisplayObject" />
+      <dep id="AS3" />
+      <dep id="flash.geom:Point" />
+      <dep id="QName" />
+      <dep id="mx.managers:SystemManager" />
+      <dep id="mx.core:mx_internal" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\libs\flexlib.swc(flexlib.controls:SuperTabBar_DEFAULT_CLOSE_DISABLED)" mod="1269246017000" size="971" optimizedsize="411">
+      <def id="flexlib.controls:SuperTabBar_DEFAULT_CLOSE_DISABLED" />
+      <pre id="mx.core:SpriteAsset" />
+      <dep id="AS3" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\libs\CoolFlex.swc(com.cool.assets:CoolAssetsFile_okIcon)" mod="1104402918000" size="496" optimizedsize="328">
+      <def id="com.cool.assets:CoolAssetsFile_okIcon" />
+      <pre id="mx.core:BitmapAsset" />
+      <dep id="AS3" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\libs\flexlib.swc(flexlib.containers:SuperTabNavigator_DEFAULT_INDICATOR)" mod="1269246017000" size="979" optimizedsize="417">
+      <def id="flexlib.containers:SuperTabNavigator_DEFAULT_INDICATOR" />
+      <pre id="mx.core:SpriteAsset" />
+      <dep id="AS3" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\libs\CoolFlex.swc(com.cool.utils:MetadataTempletUtil)" mod="1386819575872" size="8269" optimizedsize="5251">
+      <def id="com.cool.utils:MetadataTempletUtil" />
+      <pre id="flash.events:EventDispatcher" />
+      <dep id="AS3" />
+      <dep id="flash.net:SharedObject" />
+      <dep id="com.cool.collections:HashMap" />
+      <dep id="com.cool.constant:DataViewConst" />
+      <dep id="mx.collections:ArrayCollection" />
+      <dep id="com.cool.utils:StringUtils" />
+      <dep id="Error" />
+      <dep id="com.cool.vo:MetadataTempletVO" />
+      <dep id="mx.managers:PopUpManager" />
+      <dep id="mx.core:FlexGlobals" />
+      <dep id="mx.rpc.events:ResultEvent" />
+      <dep id="com.cool.events:BasicEvent" />
+      <dep id="mx.controls:Alert" />
+      <dep id="com.cool.components:FileUploadPanel" />
+      <dep id="trace" />
+      <dep id="flash.net:registerClassAlias" />
+      <dep id="com.cool.events:MetadataTempletUtilEvent" />
+      <dep id="mx.rpc.events:FaultEvent" />
+      <dep id="mx.rpc.remoting:RemoteObject" />
+      <dep id="spark.components:Application" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\locale\zh_CN\sys_sysdictionaryitem.properties" mod="1525171153870" size="11287" optimizedsize="10799">
+      <def id="zh_CN$sys_sysdictionaryitem_properties" />
+      <def id="en_US$sys_sysdictionaryitem_properties" />
+      <pre id="mx.resources:ResourceBundle" />
+      <dep id="AS3" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\libs\CoolFlex.swc(com.cool.assets:CoolAssetsFile_z_errorIcon)" mod="1386034426363" size="516" optimizedsize="338">
+      <def id="com.cool.assets:CoolAssetsFile_z_errorIcon" />
+      <pre id="mx.core:BitmapAsset" />
+      <dep id="AS3" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\src\dmdd\dmddas\dataaccess\bizobject\BBizDataDefItemTimeFc.as" mod="1525171156795" size="969" optimizedsize="848">
+      <def id="dmdd.dmddas.dataaccess.bizobject:BBizDataDefItemTimeFc" />
+      <pre id="dmdd.dmddas.dataaccess.bizobject:BBizDataDefItem" />
+      <pre id="flash.events:IEventDispatcher" />
+      <dep id="dmdd.dmddas.dataaccess.bizobject:BBizData" />
+      <dep id="AS3" />
+      <dep id="dmdd.dmddas.common.constant:BizConst" />
+      <dep id="mx.events:PropertyChangeEvent" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\libs\flexlib.swc(flexlib.containers:SuperTabNavigator_DEFAULT_LEFT_BUTTON)" mod="1269246017000" size="990" optimizedsize="421">
+      <def id="flexlib.containers:SuperTabNavigator_DEFAULT_LEFT_BUTTON" />
+      <pre id="mx.core:SpriteAsset" />
+      <dep id="AS3" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\libs\CoolFlex.swc(com.cool.assets:CoolAssetsFile_addIcon)" mod="1309341232687" size="500" optimizedsize="330">
+      <def id="com.cool.assets:CoolAssetsFile_addIcon" />
+      <pre id="mx.core:BitmapAsset" />
+      <dep id="AS3" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\src\dmdd\dmddas\common\system\MenuItemVo.as" mod="1525171155144" size="1994" optimizedsize="1919">
+      <def id="dmdd.dmddas.common.system:MenuItemVo" />
+      <pre id="flash.events:IEventDispatcher" />
+      <pre id="Object" />
+      <dep id="AS3" />
+      <dep id="flash.events:EventDispatcher" />
+      <dep id="mx.collections:ArrayCollection" />
+      <dep id="mx.events:PropertyChangeEvent" />
+      <dep id="flash.events:Event" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\src\dmdd\dmddas\dataaccess\aidobject\ABProOrg.as" mod="1525171155663" size="1104" optimizedsize="1001">
+      <def id="dmdd.dmddas.dataaccess.aidobject:ABProOrg" />
+      <pre id="flash.events:IEventDispatcher" />
+      <pre id="Object" />
+      <dep id="AS3" />
+      <dep id="flash.events:EventDispatcher" />
+      <dep id="mx.events:PropertyChangeEvent" />
+      <dep id="dmdd.dmddas.dataaccess.bizobject:BOrganization" />
+      <dep id="dmdd.dmddas.dataaccess.bizobject:BProduct" />
+      <dep id="flash.events:Event" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\libs\flexlib.swc(flexlib.containers:SuperTabNavigator)" mod="1269727001000" size="15332" optimizedsize="8761">
+      <def id="flexlib.containers:SuperTabNavigator" />
+      <pre id="mx.containers:TabNavigator" />
+      <dep id="mx.containers:Canvas" />
+      <dep id="AS3" />
+      <dep id="mx.collections:ArrayCollection" />
+      <dep id="mx.styles:StyleManager" />
+      <dep id="String" />
+      <dep id="mx.core:Container" />
+      <dep id="flexlib.events:SuperTabEvent" />
+      <dep id="Math" />
+      <dep id="flexlib.containers:SuperTabNavigator_DEFAULT_CLOSE_UP" />
+      <dep id="flash.events:MouseEvent" />
+      <dep id="mx.effects:Tween" />
+      <dep id="flexlib.containers:ButtonScrollingCanvas" />
+      <dep id="mx.events:MenuEvent" />
+      <dep id="flash.events:Event" />
+      <dep id="flexlib.controls.tabBarClasses:SuperTab" />
+      <dep id="mx.events:ChildExistenceChangedEvent" />
+      <dep id="flexlib.skins:TabPopUpButtonSkin" />
+      <dep id="mx.containers:ViewStack" />
+      <dep id="mx.styles:CSSStyleDeclaration" />
+      <dep id="flexlib.containers:SuperTabNavigator_DEFAULT_LEFT_BUTTON" />
+      <dep id="mx.core:ScrollPolicy" />
+      <dep id="flexlib.containers:SuperTabNavigator_DEFAULT_INDICATOR" />
+      <dep id="flexlib.controls:ScrollableArrowMenu" />
+      <dep id="mx.controls:Menu" />
+      <dep id="flexlib.events:TabReorderEvent" />
+      <dep id="flexlib.containers:SuperTabNavigator_DEFAULT_RIGHT_BUTTON" />
+      <dep id="mx.controls:PopUpButton" />
+      <dep id="mx.containers:BoxDirection" />
+      <dep id="flash.display:DisplayObject" />
+      <dep id="mx.collections:IList" />
+      <dep id="mx.events:IndexChangedEvent" />
+      <dep id="flexlib.containers:SuperTabNavigator_DEFAULT_CLOSE_DISABLED" />
+      <dep id="mx.core:EdgeMetrics" />
+      <dep id="flexlib.containers:SuperTabNavigator_DEFAULT_CLOSE_DOWN" />
+      <dep id="mx.containers:Box" />
+      <dep id="flexlib.controls:SuperTabBar" />
+      <dep id="flexlib.containers:SuperTabNavigator_DEFAULT_CLOSE_OVER" />
+    </script>
+    <script name="D:\ProgramFile\Adobe\sdks\4.5.1\frameworks\libs\framework.swc(mx.core:Singleton)" mod="1306872041421" size="987" optimizedsize="552">
+      <def id="mx.core:Singleton" />
+      <pre id="Object" />
+      <dep id="AS3" />
+      <dep id="Error" />
+      <dep id="mx.core:mx_internal" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\libs\CoolFlex.swc(com.cool.assets:CoolAssetsFile_search_goIcon)" mod="1341195165478" size="524" optimizedsize="342">
+      <def id="com.cool.assets:CoolAssetsFile_search_goIcon" />
+      <pre id="mx.core:BitmapAsset" />
+      <dep id="AS3" />
+    </script>
+    <script name="D:\ProgramFile\Adobe\sdks\4.5.1\frameworks\libs\framework.swc(mx.utils:GraphicsUtil)" mod="1306872047062" size="2556" optimizedsize="1443">
+      <def id="mx.utils:GraphicsUtil" />
+      <pre id="Object" />
+      <dep id="AS3" />
+      <dep id="flash.display:Graphics" />
+      <dep id="mx.core:mx_internal" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\libs\CoolFlex.swc(com.cool.collections:HashMapEntry)" mod="1386819575485" size="877" optimizedsize="358">
+      <def id="com.cool.collections:HashMapEntry" />
+      <pre id="com.cool.collections:IHashMapEntry" />
+      <pre id="Object" />
+      <dep id="AS3" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\libs\flexlib.swc(flexlib.containers:ButtonScrollingCanvas)" mod="1269246018000" size="10973" optimizedsize="5571">
+      <def id="flexlib.containers:ButtonScrollingCanvas" />
+      <pre id="mx.containers:Canvas" />
+      <dep id="flexlib.containers:ButtonScrollingCanvas_DEFAULT_DOWN_BUTTON" />
+      <dep id="AS3" />
+      <dep id="flexlib.containers:ButtonScrollingCanvas_DEFAULT_LEFT_BUTTON" />
+      <dep id="mx.styles:StyleManager" />
+      <dep id="flash.utils:Timer" />
+      <dep id="String" />
+      <dep id="flexlib.containers:ButtonScrollingCanvas_DEFAULT_RIGHT_BUTTON" />
+      <dep id="flash.events:MouseEvent" />
+      <dep id="flash.events:Event" />
+      <dep id="flash.display:DisplayObject" />
+      <dep id="flash.events:TimerEvent" />
+      <dep id="Number" />
+      <dep id="mx.styles:CSSStyleDeclaration" />
+      <dep id="mx.core:ScrollPolicy" />
+      <dep id="mx.controls:Button" />
+      <dep id="flexlib.containers:ButtonScrollingCanvas_DEFAULT_UP_BUTTON" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\src\dmdd\dmddas\dataaccess\bizobject\BBizDataDefItemAddFc.as" mod="1525171156958" size="821" optimizedsize="706">
+      <def id="dmdd.dmddas.dataaccess.bizobject:BBizDataDefItemAddFc" />
+      <pre id="dmdd.dmddas.dataaccess.bizobject:BBizDataDefItem" />
+      <pre id="flash.events:IEventDispatcher" />
+      <dep id="dmdd.dmddas.dataaccess.bizobject:BBizData" />
+      <dep id="AS3" />
+      <dep id="dmdd.dmddas.common.constant:BizConst" />
+      <dep id="mx.events:PropertyChangeEvent" />
+    </script>
+    <script name="_class_embed_css_Assets_swf_569979602_CloseButtonDown_1472408867.as" mod="1306828826645" size="402" optimizedsize="365">
+      <def id="_class_embed_css_Assets_swf_569979602_CloseButtonDown_1472408867" />
+      <pre id="mx.core:SpriteAsset" />
+      <dep id="AS3" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\src\aks\aksas\controls\AksOptionsSetting.as" mod="1525171162584" size="964" optimizedsize="933">
+      <def id="aks.aksas.controls:AksOptionsSetting" />
+      <pre id="Object" />
+      <dep id="AS3" />
+      <dep id="XML" />
+    </script>
+    <script name="D:\ProgramFile\Adobe\sdks\4.5.1\frameworks\libs\framework.swc(mx.core:IFlexModule)" mod="1306872041234" size="479" optimizedsize="188">
+      <def id="mx.core:IFlexModule" />
+      <pre id="Object" />
+      <dep id="AS3" />
+      <dep id="mx.core:IFlexModuleFactory" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\src\dmdd\dmddas\common\system\UiConfigVo.as" mod="1525171155148" size="2476" optimizedsize="2428">
+      <def id="dmdd.dmddas.common.system:UiConfigVo" />
+      <pre id="Object" />
+      <dep id="AS3" />
+      <dep id="dmdd.dmddas.common.system:ClientEnvironment" />
+      <dep id="XML" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\src\aks\aksmx\controls\AksOptionMgAU.mxml" mod="1525171162781" size="14713" optimizedsize="14372">
+      <def id="aks.aksmx.controls:AksOptionMgAU" />
+      <pre id="spark.components:TitleWindow" />
+      <pre id="flash.events:IEventDispatcher" />
+      <pre id="mx.binding:IBindingClient" />
+      <dep id="flash.utils:getDefinitionByName" />
+      <dep id="spark.components:BorderContainer" />
+      <dep id="AS3" />
+      <dep id="_aks_aksmx_controls_AksOptionMgAUWatcherSetupUtil" />
+      <dep id="aks.aksmx.controls:AksOptionsAU" />
+      <dep id="spark.layouts:VerticalLayout" />
+      <dep id="mx.collections:ArrayCollection" />
+      <dep id="mx.core:IFlexModuleFactory" />
+      <dep id="spark.components:Button" />
+      <dep id="flash.events:MouseEvent" />
+      <dep id="flash.events:Event" />
+      <dep id="mx.controls:TextInput" />
+      <dep id="mx.binding:IWatcherSetupUtil2" />
+      <dep id="spark.layouts:HorizontalLayout" />
+      <dep id="aks.aksas.controls:AksOptions" />
+      <dep id="mx.containers:Grid" />
+      <dep id="spark.components:Label" />
+      <dep id="aks.aksas.aidobject:AksOptionObj" />
+      <dep id="en_US$aks_properties" />
+      <dep id="aks.aksas.utils:UtilUi" />
+      <dep id="spark.events:IndexChangeEvent" />
+      <dep id="aks.aksas.controls:AksOptionsSetting" />
+      <dep id="mx.events:FlexEvent" />
+      <dep id="mx.containers:GridRow" />
+      <dep id="mx.binding:Binding" />
+      <dep id="spark.components:ComboBox" />
+      <dep id="XMLList" />
+      <dep id="mx.managers:PopUpManager" />
+      <dep id="mx.containers:GridItem" />
+      <dep id="mx.controls:Alert" />
+      <dep id="mx.binding:BindingManager" />
+      <dep id="mx.collections:IList" />
+      <dep id="zh_CN$aks_properties" />
+      <dep id="mx.core:DeferredInstanceFromFunction" />
+      <dep id="XML" />
+      <dep id="mx.core:UIComponentDescriptor" />
+      <dep id="mx.events:PropertyChangeEvent" />
+      <dep id="mx.events:CloseEvent" />
+      <dep id="mx.core:mx_internal" />
+    </script>
+    <script name="D:\ProgramFile\Adobe\sdks\4.5.1\frameworks\libs\framework.swc(mx.core:RuntimeDPIProvider)" mod="1306872039296" size="806" optimizedsize="430">
+      <def id="mx.core:RuntimeDPIProvider" />
+      <pre id="Object" />
+      <dep id="AS3" />
+      <dep id="flash.system:Capabilities" />
+      <dep id="mx.core:DPIClassification" />
+      <dep id="mx.core:mx_internal" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\libs\CoolFlex.swc(com.cool.assets:CoolAssetsFile_expandIcon)" mod="1201505942000" size="512" optimizedsize="336">
+      <def id="com.cool.assets:CoolAssetsFile_expandIcon" />
+      <pre id="mx.core:BitmapAsset" />
+      <dep id="AS3" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\libs\CoolFlex.swc(com.cool.assets:CoolAssetsFile_expandallIcon)" mod="1384136050207" size="524" optimizedsize="342">
+      <def id="com.cool.assets:CoolAssetsFile_expandallIcon" />
+      <pre id="mx.core:BitmapAsset" />
+      <dep id="AS3" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\src\dmdd\dmddas\dataaccess\bizobject\BProduct.as" mod="1525171156602" size="4483" optimizedsize="4264">
+      <def id="dmdd.dmddas.dataaccess.bizobject:BProduct" />
+      <pre id="flash.events:IEventDispatcher" />
+      <pre id="Object" />
+      <dep id="AS3" />
+      <dep id="flash.events:EventDispatcher" />
+      <dep id="dmdd.dmddas.dataaccess.bizobject:BProductProCharacter" />
+      <dep id="dmdd.dmddas.dataaccess.bizobject:BUnit" />
+      <dep id="mx.collections:ArrayCollection" />
+      <dep id="mx.events:PropertyChangeEvent" />
+      <dep id="dmdd.dmddas.dataaccess.bizobject:BUnitGroup" />
+      <dep id="dmdd.dmddas.dataaccess.bizobject:BProductLayer" />
+      <dep id="dmdd.dmddas.common.constant:SysConst" />
+      <dep id="flash.events:Event" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\libs\CoolFlex.swc(com.cool.assets:CoolAssetsFile_tree_sigIcon)" mod="1201505940000" size="520" optimizedsize="340">
+      <def id="com.cool.assets:CoolAssetsFile_tree_sigIcon" />
+      <pre id="mx.core:BitmapAsset" />
+      <dep id="AS3" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\libs\CoolFlex.swc(com.cool.assets:CoolAssetsFile_chart_barIcon)" mod="1341195165478" size="524" optimizedsize="342">
+      <def id="com.cool.assets:CoolAssetsFile_chart_barIcon" />
+      <pre id="mx.core:BitmapAsset" />
+      <dep id="AS3" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\libs\CoolFlex.swc(com.cool.assets:CoolAssetsFile_doctableIcon)" mod="1201505940000" size="520" optimizedsize="340">
+      <def id="com.cool.assets:CoolAssetsFile_doctableIcon" />
+      <pre id="mx.core:BitmapAsset" />
+      <dep id="AS3" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\libs\CoolFlex.swc(com.cool.assets:CoolAssetsFile_double_rightIcon)" mod="1104402834000" size="536" optimizedsize="348">
+      <def id="com.cool.assets:CoolAssetsFile_double_rightIcon" />
+      <pre id="mx.core:BitmapAsset" />
+      <dep id="AS3" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\libs\CoolFlex.swc(com.cool.assets:CoolAssetsFile_floppyIcon)" mod="1104403018000" size="512" optimizedsize="336">
+      <def id="com.cool.assets:CoolAssetsFile_floppyIcon" />
+      <pre id="mx.core:BitmapAsset" />
+      <dep id="AS3" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\libs\CoolFlex.swc(com.cool.assets:CoolAssetsFile_newIcon)" mod="1201505940000" size="500" optimizedsize="330">
+      <def id="com.cool.assets:CoolAssetsFile_newIcon" />
+      <pre id="mx.core:BitmapAsset" />
+      <dep id="AS3" />
+    </script>
+    <script name="_class_embed_css_Assets_swf_569979602_TreeFolderOpen_1344671395.as" mod="1306828826645" size="401" optimizedsize="364">
+      <def id="_class_embed_css_Assets_swf_569979602_TreeFolderOpen_1344671395" />
+      <pre id="mx.core:SpriteAsset" />
+      <dep id="AS3" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\src\aks\aksas\aidobject\AksOptionObj.as" mod="1525171162609" size="1677" optimizedsize="1617">
+      <def id="aks.aksas.aidobject:AksOptionObj" />
+      <pre id="flash.events:IEventDispatcher" />
+      <pre id="Object" />
+      <dep id="AS3" />
+      <dep id="flash.events:EventDispatcher" />
+      <dep id="mx.events:PropertyChangeEvent" />
+      <dep id="flash.events:Event" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\libs\CoolFlex.swc(com.cool.assets:CoolAssetsFile_warnIcon)" mod="1104402722000" size="504" optimizedsize="332">
+      <def id="com.cool.assets:CoolAssetsFile_warnIcon" />
+      <pre id="mx.core:BitmapAsset" />
+      <dep id="AS3" />
+    </script>
+    <script name="_class_embed_css_Assets_swf_569979602_TreeFolderClosed_1240695151.as" mod="1306828826645" size="403" optimizedsize="366">
+      <def id="_class_embed_css_Assets_swf_569979602_TreeFolderClosed_1240695151" />
+      <pre id="mx.core:SpriteAsset" />
+      <dep id="AS3" />
+    </script>
+    <script name="_class_embed_css_Assets_swf_569979602_mx_skins_cursor_DragReject_876636105.as" mod="1306828826645" size="412" optimizedsize="375">
+      <def id="_class_embed_css_Assets_swf_569979602_mx_skins_cursor_DragReject_876636105" />
+      <pre id="mx.core:SpriteAsset" />
+      <dep id="AS3" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\src\aks\aksmx\controls\AksWindowWait.mxml" mod="1525171162763" size="4053" optimizedsize="3900">
+      <def id="aks.aksmx.controls:AksWindowWait" />
+      <pre id="spark.components:TitleWindow" />
+      <pre id="flash.events:IEventDispatcher" />
+      <pre id="mx.binding:IBindingClient" />
+      <dep id="flash.utils:getDefinitionByName" />
+      <dep id="AS3" />
+      <dep id="mx.events:FlexEvent" />
+      <dep id="spark.layouts:VerticalLayout" />
+      <dep id="mx.binding:Binding" />
+      <dep id="_aks_aksmx_controls_AksWindowWaitWatcherSetupUtil" />
+      <dep id="mx.core:IFlexModuleFactory" />
+      <dep id="mx.managers:PopUpManager" />
+      <dep id="mx.binding:BindingManager" />
+      <dep id="mx.binding:IWatcherSetupUtil2" />
+      <dep id="zh_CN$aks_properties" />
+      <dep id="spark.components:Label" />
+      <dep id="mx.core:DeferredInstanceFromFunction" />
+      <dep id="mx.events:PropertyChangeEvent" />
+      <dep id="mx.events:CloseEvent" />
+      <dep id="en_US$aks_properties" />
+      <dep id="mx.core:mx_internal" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\libs\CoolFlex.swc(com.cool.assets:CoolAssetsFile_queryIcon)" mod="1309341232625" size="508" optimizedsize="334">
+      <def id="com.cool.assets:CoolAssetsFile_queryIcon" />
+      <pre id="mx.core:BitmapAsset" />
+      <dep id="AS3" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\libs\flexlib.swc(flexlib.controls:SuperTabBar_DEFAULT_CLOSE_OVER)" mod="1269246017000" size="947" optimizedsize="403">
+      <def id="flexlib.controls:SuperTabBar_DEFAULT_CLOSE_OVER" />
+      <pre id="mx.core:SpriteAsset" />
+      <dep id="AS3" />
+    </script>
+    <script name="D:\ProgramFile\Adobe\sdks\4.5.1\frameworks\libs\framework.swc(mx.events:DynamicEvent)" mod="1306872053859" size="837" optimizedsize="495">
+      <def id="mx.events:DynamicEvent" />
+      <pre id="flash.events:Event" />
+      <dep id="AS3" />
+      <dep id="mx.core:mx_internal" />
+    </script>
+    <script name="dmdd\dmddmx\mod\Mod_WorkFrame__embed_mxml__dmdd_dmddassets_icons_logo_work_png_1030774042.as" mod="1525171154705" size="465" optimizedsize="432">
+      <def id="dmdd.dmddmx.mod:Mod_WorkFrame__embed_mxml__dmdd_dmddassets_icons_logo_work_png_1030774042" />
+      <pre id="mx.core:BitmapAsset" />
+      <dep id="AS3" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\libs\flexlib.swc(flexlib.events:TabReorderEvent)" mod="1269246018000" size="938" optimizedsize="480">
+      <def id="flexlib.events:TabReorderEvent" />
+      <pre id="mx.events:IndexChangedEvent" />
+      <dep id="flash.display:DisplayObject" />
+      <dep id="AS3" />
+      <dep id="flash.events:Event" />
+    </script>
+    <script name="D:\ProgramFile\Adobe\sdks\4.5.1\frameworks\libs\framework.swc(mx.core:IInvalidating)" mod="1306872040202" size="692" optimizedsize="250">
+      <def id="mx.core:IInvalidating" />
+      <pre id="Object" />
+      <dep id="AS3" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\libs\CoolFlex.swc(com.cool.events:MetadataTempletUtilEvent)" mod="1387359790749" size="1034" optimizedsize="616">
+      <def id="com.cool.events:MetadataTempletUtilEvent" />
+      <pre id="flash.events:Event" />
+      <dep id="AS3" />
+    </script>
+    <script name="D:\ProgramFile\Adobe\sdks\4.5.1\frameworks\locale\zh_CN\rpc_rb.swc$locale/zh_CN/logging.properties" mod="1306828900872" size="1247" optimizedsize="1200">
+      <def id="en_US$logging_properties" />
+      <def id="zh_CN$logging_properties" />
+      <pre id="mx.resources:ResourceBundle" />
+      <dep id="AS3" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\libs\CoolFlex.swc(com.cool.assets:CoolAssetsFile_clearIcon)" mod="1201505942000" size="508" optimizedsize="334">
+      <def id="com.cool.assets:CoolAssetsFile_clearIcon" />
+      <pre id="mx.core:BitmapAsset" />
+      <dep id="AS3" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\src\dmdd\dmddas\common\utils\UtilExceptionLocale.as" mod="1525171155099" size="1664" optimizedsize="1593">
+      <def id="dmdd.dmddas.common.utils:UtilExceptionLocale" />
+      <pre id="Object" />
+      <dep id="AS3" />
+      <dep id="dmdd.dmddas.common.constant:BizConst" />
+      <dep id="en_US$sys_exception_properties" />
+      <dep id="dmdd.dmddas.common.system:ClientEnvironment" />
+      <dep id="RegExp" />
+      <dep id="mx.rpc.events:FaultEvent" />
+      <dep id="mx.utils:StringUtil" />
+      <dep id="dmdd.dmddas.common.constant:ExceptionConst" />
+      <dep id="mx.resources:ResourceManager" />
+      <dep id="zh_CN$sys_exception_properties" />
+      <dep id="aks.aksas.utils:UtilFaultEvent" />
+    </script>
+    <script name="D:\workspace\workspace_newsvn\SaleForecastFlex\src\dmdd\dmddas\dataaccess\bizobject\BFunPermission.as" mod="1525171156779" size="1615" optimizedsize="1484">
+      <def id="dmdd.dmddas.dataaccess.bizobject:BFunPermission" />
+      <pre id="flash.events:IEventDispatcher" />
+      <pre id="Object" />
+      <dep id="AS3" />
+      <dep id="flash.events:EventDispatcher" />
+      <dep id="mx.events:PropertyChangeEvent" />
+      <dep id="dmdd.dmddas.common.constant:SysConst" />
+      <dep id="flash.events:Event" />
+    </script>
+    <script name="D:\ProgramFile\Adobe\sdks\4.5.1\frameworks\libs\framework.swc(mx.managers:SystemManager)" mod="1306872044452" size="36322" optimizedsize="20571">
+      <def id="mx.managers:SystemManager" />
+      <pre id="mx.core:IChildList" />
+      <pre id="mx.core:IFlexModuleFactory" />
+      <pre id="flash.display:MovieClip" />
+      <pre id="mx.managers:ISystemManager" />
+      <pre id="mx.core:IFlexDisplayObject" />
+      <dep id="flash.utils:Dictionary" />
+      <dep id="mx.managers:SystemManagerGlobals" />
+      <dep id="mx.core:IUIComponent" />
+      <dep id="flash.display:LoaderInfo" />
+      <dep id="flash.ui:Keyboard" />
+      <dep id="flash.text:Font" />
+      <dep id="mx.core:IInvalidating" />
+      <dep id="Math" />
+      <dep id="flash.events:Event" />
+      <dep id="mx.events:DynamicEvent" />
+      <dep id="mx.managers:SystemRawChildrenList" />
+      <dep id="flash.utils:Timer" />
+      <dep id="flash.events:KeyboardEvent" />
+      <dep id="flash.display:StageScaleMode" />
+      <dep id="flash.system:ApplicationDomain" />
+      <dep id="flash.geom:Rectangle" />
+      <dep id="flash.display:Graphics" />
+      <dep id="flash.display:DisplayObject" />
+      <dep id="mx.events:SandboxMouseEvent" />
+      <dep id="flash.events:TimerEvent" />
+      <dep id="flash.display:Sprite" />
+      <dep id="SecurityError" />
+      <dep id="mx.core:mx_internal" />
+      <dep id="AS3" />
+      <dep id="mx.utils:DensityUtil" />
+      <dep id="mx.events:Request" />
+      <dep id="mx.utils:LoaderUtil" />
+      <dep id="mx.preloaders:Preloader" />
+      <dep id="flash.events:MouseEvent" />
+      <dep id="mx.core:RSLData" />
+      <dep id="flash.geom:Point" />
+      <dep id="mx.core:RSLItem" />
+      <dep id="flash.display:Stage" />
+      <dep id="__AS3__.vec:Vector" />
+      <dep id="mx.core:IRawChildrenContainer" />
+      <dep id="mx.core:FlexSprite" />
+      <dep id="mx.events:FlexEvent" />
+      <dep id="mx.managers:SystemChildrenList" />
+      <dep id="flash.utils:getQualifiedClassName" />
+      <dep id="flash.display:StageAlign" />
+      <dep id="QName" />
+      <dep id="Error" />
+      <dep id="flash.events:FocusEvent" />
+      <dep id="mx.managers:ISystemManagerChildManager" />
+      <dep id="flash.display:DisplayObjectContainer" />
+      <dep id="flash.display:Loader" />
+      <dep id="mx.events:RSLEvent" />
+      <dep id="flash.display:StageQuality" />
+      <dep id="ArgumentError" />
+      <dep id="mx.core:Singleton" />
+      <dep id="flash.text:TextFormat" />
+    </script>
+  </scripts>
+  <external-defs>
+    <ext id="mx.skins.halo:ListDropIndicator" />
+    <ext id="spark.skins.spark:DataGridSkin" />
+    <ext id="mx.accessibility:ListAccImpl" />
+    <ext id="mx.core:Container" />
+    <ext id="mx.skins.halo:DateChooserMonthArrowSkin" />
+    <ext id="mx.modules:ModuleLoader" />
+    <ext id="mx.accessibility:TabBarAccImpl" />
+    <ext id="mx.events:MenuEvent" />
+    <ext id="mx.skins.halo:PopUpIcon" />
+    <ext id="mx.core:ScrollPolicy" />
+    <ext id="flash.events:FocusEvent" />
+    <ext id="flash.system:Capabilities" />
+    <ext id="mx.rpc.events:FaultEvent" />
+    <ext id="mx.messaging.config:ServerConfig" />
+    <ext id="flash.net:URLLoader" />
+    <ext id="spark.accessibility:SpinnerAccImpl" />
+    <ext id="flash.utils:Timer" />
+    <ext id="flash.geom:Matrix" />
+    <ext id="mx.controls:Alert" />
+    <ext id="mx.skins.halo:HaloBorder" />
+    <ext id="mx.collections:SortField" />
+    <ext id="spark.accessibility:CheckBoxAccImpl" />
+    <ext id="flash.display:StageQuality" />
+    <ext id="spark.skins.spark:TextAreaSkin" />
+    <ext id="mx.skins.halo:ApplicationBackground" />
+    <ext id="flash.net:navigateToURL" />
+    <ext id="mx.core:ByteArrayAsset" />
+    <ext id="mx.skins.halo:HaloFocusRect" />
+    <ext id="mx.controls:Image" />
+    <ext id="mx.binding:BindingManager" />
+    <ext id="spark.skins.spark:NumericStepperSkin" />
+    <ext id="spark.accessibility:TabBarAccImpl" />
+    <ext id="mx.messaging.messages:CommandMessage" />
+    <ext id="spark.skins.spark:VideoPlayerSkin" />
+    <ext id="flash.display:Bitmap" />
+    <ext id="flash.display:Sprite" />
+    <ext id="spark.components:Image" />
+    <ext id="spark.accessibility:DropDownListBaseAccImpl" />
+    <ext id="mx.messaging.messages:AsyncMessageExt" />
+    <ext id="spark.skins.spark:ButtonSkin" />
+    <ext id="mx.controls:MenuBar" />
+    <ext id="mx.skins.halo:PopUpMenuIcon" />
+    <ext id="spark.accessibility:SliderBaseAccImpl" />
+    <ext id="spark.skins.spark:ListDropIndicator" />
+    <ext id="mx.containers:Box" />
+    <ext id="spark.skins.spark:ListSkin" />
+    <ext id="spark.skins.spark:PanelSkin" />
+    <ext id="Object" />
+    <ext id="mx.binding:IWatcherSetupUtil2" />
+    <ext id="mx.skins.halo:CheckBoxIcon" />
+    <ext id="flash.events:EventDispatcher" />
+    <ext id="mx.skins.halo:ProgressBarSkin" />
+    <ext id="spark.components:BorderContainer" />
+    <ext id="mx.styles:CSSSelector" />
+    <ext id="mx.skins.halo:TitleBackground" />
+    <ext id="spark.skins.spark:SkinnableDataContainerSkin" />
+    <ext id="mx.skins.halo:ScrollThumbSkin" />
+    <ext id="mx.controls:Button" />
+    <ext id="mx.messaging.messages:MessagePerformanceInfo" />
+    <ext id="spark.components:TextInput" />
+    <ext id="flash.events:NetStatusEvent" />
+    <ext id="spark.accessibility:RadioButtonAccImpl" />
+    <ext id="spark.components:Panel" />
+    <ext id="spark.skins.spark:ButtonBarSkin" />
+    <ext id="mx.managers:DragManager" />
+    <ext id="mx.skins.halo:DataGridColumnResizeSkin" />
+    <ext id="XMLList" />
+    <ext id="Date" />
+    <ext id="XML" />
+    <ext id="mx.skins.halo:AccordionHeaderSkin" />
+    <ext id="spark.components.supportClasses:ListItemDragProxy" />
+    <ext id="mx.styles:IStyleManager2" />
+    <ext id="mx.core:DragSource" />
+    <ext id="spark.components:ComboBox" />
+    <ext id="flash.display:DisplayObject" />
+    <ext id="flash.display:GradientType" />
+    <ext id="mx.skins.halo:ButtonSkin" />
+    <ext id="mx.utils:ObjectProxy" />
+    <ext id="flash.utils:ByteArray" />
+    <ext id="spark.accessibility:VideoPlayerAccImpl" />
+    <ext id="mx.controls:Label" />
+    <ext id="mx.messaging.channels:AMFChannel" />
+    <ext id="flash.geom:Transform" />
+    <ext id="flash.net:FileReference" />
+    <ext id="mx.collections:Sort" />
+    <ext id="mx.core:UIComponent" />
+    <ext id="flash.geom:Point" />
+    <ext id="mx.containers:Form" />
+    <ext id="flash.filters:DropShadowFilter" />
+    <ext id="mx.skins.halo:NumericStepperDownSkin" />
+    <ext id="mx.controls.scrollClasses:ScrollBar" />
+    <ext id="mx.collections:ICollectionView" />
+    <ext id="mx.binding:StaticPropertyWatcher" />
+    <ext id="mx.containers:HBox" />
+    <ext id="spark.skins.spark:HSliderSkin" />
+    <ext id="mx.controls.listClasses:IListItemRenderer" />
+    <ext id="spark.skins.spark:DropDownListSkin" />
+    <ext id="mx.core:ClassFactory" />
+    <ext id="mx.resources:ResourceManager" />
+    <ext id="mx.core:DeferredInstanceFromFunction" />
+    <ext id="flash.text:TextFieldAutoSize" />
+    <ext id="mx.accessibility:UIComponentAccProps" />
+    <ext id="spark.skins.spark.mediaClasses.normal:ScrubBarSkin" />
+    <ext id="Error" />
+    <ext id="flash.display:DisplayObjectContainer" />
+    <ext id="mx.binding:FunctionReturnWatcher" />
+    <ext id="mx.skins.halo:ButtonBarButtonSkin" />
+    <ext id="spark.components:CheckBox" />
+    <ext id="mx.accessibility:MenuBarAccImpl" />
+    <ext id="spark.accessibility:PanelAccImpl" />
+    <ext id="spark.skins.spark:SkinnableContainerSkin" />
+    <ext id="spark.components:VGroup" />
+    <ext id="mx.managers:PopUpManager" />
+    <ext id="mx.rpc.remoting.mxml:RemoteObject" />
+    <ext id="mx.core:EdgeMetrics" />
+    <ext id="mx.skins.halo:ColorPickerSkin" />
+    <ext id="spark.skins.spark:DefaultButtonSkin" />
+    <ext id="mx.skins.halo:SliderThumbSkin" />
+    <ext id="mx.skins.halo:TabSkin" />
+    <ext id="mx.skins.halo:DateChooserYearArrowSkin" />
+    <ext id="mx.collections:ArrayList" />
+    <ext id="flash.net:URLRequest" />
+    <ext id="mx.accessibility:ListBaseAccImpl" />
+    <ext id="flash.display:StageDisplayState" />
+    <ext id="mx.accessibility:ButtonAccImpl" />
+    <ext id="mx.core:BitmapAsset" />
+    <ext id="mx.styles:StyleManagerImpl" />
+    <ext id="SecurityError" />
+    <ext id="spark.skins.spark:SpinnerSkin" />
+    <ext id="mx.utils:Base64Decoder" />
+    <ext id="mx.core:SpriteAsset" />
+    <ext id="mx.styles:CSSStyleDeclaration" />
+    <ext id="spark.components:HGroup" />
+    <ext id="spark.layouts:VerticalLayout" />
+    <ext id="mx.resources:ResourceBundle" />
+    <ext id="mx.skins.halo:ProgressTrackSkin" />
+    <ext id="flash.system:LoaderContext" />
+    <ext id="mx.collections:ArrayCollection" />
+    <ext id="mx.events:ChildExistenceChangedEvent" />
+    <ext id="mx.utils:ColorUtil" />
+    <ext id="flash.events:ErrorEvent" />
+    <ext id="mx.messaging.channels:SecureAMFChannel" />
+    <ext id="spark.accessibility:ComboBoxAccImpl" />
+    <ext id="spark.skins.spark:ToggleButtonSkin" />
+    <ext id="spark.accessibility:ButtonBaseAccImpl" />
+    <ext id="flash.text:Font" />
+    <ext id="mx.skins.halo:ScrollArrowSkin" />
+    <ext id="spark.events:IndexChangeEvent" />
+    <ext id="spark.skins.spark:FormSkin" />
+    <ext id="mx.managers:BrowserManager" />
+    <ext id="mx.effects:EffectManager" />
+    <ext id="flash.utils:clearInterval" />
+    <ext id="trace" />
+    <ext id="mx.accessibility:MenuAccImpl" />
+    <ext id="mx.styles:CSSCondition" />
+    <ext id="flash.text:TextFormat" />
+    <ext id="mx.styles:StyleManager" />
+    <ext id="String" />
+    <ext id="spark.components:Label" />
+    <ext id="spark.accessibility:DataGridAccImpl" />
+    <ext id="flash.events:TimerEvent" />
+    <ext id="mx.skins.halo:ActivatorSkin" />
+    <ext id="mx.accessibility:LinkButtonAccImpl" />
+    <ext id="mx.containers:VBox" />
+    <ext id="mx.binding:Binding" />
+    <ext id="mx.utils:StringUtil" />
+    <ext id="flash.events:Event" />
+    <ext id="mx.skins.halo:ComboBoxArrowSkin" />
+    <ext id="mx.skins:ProgrammaticSkin" />
+    <ext id="spark.accessibility:ListAccImpl" />
+    <ext id="spark.skins.spark:TabBarSkin" />
+    <ext id="flash.net:SharedObject" />
+    <ext id="mx.effects:Tween" />
+    <ext id="flash.events:ProgressEvent" />
+    <ext id="flash.system:SecurityDomain" />
+    <ext id="spark.skins.spark:FormHeadingSkin" />
+    <ext id="mx.rpc.events:ResultEvent" />
+    <ext id="mx.collections:IList" />
+    <ext id="spark.skins.spark:VScrollBarSkin" />
+    <ext id="spark.skins.spark:ErrorSkin" />
+    <ext id="mx.skins.halo:DataGridHeaderBackgroundSkin" />
+    <ext id="flash.display:BitmapData" />
+    <ext id="spark.skins.spark:VSliderSkin" />
+    <ext id="spark.skins.spark:SkinnablePopUpContainerSkin" />
+    <ext id="spark.skins.spark:FocusSkin" />
+    <ext id="mx.accessibility:PanelAccImpl" />
+    <ext id="mx.messaging.events:ChannelFaultEvent" />
+    <ext id="mx.skins.halo:BusyCursor" />
+    <ext id="mx.skins.halo:SliderHighlightSkin" />
+    <ext id="flash.display:StageScaleMode" />
+    <ext id="mx.controls:LinkButton" />
+    <ext id="spark.accessibility:NumericStepperAccImpl" />
+    <ext id="mx.formatters:DateFormatter" />
+    <ext id="mx.skins.halo:PanelSkin" />
+    <ext id="flash.system:Security" />
+    <ext id="spark.skins.spark:CheckBoxSkin" />
+    <ext id="spark.components:Application" />
+    <ext id="flash.geom:ColorTransform" />
+    <ext id="flash.ui:Keyboard" />
+    <ext id="mx.binding:PropertyWatcher" />
+    <ext id="mx.skins.halo:LinkSeparator" />
+    <ext id="spark.accessibility:ListBaseAccImpl" />
+    <ext id="mx.messaging.config:ConfigMap" />
+    <ext id="mx.containers:Canvas" />
+    <ext id="spark.skins.spark:ComboBoxSkin" />
+    <ext id="mx.containers:Grid" />
+    <ext id="flash.text:TextFieldType" />
+    <ext id="flash.events:SecurityErrorEvent" />
+    <ext id="mx.skins.halo:PopUpButtonSkin" />
+    <ext id="mx.messaging.messages:AcknowledgeMessageExt" />
+    <ext id="mx.core:FlexGlobals" />
+    <ext id="mx.skins.halo:DateChooserIndicator" />
+    <ext id="flash.utils:Dictionary" />
+    <ext id="mx.skins.halo:SliderTrackSkin" />
+    <ext id="mx.rpc.remoting:RemoteObject" />
+    <ext id="mx.controls:PopUpButton" />
+    <ext id="flash.accessibility:AccessibilityProperties" />
+    <ext id="__AS3__.vec:Vector" />
+    <ext id="flash.display:MovieClip" />
+    <ext id="mx.skins.halo:ToolTipBorder" />
+    <ext id="QName" />
+    <ext id="mx.messaging.messages:AsyncMessage" />
+    <ext id="ArgumentError" />
+    <ext id="mx.skins.halo:MenuBarBackgroundSkin" />
+    <ext id="Math" />
+    <ext id="spark.skins.spark:ImageSkin" />
+    <ext id="spark.layouts:HorizontalLayout" />
+    <ext id="spark.skins.spark:TextInputSkin" />
+    <ext id="flash.events:KeyboardEvent" />
+    <ext id="spark.skins.spark:ApplicationSkin" />
+    <ext id="flash.system:ApplicationDomain" />
+    <ext id="mx.rpc.remoting.mxml:Operation" />
+    <ext id="mx.core:MovieClipLoaderAsset" />
+    <ext id="spark.skins.spark.mediaClasses.normal:VolumeBarSkin" />
+    <ext id="mx.skins.halo:RadioButtonIcon" />
+    <ext id="mx.styles:IStyleClient" />
+    <ext id="mx.containers:FormItem" />
+    <ext id="flash.display:StageAlign" />
+    <ext id="spark.skins.spark:BorderContainerSkin" />
+    <ext id="mx.accessibility:LabelAccImpl" />
+    <ext id="spark.skins.spark.mediaClasses.normal:MuteButtonSkin" />
+    <ext id="mx.events:IndexChangedEvent" />
+    <ext id="mx.skins.halo:WindowBackground" />
+    <ext id="mx.skins.halo:DataGridSortArrow" />
+    <ext id="flash.display:Shape" />
+    <ext id="mx.messaging.messages:CommandMessageExt" />
+    <ext id="mx.skins.halo:DataGridHeaderSeparator" />
+    <ext id="mx.skins.halo:BrokenImageBorderSkin" />
+    <ext id="flash.display:Loader" />
+    <ext id="mx.utils:Base64Encoder" />
+    <ext id="spark.accessibility:RichEditableTextAccImpl" />
+    <ext id="mx.controls:TabBar" />
+    <ext id="mx.events:DragEvent" />
+    <ext id="mx.containers:BoxDirection" />
+    <ext id="mx.skins.halo:NumericStepperUpSkin" />
+    <ext id="mx.controls.menuClasses:IMenuItemRenderer" />
+    <ext id="mx.core:TextFieldFactory" />
+    <ext id="flash.net:SharedObjectFlushStatus" />
+    <ext id="spark.skins.spark:ScrollerSkin" />
+    <ext id="flash.net:LocalConnection" />
+    <ext id="mx.containers:ViewStack" />
+    <ext id="spark.events:TextOperationEvent" />
+    <ext id="RegExp" />
+    <ext id="flash.net:URLLoaderDataFormat" />
+    <ext id="Number" />
+    <ext id="flash.net:getClassByAlias" />
+    <ext id="spark.accessibility:ButtonBarBaseAccImpl" />
+    <ext id="mx.skins.halo:ScrollTrackSkin" />
+    <ext id="mx.accessibility:AlertAccImpl" />
+    <ext id="spark.components:Button" />
+    <ext id="mx.graphics:SolidColor" />
+    <ext id="spark.components:TitleWindow" />
+    <ext id="mx.core:Application" />
+    <ext id="mx.skins.halo:ProgressMaskSkin" />
+    <ext id="flash.utils:getTimer" />
+    <ext id="flash.display:Graphics" />
+    <ext id="mx.messaging.messages:ErrorMessage" />
+    <ext id="spark.accessibility:TitleWindowAccImpl" />
+    <ext id="mx.controls:TextInput" />
+    <ext id="mx.controls:Spacer" />
+    <ext id="flash.display:IBitmapDrawable" />
+    <ext id="mx.core:UITextField" />
+    <ext id="mx.managers.systemClasses:ChildManager" />
+    <ext id="mx.controls:ProgressBar" />
+    <ext id="flash.events:IEventDispatcher" />
+    <ext id="spark.accessibility:TextBaseAccImpl" />
+    <ext id="flash.net:registerClassAlias" />
+    <ext id="mx.controls:TextArea" />
+    <ext id="AS3" />
+    <ext id="flash.events:MouseEvent" />
+    <ext id="flash.display:Stage" />
+    <ext id="flash.utils:getQualifiedClassName" />
+    <ext id="mx.containers:TabNavigator" />
+    <ext id="spark.skins.spark:FormItemSkin" />
+    <ext id="spark.skins.spark:HScrollBarSkin" />
+    <ext id="mx.containers:GridItem" />
+    <ext id="flash.geom:Rectangle" />
+    <ext id="mx.skins.halo:DataGridColumnDropIndicator" />
+    <ext id="flash.net:FileFilter" />
+    <ext id="mx.events:CloseEvent" />
+    <ext id="spark.skins.spark:TitleWindowSkin" />
+    <ext id="mx.modules:IModuleInfo" />
+    <ext id="flash.events:IOErrorEvent" />
+    <ext id="mx.messaging.messages:RemotingMessage" />
+    <ext id="flash.display:LoaderInfo" />
+    <ext id="mx.controls.tabBarClasses:Tab" />
+    <ext id="mx.events:ScrollEvent" />
+    <ext id="mx.messaging.messages:AcknowledgeMessage" />
+    <ext id="mx.controls:Menu" />
+    <ext id="mx.binding:IBindingClient" />
+    <ext id="mx.skins.halo:HaloColors" />
+    <ext id="mx.skins.halo:ProgressIndeterminateSkin" />
+    <ext id="mx.skins.halo:DefaultDragImage" />
+    <ext id="mx.skins.halo:LinkButtonSkin" />
+    <ext id="flash.external:ExternalInterface" />
+    <ext id="spark.skins.spark:RadioButtonSkin" />
+    <ext id="mx.controls:Text" />
+    <ext id="mx.containers:GridRow" />
+    <ext id="flash.utils:getDefinitionByName" />
+    <ext id="spark.accessibility:ToggleButtonAccImpl" />
+    <ext id="flash.text:TextField" />
+    <ext id="mx.core:UIComponentDescriptor" />
+    <ext id="mx.events:PropertyChangeEvent" />
+  </external-defs>
+</report>

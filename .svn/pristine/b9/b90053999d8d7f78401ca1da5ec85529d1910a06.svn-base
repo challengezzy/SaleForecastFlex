@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="utf-8"?>
+<components:SuperTitleWindow xmlns:fx="http://ns.adobe.com/mxml/2009" 
+			   xmlns:s="library://ns.adobe.com/flex/spark" 
+			   xmlns:mx="library://ns.adobe.com/flex/mx" width="1000" height="450" 
+			   enableResize="true" title="SOP"
+			   creationComplete="creationCompleteHandler(event)" close="PopUpManager.removePopUp(this);"
+			   xmlns:charts="aks.aksmx.charts.*" xmlns:components="com.cool.components.*">
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	
+	
+	<fx:Script>
+		<![CDATA[
+			import mx.collections.ArrayCollection;
+			import mx.events.FlexEvent;
+			import mx.events.IndexChangedEvent;
+			import mx.managers.PopUpManager;
+			
+			/** 数量值数组 */
+			[Bindable]
+			public var dp4chart4scale:ArrayCollection = new ArrayCollection();
+			
+			/** 系列 名称 */
+			public var arr4displayName4chart4scale:ArrayCollection = new ArrayCollection();
+			
+			/** 系列值取值字段 */
+			public var arr4yField4chart4scale:ArrayCollection = new ArrayCollection();
+			
+			/** 系统图形类型 */
+			public var arr4chartType:ArrayCollection = new ArrayCollection();
+			
+			[Bindable]
+			public var arrEditPeriods:ArrayCollection = new ArrayCollection();//记录可以编辑期间
+			
+			[Bindable]
+			public var callbackLineAdjustObject:Object = null;
+			/** 在linechart的情况下，调整数据的回调函数*/
+			[Bindable]
+			public var callbackLineAdjustfunction:Function = null; 
+			
+			[Bindable]
+			public var arr4editableLines:ArrayCollection = new ArrayCollection();
+			
+			[Bindable]
+			public var dp4chart4kpi:ArrayCollection = new ArrayCollection();
+			
+			public var arr4displayName4chart4kpi:ArrayCollection = new ArrayCollection();
+			public var arr4yField4chart4kpi:ArrayCollection = new ArrayCollection();
+			
+			protected function creationCompleteHandler(event:FlexEvent):void
+			{
+				tabNav4chart_changeHandler(null);
+			}
+			
+			public function refreshTabStatus():void{
+				if(arr4displayName4chart4scale == null || arr4displayName4chart4scale.length < 1){
+					tabScale.enabled = false;
+					tabNav4chart.selectedIndex = 1;
+				}
+				
+				if(arr4displayName4chart4kpi == null || arr4displayName4chart4kpi.length < 1){
+					tabKpi.enabled = false;
+					tabNav4chart.selectedIndex = 0;
+				}
+				
+				tabNav4chart_changeHandler(null);
+				
+			}
+			
+			protected function tabNav4chart_changeHandler(event:IndexChangedEvent):void
+			{
+				if( tabNav4chart.selectedChild == tabScale )
+				{
+					aksLineChart4scale.pubFun4setSeries( arr4displayName4chart4scale, arr4yField4chart4scale,arr4chartType );
+				}
+				else if( tabNav4chart.selectedChild == tabKpi )
+				{
+					chart4kpi.pubFun4setSeries( arr4displayName4chart4kpi, arr4yField4chart4kpi );
+				}			
+			}
+			
+		]]>
+	</fx:Script>
+	<s:VGroup paddingLeft="10" paddingRight="10" paddingBottom="3" paddingTop="3" width="100%" height="100%">
+		<mx:TabNavigator width="100%" height="100%" tabWidth="120" id="tabNav4chart" change="tabNav4chart_changeHandler(event)">
+			<s:NavigatorContent  id="tabScale" label="SOP" width="100%" height="100%" >
+				<s:layout>
+					<s:VerticalLayout/>
+				</s:layout>
+				<charts:AksMixChart  id="aksLineChart4scale" width="100%" height="100%" chartHeight="200" 
+									 paramIn4dp4lineChart="{dp4chart4scale}" paramIn4visible4legend="true" 
+									 paramIn4arr4EditableLinesNumber="{arr4editableLines}" 
+									 paramIn4executeCallback4function="{callbackLineAdjustfunction}" 
+									 paramIn4executeCallback4thisObject="{callbackLineAdjustObject}"
+									 paramIn4arr4Editables="{arrEditPeriods}">
+				</charts:AksMixChart>				
+			</s:NavigatorContent>
+			<s:NavigatorContent id="tabKpi" label="KPI" width="100%" height="100%" >
+				<s:layout>
+					<s:VerticalLayout/>
+				</s:layout>
+				<charts:AksLineChart id="chart4kpi" width="100%" height="100%"  chartHeight="200"
+									 paramIn4dp4lineChart="{dp4chart4kpi}" paramIn4visible4legend="false">
+				</charts:AksLineChart>					
+			</s:NavigatorContent>
+			
+		</mx:TabNavigator>
+	</s:VGroup>
+</components:SuperTitleWindow>

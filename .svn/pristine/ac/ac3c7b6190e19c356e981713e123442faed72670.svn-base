@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:TitleWindow xmlns:fx="http://ns.adobe.com/mxml/2009" 
+			   xmlns:s="library://ns.adobe.com/flex/spark" 
+			   creationComplete="creationCompleteHandler(event)" 
+			   xmlns:mx="library://ns.adobe.com/flex/mx" width="550" height="150" close="onCancel()">
+	<s:layout>
+		<s:VerticalLayout/>
+	</s:layout>
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+	</fx:Declarations>
+
+	<fx:Script>
+		<![CDATA[
+			import aks.aksas.utils.UtilUi;
+			
+			import mx.events.FlexEvent;
+			import mx.managers.PopUpManager;
+			import mx.utils.StringUtil;
+			
+			//	描述    begin
+			//	描述    end
+			
+			//	0	输入参数    begin	
+			private var paramIn4closeCallback4thisObject:Object = null;
+			private var paramIn4closeCallback4function:Function = null;	
+			//	0	输入参数    end
+			
+			//	1	输出参数    begin
+			private var paramOut4winCloseWay:int = UtilUi.WINDOW_CLOSEWAY_CANCEL;		
+			//	1	输出参数    end
+			
+			//	2	本地变量    begin			
+			//	2	本地变量    end			
+			
+			//	3	公共方法    begin	
+			public function pubFun4setParamIn4closeCallback( _thisObject:Object, _function:Function ):void
+			{
+				this.paramIn4closeCallback4thisObject = _thisObject;
+				this.paramIn4closeCallback4function = _function;	
+			}
+			//	关闭方式参数
+			public function pubFun4getParamOut4winCloseWay():int
+			{
+				return this.paramOut4winCloseWay;
+			}				
+			//	关闭窗口
+			private function prvFun4close():void
+			{
+				PopUpManager.removePopUp( this );						
+				this.paramIn4closeCallback4function.call( this.paramIn4closeCallback4thisObject );				
+			}		
+			
+			public function pubFun4getProName():String
+			{
+				return StringUtil.trim(this.txtProductName.text)
+			}
+			
+			public function pubFun4getOrgName():String
+			{
+				return StringUtil.trim(this.txtOrgName.text);
+			}
+			//	3	公共方法    end		
+			
+			//	4	初始化方法    begin	
+			protected function creationCompleteHandler(event:FlexEvent):void
+			{
+				this.title = "Filter";	
+				this.x = 220;
+				this.y = 300;				
+			}		
+			//	4	初始化方法    end				
+			
+			//	5	事件响应方法    begin
+			private function onOk():void
+			{
+				this.paramOut4winCloseWay = UtilUi.WINDOW_CLOSEWAY_OK;
+				this.prvFun4close();
+			}
+			
+			private function onCancel():void
+			{
+				this.paramOut4winCloseWay = UtilUi.WINDOW_CLOSEWAY_CANCEL;
+				this.prvFun4close();
+			}
+			//	5	事件响应方法    end
+			
+			//	6	本地方法    begin
+			//	6	本地方法   end	
+	
+	]]>
+	</fx:Script>
+	<s:HGroup paddingLeft="10" paddingTop="30" verticalAlign="middle" >
+		<s:Label text="{resourceManager.getString('label','proName')}"/>
+		<mx:TextInput id="txtProductName"/>
+		<s:Spacer width="60"/>
+		<s:Label  text="{resourceManager.getString('label','orgName')}"/>
+		<mx:TextInput id="txtOrgName"/>
+	</s:HGroup>
+	<s:Spacer width="30"/>
+
+	<s:BorderContainer width="100%" height="25" borderColor="#E4ECF7">
+		<s:layout>
+			<s:HorizontalLayout horizontalAlign="center"/>
+		</s:layout>
+		<s:Button label="{resourceManager.getString('button','ok')}" click="onOk()"/>
+		<s:Button label="{resourceManager.getString('button','cancel')}" click="onCancel()"/>
+	</s:BorderContainer>
+</s:TitleWindow>

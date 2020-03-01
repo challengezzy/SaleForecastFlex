@@ -1,0 +1,24 @@
+product=Produt
+productcharacter=ProductChara
+organizationorgcharacter=SalesOrg-OrgChara
+productwarnning=Exception
+
+btn_load=LoadData
+btn_save=Save
+btn_clear=Clear
+btn_export=Failed Export
+text_date=Loading Period(YYYYMMDD)
+text_region=Access Group
+btn_del=Remove
+btn_export_warnning=Export
+
+alert_title_hint=Alert
+
+alert_msg_nodatatosave=No data needs save!
+
+alert_msg_totalnum=Number of total records£º
+alert_msg_failnum=Number of failed records£º
+alert_msg_inputdate=Input loading periond!
+alert_msg_inputdate_err=Period format is not correct!
+alert_msg_waitforgetdata=Data is loading, takes several minutes, continue?
+alert_msg_inputdate_noregion=Input Access ID

@@ -1,0 +1,10 @@
+compileperiod=Period(YYYYMM)
+forecastinstcode=Strategy ID
+forecastinstname=Strategy Description
+chkbox_like=Wild Card
+chkbox_pagequery=Page Query
+
+btn_query=Go
+
+alert_title_hint=Alert
+alert_msg_compileperiodisinvalid=Please enter a planning period in correct format!

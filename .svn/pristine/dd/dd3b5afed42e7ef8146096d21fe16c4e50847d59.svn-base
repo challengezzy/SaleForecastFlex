@@ -1,0 +1,641 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:DataGrid xmlns:fx="http://ns.adobe.com/mxml/2009" 
+					 xmlns:s="library://ns.adobe.com/flex/spark" 
+					 xmlns:mx="library://ns.adobe.com/flex/mx"
+					 horizontalScrollPolicy="on"
+					 creationComplete="creationCompleteHandler(event)"   styleName="dg1" xmlns:datagrid="com.cool.components.datagrid.*">
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+	</fx:Declarations>
+	<fx:Script>
+		<![CDATA[
+			import dmdd.dmddas.common.constant.BizConst;
+			import dmdd.dmddas.common.constant.SysConst;
+			import dmdd.dmddas.common.utils.UtilDataGridColumnLabelFunction;
+			import dmdd.dmddas.common.utils.UtilPeriod;
+			import dmdd.dmddas.dataaccess.aidobject.ABUiRowPriceData;
+			
+			import mx.collections.ArrayCollection;
+			import mx.events.FlexEvent;
+			import mx.resources.ResourceManager;
+
+			
+			//	描述    begin
+			//	描述    end
+			
+			//	0	输入参数    begin
+			[Bindable]
+			public var paramIn4visible4ProductCode:Boolean = false;			
+			[Bindable]
+			public var paramIn4visible4ProductName:Boolean = false;			
+			[Bindable]
+			public var paramIn4visible4OrganizationCode:Boolean = false;			
+			[Bindable]
+			public var paramIn4visible4OrganizationName:Boolean = false;			
+
+			
+			[Bindable]
+			private var paramIn4visible4StandardPrice:Boolean = true;
+			[Bindable]
+			private var paramIn4visible4RealPrice:Boolean = false;			
+									
+			
+			private var paramIo4periodBegin:int = SysConst.PERIOD_NULL;
+			private var paramIo4periodEnd:int = SysConst.PERIOD_NULL;
+			//	0	输入参数    end
+			
+			//	1	输出参数    begin
+			public var paramOut4arrDataColumnsStandardPrice:ArrayCollection = new ArrayCollection();
+			public var paramOut4arrDataColumnsRealPrice:ArrayCollection = new ArrayCollection();
+			
+			public function set visible4StandardPrice(_visible4StandardPrice:Boolean):void{
+				paramIn4visible4StandardPrice = _visible4StandardPrice;
+				onChange4priceType4display();
+			}
+			
+			public function set visible4RealPrice(_visible4RealPrice:Boolean):void{
+				paramIn4visible4RealPrice = _visible4RealPrice;
+				onChange4priceType4display();
+			}
+			
+			public function get visible4StandardPrice():Boolean{
+				return paramIn4visible4StandardPrice;
+			}
+			//	1	输出参数    end
+			
+			//	2	本地变量    begin		
+			//	2	本地变量    end			
+			
+			private var dgWidth:Number = 1000;
+			//	3	公共方法    begin	
+			public function pubFun4setParamIo4periodBeginEnd( _periodBegin:int, _periodEnd:int ):void
+			{
+				this.paramIo4periodBegin = _periodBegin;
+				this.paramIo4periodEnd = _periodEnd;
+				
+				// 执行两次，强制界面刷新 
+				var times:int;
+				for( times=0; times<2; times=times+1 )
+				{
+					var distributedWidth:Number = 0;
+					
+					if( this.columnIsChecked.visible == true )
+					{
+						this.columnIsChecked.width = 25;
+						distributedWidth = distributedWidth + 25;
+					}	
+					
+					if( this.columnProductCode.visible == true )
+					{
+						this.columnProductCode.width = 120;
+						distributedWidth = distributedWidth + 120;
+					}
+					if( this.columnProductName.visible == true )
+					{
+						this.columnProductName.width = 120;
+						distributedWidth = distributedWidth + 120;
+					}					
+					
+					if( this.columnOrganizationCode.visible == true )
+					{
+						this.columnOrganizationCode.width = 120;
+						distributedWidth = distributedWidth + 120;
+					}
+					if( this.columnOrganizationName.visible == true )
+					{
+						this.columnOrganizationName.width = 120;
+						distributedWidth = distributedWidth + 120;
+					}					
+										
+					var totalWidth4DataColumn:Number = this.width - distributedWidth;	
+					if( totalWidth4DataColumn < 0 )
+					{
+						totalWidth4DataColumn = 0;
+					}	
+					
+					var periodDiff:Number = UtilPeriod.getPeriodDifference( this.paramIo4periodBegin, this.paramIo4periodEnd );
+					if( periodDiff == SysConst.PERIOD_DIFF_NULL )
+					{
+						for(var i:int=0; i<this.paramOut4arrDataColumnsStandardPrice.length; i=i+1)
+						{
+							DataGridColumn( this.paramOut4arrDataColumnsStandardPrice.getItemAt(i) ).visible = false;
+							DataGridColumn( this.paramOut4arrDataColumnsRealPrice.getItemAt(i) ).visible = false;
+						}
+						return;
+					}
+					
+					var widthPerDataCloumn:Number = Math.round( totalWidth4DataColumn/(periodDiff+1) );
+					//add by zhangzy 设置成固定宽度65
+					//if(widthPerDataCloumn < 60)
+					widthPerDataCloumn = 60;
+					
+					var k:int;
+					var dgclm:DataGridColumn = null;
+					
+					//	两类价格的列宽都设好，是否显示另外控制
+					for(k=0; k<=periodDiff && k<this.paramOut4arrDataColumnsStandardPrice.length; k=k+1)
+					{
+						dgclm = DataGridColumn( this.paramOut4arrDataColumnsStandardPrice.getItemAt(k) );						
+						dgclm.headerText = UtilPeriod.getHeaderTextPeriod( this.paramIo4periodBegin, k ); 
+						dgclm.width = widthPerDataCloumn;
+						if( this.paramIn4visible4StandardPrice == true )
+						{
+							dgclm.visible = true;
+						}
+						else
+						{
+							dgclm.visible = false;
+						}
+						
+					}
+					
+					for(; k<this.paramOut4arrDataColumnsStandardPrice.length; k=k+1)
+					{
+						DataGridColumn( this.paramOut4arrDataColumnsStandardPrice.getItemAt(k) ).visible = false; 					
+					}						
+					
+					for(k=0; k<=periodDiff && k<this.paramOut4arrDataColumnsRealPrice.length; k=k+1)
+					{
+						dgclm = DataGridColumn( this.paramOut4arrDataColumnsRealPrice.getItemAt(k) );
+						dgclm.headerText = UtilPeriod.getHeaderTextPeriod( this.paramIo4periodBegin, k ); 
+						dgclm.width = widthPerDataCloumn;
+						if( this.paramIn4visible4RealPrice == true )
+						{
+							dgclm.visible = true;
+						}
+						else
+						{
+							dgclm.visible = false;
+						}						
+					}
+					
+					for(; k<this.paramOut4arrDataColumnsRealPrice.length; k=k+1)
+					{
+						DataGridColumn( this.paramOut4arrDataColumnsRealPrice.getItemAt(k) ).visible = false; 					
+					}							
+
+					
+					
+					this.validateSize( true );
+					this.validateNow();							
+				}				
+			}	
+			//	3	公共方法    end		
+			
+			//	4	初始化方法    begin	
+			protected function creationCompleteHandler(event:FlexEvent):void
+			{
+				dgWidth = this.width;
+				
+				this.paramOut4arrDataColumnsStandardPrice = new ArrayCollection();
+				this.paramOut4arrDataColumnsStandardPrice.addItem( this.columnPeriodDataValueStandardPrice00 );
+				this.paramOut4arrDataColumnsStandardPrice.addItem( this.columnPeriodDataValueStandardPrice01 );
+				this.paramOut4arrDataColumnsStandardPrice.addItem( this.columnPeriodDataValueStandardPrice02 );
+				this.paramOut4arrDataColumnsStandardPrice.addItem( this.columnPeriodDataValueStandardPrice03 );
+				this.paramOut4arrDataColumnsStandardPrice.addItem( this.columnPeriodDataValueStandardPrice04 );
+				this.paramOut4arrDataColumnsStandardPrice.addItem( this.columnPeriodDataValueStandardPrice05 );
+				this.paramOut4arrDataColumnsStandardPrice.addItem( this.columnPeriodDataValueStandardPrice06 );
+				this.paramOut4arrDataColumnsStandardPrice.addItem( this.columnPeriodDataValueStandardPrice07 );
+				this.paramOut4arrDataColumnsStandardPrice.addItem( this.columnPeriodDataValueStandardPrice08 );
+				this.paramOut4arrDataColumnsStandardPrice.addItem( this.columnPeriodDataValueStandardPrice09 );
+				this.paramOut4arrDataColumnsStandardPrice.addItem( this.columnPeriodDataValueStandardPrice10 );
+				this.paramOut4arrDataColumnsStandardPrice.addItem( this.columnPeriodDataValueStandardPrice11 );
+				this.paramOut4arrDataColumnsStandardPrice.addItem( this.columnPeriodDataValueStandardPrice12 );
+				this.paramOut4arrDataColumnsStandardPrice.addItem( this.columnPeriodDataValueStandardPrice13 );
+				this.paramOut4arrDataColumnsStandardPrice.addItem( this.columnPeriodDataValueStandardPrice14 );
+				this.paramOut4arrDataColumnsStandardPrice.addItem( this.columnPeriodDataValueStandardPrice15 );
+				this.paramOut4arrDataColumnsStandardPrice.addItem( this.columnPeriodDataValueStandardPrice16 );			
+				this.paramOut4arrDataColumnsStandardPrice.addItem( this.columnPeriodDataValueStandardPrice17 );
+				this.paramOut4arrDataColumnsStandardPrice.addItem( this.columnPeriodDataValueStandardPrice18 );
+				this.paramOut4arrDataColumnsStandardPrice.addItem( this.columnPeriodDataValueStandardPrice19 );
+				this.paramOut4arrDataColumnsStandardPrice.addItem( this.columnPeriodDataValueStandardPrice20 );
+				this.paramOut4arrDataColumnsStandardPrice.addItem( this.columnPeriodDataValueStandardPrice21 );
+				this.paramOut4arrDataColumnsStandardPrice.addItem( this.columnPeriodDataValueStandardPrice22 );
+				this.paramOut4arrDataColumnsStandardPrice.addItem( this.columnPeriodDataValueStandardPrice23 );
+				this.paramOut4arrDataColumnsStandardPrice.addItem( this.columnPeriodDataValueStandardPrice24 );
+				this.paramOut4arrDataColumnsStandardPrice.addItem( this.columnPeriodDataValueStandardPrice25 );
+				this.paramOut4arrDataColumnsStandardPrice.addItem( this.columnPeriodDataValueStandardPrice26 );			
+				this.paramOut4arrDataColumnsStandardPrice.addItem( this.columnPeriodDataValueStandardPrice27 );
+				this.paramOut4arrDataColumnsStandardPrice.addItem( this.columnPeriodDataValueStandardPrice28 );
+				this.paramOut4arrDataColumnsStandardPrice.addItem( this.columnPeriodDataValueStandardPrice29 );	
+				
+				this.paramOut4arrDataColumnsStandardPrice.addItem( this.columnPeriodDataValueStandardPrice30 );
+				this.paramOut4arrDataColumnsStandardPrice.addItem( this.columnPeriodDataValueStandardPrice31 );
+				this.paramOut4arrDataColumnsStandardPrice.addItem( this.columnPeriodDataValueStandardPrice32 );
+				this.paramOut4arrDataColumnsStandardPrice.addItem( this.columnPeriodDataValueStandardPrice33 );
+				this.paramOut4arrDataColumnsStandardPrice.addItem( this.columnPeriodDataValueStandardPrice34 );
+				this.paramOut4arrDataColumnsStandardPrice.addItem( this.columnPeriodDataValueStandardPrice35 );
+				this.paramOut4arrDataColumnsStandardPrice.addItem( this.columnPeriodDataValueStandardPrice36 );			
+				this.paramOut4arrDataColumnsStandardPrice.addItem( this.columnPeriodDataValueStandardPrice37 );
+				this.paramOut4arrDataColumnsStandardPrice.addItem( this.columnPeriodDataValueStandardPrice38 );
+				this.paramOut4arrDataColumnsStandardPrice.addItem( this.columnPeriodDataValueStandardPrice39 );	
+				
+				this.paramOut4arrDataColumnsStandardPrice.addItem( this.columnPeriodDataValueStandardPrice40 );
+				this.paramOut4arrDataColumnsStandardPrice.addItem( this.columnPeriodDataValueStandardPrice41 );
+				this.paramOut4arrDataColumnsStandardPrice.addItem( this.columnPeriodDataValueStandardPrice42 );
+				this.paramOut4arrDataColumnsStandardPrice.addItem( this.columnPeriodDataValueStandardPrice43 );
+				this.paramOut4arrDataColumnsStandardPrice.addItem( this.columnPeriodDataValueStandardPrice44 );
+				this.paramOut4arrDataColumnsStandardPrice.addItem( this.columnPeriodDataValueStandardPrice45 );
+				this.paramOut4arrDataColumnsStandardPrice.addItem( this.columnPeriodDataValueStandardPrice46 );			
+				this.paramOut4arrDataColumnsStandardPrice.addItem( this.columnPeriodDataValueStandardPrice47 );
+				this.paramOut4arrDataColumnsStandardPrice.addItem( this.columnPeriodDataValueStandardPrice48 );
+				this.paramOut4arrDataColumnsStandardPrice.addItem( this.columnPeriodDataValueStandardPrice49 );		
+				
+				this.paramOut4arrDataColumnsStandardPrice.addItem( this.columnPeriodDataValueStandardPrice50 );
+				this.paramOut4arrDataColumnsStandardPrice.addItem( this.columnPeriodDataValueStandardPrice51 );
+				this.paramOut4arrDataColumnsStandardPrice.addItem( this.columnPeriodDataValueStandardPrice52 );
+				this.paramOut4arrDataColumnsStandardPrice.addItem( this.columnPeriodDataValueStandardPrice53 );
+				this.paramOut4arrDataColumnsStandardPrice.addItem( this.columnPeriodDataValueStandardPrice54 );
+				this.paramOut4arrDataColumnsStandardPrice.addItem( this.columnPeriodDataValueStandardPrice55 );
+				this.paramOut4arrDataColumnsStandardPrice.addItem( this.columnPeriodDataValueStandardPrice56 );			
+				this.paramOut4arrDataColumnsStandardPrice.addItem( this.columnPeriodDataValueStandardPrice57 );
+				this.paramOut4arrDataColumnsStandardPrice.addItem( this.columnPeriodDataValueStandardPrice58 );
+				this.paramOut4arrDataColumnsStandardPrice.addItem( this.columnPeriodDataValueStandardPrice59 );							
+				
+				
+				
+				this.paramOut4arrDataColumnsRealPrice = new ArrayCollection();
+				this.paramOut4arrDataColumnsRealPrice.addItem( this.columnPeriodDataValueRealPrice00 );
+				this.paramOut4arrDataColumnsRealPrice.addItem( this.columnPeriodDataValueRealPrice01 );
+				this.paramOut4arrDataColumnsRealPrice.addItem( this.columnPeriodDataValueRealPrice02 );
+				this.paramOut4arrDataColumnsRealPrice.addItem( this.columnPeriodDataValueRealPrice03 );
+				this.paramOut4arrDataColumnsRealPrice.addItem( this.columnPeriodDataValueRealPrice04 );
+				this.paramOut4arrDataColumnsRealPrice.addItem( this.columnPeriodDataValueRealPrice05 );
+				this.paramOut4arrDataColumnsRealPrice.addItem( this.columnPeriodDataValueRealPrice06 );
+				this.paramOut4arrDataColumnsRealPrice.addItem( this.columnPeriodDataValueRealPrice07 );
+				this.paramOut4arrDataColumnsRealPrice.addItem( this.columnPeriodDataValueRealPrice08 );
+				this.paramOut4arrDataColumnsRealPrice.addItem( this.columnPeriodDataValueRealPrice09 );
+				this.paramOut4arrDataColumnsRealPrice.addItem( this.columnPeriodDataValueRealPrice10 );
+				this.paramOut4arrDataColumnsRealPrice.addItem( this.columnPeriodDataValueRealPrice11 );
+				this.paramOut4arrDataColumnsRealPrice.addItem( this.columnPeriodDataValueRealPrice12 );
+				this.paramOut4arrDataColumnsRealPrice.addItem( this.columnPeriodDataValueRealPrice13 );
+				this.paramOut4arrDataColumnsRealPrice.addItem( this.columnPeriodDataValueRealPrice14 );
+				this.paramOut4arrDataColumnsRealPrice.addItem( this.columnPeriodDataValueRealPrice15 );
+				this.paramOut4arrDataColumnsRealPrice.addItem( this.columnPeriodDataValueRealPrice16 );			
+				this.paramOut4arrDataColumnsRealPrice.addItem( this.columnPeriodDataValueRealPrice17 );
+				this.paramOut4arrDataColumnsRealPrice.addItem( this.columnPeriodDataValueRealPrice18 );
+				this.paramOut4arrDataColumnsRealPrice.addItem( this.columnPeriodDataValueRealPrice19 );
+				this.paramOut4arrDataColumnsRealPrice.addItem( this.columnPeriodDataValueRealPrice20 );
+				this.paramOut4arrDataColumnsRealPrice.addItem( this.columnPeriodDataValueRealPrice21 );
+				this.paramOut4arrDataColumnsRealPrice.addItem( this.columnPeriodDataValueRealPrice22 );
+				this.paramOut4arrDataColumnsRealPrice.addItem( this.columnPeriodDataValueRealPrice23 );
+				this.paramOut4arrDataColumnsRealPrice.addItem( this.columnPeriodDataValueRealPrice24 );
+				this.paramOut4arrDataColumnsRealPrice.addItem( this.columnPeriodDataValueRealPrice25 );
+				this.paramOut4arrDataColumnsRealPrice.addItem( this.columnPeriodDataValueRealPrice26 );			
+				this.paramOut4arrDataColumnsRealPrice.addItem( this.columnPeriodDataValueRealPrice27 );
+				this.paramOut4arrDataColumnsRealPrice.addItem( this.columnPeriodDataValueRealPrice28 );
+				this.paramOut4arrDataColumnsRealPrice.addItem( this.columnPeriodDataValueRealPrice29 );		
+				
+				this.paramOut4arrDataColumnsRealPrice.addItem( this.columnPeriodDataValueRealPrice30 );
+				this.paramOut4arrDataColumnsRealPrice.addItem( this.columnPeriodDataValueRealPrice31 );
+				this.paramOut4arrDataColumnsRealPrice.addItem( this.columnPeriodDataValueRealPrice32 );
+				this.paramOut4arrDataColumnsRealPrice.addItem( this.columnPeriodDataValueRealPrice33 );
+				this.paramOut4arrDataColumnsRealPrice.addItem( this.columnPeriodDataValueRealPrice34 );
+				this.paramOut4arrDataColumnsRealPrice.addItem( this.columnPeriodDataValueRealPrice35 );
+				this.paramOut4arrDataColumnsRealPrice.addItem( this.columnPeriodDataValueRealPrice36 );			
+				this.paramOut4arrDataColumnsRealPrice.addItem( this.columnPeriodDataValueRealPrice37 );
+				this.paramOut4arrDataColumnsRealPrice.addItem( this.columnPeriodDataValueRealPrice38 );
+				this.paramOut4arrDataColumnsRealPrice.addItem( this.columnPeriodDataValueRealPrice39 );	
+				
+				this.paramOut4arrDataColumnsRealPrice.addItem( this.columnPeriodDataValueRealPrice40 );
+				this.paramOut4arrDataColumnsRealPrice.addItem( this.columnPeriodDataValueRealPrice41 );
+				this.paramOut4arrDataColumnsRealPrice.addItem( this.columnPeriodDataValueRealPrice42 );
+				this.paramOut4arrDataColumnsRealPrice.addItem( this.columnPeriodDataValueRealPrice43 );
+				this.paramOut4arrDataColumnsRealPrice.addItem( this.columnPeriodDataValueRealPrice44 );
+				this.paramOut4arrDataColumnsRealPrice.addItem( this.columnPeriodDataValueRealPrice45 );
+				this.paramOut4arrDataColumnsRealPrice.addItem( this.columnPeriodDataValueRealPrice46 );			
+				this.paramOut4arrDataColumnsRealPrice.addItem( this.columnPeriodDataValueRealPrice47 );
+				this.paramOut4arrDataColumnsRealPrice.addItem( this.columnPeriodDataValueRealPrice48 );
+				this.paramOut4arrDataColumnsRealPrice.addItem( this.columnPeriodDataValueRealPrice49 );		
+				
+				this.paramOut4arrDataColumnsRealPrice.addItem( this.columnPeriodDataValueRealPrice50 );
+				this.paramOut4arrDataColumnsRealPrice.addItem( this.columnPeriodDataValueRealPrice51 );
+				this.paramOut4arrDataColumnsRealPrice.addItem( this.columnPeriodDataValueRealPrice52 );
+				this.paramOut4arrDataColumnsRealPrice.addItem( this.columnPeriodDataValueRealPrice53 );
+				this.paramOut4arrDataColumnsRealPrice.addItem( this.columnPeriodDataValueRealPrice54 );
+				this.paramOut4arrDataColumnsRealPrice.addItem( this.columnPeriodDataValueRealPrice55 );
+				this.paramOut4arrDataColumnsRealPrice.addItem( this.columnPeriodDataValueRealPrice56 );			
+				this.paramOut4arrDataColumnsRealPrice.addItem( this.columnPeriodDataValueRealPrice57 );
+				this.paramOut4arrDataColumnsRealPrice.addItem( this.columnPeriodDataValueRealPrice58 );
+				this.paramOut4arrDataColumnsRealPrice.addItem( this.columnPeriodDataValueRealPrice59 );											
+			}			
+			//	4	初始化方法    end				
+			
+			//	5	事件响应方法    begin
+			private function onChange4priceType4display():Boolean
+			{
+				var k:int;
+				var dgclm:DataGridColumn = null;
+				var periodDiff:int = UtilPeriod.getPeriodDifference( this.paramIo4periodBegin, this.paramIo4periodEnd );
+				
+				if( periodDiff == SysConst.PERIOD_DIFF_NULL )
+				{
+					return false;
+				}
+				
+				if( this.paramIn4visible4StandardPrice == true )
+				{
+					for(k=0; k<=periodDiff && k<this.paramOut4arrDataColumnsStandardPrice.length; k=k+1)
+					{
+						dgclm = DataGridColumn( this.paramOut4arrDataColumnsStandardPrice.getItemAt(k) );						 		
+						dgclm.visible = true;
+					}
+					
+					for(; k<this.paramOut4arrDataColumnsStandardPrice.length; k=k+1)
+					{
+						DataGridColumn( this.paramOut4arrDataColumnsStandardPrice.getItemAt(k) ).visible = false; 					
+					}						
+				}
+				else
+				{
+					for(k=0; k<this.paramOut4arrDataColumnsStandardPrice.length; k=k+1)
+					{
+						DataGridColumn( this.paramOut4arrDataColumnsStandardPrice.getItemAt(k) ).visible = false; 					
+					}						
+				}
+				
+				
+				if( this.paramIn4visible4RealPrice == true )
+				{
+					for(k=0; k<=periodDiff && k<this.paramOut4arrDataColumnsRealPrice.length; k=k+1)
+					{
+						dgclm = DataGridColumn( this.paramOut4arrDataColumnsRealPrice.getItemAt(k) ); 
+						dgclm.visible = true;						
+					}
+					
+					for(; k<this.paramOut4arrDataColumnsRealPrice.length; k=k+1)
+					{
+						DataGridColumn( this.paramOut4arrDataColumnsRealPrice.getItemAt(k) ).visible = false; 					
+					}							
+				}
+				else
+				{
+					for( k=0; k<this.paramOut4arrDataColumnsRealPrice.length; k=k+1)
+					{
+						DataGridColumn( this.paramOut4arrDataColumnsRealPrice.getItemAt(k) ).visible = false; 					
+					}						
+				}
+				
+				return false;
+			}
+			//	5	事件响应方法    end
+			
+			//	6	本地方法    begin
+			private function sortCompareFunction4ProductCode(obj1:ABUiRowPriceData, obj2:ABUiRowPriceData):int
+			{
+				if( obj1 == null )
+				{
+					return -1;
+				}
+				
+				if( obj2 == null )
+				{
+					return 1;
+				}
+				
+				var rstCompare:int = obj1.product.code.localeCompare( obj2.product.code )
+				if( rstCompare < 0 )
+				{
+					return -1;
+				}
+				else if( rstCompare > 0 )
+				{
+					return 1;
+				}
+				else
+				{
+					return 0;
+				}
+			}			
+			
+			private function sortCompareFunction4ProductName(obj1:ABUiRowPriceData, obj2:ABUiRowPriceData):int
+			{
+				if( obj1 == null )
+				{
+					return -1;
+				}
+				
+				if( obj2 == null )
+				{
+					return 1;
+				}
+				
+				var rstCompare:int = obj1.product.name.localeCompare( obj2.product.name )
+				if( rstCompare < 0 )
+				{
+					return -1;
+				}
+				else if( rstCompare > 0 )
+				{
+					return 1;
+				}
+				else
+				{
+					return 0;
+				}
+			}		
+					
+			
+			private function sortCompareFunction4OrganizationCode(obj1:ABUiRowPriceData, obj2:ABUiRowPriceData):int
+			{
+				if( obj1 == null )
+				{
+					return -1;
+				}
+				
+				if( obj2 == null )
+				{
+					return 1;
+				}
+				
+				var rstCompare:int = obj1.organization.code.localeCompare( obj2.organization.code )
+				if( rstCompare < 0 )
+				{
+					return -1;
+				}
+				else if( rstCompare > 0 )
+				{
+					return 1;
+				}
+				else
+				{
+					return 0;
+				}
+			}			
+			
+			private function sortCompareFunction4OrganizationName(obj1:ABUiRowPriceData, obj2:ABUiRowPriceData):int
+			{
+				if( obj1 == null )
+				{
+					return -1;
+				}
+				
+				if( obj2 == null )
+				{
+					return 1;
+				}
+				
+				var rstCompare:int = obj1.organization.name.localeCompare( obj2.organization.name )
+				if( rstCompare < 0 )
+				{
+					return -1;
+				}
+				else if( rstCompare > 0 )
+				{
+					return 1;
+				}
+				else
+				{
+					return 0;
+				}
+			}		
+					
+			//	6	本地方法   end					
+
+
+
+		]]>
+	</fx:Script>	
+	<mx:columns>
+		<datagrid:CheckBoxColumn id="columnIsChecked"
+								 itemRenderer="com.cool.components.datagrid.CheckBoxItemRenderer" 
+								 headerRenderer="com.cool.components.datagrid.CheckBoxHeaderRenderer" editable="true"
+								 width="25" dataField="isChecked" rendererIsEditor="true"  editorDataField="selected" />
+		
+		<mx:DataGridColumn id="columnProductCode"	headerText="{ResourceManager.getInstance().getString('label','proCode')}" dataField="product" 					labelFunction="UtilDataGridColumnLabelFunction.getProductCode"					editable="false"	visible="{this.paramIn4visible4ProductCode}" width="120"  					sortCompareFunction="sortCompareFunction4ProductCode"/>
+		<mx:DataGridColumn id="columnProductName"	headerText="{ResourceManager.getInstance().getString('label','proName')}" 	dataField="product" 					labelFunction="UtilDataGridColumnLabelFunction.getProductName"					editable="false"	visible="{this.paramIn4visible4ProductName}" width="120"  					sortCompareFunction="sortCompareFunction4ProductName"/>
+		<mx:DataGridColumn id="columnOrganizationCode" headerText="{ResourceManager.getInstance().getString('label','orgCode')}" dataField="organization" 				labelFunction="UtilDataGridColumnLabelFunction.getOrganizationCode"			editable="false"	visible="{this.paramIn4visible4OrganizationCode}" width="120"  				sortCompareFunction="sortCompareFunction4OrganizationCode"/>
+		<mx:DataGridColumn id="columnOrganizationName"	headerText="{ResourceManager.getInstance().getString('label','orgName')}" dataField="organization" 				labelFunction="UtilDataGridColumnLabelFunction.getOrganizationName"			editable="false"	visible="{this.paramIn4visible4OrganizationName}" width="120" 				sortCompareFunction="sortCompareFunction4OrganizationName"/>
+		
+		<mx:DataGridColumn id="columnPeriodDataValueStandardPrice00"			headerText="" 	dataField="periodDataValueStandardPrice00" visible="false" editable="false" 	textAlign="left"	width="0"/>
+		<mx:DataGridColumn id="columnPeriodDataValueStandardPrice01"			headerText="" 	dataField="periodDataValueStandardPrice01" visible="false" editable="false"	textAlign="left"	width="0"/>
+		<mx:DataGridColumn id="columnPeriodDataValueStandardPrice02"			headerText="" 	dataField="periodDataValueStandardPrice02" visible="false" editable="false"	textAlign="left"	width="0"/>
+		<mx:DataGridColumn id="columnPeriodDataValueStandardPrice03"			headerText="" 	dataField="periodDataValueStandardPrice03" visible="false" editable="false"	textAlign="left"	width="0"/>
+		<mx:DataGridColumn id="columnPeriodDataValueStandardPrice04"			headerText="" 	dataField="periodDataValueStandardPrice04" visible="false" editable="false"	textAlign="left"	width="0"/>
+		<mx:DataGridColumn id="columnPeriodDataValueStandardPrice05"			headerText="" 	dataField="periodDataValueStandardPrice05" visible="false" editable="false"	textAlign="left"	width="0"/>
+		<mx:DataGridColumn id="columnPeriodDataValueStandardPrice06"			headerText="" 	dataField="periodDataValueStandardPrice06" visible="false" editable="false"	textAlign="left"	width="0"/>
+		<mx:DataGridColumn id="columnPeriodDataValueStandardPrice07"			headerText="" 	dataField="periodDataValueStandardPrice07" visible="false" editable="false"	textAlign="left"	width="0"/>
+		<mx:DataGridColumn id="columnPeriodDataValueStandardPrice08"			headerText="" 	dataField="periodDataValueStandardPrice08" visible="false" editable="false"	textAlign="left"	width="0"/>
+		<mx:DataGridColumn id="columnPeriodDataValueStandardPrice09"			headerText="" 	dataField="periodDataValueStandardPrice09" visible="false" editable="false"	textAlign="left"	width="0"/>
+		<mx:DataGridColumn id="columnPeriodDataValueStandardPrice10"			headerText="" 	dataField="periodDataValueStandardPrice10" visible="false" editable="false"	textAlign="left"	width="0"/>
+		<mx:DataGridColumn id="columnPeriodDataValueStandardPrice11"			headerText="" 	dataField="periodDataValueStandardPrice11" visible="false" editable="false"	textAlign="left"	width="0"/>
+		<mx:DataGridColumn id="columnPeriodDataValueStandardPrice12"			headerText="" 	dataField="periodDataValueStandardPrice12" visible="false" editable="false"	textAlign="left"	width="0"/>
+		<mx:DataGridColumn id="columnPeriodDataValueStandardPrice13"			headerText="" 	dataField="periodDataValueStandardPrice13" visible="false" editable="false"	textAlign="left"	width="0"/>
+		<mx:DataGridColumn id="columnPeriodDataValueStandardPrice14"			headerText="" 	dataField="periodDataValueStandardPrice14" visible="false" editable="false"	textAlign="left"	width="0"/>
+		<mx:DataGridColumn id="columnPeriodDataValueStandardPrice15"			headerText="" 	dataField="periodDataValueStandardPrice15" visible="false" editable="false"	textAlign="left"	width="0"/>
+		<mx:DataGridColumn id="columnPeriodDataValueStandardPrice16"			headerText="" 	dataField="periodDataValueStandardPrice16" visible="false" editable="false"	textAlign="left"	width="0"/>
+		<mx:DataGridColumn id="columnPeriodDataValueStandardPrice17"			headerText="" 	dataField="periodDataValueStandardPrice17" visible="false" editable="false"	textAlign="left"	width="0"/>
+		<mx:DataGridColumn id="columnPeriodDataValueStandardPrice18"			headerText="" 	dataField="periodDataValueStandardPrice18" visible="false" editable="false"	textAlign="left"	width="0"/>
+		<mx:DataGridColumn id="columnPeriodDataValueStandardPrice19"			headerText="" 	dataField="periodDataValueStandardPrice19" visible="false" editable="false"	textAlign="left"	width="0"/>
+		<mx:DataGridColumn id="columnPeriodDataValueStandardPrice20"			headerText="" 	dataField="periodDataValueStandardPrice20" visible="false" editable="false"	textAlign="left"	width="0"/>		
+		<mx:DataGridColumn id="columnPeriodDataValueStandardPrice21"			headerText="" 	dataField="periodDataValueStandardPrice21" visible="false" editable="false"	textAlign="left"	width="0"/>
+		<mx:DataGridColumn id="columnPeriodDataValueStandardPrice22"			headerText="" 	dataField="periodDataValueStandardPrice22" visible="false" editable="false"	textAlign="left"	width="0"/>
+		<mx:DataGridColumn id="columnPeriodDataValueStandardPrice23"			headerText="" 	dataField="periodDataValueStandardPrice23" visible="false" editable="false"	textAlign="left"	width="0"/>
+		<mx:DataGridColumn id="columnPeriodDataValueStandardPrice24"			headerText="" 	dataField="periodDataValueStandardPrice24" visible="false" editable="false"	textAlign="left"	width="0"/>
+		<mx:DataGridColumn id="columnPeriodDataValueStandardPrice25"			headerText="" 	dataField="periodDataValueStandardPrice25" visible="false" editable="false"	textAlign="left"	width="0"/>
+		<mx:DataGridColumn id="columnPeriodDataValueStandardPrice26"			headerText="" 	dataField="periodDataValueStandardPrice26" visible="false" editable="false"	textAlign="left"	width="0"/>
+		<mx:DataGridColumn id="columnPeriodDataValueStandardPrice27"			headerText="" 	dataField="periodDataValueStandardPrice27" visible="false" editable="false"	textAlign="left"	width="0"/>
+		<mx:DataGridColumn id="columnPeriodDataValueStandardPrice28"			headerText="" 	dataField="periodDataValueStandardPrice28" visible="false" editable="false"	textAlign="left"	width="0"/>
+		<mx:DataGridColumn id="columnPeriodDataValueStandardPrice29"			headerText="" 	dataField="periodDataValueStandardPrice29" visible="false" editable="false"	textAlign="left"	width="0"/>
+		
+		<mx:DataGridColumn id="columnPeriodDataValueStandardPrice30"			headerText="" 	dataField="periodDataValueStandardPrice30" visible="false" editable="false"	textAlign="left"	width="0"/>		
+		<mx:DataGridColumn id="columnPeriodDataValueStandardPrice31"			headerText="" 	dataField="periodDataValueStandardPrice31" visible="false" editable="false"	textAlign="left"	width="0"/>
+		<mx:DataGridColumn id="columnPeriodDataValueStandardPrice32"			headerText="" 	dataField="periodDataValueStandardPrice32" visible="false" editable="false"	textAlign="left"	width="0"/>
+		<mx:DataGridColumn id="columnPeriodDataValueStandardPrice33"			headerText="" 	dataField="periodDataValueStandardPrice33" visible="false" editable="false"	textAlign="left"	width="0"/>
+		<mx:DataGridColumn id="columnPeriodDataValueStandardPrice34"			headerText="" 	dataField="periodDataValueStandardPrice34" visible="false" editable="false"	textAlign="left"	width="0"/>
+		<mx:DataGridColumn id="columnPeriodDataValueStandardPrice35"			headerText="" 	dataField="periodDataValueStandardPrice35" visible="false" editable="false"	textAlign="left"	width="0"/>
+		<mx:DataGridColumn id="columnPeriodDataValueStandardPrice36"			headerText="" 	dataField="periodDataValueStandardPrice36" visible="false" editable="false"	textAlign="left"	width="0"/>
+		<mx:DataGridColumn id="columnPeriodDataValueStandardPrice37"			headerText="" 	dataField="periodDataValueStandardPrice37" visible="false" editable="false"	textAlign="left"	width="0"/>
+		<mx:DataGridColumn id="columnPeriodDataValueStandardPrice38"			headerText="" 	dataField="periodDataValueStandardPrice38" visible="false" editable="false"	textAlign="left"	width="0"/>
+		<mx:DataGridColumn id="columnPeriodDataValueStandardPrice39"			headerText="" 	dataField="periodDataValueStandardPrice39" visible="false" editable="false"	textAlign="left"	width="0"/>
+		
+		<mx:DataGridColumn id="columnPeriodDataValueStandardPrice40"			headerText="" 	dataField="periodDataValueStandardPrice40" visible="false" editable="false"	textAlign="left"	width="0"/>		
+		<mx:DataGridColumn id="columnPeriodDataValueStandardPrice41"			headerText="" 	dataField="periodDataValueStandardPrice41" visible="false" editable="false"	textAlign="left"	width="0"/>
+		<mx:DataGridColumn id="columnPeriodDataValueStandardPrice42"			headerText="" 	dataField="periodDataValueStandardPrice42" visible="false" editable="false"	textAlign="left"	width="0"/>
+		<mx:DataGridColumn id="columnPeriodDataValueStandardPrice43"			headerText="" 	dataField="periodDataValueStandardPrice43" visible="false" editable="false"	textAlign="left"	width="0"/>
+		<mx:DataGridColumn id="columnPeriodDataValueStandardPrice44"			headerText="" 	dataField="periodDataValueStandardPrice44" visible="false" editable="false"	textAlign="left"	width="0"/>
+		<mx:DataGridColumn id="columnPeriodDataValueStandardPrice45"			headerText="" 	dataField="periodDataValueStandardPrice45" visible="false" editable="false"	textAlign="left"	width="0"/>
+		<mx:DataGridColumn id="columnPeriodDataValueStandardPrice46"			headerText="" 	dataField="periodDataValueStandardPrice46" visible="false" editable="false"	textAlign="left"	width="0"/>
+		<mx:DataGridColumn id="columnPeriodDataValueStandardPrice47"			headerText="" 	dataField="periodDataValueStandardPrice47" visible="false" editable="false"	textAlign="left"	width="0"/>
+		<mx:DataGridColumn id="columnPeriodDataValueStandardPrice48"			headerText="" 	dataField="periodDataValueStandardPrice48" visible="false" editable="false"	textAlign="left"	width="0"/>
+		<mx:DataGridColumn id="columnPeriodDataValueStandardPrice49"			headerText="" 	dataField="periodDataValueStandardPrice49" visible="false" editable="false"	textAlign="left"	width="0"/>		
+		
+		<mx:DataGridColumn id="columnPeriodDataValueStandardPrice50"			headerText="" 	dataField="periodDataValueStandardPrice50" visible="false" editable="false"	textAlign="left"	width="0"/>		
+		<mx:DataGridColumn id="columnPeriodDataValueStandardPrice51"			headerText="" 	dataField="periodDataValueStandardPrice51" visible="false" editable="false"	textAlign="left"	width="0"/>
+		<mx:DataGridColumn id="columnPeriodDataValueStandardPrice52"			headerText="" 	dataField="periodDataValueStandardPrice52" visible="false" editable="false"	textAlign="left"	width="0"/>
+		<mx:DataGridColumn id="columnPeriodDataValueStandardPrice53"			headerText="" 	dataField="periodDataValueStandardPrice53" visible="false" editable="false"	textAlign="left"	width="0"/>
+		<mx:DataGridColumn id="columnPeriodDataValueStandardPrice54"			headerText="" 	dataField="periodDataValueStandardPrice54" visible="false" editable="false"	textAlign="left"	width="0"/>
+		<mx:DataGridColumn id="columnPeriodDataValueStandardPrice55"			headerText="" 	dataField="periodDataValueStandardPrice55" visible="false" editable="false"	textAlign="left"	width="0"/>
+		<mx:DataGridColumn id="columnPeriodDataValueStandardPrice56"			headerText="" 	dataField="periodDataValueStandardPrice56" visible="false" editable="false"	textAlign="left"	width="0"/>
+		<mx:DataGridColumn id="columnPeriodDataValueStandardPrice57"			headerText="" 	dataField="periodDataValueStandardPrice57" visible="false" editable="false"	textAlign="left"	width="0"/>
+		<mx:DataGridColumn id="columnPeriodDataValueStandardPrice58"			headerText="" 	dataField="periodDataValueStandardPrice58" visible="false" editable="false"	textAlign="left"	width="0"/>
+		<mx:DataGridColumn id="columnPeriodDataValueStandardPrice59"			headerText="" 	dataField="periodDataValueStandardPrice59" visible="false" editable="false"	textAlign="left"	width="0"/>		
+		
+		
+		
+		<mx:DataGridColumn id="columnPeriodDataValueRealPrice00"			headerText="" 	dataField="periodDataValueRealPrice00" visible="false" editable="false" 	textAlign="left"	width="0"/>
+		<mx:DataGridColumn id="columnPeriodDataValueRealPrice01"			headerText="" 	dataField="periodDataValueRealPrice01" visible="false" editable="false"	textAlign="left"	width="0"/>
+		<mx:DataGridColumn id="columnPeriodDataValueRealPrice02"			headerText="" 	dataField="periodDataValueRealPrice02" visible="false" editable="false"	textAlign="left"	width="0"/>
+		<mx:DataGridColumn id="columnPeriodDataValueRealPrice03"			headerText="" 	dataField="periodDataValueRealPrice03" visible="false" editable="false"	textAlign="left"	width="0"/>
+		<mx:DataGridColumn id="columnPeriodDataValueRealPrice04"			headerText="" 	dataField="periodDataValueRealPrice04" visible="false" editable="false"	textAlign="left"	width="0"/>
+		<mx:DataGridColumn id="columnPeriodDataValueRealPrice05"			headerText="" 	dataField="periodDataValueRealPrice05" visible="false" editable="false"	textAlign="left"	width="0"/>
+		<mx:DataGridColumn id="columnPeriodDataValueRealPrice06"			headerText="" 	dataField="periodDataValueRealPrice06" visible="false" editable="false"	textAlign="left"	width="0"/>
+		<mx:DataGridColumn id="columnPeriodDataValueRealPrice07"			headerText="" 	dataField="periodDataValueRealPrice07" visible="false" editable="false"	textAlign="left"	width="0"/>
+		<mx:DataGridColumn id="columnPeriodDataValueRealPrice08"			headerText="" 	dataField="periodDataValueRealPrice08" visible="false" editable="false"	textAlign="left"	width="0"/>
+		<mx:DataGridColumn id="columnPeriodDataValueRealPrice09"			headerText="" 	dataField="periodDataValueRealPrice09" visible="false" editable="false"	textAlign="left"	width="0"/>
+		<mx:DataGridColumn id="columnPeriodDataValueRealPrice10"			headerText="" 	dataField="periodDataValueRealPrice10" visible="false" editable="false"	textAlign="left"	width="0"/>
+		<mx:DataGridColumn id="columnPeriodDataValueRealPrice11"			headerText="" 	dataField="periodDataValueRealPrice11" visible="false" editable="false"	textAlign="left"	width="0"/>
+		<mx:DataGridColumn id="columnPeriodDataValueRealPrice12"			headerText="" 	dataField="periodDataValueRealPrice12" visible="false" editable="false"	textAlign="left"	width="0"/>
+		<mx:DataGridColumn id="columnPeriodDataValueRealPrice13"			headerText="" 	dataField="periodDataValueRealPrice13" visible="false" editable="false"	textAlign="left"	width="0"/>
+		<mx:DataGridColumn id="columnPeriodDataValueRealPrice14"			headerText="" 	dataField="periodDataValueRealPrice14" visible="false" editable="false"	textAlign="left"	width="0"/>
+		<mx:DataGridColumn id="columnPeriodDataValueRealPrice15"			headerText="" 	dataField="periodDataValueRealPrice15" visible="false" editable="false"	textAlign="left"	width="0"/>
+		<mx:DataGridColumn id="columnPeriodDataValueRealPrice16"			headerText="" 	dataField="periodDataValueRealPrice16" visible="false" editable="false"	textAlign="left"	width="0"/>
+		<mx:DataGridColumn id="columnPeriodDataValueRealPrice17"			headerText="" 	dataField="periodDataValueRealPrice17" visible="false" editable="false"	textAlign="left"	width="0"/>
+		<mx:DataGridColumn id="columnPeriodDataValueRealPrice18"			headerText="" 	dataField="periodDataValueRealPrice18" visible="false" editable="false"	textAlign="left"	width="0"/>
+		<mx:DataGridColumn id="columnPeriodDataValueRealPrice19"			headerText="" 	dataField="periodDataValueRealPrice19" visible="false" editable="false"	textAlign="left"	width="0"/>
+		<mx:DataGridColumn id="columnPeriodDataValueRealPrice20"			headerText="" 	dataField="periodDataValueRealPrice20" visible="false" editable="false"	textAlign="left"	width="0"/>		
+		<mx:DataGridColumn id="columnPeriodDataValueRealPrice21"			headerText="" 	dataField="periodDataValueRealPrice21" visible="false" editable="false"	textAlign="left"	width="0"/>
+		<mx:DataGridColumn id="columnPeriodDataValueRealPrice22"			headerText="" 	dataField="periodDataValueRealPrice22" visible="false" editable="false"	textAlign="left"	width="0"/>
+		<mx:DataGridColumn id="columnPeriodDataValueRealPrice23"			headerText="" 	dataField="periodDataValueRealPrice23" visible="false" editable="false"	textAlign="left"	width="0"/>
+		<mx:DataGridColumn id="columnPeriodDataValueRealPrice24"			headerText="" 	dataField="periodDataValueRealPrice24" visible="false" editable="false"	textAlign="left"	width="0"/>
+		<mx:DataGridColumn id="columnPeriodDataValueRealPrice25"			headerText="" 	dataField="periodDataValueRealPrice25" visible="false" editable="false"	textAlign="left"	width="0"/>
+		<mx:DataGridColumn id="columnPeriodDataValueRealPrice26"			headerText="" 	dataField="periodDataValueRealPrice26" visible="false" editable="false"	textAlign="left"	width="0"/>
+		<mx:DataGridColumn id="columnPeriodDataValueRealPrice27"			headerText="" 	dataField="periodDataValueRealPrice27" visible="false" editable="false"	textAlign="left"	width="0"/>
+		<mx:DataGridColumn id="columnPeriodDataValueRealPrice28"			headerText="" 	dataField="periodDataValueRealPrice28" visible="false" editable="false"	textAlign="left"	width="0"/>
+		<mx:DataGridColumn id="columnPeriodDataValueRealPrice29"			headerText="" 	dataField="periodDataValueRealPrice29" visible="false" editable="false"	textAlign="left"	width="0"/>
+		
+		<mx:DataGridColumn id="columnPeriodDataValueRealPrice30"			headerText="" 	dataField="periodDataValueRealPrice30" visible="false" editable="false"	textAlign="left"	width="0"/>		
+		<mx:DataGridColumn id="columnPeriodDataValueRealPrice31"			headerText="" 	dataField="periodDataValueRealPrice31" visible="false" editable="false"	textAlign="left"	width="0"/>
+		<mx:DataGridColumn id="columnPeriodDataValueRealPrice32"			headerText="" 	dataField="periodDataValueRealPrice32" visible="false" editable="false"	textAlign="left"	width="0"/>
+		<mx:DataGridColumn id="columnPeriodDataValueRealPrice33"			headerText="" 	dataField="periodDataValueRealPrice33" visible="false" editable="false"	textAlign="left"	width="0"/>
+		<mx:DataGridColumn id="columnPeriodDataValueRealPrice34"			headerText="" 	dataField="periodDataValueRealPrice34" visible="false" editable="false"	textAlign="left"	width="0"/>
+		<mx:DataGridColumn id="columnPeriodDataValueRealPrice35"			headerText="" 	dataField="periodDataValueRealPrice35" visible="false" editable="false"	textAlign="left"	width="0"/>
+		<mx:DataGridColumn id="columnPeriodDataValueRealPrice36"			headerText="" 	dataField="periodDataValueRealPrice36" visible="false" editable="false"	textAlign="left"	width="0"/>
+		<mx:DataGridColumn id="columnPeriodDataValueRealPrice37"			headerText="" 	dataField="periodDataValueRealPrice37" visible="false" editable="false"	textAlign="left"	width="0"/>
+		<mx:DataGridColumn id="columnPeriodDataValueRealPrice38"			headerText="" 	dataField="periodDataValueRealPrice38" visible="false" editable="false"	textAlign="left"	width="0"/>
+		<mx:DataGridColumn id="columnPeriodDataValueRealPrice39"			headerText="" 	dataField="periodDataValueRealPrice39" visible="false" editable="false"	textAlign="left"	width="0"/>
+		
+		<mx:DataGridColumn id="columnPeriodDataValueRealPrice40"			headerText="" 	dataField="periodDataValueRealPrice40" visible="false" editable="false"	textAlign="left"	width="0"/>		
+		<mx:DataGridColumn id="columnPeriodDataValueRealPrice41"			headerText="" 	dataField="periodDataValueRealPrice41" visible="false" editable="false"	textAlign="left"	width="0"/>
+		<mx:DataGridColumn id="columnPeriodDataValueRealPrice42"			headerText="" 	dataField="periodDataValueRealPrice42" visible="false" editable="false"	textAlign="left"	width="0"/>
+		<mx:DataGridColumn id="columnPeriodDataValueRealPrice43"			headerText="" 	dataField="periodDataValueRealPrice43" visible="false" editable="false"	textAlign="left"	width="0"/>
+		<mx:DataGridColumn id="columnPeriodDataValueRealPrice44"			headerText="" 	dataField="periodDataValueRealPrice44" visible="false" editable="false"	textAlign="left"	width="0"/>
+		<mx:DataGridColumn id="columnPeriodDataValueRealPrice45"			headerText="" 	dataField="periodDataValueRealPrice45" visible="false" editable="false"	textAlign="left"	width="0"/>
+		<mx:DataGridColumn id="columnPeriodDataValueRealPrice46"			headerText="" 	dataField="periodDataValueRealPrice46" visible="false" editable="false"	textAlign="left"	width="0"/>
+		<mx:DataGridColumn id="columnPeriodDataValueRealPrice47"			headerText="" 	dataField="periodDataValueRealPrice47" visible="false" editable="false"	textAlign="left"	width="0"/>
+		<mx:DataGridColumn id="columnPeriodDataValueRealPrice48"			headerText="" 	dataField="periodDataValueRealPrice48" visible="false" editable="false"	textAlign="left"	width="0"/>
+		<mx:DataGridColumn id="columnPeriodDataValueRealPrice49"			headerText="" 	dataField="periodDataValueRealPrice49" visible="false" editable="false"	textAlign="left"	width="0"/>		
+		
+		<mx:DataGridColumn id="columnPeriodDataValueRealPrice50"			headerText="" 	dataField="periodDataValueRealPrice50" visible="false" editable="false"	textAlign="left"	width="0"/>		
+		<mx:DataGridColumn id="columnPeriodDataValueRealPrice51"			headerText="" 	dataField="periodDataValueRealPrice51" visible="false" editable="false"	textAlign="left"	width="0"/>
+		<mx:DataGridColumn id="columnPeriodDataValueRealPrice52"			headerText="" 	dataField="periodDataValueRealPrice52" visible="false" editable="false"	textAlign="left"	width="0"/>
+		<mx:DataGridColumn id="columnPeriodDataValueRealPrice53"			headerText="" 	dataField="periodDataValueRealPrice53" visible="false" editable="false"	textAlign="left"	width="0"/>
+		<mx:DataGridColumn id="columnPeriodDataValueRealPrice54"			headerText="" 	dataField="periodDataValueRealPrice54" visible="false" editable="false"	textAlign="left"	width="0"/>
+		<mx:DataGridColumn id="columnPeriodDataValueRealPrice55"			headerText="" 	dataField="periodDataValueRealPrice55" visible="false" editable="false"	textAlign="left"	width="0"/>
+		<mx:DataGridColumn id="columnPeriodDataValueRealPrice56"			headerText="" 	dataField="periodDataValueRealPrice56" visible="false" editable="false"	textAlign="left"	width="0"/>
+		<mx:DataGridColumn id="columnPeriodDataValueRealPrice57"			headerText="" 	dataField="periodDataValueRealPrice57" visible="false" editable="false"	textAlign="left"	width="0"/>
+		<mx:DataGridColumn id="columnPeriodDataValueRealPrice58"			headerText="" 	dataField="periodDataValueRealPrice58" visible="false" editable="false"	textAlign="left"	width="0"/>
+		<mx:DataGridColumn id="columnPeriodDataValueRealPrice59"			headerText="" 	dataField="periodDataValueRealPrice59" visible="false" editable="false"	textAlign="left"	width="0"/>		
+				
+	</mx:columns>	
+</mx:DataGrid>

@@ -1,0 +1,309 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:BorderContainer xmlns:fx="http://ns.adobe.com/mxml/2009" 
+				   xmlns:s="library://ns.adobe.com/flex/spark" 
+				   xmlns:mx="library://ns.adobe.com/flex/mx" height="130" width="100%"
+				   creationComplete="creationCompleteHandler(event)" xmlns:bizdata="dmdd.dmddmx.com.bizdata.*">
+	<s:layout>
+		<s:VerticalLayout />
+	</s:layout>
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+		<mx:NumberValidator id="numberValidator4outlierFactor" source="{this.txtOutlierFactor}" property="text" allowNegative="false" 
+							negativeError="{resourceManager.getString('alert','alert_msg_outlierfactor9')}" 
+							invalidCharError="{resourceManager.getString('alert','alert_msg_outlierfactor9')}" 
+							lowerThanMinError="{resourceManager.getString('alert','alert_msg_outlierfactor9')}" 
+							exceedsMaxError="{resourceManager.getString('alert','alert_msg_outlierfactor9')}"   
+							minValue="0" maxValue="99.99" domain="real" 
+							trigger="{this.txtOutlierFactor}" triggerEvent="change">
+		</mx:NumberValidator>
+		<mx:NumberValidator id="numberValidator4outlierAnalyzePeriodNum" source="{this.txtOutlierAnalyzePeriodNum}" property="text" allowNegative="false" 
+							negativeError="{resourceManager.getString('alert','alert_msg_outlieranalyzeperiodnum9')}" 
+							invalidCharError="{resourceManager.getString('alert','alert_msg_outlieranalyzeperiodnum9')}" 
+							lowerThanMinError="{resourceManager.getString('alert','alert_msg_outlieranalyzeperiodnum9')}" 
+							exceedsMaxError="{resourceManager.getString('alert','alert_msg_outlieranalyzeperiodnum9')}"   
+							minValue="1" maxValue="24" domain="int" 
+							trigger="{this.txtOutlierAnalyzePeriodNum}" triggerEvent="change">
+		</mx:NumberValidator>	
+		<mx:NumberValidator id="numberValidator4outlierDataAdjustHistoryWgt" source="{this.txtOutlierDataAdjustHistoryWgt}" property="text" allowNegative="false" 
+							negativeError="{resourceManager.getString('alert','alert_msg_outlierdataadjusthistorywgt9')}" 
+							invalidCharError="{resourceManager.getString('alert','alert_msg_outlierdataadjusthistorywgt9')}" 
+							lowerThanMinError="{resourceManager.getString('alert','alert_msg_outlierdataadjusthistorywgt9')}" 
+							exceedsMaxError="{resourceManager.getString('alert','alert_msg_outlierdataadjusthistorywgt9')}"  
+							minValue="0" maxValue="99.99" domain="real" 
+							trigger="{this.txtOutlierDataAdjustHistoryWgt}" triggerEvent="change">
+		</mx:NumberValidator>	
+		<mx:NumberValidator id="numberValidator4outlierDataAdjustComputeWgt" source="{this.txtOutlierDataAdjustComputeWgt}" property="text" allowNegative="false" 
+							negativeError="{resourceManager.getString('alert','alert_msg_outlierdataadjustcomputewgt9')}" 
+							invalidCharError="{resourceManager.getString('alert','alert_msg_outlierdataadjustcomputewgt9')}" 
+							lowerThanMinError="{resourceManager.getString('alert','alert_msg_outlierdataadjustcomputewgt9')}" 
+							exceedsMaxError="{resourceManager.getString('alert','alert_msg_outlierdataadjustcomputewgt9')}"  
+							minValue="0" maxValue="99.99" domain="real" 
+							trigger="{this.txtOutlierDataAdjustComputeWgt}" triggerEvent="change">
+		</mx:NumberValidator>		
+	</fx:Declarations>
+	<fx:Metadata>
+	</fx:Metadata>
+	<fx:Script>
+		<![CDATA[
+			import dmdd.dmddas.common.constant.BizConst;
+			import dmdd.dmddas.common.system.ClientEnvironment;
+			import dmdd.dmddas.common.utils.UtilPeriod;
+			import dmdd.dmddas.dataaccess.bizobject.BForecastModelM;
+			import dmdd.dmddas.dataaccess.bizobject.BSysDictionaryItem;
+			
+			import mx.collections.ArrayCollection;
+			import mx.controls.Alert;
+			import mx.events.FlexEvent;
+			import mx.utils.StringUtil;
+
+			//	描述    begin
+			//	描述    end
+			
+			//	0	输入参数    begin		
+			[Bindable]
+			public var paramIo4forecastModelM:BForecastModelM = null;
+			
+			[Bindable]
+			public var paramIn4editable:Boolean = false;			
+			
+			[Bindable]
+			public var paramIn4historyDependPeriodNum4model:int = 1;
+			//	0	输入参数    end
+			
+			//	1	输出参数    begin
+			//	1	输出参数    end
+
+			//	2	本地变量    begin	
+			[Bindable]
+			private var prvVar4arrDictGlobalYesNo:ArrayCollection = ClientEnvironment.getSysDictionaryItems("GLOBAL", "YESNO", false);
+			
+			[Bindable]
+			private var prvVar4arrDictBizDataType:ArrayCollection = new ArrayCollection();		
+			
+			[Bindable]
+			private var prvVar4outlierAnalyzePeriodNum:int = 1;
+			//	2	本地变量    end			
+			
+			//	3	公共方法    begin	
+			public function pubFun4prepare4save():Boolean
+			{
+				this.paramIo4forecastModelM.historyBizData = this.comBizDataFieldHistoryBizData.paramIo4selectedBizData;
+				this.paramIo4forecastModelM.outlierFactor = Number( StringUtil.trim(this.txtOutlierFactor.text) );
+				this.paramIo4forecastModelM.outlierAnalyzePeriodNum = Number( StringUtil.trim(this.txtOutlierAnalyzePeriodNum.text) );
+				this.paramIo4forecastModelM.outlierDataIsAutoAdjust = BSysDictionaryItem(this.comboBoxOutlierDataIsAutoAdjust.selectedItem).value;
+				this.paramIo4forecastModelM.outlierDataAdjustHistoryWgt = Number( StringUtil.trim(this.txtOutlierDataAdjustHistoryWgt.text) );
+				this.paramIo4forecastModelM.outlierDataAdjustComputeWgt = Number( StringUtil.trim(this.txtOutlierDataAdjustComputeWgt.text) );
+				
+				var alert_title_hint:String = resourceManager.getString('alert','alert_title_hint')
+				if( this.paramIo4forecastModelM.historyBizData == null )
+				{
+					Alert.show(resourceManager.getString('alert','alert_msg_historybizdataisnull9'), alert_title_hint);
+					return false;					
+				}
+				
+				if( this.numberValidator4outlierFactor.validate(this.txtOutlierFactor.text).results != null )
+				{
+					Alert.show(resourceManager.getString('alert','alert_msg_outlierfactor9'), alert_title_hint);
+					return false;
+				}
+				
+				if( this.numberValidator4outlierAnalyzePeriodNum.validate(this.txtOutlierAnalyzePeriodNum.text).results != null )
+				{
+					Alert.show(resourceManager.getString('alert','alert_msg_outlieranalyzeperiodnum9'), alert_title_hint);
+					return false;
+				}
+				
+				if( this.numberValidator4outlierDataAdjustHistoryWgt.validate(this.txtOutlierDataAdjustHistoryWgt.text).results != null )
+				{
+					Alert.show(resourceManager.getString('alert','alert_msg_outlierdataadjusthistorywgt9'), alert_title_hint);
+					return false;
+				}
+				if( this.numberValidator4outlierDataAdjustComputeWgt.validate(this.txtOutlierDataAdjustComputeWgt.text).results != null )
+				{
+					Alert.show(resourceManager.getString('alert','alert_msg_outlierdataadjustcomputewgt9'), alert_title_hint);
+					return false;
+				}	
+				
+				return true;											
+			}				
+			//	3	公共方法    end		
+			
+			//	4	初始化方法    begin	
+			protected function creationCompleteHandler(event:FlexEvent):void
+			{
+				this.prvVar4arrDictBizDataType = new ArrayCollection();
+				var i:int;
+				var sysDictionaryItem:BSysDictionaryItem = null;
+				var arrDictBizDataType:ArrayCollection = ClientEnvironment.getSysDictionaryItems( "BIZDATA", "TYPE", true);
+				if( arrDictBizDataType != null )
+				{
+					for( i=0; i<arrDictBizDataType.length; i=i+1 )
+					{
+						sysDictionaryItem = BSysDictionaryItem( arrDictBizDataType.getItemAt(i) );
+						if( sysDictionaryItem.value == BizConst.GLOBAL_NULL_NULL ||
+							sysDictionaryItem.value == BizConst.BIZDATA_TYPE_HISTORY || 
+							sysDictionaryItem.value == BizConst.BIZDATA_TYPE_HISTORYAD
+						)
+						{
+							this.prvVar4arrDictBizDataType.addItem( sysDictionaryItem );
+						}
+					}
+				}				
+				
+				this.onChange4comboBoxOutlierDataIsAutoAdjust();
+			}			
+			//	4	初始化方法    end				
+			
+			//	5	事件响应方法    begin
+			private function onChange4comboBoxOutlierDataIsAutoAdjust():void
+			{
+				if( this.comboBoxOutlierDataIsAutoAdjust.selectedItem == null )
+				{
+					return;
+				}
+				
+				var outlierDataIsAutoAdjust:int = BSysDictionaryItem(this.comboBoxOutlierDataIsAutoAdjust.selectedItem).value
+				if( outlierDataIsAutoAdjust == BizConst.GLOBAL_YESNO_YES )
+				{
+					this.txtOutlierDataAdjustHistoryWgt.editable = true;
+					this.txtOutlierDataAdjustComputeWgt.editable = true;
+				}
+				else
+				{
+					this.txtOutlierDataAdjustHistoryWgt.editable = false;
+					this.txtOutlierDataAdjustComputeWgt.editable = false;					
+				}
+			}			
+			
+			//	用以作为激活入口
+			protected function onChange4outlierAnalyzePeriodNum( txt:String ):Boolean
+			{
+				// TODO Auto-generated method stub
+				if( this.numberValidator4outlierAnalyzePeriodNum.validate(this.txtOutlierAnalyzePeriodNum.text).results != null )
+				{
+					return false;
+				}			
+ 
+				this.prvVar4outlierAnalyzePeriodNum = Number( StringUtil.trim(this.txtOutlierAnalyzePeriodNum.text) );
+				
+				return false;
+			}			
+			
+			//	由 模型依赖期间数 的变化或者 容差分析期间数 的变化来激活 所需历史期间数 的计算	
+			private function onChange4totalHistoryDependPeriodNum( _historyDependPeriodNum4model:int, _outlierAnalyzePeriodNum:int ):int
+			{
+				//	默认是二者之和
+				var rstPeriodNum:int = _historyDependPeriodNum4model + _outlierAnalyzePeriodNum;
+				
+				if( this.paramIo4forecastModelM != null )
+				{
+					if( this.paramIo4forecastModelM.type == BizConst.FORECASTMODELM_TYPE_SEASONLEVEL ||
+						this.paramIo4forecastModelM.type == BizConst.FORECASTMODELM_TYPE_SEASONTREND )
+					{
+						//	季节模型的所需历史期间数是因当前期间而变化的	
+						
+						//	容差分析的预测计算的开始期间
+						var forecastRunBeginPeriod4outlierAnalyze:int = UtilPeriod.getPeriod( ClientEnvironment.getSysPeriod().forecastRunPeriod, 0-_outlierAnalyzePeriodNum);
+						
+						//	季节模型，季节银子的计算需要当前年的前两年的全部期间
+						var year:int = UtilPeriod.getPeriodYear(forecastRunBeginPeriod4outlierAnalyze) - 2;
+						var historyBeginPeriod4seasonIndex:int = UtilPeriod.parse( "" + year + "01" );
+						
+						//	模型算法依赖的历史数据期间决定的最早历史期间
+						var historyBeginPeriod4model:int = UtilPeriod.getPeriod( forecastRunBeginPeriod4outlierAnalyze, 0 - _historyDependPeriodNum4model );
+						
+						//	比较两个期间来决定需要的最早期间
+						var historyBeginPeriod:int = historyBeginPeriod4seasonIndex;
+						if( historyBeginPeriod4model < historyBeginPeriod )
+						{
+							historyBeginPeriod = historyBeginPeriod4model;
+						}
+						
+						//	所需历史期间数=(最早开始期间)到（预测开始期间的上一期间）的期间数
+						rstPeriodNum = UtilPeriod.getPeriodDifference( historyBeginPeriod, ClientEnvironment.getSysPeriod().forecastRunPeriod );
+					}
+				}
+				
+				return rstPeriodNum;
+				
+			}
+			//	5	事件响应方法    end
+			
+			//	6	本地方法    begin		
+			//	6	本地方法   end				
+
+		]]>
+	</fx:Script>
+	
+	<mx:Grid width="100%" height="100%">
+		<mx:GridRow width="100%" height="100%" verticalAlign="middle">
+			<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+				<s:Label text="{resourceManager.getString('note','publicPara')}" fontWeight="bold"/>
+			</mx:GridItem>
+		</mx:GridRow>	
+		<mx:GridRow width="100%" height="100%" verticalAlign="middle">
+			<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+				<s:Label text="{resourceManager.getString('note','historyData')}"/>
+			</mx:GridItem>
+			<mx:GridItem width="100%" height="100%" verticalAlign="middle">
+				<bizdata:Com_BizData_BizData_Field width="100%" id="comBizDataFieldHistoryBizData" paramIo4selectedBizData="{this.paramIo4forecastModelM.historyBizData}" paramIn4arrDictBizDataType="{this.prvVar4arrDictBizDataType}" paramIn4blConstrainedByPermission="true" paramIn4blOnlyIsManaging="false" paramIn4enabled4btnOpenChooser="{this.paramIn4editable}" paramIn4enabled4btnClear="{this.paramIn4editable}">
+				</bizdata:Com_BizData_BizData_Field>
+			</mx:GridItem>
+			<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+			</mx:GridItem>
+			<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+				<s:Label text="{resourceManager.getString('note','cleanFactor1')}"/>
+			</mx:GridItem>
+			<mx:GridItem width="100%" height="100%" verticalAlign="middle">
+				<mx:TextInput width="100%" id="txtOutlierFactor" maxChars="20" enabled="{this.paramIn4editable}" text="{this.paramIo4forecastModelM.outlierFactor}"/>
+			</mx:GridItem>
+			<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+			</mx:GridItem>
+			<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+				<s:Label text="{resourceManager.getString('note','errorAnalysisPeriod')}"/>
+			</mx:GridItem>
+			<mx:GridItem width="100%" height="100%" verticalAlign="middle">
+				<mx:TextInput width="100%" id="txtOutlierAnalyzePeriodNum" maxChars="4" enabled="{this.paramIn4editable}" text="{this.paramIo4forecastModelM.outlierAnalyzePeriodNum}"/>
+				<s:Button width="0" visible="false" enabled="{this.onChange4outlierAnalyzePeriodNum(this.txtOutlierAnalyzePeriodNum.text)}"/>
+			</mx:GridItem>
+		</mx:GridRow>	
+		<mx:GridRow width="100%" height="100%" verticalAlign="middle">
+			<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+				<s:Label text="{resourceManager.getString('note','historyDataAutoAdjust')}"/>
+			</mx:GridItem>
+			<mx:GridItem width="100%" height="100%" verticalAlign="middle">
+				<s:ComboBox dataProvider="{this.prvVar4arrDictGlobalYesNo}" id="comboBoxOutlierDataIsAutoAdjust" selectedIndex="{ClientEnvironment.getSysDictionaryItemIndexByValue(this.prvVar4arrDictGlobalYesNo,this.paramIo4forecastModelM.outlierDataIsAutoAdjust)}" enabled="{this.paramIn4editable}" width="100%" change="onChange4comboBoxOutlierDataIsAutoAdjust()"/>
+			</mx:GridItem>
+			<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+			</mx:GridItem>
+			<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+				<s:Label text="{resourceManager.getString('note','historyDataWeight')}"/>
+			</mx:GridItem>
+			<mx:GridItem width="100%" height="100%" verticalAlign="middle">
+				<mx:TextInput width="100%" id="txtOutlierDataAdjustHistoryWgt" maxChars="20" enabled="{this.paramIn4editable}" text="{this.paramIo4forecastModelM.outlierDataAdjustHistoryWgt}"/>
+			</mx:GridItem>
+			<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+			</mx:GridItem>
+			<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+				<s:Label text="{resourceManager.getString('note','simuForecastWeight')}"/>
+			</mx:GridItem>
+			<mx:GridItem width="100%" height="100%" verticalAlign="middle">
+				<mx:TextInput width="100%" id="txtOutlierDataAdjustComputeWgt" maxChars="20" enabled="{this.paramIn4editable}" text="{this.paramIo4forecastModelM.outlierDataAdjustComputeWgt}"/>
+			</mx:GridItem>
+		</mx:GridRow>			
+		<mx:GridRow width="100%" height="100%" verticalAlign="middle">
+			<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+				<s:Label text="{resourceManager.getString('note','minHistoryPeriod')}"/>
+			</mx:GridItem>
+			<mx:GridItem width="100%" height="100%" verticalAlign="middle">
+				<mx:TextInput width="100%" enabled="false" text="{this.onChange4totalHistoryDependPeriodNum( this.paramIn4historyDependPeriodNum4model, this.prvVar4outlierAnalyzePeriodNum)}"/>
+			</mx:GridItem>
+			<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+			</mx:GridItem>
+			<mx:GridItem width="25%" height="100%" verticalAlign="middle" colSpan="5">
+				<s:Label text="{resourceManager.getString('note','comment1')}"/>
+			</mx:GridItem>
+		</mx:GridRow>					
+	</mx:Grid>
+	
+</s:BorderContainer>

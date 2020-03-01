@@ -1,0 +1,602 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:BorderContainer xmlns:fx="http://ns.adobe.com/mxml/2009" 
+				   xmlns:s="library://ns.adobe.com/flex/spark" 
+				   xmlns:mx="library://ns.adobe.com/flex/mx" width="400" height="300"
+				   creationComplete="creationCompleteHandler(event)" styleName="BC1">
+	<s:layout>
+		<s:VerticalLayout/>
+	</s:layout>
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+		<s:RemoteObject endpoint="{ClientEnvironment.endpoint}" id="srvUi" destination="UiService">
+			<s:method name="getUiPopbScopeBySql" result="resultHandler4getUiPopbScopes(event)" fault="faultHandler4getUiPopbScopes(event)">
+			</s:method>			
+			<s:method name="delUiPopbScope" result="resultHandler4delUiPopbScope(event)" fault="faultHandler4delUiPopbScope(event)">
+			</s:method>				
+		</s:RemoteObject>
+		
+		<s:RemoteObject endpoint="{ClientEnvironment.endpoint}" id="srvUiRowData" destination="UiRowDataService">	
+			<s:method name="getUiRowDatas" result="resultHandler4getUiRowDatas(event)" fault="faultHandler4getUiRowDatas(event)">
+			</s:method>							  
+		</s:RemoteObject>
+	</fx:Declarations>
+	<fx:Script>
+		<![CDATA[
+			import aks.aksas.charts.AksChartDataObject;
+			import aks.aksas.utils.UtilUi;
+			
+			import com.cool.assets.CoolAssetsFile;
+			import com.cool.collections.HashMap;
+			import com.cool.utils.AlertUtil;
+			import com.cool.utils.PictureExportUtil;
+			import com.siloon.plugin.rightClick.RightClickManager;
+			
+			import dmdd.dmddas.common.constant.BizConst;
+			import dmdd.dmddas.common.constant.SysConst;
+			import dmdd.dmddas.common.constant.UIConst;
+			import dmdd.dmddas.common.system.ClientEnvironment;
+			import dmdd.dmddas.common.utils.UtilChartExport;
+			import dmdd.dmddas.common.utils.UtilExceptionLocale;
+			import dmdd.dmddas.common.utils.UtilKpi;
+			import dmdd.dmddas.common.utils.UtilOrganization;
+			import dmdd.dmddas.common.utils.UtilOrganizationCharacter;
+			import dmdd.dmddas.common.utils.UtilPeriod;
+			import dmdd.dmddas.common.utils.UtilProOrg;
+			import dmdd.dmddas.common.utils.UtilProduct;
+			import dmdd.dmddas.common.utils.UtilProductCharacter;
+			import dmdd.dmddas.common.utils.UtilStrKey;
+			import dmdd.dmddas.common.utils.UtilUiPopbScope;
+			import dmdd.dmddas.common.utils.UtilUiRowData;
+			import dmdd.dmddas.common.vo.UiCondVo;
+			import dmdd.dmddas.dataaccess.aidobject.ABProOrg;
+			import dmdd.dmddas.dataaccess.aidobject.ABUiRowData;
+			import dmdd.dmddas.dataaccess.aidobject.ABUiRowDataProOrg;
+			import dmdd.dmddas.dataaccess.bizobject.BBizDataDefItemKpi;
+			import dmdd.dmddas.dataaccess.bizobject.BOrganization;
+			import dmdd.dmddas.dataaccess.bizobject.BOrganizationCharacter;
+			import dmdd.dmddas.dataaccess.bizobject.BProduct;
+			import dmdd.dmddas.dataaccess.bizobject.BProductCharacter;
+			import dmdd.dmddas.dataaccess.bizobject.BUiPopbScope;
+			import dmdd.dmddas.dataaccess.bizobject.BUiPopbScopeBizData;
+			import dmdd.dmddas.dataaccess.bizobject.BUiPopbScopeProOrg;
+			import dmdd.dmddas.dataaccess.bizobject.BUnit;
+			import dmdd.dmddas.dataaccess.bizobject.BUnitGroup;
+			import dmdd.dmddmx.com.report.Com_Report_CustomReport_AU;
+			import dmdd.dmddmx.com.setting.SetCom_ProOrg_BizData_Period;
+			
+			import mx.charts.LinearAxis;
+			import mx.charts.chartClasses.Series;
+			import mx.charts.series.ColumnSeries;
+			import mx.charts.series.LineSeries;
+			import mx.collections.ArrayCollection;
+			import mx.controls.Alert;
+			import mx.controls.Menu;
+			import mx.events.CloseEvent;
+			import mx.events.FlexEvent;
+			import mx.events.MenuEvent;
+			import mx.formatters.NumberFormatter;
+			import mx.managers.PopUpManager;
+			import mx.rpc.events.FaultEvent;
+			import mx.rpc.events.ResultEvent;
+			
+			//	描述		begin
+			//	描述		end
+			
+			//	0	输入参数    begin	
+			[Bindable]
+			public var isShowLegend:Boolean = true;//是否显示图例
+			
+			[Bindable]
+			public var chartHeight:int = 100; //图形最低高度			
+			[Bindable]
+			public var chartTitle:String;//显示标题
+			
+			public var chartType:String = "line"; //图形类型
+			public var chartEditable:Boolean = false;//图表内容是否可调整			
+			public var uiScopeCode:String ;//快速条件编码
+			
+			//	0	输入参数    end
+			
+			private var rightClickMenu:Menu;//右键菜单
+			[Bindable]
+			private var rightClickMenuItems:ArrayCollection = new ArrayCollection();
+			[Bindable]
+			private var isLoading:Boolean = false;//是否加载中
+			
+			private var uiPopbScope:BUiPopbScope = null; //快速条件
+			[Bindable]
+			private var dp4comAdgUiRowData:ArrayCollection = new ArrayCollection();
+			
+			private var auWindow_customReport:Com_Report_CustomReport_AU = null;	
+			
+			[Bindable]
+			private var dp4chart4scale:ArrayCollection = new ArrayCollection();			
+			private var arr4displayName4chart4scale:ArrayCollection = new ArrayCollection();
+			private var arr4yField4chart4scale:ArrayCollection = new ArrayCollection();		
+			
+			[Bindable]
+			private var unitGroup:BUnitGroup = null; //单位组
+			private var unit:BUnit = null;
+			
+			private var condSetWindow:SetCom_ProOrg_BizData_Period;
+			
+			private var arrDictBizDataType:ArrayCollection = ClientEnvironment.getBizDataTypeArr();
+			
+			public var isCurrentUserChart:Boolean = false;
+			
+			//	1	输出参数    begin	
+			//	1	输出参数    end
+			
+			//	2	本地变量    begin
+			//	2	本地变量    end			
+			
+			//	3	公共方法    begin
+							
+			//	3	公共方法    end		
+			
+			//	4	初始化方法    begin			
+			protected function creationCompleteHandler(event:FlexEvent):void
+			{
+				if( isShowLegend == false ){
+					lineChartBorderContainer.removeElement( legend );
+				}
+				
+				//添加右键菜单
+				RightClickManager.regist();
+				addEventListener(RightClickManager.RIGHT_CLICK,onRightMouseClick);
+				
+				rightClickMenuItems.addItem({label:"刷新",keyname:"refresh",icon:CoolAssetsFile.refresh3Icon ,enabled:true });
+				//rightClickMenuItems.addItem({label:"单位切换",keyname:"unitswith",icon:CoolAssetsFile.refresh3Icon ,enabled:true });
+				
+				if(isCurrentUserChart == true){
+					rightClickMenuItems.addItem({label:"定制",keyname:"customize", icon:CoolAssetsFile.editIcon ,enabled:chartEditable });
+				}
+				//rightClickMenuItems.addItem({label:"定制",keyname:"customize", icon:CoolAssetsFile.editIcon ,enabled:chartEditable });
+				//rightClickMenuItems.addItem({label:"删除",keyname:"delete", icon:CoolAssetsFile.deleteIcon ,enabled:chartEditable });
+				rightClickMenuItems.addItem({label:"导出",keyname:"chartexport", icon:CoolAssetsFile.pictureIcon ,enabled:true });
+				
+				rightClickMenu = Menu.createMenu(this,rightClickMenuItems,true);
+				rightClickMenu.addEventListener(MenuEvent.ITEM_CLICK,handleRightMenuClicked);
+				rightClickMenu.setStyle("fontSize",12);
+				
+				isLoading = true;
+				//查询数据查询
+				var sqlRestriction:String = "( code = '"+ uiScopeCode + "' ) " + " and ( uicode = '" + UIConst.UICODE_HOMEPAGE + "' ) ";
+				
+				if( isCurrentUserChart == true){
+					sqlRestriction += " and ( operatoruserid = "+ ClientEnvironment.getOperatorUser().id + " ) ";
+				}
+				
+				srvUi.getUiPopbScopeBySql( sqlRestriction);	
+				
+			}							
+			//	4	初始化方法    end				
+			
+			//	5	事件响应方法    begin	
+			private function onRightMouseClick(event:MouseEvent):void{
+				if(rightClickMenu != null){
+					rightClickMenu.hide();
+					rightClickMenu.dataProvider = rightClickMenuItems;
+					var point:Point = new Point(mouseX,mouseY);
+					point = localToGlobal(point);  
+					var xx:Number = point.x;
+					var yy:Number = point.y;
+					if(xx + rightClickMenu.width > stage.width)
+						xx = stage.width - rightClickMenu.width - 1;
+					if(yy + rightClickMenu.height > stage.height)
+						yy = stage.height - rightClickMenu.height-1;
+					rightClickMenu.show(xx,yy); 
+				}
+			}
+			
+			private function handleRightMenuClicked(event:MenuEvent):void{
+				var item:Object = event.item;
+				if(item == null)
+					return;
+				
+				if(item.keyname == "refresh"){
+					onRefreshChartData();
+				}else if(item.keyname == "delete"){
+					onCustomReportDelete();
+				}else if(item.keyname == "customize"){
+					onCustomReportCustom();
+				}else if(item.keyname == "chartexport"){
+					PictureExportUtil.exportChart(this,chartTitle);
+				}
+			}
+			
+			private function onChange4comboBoxUnit():void
+			{
+				//	单位变化	begin
+				var selectedUnit:BUnit = BUnit(comboBoxUnit.selectedItem)
+				var i:int;
+				
+				var uiRowData:ABUiRowData = null;
+				if( selectedUnit != null && unit != null && selectedUnit.id != unit.id )
+				{
+					if( dp4comAdgUiRowData != null )
+					{
+						for( i=0; i<dp4comAdgUiRowData.length; i=i+1 )
+						{
+							uiRowData = ABUiRowData(dp4comAdgUiRowData.getItemAt(i));
+							uiRowData.exchangeUnit( unit.exchangeRate, selectedUnit.exchangeRate );
+						}
+					}	
+					
+					unit = selectedUnit;
+					onRefreshChart();
+				}
+				//	单位变化	end
+				
+			}
+			
+			private function faultHandler4getUiPopbScopes(event:FaultEvent):void
+			{
+				isLoading = false;
+				AlertUtil.show("查询UIPOPBSCOPE异常！",AlertUtil.MESSAGE_ERROR,UtilExceptionLocale.getExceptionMessageLocaleByFaultEvent( event ) );
+			}	
+			
+			private function resultHandler4getUiPopbScopes(event:ResultEvent):void 
+			{
+				isLoading = false;
+				
+				uiPopbScope = BUiPopbScope(event.result);
+				
+				if(uiPopbScope == null){
+					//禁用刷新和删除按钮
+					chartTitle = "无数据定义条件";
+				}else{
+					uiPopbScope.updateLayerId();
+					onRefreshChartData();
+				}
+				
+			}
+			
+			private function faultHandler4delUiPopbScope(event:FaultEvent):void
+			{
+				UtilUi.pubFun4RemoveWaitWindow();
+				Alert.show( UtilExceptionLocale.getExceptionMessageLocaleByFaultEvent( event ), resourceManager.getString('main','alt_title_warn') );			
+			}
+			
+			private function resultHandler4delUiPopbScope(event:ResultEvent):void 
+			{	
+				UtilUi.pubFun4RemoveWaitWindow();
+				
+				var alert_title_hint:String = resourceManager.getString('mod_homepage','alert_title_hint');
+				var alert_msg:String = null;
+				
+				var blSucceed:Boolean = Boolean(event.result);
+				if( blSucceed == true ){
+					uiPopbScope = null;
+					//TODO 启用定制按钮
+										
+					alert_msg = resourceManager.getString('mod_homepage','alter_msg_delete_succeed');
+					Alert.show(alert_msg, alert_title_hint);					
+				}else{
+					alert_msg = resourceManager.getString('mod_homepage','alter_msg_delete_fail');
+					Alert.show(alert_msg, alert_title_hint);
+				}												
+			}
+			
+			private function onRefreshChartData():void
+			{
+				if( uiPopbScope == null ){
+					return;	
+				}
+				
+				//查询条件处理
+				var condVo:UiCondVo = UtilUiPopbScope.getUiScopeCondVo(uiPopbScope,this);
+				if(condVo.isValid == false){
+					AlertUtil.show(condVo.inValidStr,AlertUtil.MESSAGE_ERROR);
+				}
+				
+				unitGroup = condVo.unitGroup;
+				unit = condVo.unit;
+				comboBoxUnit.selectedItem = condVo.unit;
+				
+				//	查询数据		begin
+				isLoading = true
+				dp4comAdgUiRowData = new ArrayCollection();
+				dp4chart4scale = new ArrayCollection();
+				
+				srvUiRowData.getUiRowDatas( condVo.arrUiRowDataProOrgs, condVo.periodBegin, condVo.periodEnd, condVo.arrBizDatas, ClientEnvironment.getSysPeriod() );
+				//	查询数据		end
+			}
+			
+			private function faultHandler4getUiRowDatas(event:FaultEvent):void
+			{
+				UtilUi.pubFun4RemoveWaitWindow();
+				Alert.show( UtilExceptionLocale.getExceptionMessageLocaleByFaultEvent( event ), resourceManager.getString('main','alt_title_warn') );
+			}	
+			
+			private function resultHandler4getUiRowDatas(event:ResultEvent):void 
+			{				
+				dp4comAdgUiRowData = ArrayCollection(event.result);
+				
+				var i:int;
+				var seledtedUnit:BUnit = null;
+				var uiRowData:ABUiRowData = null;
+				
+				if( dp4comAdgUiRowData != null )
+				{
+					seledtedUnit = BUnit(comboBoxUnit.selectedItem);		
+					
+					for( i=0; i<dp4comAdgUiRowData.length; i=i+1 )
+					{
+						uiRowData = ABUiRowData(dp4comAdgUiRowData.getItemAt(i));
+						
+						if( uiRowData.bizData.type != BizConst.BIZDATA_TYPE_KPI )
+						{
+							//	非Kpi数据换算后放入显示表格
+							if( seledtedUnit != null && seledtedUnit.isBase == BizConst.GLOBAL_YESNO_NO )
+							{
+								uiRowData.exchangeUnit( 1, seledtedUnit.exchangeRate );						
+							}						
+						}else{
+							// Kpi数据计算处理
+							UtilKpi.updateKpi4UiRowData(uiRowData);
+						}
+						
+					}					
+				}
+				
+				isLoading = false;
+				onRefreshChart();
+				
+			}
+			
+			private function onRefreshChart():void
+			{
+				var i:int;
+				var uiRowData:ABUiRowData = null;
+				
+				//	收集被勾选的 uiRowData	begin
+				var arr4checkedUiRowData4scale:ArrayCollection = new ArrayCollection();
+				
+				if( dp4comAdgUiRowData != null )
+				{
+					for( i=0; i<dp4comAdgUiRowData.length; i=i+1 )
+					{
+						uiRowData = ABUiRowData(dp4comAdgUiRowData.getItemAt(i));
+						arr4checkedUiRowData4scale.addItem( uiRowData );
+					}
+				}
+				
+				var alert_title_hint:String = resourceManager.getString('mod_homepage','alert_title_hint');
+				var alert_msg:String = "";			
+				
+				if( arr4checkedUiRowData4scale.length > SysConst.CHART_MAX_NUM )
+				{
+					alert_msg = resourceManager.getString('mod_homepage','alert_msg_chartexceedmaxnum_scale');
+					Alert.show( alert_msg, alert_title_hint);					
+				}
+				
+				//	收集displayName 和 yFieldName	begin
+				var blDispProduct:Boolean = false;
+				if( uiPopbScope.isShowProduct == BizConst.GLOBAL_YESNO_YES )
+				{
+					blDispProduct = true;
+				}
+				var blDispProductCharacter:Boolean = false;
+				if( uiPopbScope.isShowProductCharacter == BizConst.GLOBAL_YESNO_YES )
+				{
+					blDispProductCharacter = true;
+				}				
+				var blDispOrganization:Boolean = false;
+				if( uiPopbScope.isShowOrganization == BizConst.GLOBAL_YESNO_YES )
+				{
+					blDispOrganization = true;
+				}
+				var blDispOrganizationCharacter:Boolean = false;
+				if( uiPopbScope.isShowOrganizationCharacter == BizConst.GLOBAL_YESNO_YES )
+				{
+					blDispOrganizationCharacter = true;
+				}				
+				
+				var displayName:String = null;
+				var yFieldName:String = null;
+				
+				arr4displayName4chart4scale = new ArrayCollection();
+				arr4yField4chart4scale = new ArrayCollection();
+				for( i=0; i<arr4checkedUiRowData4scale.length; i=i+1 )
+				{
+					uiRowData = ABUiRowData( arr4checkedUiRowData4scale.getItemAt(i) );
+					
+					displayName = UtilUiRowData.getDisplayName4Chart( blDispProduct, uiRowData.product,
+						blDispProductCharacter, uiRowData.productCharacter,
+						blDispOrganization, uiRowData.organization,
+						blDispOrganizationCharacter, uiRowData.organizationCharacter,
+						true, uiRowData.bizData );
+					
+					yFieldName = AksChartDataObject.getFiledName(i);
+					
+					arr4displayName4chart4scale.addItem( displayName );
+					arr4yField4chart4scale.addItem( yFieldName );	
+				}	
+				//	收集displayName 和 yFieldName end
+				//	刷新Chart基本信息	begin
+					
+				//设置 chart的显示系列信息			
+				setSeries(arr4displayName4chart4scale, arr4yField4chart4scale);
+				
+				// 收集chart 数据源    begin
+				dp4chart4scale = new ArrayCollection();
+				
+				var periodBegin:int = UtilPeriod.getPeriod( ClientEnvironment.getSysPeriod().compilePeriod, uiPopbScope.periodOffsetBegin );
+				var periodEnd:int = UtilPeriod.getPeriod( ClientEnvironment.getSysPeriod().compilePeriod, uiPopbScope.periodOffsetEnd );
+				var periodDiff:int = UtilPeriod.getPeriodDifference( periodBegin, periodEnd );
+				if( periodDiff == SysConst.PERIOD_DIFF_NULL )
+				{   //无效的期间
+					return;
+				}
+				
+				var periodLoc:int;
+				
+				var aksChartDataObject:AksChartDataObject = null
+				for( periodLoc=0; periodLoc<=periodDiff; periodLoc=periodLoc+1 )
+				{
+					aksChartDataObject = new AksChartDataObject();
+					aksChartDataObject.categoryFieldValue = String( UtilPeriod.getPeriod( periodBegin, periodLoc ) );
+					for( i=0; i<arr4checkedUiRowData4scale.length; i=i+1 )
+					{
+						uiRowData = ABUiRowData( arr4checkedUiRowData4scale.getItemAt(i) );
+						aksChartDataObject.setData( i, uiRowData.pubFun4getPeriodDataValue(periodLoc) );
+					}
+					dp4chart4scale.addItem( aksChartDataObject );
+				}
+				// 收集chart 数据源    end	
+			}
+			
+			private function setSeries( _arr4dispalyName:ArrayCollection, _arr4yFiled:ArrayCollection ):void
+			{
+				fcChart.series = new Array();
+				if( _arr4dispalyName == null || _arr4yFiled == null ){
+					return;
+				}
+				
+				if( _arr4dispalyName.length != _arr4yFiled.length ){
+					return;
+				}
+				
+				var i:int;
+				var num:int;
+				
+				if( _arr4dispalyName.length > AksChartDataObject.MAX_DATA_NUM ){
+					num = AksChartDataObject.MAX_DATA_NUM;
+				}else{
+					num =  _arr4dispalyName.length;
+				}
+				
+				for( i=0; i<num; i=i+1 ){
+					
+					if(chartType == "column"){
+						var series:ColumnSeries = new ColumnSeries();
+						series.displayName = String( _arr4dispalyName.getItemAt(i) );
+						series.yField = String( _arr4yFiled.getItemAt(i) );
+						fcChart.series.push( series );
+						
+					}else{
+						// 默认为 line
+						var lineSeries:LineSeries = new LineSeries();
+						lineSeries.displayName = String( _arr4dispalyName.getItemAt(i) );
+						lineSeries.yField = String( _arr4yFiled.getItemAt(i) );
+						fcChart.series.push( lineSeries );
+					}
+					
+					
+				}
+				
+				//add by zhangzy 重新设置Y轴，因为flex中坐标轴数值的自动调整有bug，不靠谱
+				var yAxis:LinearAxis = new LinearAxis();
+				//yAxis.baseAtZero = false;
+				fcChart.verticalAxis = yAxis;
+				
+			}
+			
+			private function onCustomReportCustom():void
+			{
+//				if( auWindow_customReport == null )
+//				{
+//					auWindow_customReport = Com_Report_CustomReport_AU(PopUpManager.createPopUp(this, Com_Report_CustomReport_AU, true));
+//					auWindow_customReport.pubFun4setParamIn4closeCallback( this, callbackFunction4auWinClose_customReport );
+//				}
+//				else
+//				{
+//					PopUpManager.addPopUp( auWindow_customReport, this, true );
+//				} 
+				
+				if(condSetWindow == null){
+					condSetWindow = new SetCom_ProOrg_BizData_Period();
+					condSetWindow.setOkCallbackFun = callbackFunOnSetCondtionOk;
+					condSetWindow.uicode = UIConst.UICODE_HOMEPAGE;
+					condSetWindow.arrDictBizDataType = arrDictBizDataType;
+					
+					condSetWindow.showDisplayOption = true;
+					condSetWindow.visible4span4periodSpan = true;
+					condSetWindow.visible4forecast4periodspan = true;
+				}
+				
+				PopUpManager.addPopUp(condSetWindow,ClientEnvironment.modWork,true);
+				PopUpManager.centerPopUp(condSetWindow);
+				
+				condSetWindow.setUiPopbScope(uiPopbScope);
+				condSetWindow.updateUIControl();
+			}
+			
+			private function callbackFunOnSetCondtionOk():void{
+				uiPopbScope = condSetWindow.getUiPopbScope();
+				onRefreshChartData();
+				
+			}
+			
+			private function callbackFunction4auWinClose_customReport():void
+			{
+				if( auWindow_customReport.pubFun4getParamOut4winCloseWay() == UtilUi.WINDOW_CLOSEWAY_OK )
+				{
+					var alert_title_hint:String = resourceManager.getString('mod_homepage','alert_title_hint');
+					var alert_msg:String = "";
+					
+					if( auWindow_customReport.pubFun4getParamIo4uiPopbScope() != null )
+					{
+						alert_msg = resourceManager.getString('mod_homepage','alter_msg_customsucceed');
+						Alert.show( alert_msg, alert_title_hint);
+						
+						uiPopbScope = auWindow_customReport.pubFun4getParamIo4uiPopbScope();
+						
+					}
+				}
+			}
+			
+			private function onCustomReportDelete():void
+			{
+				var alert_title_hint:String = resourceManager.getString('mod_homepage','alert_title_hint');
+				var alert_msg_deleteconfirm:String = resourceManager.getString('mod_homepage','alert_msg_customreportdeleteconfirm');
+				Alert.show( alert_msg_deleteconfirm, alert_title_hint, Alert.OK | Alert.CANCEL, this, customReportDeleteConfirmHandler, null, Alert.OK );										
+			}
+			
+			private function customReportDeleteConfirmHandler(event:CloseEvent):void
+			{
+				if( event.detail == Alert.OK )
+				{
+					UtilUi.pubFun4PopWaitWindow( this );
+					srvUi.delUiPopbScope( uiPopbScope );										
+				}
+				//清除单位
+				unitGroup = null;
+				comboBoxUnit.textInput.text="";
+			}
+			
+			
+			//	5	事件响应方法    end
+			
+			//	6	本地方法    begin		
+			//	6	本地方法   end					
+			
+		]]>
+	</fx:Script>
+	<fx:Declarations>
+		<s:TitleWindow id="unitSwithWindow" width="300" height="150"
+					   title="单位切换" close="PopUpManager.removePopUp(unitSwithWindow);">
+		</s:TitleWindow>
+	</fx:Declarations>
+	<s:BorderContainer id= "lineChartBorderContainer" width="100%" height="100%" doubleClick="UtilChartExport.Instance.exportChart(lineChartBorderContainer);">
+		<s:layout>
+			<s:VerticalLayout/>
+		</s:layout>
+		<s:HGroup gap="0" verticalAlign="middle" width="100%" paddingTop="2">
+			<mx:Image id="loadingImage" source="{CoolAssetsFile.red_glowIcon}" width="22" height="22" right="0" top="0" visible="{isLoading}"  click="{isLoading=false}"/>
+			<s:Label id="titleLabel" text="{chartTitle}" width="100%" textAlign="center"  fontWeight="bold"/>
+			<s:Label text="{resourceManager.getString('mod_homepage','customreport_unit')}"/>
+			<s:ComboBox id="comboBoxUnit" width="85"  dataProvider="{unitGroup.units}" change="onChange4comboBoxUnit()"/>
+			<mx:LinkButton alpha="0.7" id="menuBtn" icon="{CoolAssetsFile.arrow_nextIcon}" width="22" height="22"
+						   toolTip="操作" click="onRightMouseClick(event)" visible="{true}"/>
+		</s:HGroup>
+		<mx:ColumnChart id="fcChart" width="100%" height="100%" minHeight="{chartHeight}" dataProvider="{dp4chart4scale}" showDataTips="true">
+			<mx:horizontalAxis>
+				<mx:CategoryAxis categoryField="{AksChartDataObject.CATEGORYFIELD}">
+				</mx:CategoryAxis>
+			</mx:horizontalAxis>
+		</mx:ColumnChart>
+		<mx:Legend id="legend" dataProvider="{fcChart}" direction="horizontal" width="100%"/>
+	</s:BorderContainer>
+</s:BorderContainer>

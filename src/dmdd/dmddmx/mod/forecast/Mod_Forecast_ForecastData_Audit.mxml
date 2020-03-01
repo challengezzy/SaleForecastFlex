@@ -1,0 +1,229 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Module xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		   xmlns:s="library://ns.adobe.com/flex/spark" 
+		   xmlns:mx="library://ns.adobe.com/flex/mx" layout="vertical" width="100%" height="100%" 
+		   creationComplete="creationCompleteHandler(event)" 
+		   paddingLeft="10" paddingRight="10"
+		   xmlns:security="dmdd.dmddmx.com.security.*"  xmlns:common="dmdd.dmddmx.com.common.*"
+		   xmlns:containers="aks.aksmx.containers.*">
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+		<s:RemoteObject endpoint="{ClientEnvironment.endpoint}" id="srvForecast" destination="ForecastService">	
+			<s:method name="auditForecastDatas" result="resultHandler4auditForecastDatas(event)" fault="faultHandler4auditForecastDatas(event)">
+			</s:method>							  
+		</s:RemoteObject>		
+	</fx:Declarations>
+	<fx:Metadata>
+		[ResourceBundle("mod_forecast_forecastdata_audit")]
+	</fx:Metadata>
+	<fx:Script>
+		<![CDATA[
+			import aks.aksas.utils.UtilUi;
+			
+			import com.cool.utils.AlertUtil;
+			
+			import dmdd.dmddas.common.constant.BizConst;
+			import dmdd.dmddas.common.constant.SkinConst;
+			import dmdd.dmddas.common.constant.UIConst;
+			import dmdd.dmddas.common.system.ClientEnvironment;
+			import dmdd.dmddas.common.utils.UtilExceptionLocale;
+			import dmdd.dmddas.common.utils.UtilUiPopbScope;
+			import dmdd.dmddas.dataaccess.aidobject.ABProOrg;
+			import dmdd.dmddas.dataaccess.bizobject.BBizData;
+			import dmdd.dmddas.dataaccess.bizobject.BForecastMakeLog;
+			import dmdd.dmddas.dataaccess.bizobject.BForecastMakeLogAuditItem;
+			import dmdd.dmddas.dataaccess.bizobject.BForecastMakeLogProOrg;
+			import dmdd.dmddas.dataaccess.bizobject.BSysDictionaryItem;
+			import dmdd.dmddas.dataaccess.bizobject.BUiPopbScope;
+			
+			import mx.collections.ArrayCollection;
+			import mx.controls.Alert;
+			import mx.events.FlexEvent;
+			import mx.rpc.events.FaultEvent;
+			import mx.rpc.events.ResultEvent;
+			import mx.utils.StringUtil;
+			
+			
+			
+			//	描述    begin
+			//	描述    end
+			
+			//	0	输入参数    begin						
+			//	0	输入参数    end
+			
+			//	1	输出参数    begin
+			//	1	输出参数    end
+			
+			//	2	本地变量    begin	
+			[Bindable]
+			private var prvVar4arrDictBizDataType:ArrayCollection = new ArrayCollection();
+			
+			private var uiPopbScope:BUiPopbScope;
+			private var isaudit:int;
+			
+			//	 显示设置		begin
+			//	 显示设置		end
+			
+			
+			//	查询条件		begin
+			//	查询条件		end
+			
+			//	2	本地变量    end			
+			
+			//	3	公共方法    begin			
+			//	3	公共方法    end		
+			
+			//	4	初始化方法    begin	
+			protected function creationCompleteHandler(event:FlexEvent):void
+			{
+				//	初始化界面参数	begin
+				prvVar4arrDictBizDataType = new ArrayCollection();
+				
+				var arrDictBizDataType:ArrayCollection = ClientEnvironment.getBizDataTypeArr();
+				if( arrDictBizDataType != null )
+				{
+					var i:int;
+					var sysDictionaryItem:BSysDictionaryItem = null;
+					for( i=0; i<arrDictBizDataType.length; i=i+1 )
+					{
+						sysDictionaryItem = BSysDictionaryItem(arrDictBizDataType.getItemAt(i));
+						if( sysDictionaryItem.value == BizConst.GLOBAL_NULL_NULL ||
+							sysDictionaryItem.value == BizConst.BIZDATA_TYPE_FCHAND )
+						{
+							prvVar4arrDictBizDataType.addItem( sysDictionaryItem );
+						}
+					}
+				}				
+				//	初始化界面参数	end
+			}			
+			//	4	初始化方法    end				
+			
+			//	5	事件响应方法    begin
+			private function onAudit( _actionType:int ):void
+			{
+				isaudit = _actionType;
+				uiPopbScope = condSetComp.getUiPopbScope();
+				if(uiPopbScope == null){
+					//未选择查询条件
+					AlertUtil.show(resourceManager.getString('alert','alert_msg_proorgisnull14'));
+					return;
+				}
+				
+				var alert_title_hint:String = resourceManager.getString('mod_forecast_forecastdata_audit','alert_title_hint');
+				var alert_msg:String;
+				var arrProOrg:ArrayCollection = UtilUiPopbScope.getProOrgsArrByUiScope(uiPopbScope);
+				if( arrProOrg == null || arrProOrg.length <= 0 )
+				{
+					alert_msg = resourceManager.getString('alert','alert_msg_proorgisnull14');
+					AlertUtil.show(alert_msg);
+					return;						
+				}
+				
+				var arrBizData:ArrayCollection = UtilUiPopbScope.getBizDatasArrByUiScope(uiPopbScope);
+				if( arrBizData == null || arrBizData.length <= 0 )
+				{
+					alert_msg = resourceManager.getString('alert','alert_msg_bizdataisnull14');
+					AlertUtil.show(alert_msg);
+					return;						
+				}			
+				
+				
+				var forecastMakeLog4save:BForecastMakeLog = new BForecastMakeLog();
+				forecastMakeLog4save.compilePeriod = ClientEnvironment.getSysPeriod().compilePeriod;
+				forecastMakeLog4save.actionType = _actionType;
+				forecastMakeLog4save.submitTime = new Date( new Date().getTime() + ClientEnvironment.getTimeDifference() );
+				forecastMakeLog4save.submitter = ClientEnvironment.getOperatorUser().userName;
+				forecastMakeLog4save.description = StringUtil.trim( txtDescription.text );
+				forecastMakeLog4save.operatorUser = ClientEnvironment.getOperatorUser();
+
+				var i:int;
+				
+				var proOrg:ABProOrg  = null;
+				var forecastMakeLogProOrg:BForecastMakeLogProOrg = null;
+				
+				forecastMakeLog4save.forecastMakeLogProOrgs = new ArrayCollection();
+				for( i=0; i<arrProOrg.length; i=i+1 )
+				{
+					proOrg = ABProOrg( arrProOrg.getItemAt(i) );
+					
+					forecastMakeLogProOrg = new BForecastMakeLogProOrg();
+					
+					forecastMakeLogProOrg.product = proOrg.product;
+					forecastMakeLogProOrg.organization = proOrg.organization;
+					
+					forecastMakeLogProOrg.forecastMakeLog = forecastMakeLog4save;
+					forecastMakeLog4save.forecastMakeLogProOrgs.addItem( forecastMakeLogProOrg );
+				}
+				
+				var bizData:BBizData = null;
+				var forecastMakeLogAuditItem:BForecastMakeLogAuditItem = null;
+				
+				forecastMakeLog4save.forecastMakeLogAuditItems = new ArrayCollection();
+				for( i=0; i<arrBizData.length; i=i+1 )
+				{
+					bizData = BBizData( arrBizData.getItemAt(i) );
+					
+					forecastMakeLogAuditItem = new BForecastMakeLogAuditItem();
+					
+					forecastMakeLogAuditItem.bizData = bizData;
+					
+					forecastMakeLogAuditItem.forecastMakeLog = forecastMakeLog4save;					
+					forecastMakeLog4save.forecastMakeLogAuditItems.addItem( forecastMakeLogAuditItem );
+				}
+				
+				
+				forecastMakeLog4save.forecastMakeLogHfcItems = null;		
+				
+				UtilUi.pubFun4PopWaitWindow( this );
+				srvForecast.auditForecastDatas( forecastMakeLog4save, ClientEnvironment.getSysPeriod() );
+			}
+			
+			private function faultHandler4auditForecastDatas(event:FaultEvent):void
+			{
+				UtilUi.pubFun4RemoveWaitWindow();
+				Alert.show( UtilExceptionLocale.getExceptionMessageLocaleByFaultEvent( event ), resourceManager.getString('main','alt_title_warn') );
+			}	
+			
+			private function resultHandler4auditForecastDatas(event:ResultEvent):void 
+			{				
+				UtilUi.pubFun4RemoveWaitWindow();
+				
+				var alert_title_hint:String = resourceManager.getString('mod_forecast_forecastdata_audit','alert_title_hint');
+				var alert_msg:String;
+				if (isaudit==1)
+				{
+					alert_msg= resourceManager.getString('mod_forecast_forecastdata_audit','alert_msg_succeed1');				
+				}
+				if (isaudit==0)
+				{
+					alert_msg = resourceManager.getString('mod_forecast_forecastdata_audit','alert_msg_succeed2');				
+				}
+				Alert.show(alert_msg, alert_title_hint);
+				
+				txtDescription.text = "";					
+			}				
+			//	5	事件响应方法    end
+			
+			//	6	本地方法    begin
+			//	6	本地方法   end	
+			
+		]]>
+	</fx:Script>
+	
+	<s:VGroup width="100%" height="100%" paddingLeft="10">
+		<common:LabelBoundary paddingTop="5" labelText="{resourceManager.getString('mod_forecast_forecastdata_audit','proorgbizdata')}" />
+
+		<security:Com_Security_ProOrg_BizData_Period_Quick id="condSetComp" width="100%" height="30" 
+														   arrDictBizDataType="{prvVar4arrDictBizDataType}" blOnlyIsManagingBizData="false"  uiCode="{UIConst.UICODE_FORECASTDATA_AUDIT}"  
+														   visible4ExeBtn="false" showDisplayOption="false"  visible4span4periodSpan="false">
+		</security:Com_Security_ProOrg_BizData_Period_Quick>
+		
+		<common:LabelBoundary paddingTop="5" labelText="{resourceManager.getString('mod_forecast_forecastdata_audit','description')}" />
+
+		<s:TextArea id="txtDescription" maxChars="255" width="450" height="200" text=""/>
+		<s:HGroup width="450" horizontalAlign="center">
+			<s:Button label="{resourceManager.getString('button','audit')}" click="onAudit(BizConst.FORECASTMAKELOG_ACTIONTYPE_INACTIVATE)"/>
+			<s:Button label="{resourceManager.getString('button','antiAudit')}" 	click="onAudit(BizConst.FORECASTMAKELOG_ACTIONTYPE_ACTIVATE)"/>				
+		</s:HGroup>
+	</s:VGroup>
+</mx:Module>

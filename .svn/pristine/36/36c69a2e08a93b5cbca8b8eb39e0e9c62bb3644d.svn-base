@@ -1,0 +1,240 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:TitleWindow xmlns:fx="http://ns.adobe.com/mxml/2009" 
+			   xmlns:s="library://ns.adobe.com/flex/spark" 
+			   xmlns:mx="library://ns.adobe.com/flex/mx" width="800" height="210" close="onCancel()"
+			   xmlns:containers="aks.aksmx.containers.*" xmlns:controls="aks.aksmx.controls.*" xmlns:unit="dmdd.dmddmx.com.unit.*"
+			   creationComplete="creationCompleteHandler(event)">
+	<s:layout>
+		<s:VerticalLayout paddingLeft="10" paddingRight="10" paddingTop="10" paddingBottom="10"/>
+	</s:layout>
+	
+	<fx:Declarations>
+		<s:RemoteObject endpoint="{ClientEnvironment.endpoint}" id="srvConversionType" destination="ConversionService">
+			<s:method name="newConversionType" result="resultHandler4saveConversionType(event)" fault="faultHandler4saveConversionType(event)">
+			</s:method>			
+			<s:method name="updateConversionType" result="resultHandler4saveConversionType(event)" fault="faultHandler4saveConversionType(event)">
+			</s:method>		
+		</s:RemoteObject>
+	</fx:Declarations>
+	<fx:Metadata>
+		[ResourceBundle("mod_conversion")]
+	</fx:Metadata>	
+	<fx:Script>
+		<![CDATA[
+			import aks.aksas.utils.UtilNumber;
+			import aks.aksas.utils.UtilUi;
+			
+			import dmdd.dmddas.common.system.ClientEnvironment;
+			import dmdd.dmddas.common.utils.UtilExceptionLocale;
+			import dmdd.dmddas.dataaccess.bizobject.BConversionType;
+			import dmdd.dmddas.dataaccess.bizobject.BUnitGroup;
+			
+			import mx.controls.Alert;
+			import mx.events.FlexEvent;
+			import mx.managers.PopUpManager;
+			import mx.rpc.events.FaultEvent;
+			import mx.rpc.events.ResultEvent;
+			import mx.utils.StringUtil;
+		
+			
+			//	描述		begin
+			//	描述		end
+			
+			//	0	输入参数    begin
+			private var paramIn4closeCallback4thisObject:Object = null;
+			private var paramIn4closeCallback4function:Function = null;	
+			//	0	输入参数    end
+			
+			//	1	输出参数    begin 
+			private var paramOut4winCloseWay:int = UtilUi.WINDOW_CLOSEWAY_CANCEL;
+			//	1	输出参数    end 
+			
+			//	2	本地变量    begin	
+			[Bindable]
+			private var prvVar4conversionType:BConversionType = null;
+			
+			private var paramIo4winUse:int = UtilUi.AUWINDOW_USE_NEW;
+			//	2	本地变量    end			
+			
+			//	3	公共方法    begin												
+			public function pubFun4setParamIn4closeCallback( _thisObject:Object, _function:Function ):void
+			{
+				this.paramIn4closeCallback4thisObject = _thisObject;
+				this.paramIn4closeCallback4function = _function;	
+			}
+			//	关闭方式参数
+			public function pubFun4getParamOut4winCloseWay():int
+			{
+				return this.paramOut4winCloseWay;
+			}				
+			//	关闭窗口
+			private function prvFun4close():void
+			{
+				PopUpManager.removePopUp( this );						
+				this.paramIn4closeCallback4function.call( this.paramIn4closeCallback4thisObject );				
+			}
+			private function onCancel():void
+			{	
+				this.paramOut4winCloseWay = UtilUi.WINDOW_CLOSEWAY_CANCEL;
+				this.prvFun4close();
+			}	
+			
+			public function pubFun4setConversionType(_conversoinType:BConversionType, _paramIo4winUse:int):void
+			{
+				this.prvVar4conversionType = _conversoinType;
+				this.paramIo4winUse = _paramIo4winUse;
+			}
+			
+			public function pubFun4getConversionType():BConversionType
+			{
+				return this.prvVar4conversionType;
+			}
+			//	界面用途参数
+			public function pubFun4getParamIo4winUse():int
+			{
+				return this.paramIo4winUse;
+			}	
+			//	3	公共方法    end		
+			
+			//	4	初始化方法    begin			
+			protected function creationCompleteHandler(event:FlexEvent):void
+			{
+					
+				this.x = 100;
+				this.y = 50;					
+			}						
+			//	4	初始化方法    end				
+			
+			//	5	事件响应方法    begin		
+			private function onSave():void
+			{
+				if(check4save()==true)
+				{
+					UtilUi.pubFun4PopWaitWindow( this );
+					if( this.paramIo4winUse == UtilUi.AUWINDOW_USE_NEW )
+					{
+						this.srvConversionType.newConversionType( this.prvVar4conversionType );
+					}
+					else if( this.paramIo4winUse == UtilUi.AUWINDOW_USE_UPD )
+					{
+						this.srvConversionType.updateConversionType( this.prvVar4conversionType );
+					}
+					else
+					{
+						Alert.show( '意外情形，请联系技术支持人员', '提示' );	
+					}
+				}
+			}
+			
+			private function faultHandler4saveConversionType(event:FaultEvent):void
+			{
+				UtilUi.pubFun4RemoveWaitWindow();
+				
+				Alert.show( UtilExceptionLocale.getExceptionMessageLocaleByFaultEvent( event ), resourceManager.getString('main','alt_title_warn') );
+			}	
+			
+			private function resultHandler4saveConversionType(event:ResultEvent):void 
+			{
+				this.prvVar4conversionType = BConversionType(event.result);	
+				UtilUi.pubFun4RemoveWaitWindow();
+				
+				this.paramOut4winCloseWay = UtilUi.WINDOW_CLOSEWAY_OK;
+				this.prvFun4close();
+			}		
+
+			//	5	事件响应方法    end
+			
+			//	6	本地方法    begin
+			private function check4save():Boolean
+			{
+				var code:String = StringUtil.trim(this.txtCode.text);
+				var name:String = StringUtil.trim(this.txtName.text);
+				var proportion:Number = int(this.txtProportion.text);
+				var unitGroup:BUnitGroup = comUnitGroupField.paramIo4selectedUnitGroup;
+				
+				//	基本信息
+				var alert_title_hint:String = resourceManager.getString('mod_conversion','alert_title_hint');
+				var alert_msg:String = "";
+				
+				if(code=="")
+				{
+					alert_msg = resourceManager.getString('mod_conversion','alert_msg_unitgroupcodeisnull');
+					Alert.show( alert_msg, alert_title_hint );
+					return false;		
+				}
+				if(name=="")
+				{
+					alert_msg = resourceManager.getString('mod_conversion','alert_msg_unitgroupnameisnull');
+					Alert.show( alert_msg, alert_title_hint );
+					return false;
+				}
+				if(isNaN(proportion) || UtilNumber.isInteger(proportion) == false || proportion <= 0)
+				{
+					alert_msg = resourceManager.getString('com_unit_unitgroup_au','alert_msg_exchangerateisinvalid');
+					Alert.show( alert_msg, alert_title_hint );
+					return false;
+				}
+				if(unitGroup== null)
+				{
+					alert_msg = resourceManager.getString('mod_conversion','alert_msg_unitgroupisnull');
+					Alert.show( alert_msg, alert_title_hint );
+					return false;
+				}
+				this.prvVar4conversionType.code=code;
+				this.prvVar4conversionType.name=name;
+				this.prvVar4conversionType.proportion=proportion;
+				this.prvVar4conversionType.unitGroup=unitGroup;
+				return true;
+			}
+			//	6	本地方法   end				
+			
+		]]>
+	</fx:Script>	
+	<s:Panel width="100%" height="120" title="{resourceManager.getString('mod_conversion','title_conversiontype')}">
+		<s:layout>
+			<s:VerticalLayout paddingLeft="10" paddingRight="10" paddingTop="10" paddingBottom="10"/>
+		</s:layout>
+		<mx:Grid width="100%" height="100%">
+			<mx:GridRow width="100%" height="100%" verticalAlign="middle">
+				<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+					<s:Label text="{resourceManager.getString('mod_conversion','code')}"/>
+				</mx:GridItem>
+				<mx:GridItem width="100%" height="100%" verticalAlign="middle">
+					<mx:TextInput id="txtCode" maxChars="255" width="100%" text="{this.prvVar4conversionType.code}"/>
+				</mx:GridItem>
+				<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+				</mx:GridItem>
+				<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+					<s:Label text="{resourceManager.getString('mod_conversion','name')}"/>
+				</mx:GridItem>
+				<mx:GridItem width="100%" height="100%" verticalAlign="middle">
+					<mx:TextInput id="txtName" maxChars="255" width="100%" text="{this.prvVar4conversionType.name}"/>
+				</mx:GridItem>
+			</mx:GridRow>
+			<mx:GridRow width="100%" height="100%" verticalAlign="middle">
+				<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+					<s:Label text="{resourceManager.getString('mod_conversion','proportion')}"/>
+				</mx:GridItem>
+				<mx:GridItem width="100%" height="100%" verticalAlign="middle">
+					<mx:TextInput id="txtProportion" maxChars="6" width="100%" text="{this.prvVar4conversionType.proportion}"/>							
+				</mx:GridItem>
+				<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+				</mx:GridItem>
+				<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+					<s:Label text="{resourceManager.getString('mod_conversion','unitgroup')}"/>
+				</mx:GridItem>
+				<mx:GridItem width="100%" height="100%" verticalAlign="middle">
+					<unit:Com_Unit_UnitGroup_Field width="100%" id="comUnitGroupField" paramIo4selectedUnitGroup="{this.prvVar4conversionType.unitGroup}">
+					</unit:Com_Unit_UnitGroup_Field>						
+				</mx:GridItem>
+			</mx:GridRow>									
+		</mx:Grid>			
+	</s:Panel>
+	<s:BorderContainer width="100%" height="25" borderColor="#E4ECF7">
+		<s:layout>
+			<s:HorizontalLayout horizontalAlign="center"/>
+		</s:layout>
+		<s:Button label="{resourceManager.getString('mod_conversion','btn_save')}" click="onSave()"/>
+		<s:Button label="{resourceManager.getString('mod_conversion','btn_cancel')}" click="onCancel()"/>		
+	</s:BorderContainer>
+</s:TitleWindow>

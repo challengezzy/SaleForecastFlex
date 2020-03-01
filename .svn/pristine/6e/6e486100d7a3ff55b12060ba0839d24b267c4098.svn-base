@@ -1,0 +1,325 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:VGroup xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		  xmlns:s="library://ns.adobe.com/flex/spark" 
+		  xmlns:mx="library://ns.adobe.com/flex/mx" width="400" height="300"
+		  creationComplete="creationCompleteHandler(event)" styleName="BC1">
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+	</fx:Declarations>
+	<fx:Script>
+		<![CDATA[
+			import aks.aksas.charts.AksChartDataObject;
+			import aks.aksas.charts.AksChartObject;
+			
+			import dmdd.dmddas.common.constant.BizConst;
+			import dmdd.dmddas.common.utils.UtilChartExport;
+			import dmdd.dmddas.dataaccess.bizobject.BBizData;
+			
+			import mx.charts.LinearAxis;
+			import mx.charts.chartClasses.AxisLabelSet;
+			import mx.charts.events.ChartItemEvent;
+			import mx.charts.renderers.CircleItemRenderer;
+			import mx.charts.series.ColumnSeries;
+			import mx.charts.series.LineSeries;
+			import mx.collections.ArrayCollection;
+			import mx.controls.Alert;
+			import mx.controls.scrollClasses.ScrollBar;
+			import mx.core.DragSource;
+			import mx.events.DragEvent;
+			import mx.events.FlexEvent;
+			import mx.graphics.SolidColor;
+			import mx.graphics.SolidColorStroke;
+			import mx.graphics.Stroke;
+			import mx.managers.DragManager;
+			
+			//	描述		begin
+			//	描述		end
+			
+			//	0	输入参数    begin	
+			[Bindable]
+			public var paramIn4visible4legend:Boolean = true;
+			
+			[Bindable]
+			public var chartHeight:int = 100;
+			
+			[Bindable]
+			public var paramIn4dp4lineChart:ArrayCollection = new ArrayCollection();	
+			
+			//用来记录哪些是可以拖动的
+			[Bindable]
+			public var paramIn4arr4EditableLinesNumber:ArrayCollection = new ArrayCollection();//能编辑的线条编号
+			
+			[Bindable]
+			public var paramIn4arr4Editables:ArrayCollection = new ArrayCollection();
+			//用来返回改变的值
+			public var paramIn4executeCallback4thisObject:Object = null;
+			public var paramIn4executeCallback4function:Function = null; 
+			//	0	输入参数    end
+			
+			//	1	输出参数    begin	
+			private var paramout4newY:Number = NaN; //标示新的数值是多少
+			private var paramout4dataIndex:int = -1;//标示是列表中第几条数据
+			private var paramout4valueIndex:int = -1;//标示是该数据的第几个数值
+			//	1	输出参数    end
+			
+			private var yAxis:LinearAxis;//Y 坐标轴 
+			
+			//	2	本地变量    begin 
+			//	2	本地变量    end			
+			
+			//	3	公共方法    begin
+			public function pubFun4getNewValue():Number
+			{
+				return paramout4newY;
+			}
+			
+			public function pubFun4getDataIndex():int
+			{
+				return paramout4dataIndex;
+			}
+			
+			public function pubFun4getValueIndex():int
+			{
+				return paramout4valueIndex;
+			}
+			
+			public function pubFun4setSeries( _arr4dispalyName:ArrayCollection, _arr4yFiled:ArrayCollection,_arr4chartType:ArrayCollection ):void
+			{
+				var i:int;
+				var num:int;
+				
+				mixChart.series = new Array();
+				if( _arr4dispalyName == null || _arr4yFiled == null )
+				{
+					return;
+				}
+				
+				if( _arr4dispalyName.length != _arr4yFiled.length )
+				{
+					return;
+				}				
+				
+				if( _arr4dispalyName.length > AksChartDataObject.MAX_DATA_NUM )
+				{
+					num = AksChartDataObject.MAX_DATA_NUM;
+				}
+				else
+				{
+					num =  _arr4dispalyName.length;
+				}
+				
+				var colorArr:ArrayCollection=AksChartObject.getColor(num);
+				
+				var chartType:String = "line";
+				var lineSeriesArr:ArrayCollection = new ArrayCollection();
+				
+				var columnNum:int = 0;
+				var lineNum:int = 0;
+				for( i=0; i<num; i=i+1 )
+				{
+					chartType = _arr4chartType.getItemAt(i) as String;
+					
+					if(chartType == "column"){
+						var columnSeries:ColumnSeries = new ColumnSeries();
+						columnSeries.displayName = String( _arr4dispalyName.getItemAt(i) );
+						columnSeries.yField = String( _arr4yFiled.getItemAt(i) );
+						
+						columnSeries.maxColumnWidth = 20;
+						
+						var color:uint =  uint(colorArr.getItemAt(columnNum)) ;
+						var sc:SolidColor = new SolidColor();
+						sc.color = color;
+						sc.alpha = 0.9;
+						columnSeries.setStyle("fill",sc);
+						
+						columnNum++;
+						mixChart.series.push( columnSeries );
+					}else{
+						
+						var lineSeries:LineSeries = new LineSeries();
+						lineSeries.displayName = String( _arr4dispalyName.getItemAt(i) );
+						lineSeries.yField = String( _arr4yFiled.getItemAt(i) );
+						
+						var color:uint =  uint(colorArr.getItemAt(lineNum+3)) ;
+						var storkt:SolidColorStroke=new SolidColorStroke();
+						//随机生成颜色colorArr[i]
+						storkt.color= color ;
+						storkt.weight=3;
+						storkt.scaleMode= LineScaleMode.NONE;
+						lineSeries.setStyle("lineStroke",storkt);
+						lineSeries.setStyle("form","curve");
+						lineSeries.setStyle("itemRenderer",new ClassFactory(mx.charts.renderers.CircleItemRenderer));
+						lineSeries.selectable = true;
+						//lineSeries.addEventListener(MouseEvent.MOUSE_MOVE,mouseMoveHandler);
+						//mixChart.series.push( lineSeries );
+						lineSeriesArr.addItem(lineSeries);
+						lineNum++;
+					}
+				}
+				
+				//线形图最后加入
+				for(i=0;i<lineSeriesArr.length; i++){
+					mixChart.series.push( lineSeriesArr.getItemAt(i) );
+				}
+				
+				yAxis = new LinearAxis();
+				//yAxis.baseAtZero = false;
+				mixChart.verticalAxis = yAxis;
+				
+			}	
+			
+			public function pubFun4getDisplayName( _ith:int ):String
+			{
+				if( mixChart.series.length <= 0 )
+				{
+					return "";
+				}
+				
+				if( _ith < 0 || _ith >= mixChart.series.length )
+				{
+					return "";
+				}
+				
+				return LineSeries(mixChart.series[_ith]).displayName;
+			}
+			
+			private function chartItemEventChange(event: Event): void
+			{
+				event.stopImmediatePropagation();  //Detiene la propagación del evento.
+			}
+			//	3	公共方法    end		
+			
+			//	4	初始化方法    begin			
+			protected function creationCompleteHandler(event:FlexEvent):void
+			{
+				if( paramIn4visible4legend == false )
+				{
+					lineChartBorderContainer.removeElement( legend );
+				}	
+				mixChart.seriesFilters=[];
+				
+				addEventListener(ChartItemEvent.CHANGE, chartItemEventChange, true, 0, true);
+			}							
+			//	4	初始化方法    end				
+			
+			//	5	事件响应方法    begin	
+			private function mouseMoveHandler(event:MouseEvent):void {
+				event.preventDefault();
+				//从event对象中取得拖曳初始化组件
+				var dragInitiator:LineSeries = LineSeries(event.currentTarget);
+				//如果没有选择任何元素，则忽略鼠标事件
+				if(dragInitiator.selectedItem == null) return;
+				//创建一个DragSource对象
+				var ds:DragSource = new DragSource();
+				//调用DragManager的doDrag（）方法来启动拖动事件
+				DragManager.doDrag(dragInitiator, ds, event);
+				
+			}
+			
+			protected function dragCompleteHandler(event:DragEvent):void
+			{
+				(event.dragInitiator as ColumnChart).clearSelection();
+				event.preventDefault();
+			}
+			
+			protected function dragEnterHandler(event:DragEvent):void
+			{
+				DragManager.acceptDragDrop(event.currentTarget as ColumnChart);
+			}
+			
+			
+			private function setDragDropData(event:DragEvent):void
+			{				
+				var selectedLineChart:ColumnChart = event.dragInitiator as ColumnChart;
+				var index:Number = selectedLineChart.selectedChartItem.index;
+				var editedObj:Object = selectedLineChart.dataProvider.getItemAt(index);
+				
+				var selectedSeries:LineSeries = selectedLineChart.selectedChartItem.element as LineSeries;
+				var yfiedkey:String = selectedSeries.yField;
+				var lineindex:int = AksChartDataObject.getIndex(yfiedkey);
+				
+				//判断是否是可编辑的系列
+				if(!paramIn4arr4Editables.contains(editedObj.categoryFieldValue ))
+				{
+					selectedLineChart.clearSelection();
+					event.preventDefault();
+					
+					return ;
+				}
+				if(!paramIn4arr4EditableLinesNumber.contains(lineindex))
+				{
+					selectedLineChart.clearSelection();
+					event.preventDefault();
+					
+					return ;
+				}
+				
+				var newYVal:Number = event.localY;
+				var als:AxisLabelSet = mixChart.verticalAxis.getLabelEstimate();
+				//找出最大、最小值
+				var maxValue:Number = als.labels[als.labels.length - 1].value;
+				var minValue:Number = als.labels[0].value;
+				
+				/*横坐标和纵坐标都实现了IAxis 接口，它的getLabelEstimate 方法返回一个AxisLabelSet 对象。
+				
+				AxisLabelSet 对象定义一个类型数组的标签属性，该属性包含数轴上所有标签。在这种情况下，
+				最后一个数值用于定义图表中最大的数值。因为用户在每一次改变数值的时候最后一个数值都可以改变，
+				每次读取用户拖曳出来的新数值是非常重要的，因为这样才能确定图表的正确的最大值，以便计算用户要得到的数值。*/
+				
+				var yPos:Number = ((mixChart.height - newYVal) / mixChart.height);
+				var newVal:Number = (maxValue-minValue) * yPos + minValue; //在最小值不是0的情况下，需要加上原有的最小值
+				editedObj[yfiedkey] = Math.round(newVal);
+				paramout4newY = Math.round(newVal);
+				paramout4dataIndex = lineindex;
+				paramout4valueIndex = index;
+				
+				yAxis.maximum = maxValue;
+				yAxis.minimum = minValue;
+				
+				selectedLineChart.clearSelection();
+				/*为父图表调用clearSelection()方法是很重要的，这样可以确定图表的选区没有被鼠标事件干
+				预。线状图的数据提供器被更新，使得图表被重绘。*/
+				
+				selectedLineChart.dataProvider =paramIn4dp4lineChart;
+				
+				if(paramIn4executeCallback4thisObject!=null)
+				{
+					paramIn4executeCallback4function.call( paramIn4executeCallback4thisObject );
+				}
+				
+			}
+			//	5	事件响应方法    end
+			
+			//	6	本地方法    begin		
+			//	6	本地方法   end					
+			
+			
+			
+			
+			protected function cacheAsBitmapontainer_doubleClickHandler(event:MouseEvent):void
+			{
+				UtilChartExport.Instance.exportChart(lineChartBorderContainer);
+				
+			}
+			
+		]]>
+	</fx:Script>
+	<s:BorderContainer id= "lineChartBorderContainer" width="100%" height="100%" doubleClick="cacheAsBitmapontainer_doubleClickHandler(event)">
+		<s:layout>
+			<s:VerticalLayout/>
+		</s:layout>
+		<mx:ColumnChart id="mixChart" height="100%" minHeight="{chartHeight}" width="100%"
+					  paddingLeft="5" paddingRight="5"
+					  dragDrop="setDragDropData(event)" dragComplete="dragCompleteHandler(event)"
+					  dragEnter="dragEnterHandler(event)"
+					  showDataTips="true" dataProvider="{paramIn4dp4lineChart}"
+					  selectionMode="single" dragEnabled="true"
+					  dropEnabled="true">
+			<mx:horizontalAxis>
+				<mx:CategoryAxis categoryField="{AksChartDataObject.CATEGORYFIELD}">
+				</mx:CategoryAxis>
+			</mx:horizontalAxis>
+		</mx:ColumnChart>
+		<mx:Legend id="legend" dataProvider="{mixChart}" direction="horizontal" width="100%" fontSize="1" />
+	</s:BorderContainer>
+</s:VGroup>

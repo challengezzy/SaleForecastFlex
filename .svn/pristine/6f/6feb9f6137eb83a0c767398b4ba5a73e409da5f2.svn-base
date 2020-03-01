@@ -1,0 +1,295 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Module xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		   xmlns:s="library://ns.adobe.com/flex/spark" 
+		   xmlns:mx="library://ns.adobe.com/flex/mx" layout="vertical" width="100%" height="100%" paddingLeft="10" paddingRight="10"
+		   creationComplete="creationCompleteHandler(event)" keyDown="dataGridKeyDownHandler(event)"  
+		   xmlns:common="dmdd.dmddmx.com.common.*"
+		   xmlns:containers="aks.aksmx.containers.*" xmlns:product="dmdd.dmddmx.com.product.*">
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+		<s:RemoteObject endpoint="{ClientEnvironment.endpoint}" id="srvUIStock" destination="UIStockService">	
+			<s:method name="importSafeStockData" result="resultHandler4importSafeStockData(event)" fault="faultHandler4importSafeStockData(event)">
+			</s:method>							  
+		</s:RemoteObject>	
+	</fx:Declarations>
+
+	
+	<fx:Script>
+		<![CDATA[
+			import aks.aksas.utils.UtilUi;
+			
+			import com.cool.assets.CoolAssetsFile;
+			
+			import dmdd.dmddas.common.constant.BizConst;
+			import dmdd.dmddas.common.constant.SkinConst;
+			import dmdd.dmddas.common.system.ClientEnvironment;
+			import dmdd.dmddas.common.utils.UtilExceptionLocale;
+			
+			import mx.collections.ArrayCollection;
+			import mx.controls.Alert;
+			import mx.events.FlexEvent;
+			import mx.resources.ResourceManager;
+			import mx.rpc.events.FaultEvent;
+			import mx.rpc.events.ResultEvent;
+			
+			//	2	本地变量    begin	
+			[Bindable]
+			private var arrImpData:ArrayCollection = new ArrayCollection();	
+			
+			//失败记录
+			private var arrFailedRecord:ArrayCollection = new ArrayCollection();
+			[Bindable]
+			//当前期间
+			
+			private var curPeriod:int = ClientEnvironment.getSysPeriod().compilePeriod;
+			
+			//	2	本地变量    end			
+			
+			//	3	公共方法    begin			
+			//	3	公共方法    end		
+			
+			//	4	初始化方法    begin	
+			protected function creationCompleteHandler(event:FlexEvent):void
+			{
+				btnSave.enabled = false;
+				btnExport.enabled = false;
+			}			
+			//	4	初始化方法    end				
+			
+			//	5	事件响应方法    begin
+			
+			private function onClear():void
+			{
+				arrImpData = new ArrayCollection();
+				colImportResult.visible = false;
+				btnSave.enabled = false;
+				btnExport.enabled = false;
+			}
+			
+			private function onSave():void
+			{
+				var alert_title_hint:String = resourceManager.getString('alert','alert_title_hint');
+				var alert_msg:String = null;  
+							
+				if( arrImpData.length <= 0 )
+				{
+					alert_msg = resourceManager.getString('alert','alert_msg_nodatatosave');
+					Alert.show( alert_msg, alert_title_hint );	
+					return;												
+				}
+				
+				btnSave.enabled = false;
+				btnExport.enabled = false;
+				
+				UtilUi.pubFun4PopWaitWindow( this );
+								
+				srvUIStock.importSafeStockData( arrImpData );
+			}	
+			
+			private function faultHandler4importSafeStockData(event:FaultEvent):void
+			{
+				UtilUi.pubFun4RemoveWaitWindow();
+				Alert.show( event.fault.faultDetail );
+			}
+			
+			private function resultHandler4importSafeStockData(event:ResultEvent):void 
+			{
+				arrImpData = ArrayCollection(event.result);
+				
+				arrFailedRecord = new ArrayCollection();
+				
+				var totalNum:int = 0; 
+				var failNum:int = 0;
+				var i:int;
+				var rsImpObj:Object = null;
+				if( arrImpData != null )
+				{
+					totalNum = arrImpData.length;
+					for( i=0; i<arrImpData.length; i=i+1 )
+					{
+						rsImpObj = arrImpData.getItemAt(i);
+						if( rsImpObj.importResult != BizConst.IMPORT_RESULT_SUCCESS )
+						{
+							//rsImpObj.importResult = UtilExceptionLocale.getExceptionMessageLocaleByCauseMessage( rsImpObj.importResult );
+							arrFailedRecord.addItem( rsImpObj ); 
+						}
+					}
+					failNum = arrFailedRecord.length;
+				}
+				
+				UtilUi.pubFun4RemoveWaitWindow();
+				colImportResult.visible = true;
+				
+				var alert_title_hint:String = resourceManager.getString('alert','alert_title_hint');
+				var alert_msg:String = null;  	
+				
+				alert_msg = resourceManager.getString('alert','alert_msg_totalnum');
+				alert_msg = alert_msg + totalNum + "\n";
+				alert_msg = alert_msg + resourceManager.getString('alert','alert_msg_failnum');
+				alert_msg = alert_msg + failNum + "\n";
+				
+				Alert.show( alert_msg, alert_title_hint );
+				
+				if( failNum > 0 ){
+					btnExport.enabled = true;
+				}else{
+					btnExport.enabled = false;
+				}
+			}		
+			
+			private function onExport():void
+			{
+				var TSVString:String = "";
+				
+				// Run through each field to create the column headers row
+				TSVString += colProCode.headerText + "\t";
+				TSVString += colOrgCode.headerText + "\t";
+				TSVString += colPeriod.headerText + "\t";
+				
+				TSVString += colQuantity.headerText + "\t";
+				TSVString += colComments.headerText + "\t";
+				TSVString += colImportResult.headerText + "\n";
+				
+				var i:int;
+				var failImProduct:Object = null;
+				if( arrFailedRecord != null )
+				{
+					for( i=0; i<arrFailedRecord.length; i=i+1 )
+					{
+						failImProduct = arrFailedRecord.getItemAt( i);
+						TSVString += failImProduct.proCode + "\t";
+						TSVString += failImProduct.orgCode + "\t";
+						TSVString += failImProduct.period + "\t";
+						TSVString += failImProduct.quantity + "\t";
+						TSVString += failImProduct.comments + "\t";
+						TSVString += failImProduct.importResult + "\n";          			           				
+					}	
+				}	
+				// Copy the TSV string to the clipboard
+				System.setClipboard(TSVString);					
+			}
+			
+			//	5	事件响应方法    end
+			
+			//	6	本地方法    begin
+			protected function dataGridKeyDownHandler(event:KeyboardEvent):void
+			{     
+				if (event.ctrlKey && datagridImp.getChildByName("clipboardProxy") == null )     
+				{       
+					// Add an invisible TextField object to the DataGrid       
+					var textFieldClipboard:TextField = new TextField();       
+					textFieldClipboard.name = "clipboardProxy";       
+					datagridImp.addChild(textFieldClipboard);       
+					textFieldClipboard.visible = false;       
+					textFieldClipboard.type = TextFieldType.INPUT;       
+					textFieldClipboard.multiline = true;       
+					// Populate the TextField with selected data in TSV format       
+					// textField.text = getTextFromItems(dataGrid.selectedItems);       
+					// textField.setSelection(0, textField.text.length - 1);       
+					// Listen for textInput event       
+					textFieldClipboard.addEventListener(TextEvent.TEXT_INPUT, clipboardProxyPasteHandler);    
+					// Set player-level focus to the TextField       
+					systemManager.stage.focus = textFieldClipboard;     
+				}   
+			}
+			
+			private function clipboardProxyPasteHandler(event:TextEvent):void   
+			{     
+				// Extract values from TSV format and populate the DataGrid
+				if( colImportResult.visible == true ){
+					colImportResult.visible = false;
+				}
+				
+				arrImpData = new ArrayCollection();
+				getImProductsFromText( event.text );  
+				btnSave.enabled = true;
+				
+				// 一定要在这里把 textField移除，不然会报 Flash.events.event 到 indexChang eEvent 的类型转换错误
+				// 移去 textField
+				var textFieldClipboard:TextField = TextField(datagridImp.getChildByName("clipboardProxy"));       
+				if ( textFieldClipboard != null )
+				{         
+					datagridImp.removeChild(textFieldClipboard);
+				}   								
+			}   
+			
+			private function getImProductsFromText(text:String):void   
+			{     
+				var alert_title_hint:String = resourceManager.getString('alert','alert_title_hint');
+				var alert_msg:String = null;  
+				
+				var rstArrayImHistoryData:Array = new Array();
+				var rows:Array = text.split("\n");
+				if( rows == null ){
+					alert_msg = resourceManager.getString('alert','alert_msg_noCopy');
+					Alert.show( alert_msg, alert_title_hint );	
+					return;	
+				}     
+				if (!rows[rows.length - 1]){       
+					rows.pop();
+				}     
+				
+				if( rows.length <= 1 ){
+					alert_msg = resourceManager.getString('alert','alert_msg_noCopy');
+					Alert.show( alert_msg, alert_title_hint );						
+					return;
+				}
+				
+				var rwHeader:String = rows[0];
+				var fieldsHeader:Array = rwHeader.split( "\t" );
+				if(!(fieldsHeader[fieldsHeader.length-1])){
+					fieldsHeader.pop();
+				} 				
+				if( fieldsHeader.length < 5 ){
+					alert_msg = resourceManager.getString('alert','alert_msg_errorcolumnheader');
+					Alert.show( alert_msg, alert_title_hint );						
+					return;					
+				}
+								
+				var rowIdx:int;				
+				var row:String = null;
+				var fields:Array = null;
+				var newImpObj:Object = null;
+				for( rowIdx=1; rowIdx<rows.length; rowIdx=rowIdx+1 )
+				{
+					newImpObj = new Object();
+					newImpObj.importResult = null;
+					
+					row = rows[rowIdx];
+					fields = row.split("\t");
+					
+					//产品编码
+					newImpObj.proCode = fields[0];
+					//组织编码
+					newImpObj.orgCode = fields[1];
+					//期间
+					newImpObj.period = fields[2];	
+					//数量
+					newImpObj.quantity = fields[3];
+					//备注
+					newImpObj.comments = fields[4];
+					
+					arrImpData.addItem( newImpObj );
+				}
+			}   			
+			//	6	本地方法   end				
+		]]>
+	</fx:Script>
+	<containers:AksControlBar>
+		<s:Spacer width="30"/>
+		<s:Button label="{resourceManager.getString('button','save')}" icon="{CoolAssetsFile.saveIcon}" click="onSave()" id="btnSave"/> 
+		<s:Button label="{resourceManager.getString('button','clear')}" icon="{CoolAssetsFile.clearIcon}" click="onClear()"/>
+		<s:Button label="{resourceManager.getString('button','failed_exp')}" icon="{CoolAssetsFile.doctableIcon}" click="onExport()" id="btnExport"/>
+	</containers:AksControlBar>
+	<mx:DataGrid id="datagridImp" dataProvider="{arrImpData}" width="100%" height="100%">
+		<mx:columns>
+			<mx:DataGridColumn id="colProCode" headerText="{ResourceManager.getInstance().getString('label','proCode')}" dataField="proCode" width="120"/>
+			<mx:DataGridColumn id="colOrgCode" headerText="{ResourceManager.getInstance().getString('label','orgCode')}" dataField="orgCode" width="120"/>
+			<mx:DataGridColumn id="colPeriod" headerText="{ResourceManager.getInstance().getString('label','period')}" dataField="period"  width="100"/>
+			<mx:DataGridColumn id="colQuantity"	headerText="{ResourceManager.getInstance().getString('label','quantity')}" dataField="quantity"  width="90"/>
+			<mx:DataGridColumn id="colComments" headerText="{ResourceManager.getInstance().getString('label','remark')}" dataField="comments"  width="150"/>
+			<mx:DataGridColumn id="colImportResult"	headerText="{ResourceManager.getInstance().getString('label','impResult')}" dataField="importResult" visible="false"/>
+		 </mx:columns>
+	</mx:DataGrid>
+	
+</mx:Module>

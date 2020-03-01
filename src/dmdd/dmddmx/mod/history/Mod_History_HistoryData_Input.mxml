@@ -1,0 +1,419 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Module xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		   xmlns:s="library://ns.adobe.com/flex/spark" 
+		   xmlns:mx="library://ns.adobe.com/flex/mx" layout="vertical" width="100%" height="100%" 
+		   creationComplete="creationCompleteHandler(event)" 
+		   xmlns:security="dmdd.dmddmx.com.security.*" 
+		   xmlns:uirowdata="dmdd.dmddmx.com.uirowdata.*" 
+		   xmlns:controls="aks.aksmx.controls.*" xmlns:containers="aks.aksmx.containers.*">
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+		<s:RemoteObject endpoint="{ClientEnvironment.endpoint}" id="srvUiRowData" destination="UiRowDataService">	
+			<s:method name="getUiRowDatas" result="resultHandler4getUiRowDatas(event)" fault="faultHandler4getUiRowDatas(event)">
+			</s:method>		
+		</s:RemoteObject>	
+		<s:RemoteObject endpoint="{ClientEnvironment.endpoint}" id="srvHistory" destination="HistoryService">	
+			<s:method name="saveHistoryDatas4InputUI" result="resultHandler4saveHistoryDatas4InputUI(event)" fault="faultHandler4saveHistoryDatas4InputUI(event)">
+			</s:method>				
+		</s:RemoteObject>			
+	</fx:Declarations>
+
+	<fx:Script>
+		<![CDATA[
+			import aks.aksas.utils.UtilUi;
+			
+			import dmdd.dmddas.common.constant.BizConst;
+			import dmdd.dmddas.common.constant.UIConst;
+			import dmdd.dmddas.common.system.ClientEnvironment;
+			import dmdd.dmddas.common.utils.UtilExceptionLocale;
+			import dmdd.dmddas.common.utils.UtilPeriod;
+			import dmdd.dmddas.common.utils.UtilStrKey;
+			import dmdd.dmddas.dataaccess.aidobject.ABUiRowData;
+			import dmdd.dmddas.dataaccess.bizobject.BSysDictionaryItem;
+			import dmdd.dmddas.dataaccess.bizobject.BUnit;
+			import dmdd.dmddas.dataaccess.bizobject.BUnitGroup;
+			
+			import mx.collections.ArrayCollection;
+			import mx.controls.Alert;
+			import mx.events.FlexEvent;
+			import mx.rpc.events.FaultEvent;
+			import mx.rpc.events.ResultEvent;
+			
+			
+			
+			//	描述    begin
+			//	描述    end
+			
+			//	0	输入参数    begin						
+			//	0	输入参数    end
+			
+			//	1	输出参数    begin
+			//	1	输出参数    end
+			
+			//	2	本地变量    begin	
+			[Bindable]
+			private var prvVar4dp4comAdgUiRowData:ArrayCollection = new ArrayCollection();
+			
+			[Bindable]
+			private var prvVar4arrDictBizDataType:ArrayCollection = new ArrayCollection();			
+			
+			//	 显示设置		begin
+			[Bindable]
+			private var prvVar4blDispProduct:Boolean = true;
+			[Bindable]
+			private var prvVar4blDispProductCharacter:Boolean = false;
+			[Bindable]
+			private var prvVar4blDispOrganization:Boolean = true;
+			[Bindable]
+			private var prvVar4blDispOrganizationCharacter:Boolean = false;
+			
+			[Bindable]
+			private var prvVar4unitGroup:BUnitGroup = null;
+			[Bindable]
+			private var prvVar4outunits:ArrayCollection = new ArrayCollection();
+			private var prvVar4unit:BUnit = null;
+			
+			//	 显示设置		end
+			
+			
+			//	查询条件		begin
+			private var prvVar4qcondArrUiRowDataProOrgs:ArrayCollection = new ArrayCollection();
+			private var prvVar4qcondArrBizDatas:ArrayCollection = new ArrayCollection();
+			
+			private var prvVar4qcondPeriodBegin:int;
+			private var prvVar4qcondPeriodEnd:int;
+			//	查询条件		end
+			
+			//	2	本地变量    end			
+			
+			//	3	公共方法    begin			
+			//	3	公共方法    end		
+			
+			//	4	初始化方法    begin	
+			protected function creationCompleteHandler(event:FlexEvent):void
+			{
+				//	初始化界面参数	begin
+				this.prvVar4arrDictBizDataType = new ArrayCollection();
+				
+				var arrDictBizDataType:ArrayCollection = ClientEnvironment.getSysDictionaryItems( "BIZDATA", "TYPE", false );
+				if( arrDictBizDataType != null )
+				{
+					var i:int;
+					var sysDictionaryItem:BSysDictionaryItem = null;
+					for( i=0; i<arrDictBizDataType.length; i=i+1 )
+					{
+						sysDictionaryItem = BSysDictionaryItem(arrDictBizDataType.getItemAt(i));
+						if( sysDictionaryItem.value == BizConst.BIZDATA_TYPE_HISTORY )
+						{
+							this.prvVar4arrDictBizDataType.addItem( sysDictionaryItem );
+						}
+					}
+				}				
+				//	初始化界面参数	end
+				
+				//	ProOrgBizDataScope 显示设置	begin
+				this.comProOrgBizDataPeriodScope.pubFun4setParamIo4displayOption( 
+							true, ClientEnvironment.getProductLayerWithMaxValue(), false, null, null,
+							true, ClientEnvironment.getOrganizationLayerWithMaxValue(), false, null, null);
+				//	ProOrgBizDataScope 显示设置	end
+				
+				//	初始化默认显示维度	begin				
+				this.prvVar4blDispProduct = true;
+				this.prvVar4blDispProductCharacter = false;
+				this.prvVar4blDispOrganization = true;
+				this.prvVar4blDispOrganizationCharacter = false;
+				
+				this.comAdgUiRowData.setVisible4Dimension( this.prvVar4blDispProduct, this.prvVar4blDispProductCharacter, this.prvVar4blDispOrganization, this.prvVar4blDispOrganizationCharacter );				
+								
+				this.comAdgUiRowData.columnIsChecked.visible = false;
+				//	初始化默认显示维度	end
+				
+				//	初始化默认显示期间	begin
+				this.comProOrgBizDataPeriodScope.comPeriodSpan.txtPeriodBegin.text = String( UtilPeriod.getPeriod( ClientEnvironment.getSysPeriod().historyOpenPeriod, 0-ClientEnvironment.getSysPeriod().periodNumPerYear ) ); 
+				this.comProOrgBizDataPeriodScope.comPeriodSpan.txtPeriodEnd.text = String( ClientEnvironment.getSysPeriod().historyOpenPeriod );
+				//	初始化默认显示期间	end
+				
+				//	初始化编码名称显示设置	begin
+				//	初始化编码名称显示设置	end
+			}			
+			//	4	初始化方法    end				
+			
+			//	5	事件响应方法    begin	
+			private function callbackFunction4onChange4comUiPopbScopeField4comProOrgBizDataPeriodScope():void
+			{
+				//	本界面中，comProOrgBizDataPeriodScope.comProOrgDisplayOption 不显示，但需要按照ProOrg的明细来显示
+				//	ProOrgBizDataScope 显示设置	begin
+				this.comProOrgBizDataPeriodScope.pubFun4setParamIo4displayOption(  
+					true, ClientEnvironment.getProductLayerWithMaxValue(), false, null, null,
+					true, ClientEnvironment.getOrganizationLayerWithMaxValue(), false, null, null);
+				//	ProOrgBizDataScope 显示设置	end				
+			}
+			
+			private function callbackFunction4execute4comProOrgBizDataPeriodScope():void
+			{								
+				//	先检查期间是否正确	begin
+				//	期间范围已经基本检查，这里要加对历史最大开放期间的检查
+				var periodEnd:int = this.comProOrgBizDataPeriodScope.pubFun4getParamOut4periodBegin();
+				
+				var alert_title_hint:String = resourceManager.getString('mod_history_historydata_input','alert_title_hint');
+				var alert_msg:String = "";					
+				if( UtilPeriod.getPeriodDifference( periodEnd, ClientEnvironment.getSysPeriod().historyOpenPeriod ) < 0 )
+				{
+					alert_msg = resourceManager.getString('mod_history_historydata_input','alert_msg_period_endgtopen');
+					Alert.show( alert_msg, alert_title_hint);
+					return;						
+				}				
+				//	先检查期间是否正确	end
+				
+				//	从 comProOrgBizDataPeriodScope中取得显示设置	begin	
+				this.prvVar4blDispProduct = this.comProOrgBizDataPeriodScope.pubFun4getParamIo4blDisplayProduct();
+				this.prvVar4blDispProductCharacter = this.comProOrgBizDataPeriodScope.pubFun4getParamIo4blDisplayProductCharacter();
+				this.prvVar4blDispOrganization = this.comProOrgBizDataPeriodScope.pubFun4getParamIo4blDisplayOrganization();
+				this.prvVar4blDispOrganizationCharacter = this.comProOrgBizDataPeriodScope.pubFun4getParamIo4blDisplayOrganizationCharacter();
+				
+				this.prvVar4unitGroup = this.comProOrgBizDataPeriodScope.pubFun4getParamOut4unitGroup();
+				this.prvVar4outunits.removeAll();
+				this.prvVar4outunits =  prvVar4unitGroup.units;
+				this.prvVar4unit = this.comProOrgBizDataPeriodScope.pubFun4getParamOut4unit();
+				this.comUiRowDataDisplayControlBar.comboBoxUnit.selectedItem = this.prvVar4unit;
+				//	从 comProOrgBizDataPeriodScope中取得显示设置	end
+				
+				
+				//	从 comProOrgBizDataPeriodScope中取得查询条件	begin
+				this.prvVar4qcondArrUiRowDataProOrgs = this.comProOrgBizDataPeriodScope.pubFun4getParamOut4arrUiRowDataProOrgs();
+				this.prvVar4qcondArrBizDatas = this.comProOrgBizDataPeriodScope.pubFun4getParamOut4arrBizDatas();
+				//	从 comProOrgBizDataPeriodScope中取得查询条件	end
+				
+				//	从 comPeriodSpan 取得查询期间		begin
+				this.prvVar4qcondPeriodBegin = this.comProOrgBizDataPeriodScope.pubFun4getParamOut4periodBegin();
+				this.prvVar4qcondPeriodEnd = this.comProOrgBizDataPeriodScope.pubFun4getParamOut4periodEnd();
+				//	从 comPeriodSpan 取得查询期间		end
+				
+				this.comAdgUiRowData.setVisible4Dimension( this.prvVar4blDispProduct, this.prvVar4blDispProductCharacter, this.prvVar4blDispOrganization, this.prvVar4blDispOrganizationCharacter );
+				this.comAdgUiRowData.setPeriodBeginEnd( this.prvVar4qcondPeriodBegin, this.prvVar4qcondPeriodEnd, true );
+				
+				var blPageProOrg:Boolean = this.comProOrgBizDataPeriodScope.pubFun4getParamOut4blPageProOrg();
+				if( blPageProOrg == true )
+				{	
+					//	初始化数据表格控制板
+					this.comAksDataGridControlBar.pubFun4setResultParams( true, this.prvVar4qcondArrUiRowDataProOrgs.length, ClientEnvironment.getSysParamPageSize() );
+					
+					//	去执行第一页查询
+					this.prvFun4pageQueryHistoryDatas( 1 );
+				}
+				else
+				{	
+					//	初始化数据表格控制板					
+					this.comAksDataGridControlBar.pubFun4setResultParams( false, this.prvVar4qcondArrUiRowDataProOrgs.length, this.prvVar4qcondArrUiRowDataProOrgs.length );
+					
+					//	不分页查询
+					UtilUi.pubFun4PopWaitWindow( this );
+					this.prvVar4dp4comAdgUiRowData = new ArrayCollection();
+					this.srvUiRowData.getUiRowDatas( this.prvVar4qcondArrUiRowDataProOrgs, this.prvVar4qcondPeriodBegin, this.prvVar4qcondPeriodEnd, this.prvVar4qcondArrBizDatas, ClientEnvironment.getSysPeriod()  );
+				}								
+			}			
+			
+			//	分页查询相关		begin			
+			private function prvFun4pageQueryHistoryDatas( _pageIndex:int ):void
+			{
+				UtilUi.pubFun4PopWaitWindow( this );
+				var arrUiRowDataProOrgs:ArrayCollection = new ArrayCollection();
+				var i:int;
+				var pageSize:int = ClientEnvironment.getSysParamPageSize();
+				var indexBegin:int = pageSize * (_pageIndex-1);
+				var indexEnd:int = pageSize * _pageIndex;
+				if( indexEnd > this.prvVar4qcondArrUiRowDataProOrgs.length )
+				{
+					indexEnd = this.prvVar4qcondArrUiRowDataProOrgs.length;
+				}
+				//	分页查询,根据pageIndex计算需要传递给服务器的查询条件
+				for( i=indexBegin; i<indexEnd; i=i+1 )
+				{
+					arrUiRowDataProOrgs.addItem( this.prvVar4qcondArrUiRowDataProOrgs.getItemAt(i) );	
+				}
+				
+				this.prvVar4dp4comAdgUiRowData = new ArrayCollection();
+				this.srvUiRowData.getUiRowDatas( arrUiRowDataProOrgs, this.prvVar4qcondPeriodBegin, this.prvVar4qcondPeriodEnd, this.prvVar4qcondArrBizDatas, ClientEnvironment.getSysPeriod()  );					
+			}			
+			//	分页查询相关		end		
+			
+			private function faultHandler4getUiRowDatas(event:FaultEvent):void
+			{
+				UtilUi.pubFun4RemoveWaitWindow();
+				Alert.show( UtilExceptionLocale.getExceptionMessageLocaleByFaultEvent( event ), resourceManager.getString('main','alt_title_warn') );
+			}	
+			
+			private function resultHandler4getUiRowDatas(event:ResultEvent):void 
+			{
+				this.prvVar4dp4comAdgUiRowData = ArrayCollection(event.result);
+				
+				var i:int;
+				var seledtedUnit:BUnit = null;
+				var uiRowData:ABUiRowData = null;
+				if( this.prvVar4dp4comAdgUiRowData != null )
+				{					
+					seledtedUnit = BUnit(this.comUiRowDataDisplayControlBar.comboBoxUnit.selectedItem);		
+					if( seledtedUnit != null && seledtedUnit.isBase == BizConst.GLOBAL_YESNO_NO )
+					{
+						for( i=0; i<this.prvVar4dp4comAdgUiRowData.length; i=i+1 )
+						{
+							uiRowData = ABUiRowData(this.prvVar4dp4comAdgUiRowData.getItemAt(i));
+							uiRowData.exchangeUnit( 1, seledtedUnit.exchangeRate );
+						}						
+					}					
+					
+				}
+				UtilUi.pubFun4RemoveWaitWindow();
+			}
+			
+			private function callbackFunction4onChange4comUiRowDataDisplayControlBar():void
+			{
+				//	单位变化	begin
+				var selectedUnit:BUnit = BUnit(this.comUiRowDataDisplayControlBar.comboBoxUnit.selectedItem)
+				var i:int;
+				var exchangeRate:Number = 1;
+				var uiRowData:ABUiRowData = null;
+				if( selectedUnit != null && this.prvVar4unit != null && selectedUnit.id != this.prvVar4unit.id )
+				{
+					if( this.prvVar4dp4comAdgUiRowData != null )
+					{
+						for( i=0; i<this.prvVar4dp4comAdgUiRowData.length; i=i+1 )
+						{
+							uiRowData = ABUiRowData(this.prvVar4dp4comAdgUiRowData.getItemAt(i));
+							uiRowData.exchangeUnit( this.prvVar4unit.exchangeRate, selectedUnit.exchangeRate );
+						}
+					}	
+					
+					this.prvVar4unit = selectedUnit;
+				}
+				//	单位变化	end
+				
+				//	显示列变化		begin
+				this.comAdgUiRowData.columnProductCode.visible = this.prvVar4blDispProduct && this.comUiRowDataDisplayControlBar.checkBoxProductCode.selected;
+				this.comAdgUiRowData.columnProductName.visible = this.prvVar4blDispProduct && this.comUiRowDataDisplayControlBar.checkBoxProductName.selected;
+				
+				this.comAdgUiRowData.columnProductCharacterCode.visible = this.prvVar4blDispProductCharacter && this.comUiRowDataDisplayControlBar.checkBoxProductCharacterCode.selected;
+				this.comAdgUiRowData.columnProductCharacterName.visible = this.prvVar4blDispProductCharacter && this.comUiRowDataDisplayControlBar.checkBoxProductCharacterName.selected;
+				
+				this.comAdgUiRowData.columnOrganizationCode.visible = this.prvVar4blDispOrganization && this.comUiRowDataDisplayControlBar.checkBoxOrganizationCode.selected;
+				this.comAdgUiRowData.columnOrganizationName.visible = this.prvVar4blDispOrganization && this.comUiRowDataDisplayControlBar.checkBoxOrganizationName.selected;
+				
+				this.comAdgUiRowData.columnOrganizationCharacterCode.visible = this.prvVar4blDispOrganizationCharacter && this.comUiRowDataDisplayControlBar.checkBoxOrganizationCharacterCode.selected;
+				this.comAdgUiRowData.columnOrganizationCharacterName.visible = this.prvVar4blDispOrganizationCharacter && this.comUiRowDataDisplayControlBar.checkBoxOrganizationCharacterName.selected;								
+				//	显示列变化		end
+			}
+			
+			private function onSave():void
+			{
+				var alert_title_hint:String = resourceManager.getString('mod_history_historydata_input','alert_title_hint');
+				var alert_msg:String = null;
+				
+				if( this.prvVar4dp4comAdgUiRowData == null || this.prvVar4dp4comAdgUiRowData.length <= 0 )
+				{
+					alert_msg = resourceManager.getString('mod_history_historydata_input','alert_msg_nodatatosave');
+					Alert.show(alert_msg, alert_title_hint);		
+					return;
+				}
+				
+				var selectedUnit:BUnit = BUnit(this.comUiRowDataDisplayControlBar.comboBoxUnit.selectedItem);
+				
+				UtilUi.pubFun4PopWaitWindow( this );
+				
+				
+				var arr4uiRowData4save:ArrayCollection = new ArrayCollection();
+				var uiRowData_save:ABUiRowData = null;
+				
+				var i:int;
+				var uiRowData:ABUiRowData = null;
+				var periodLoc:int;
+				
+				var periodDiff:int = UtilPeriod.getPeriodDifference( this.prvVar4qcondPeriodBegin, this.prvVar4qcondPeriodEnd );
+				for( i=0; i<this.prvVar4dp4comAdgUiRowData.length; i=i+1 )
+				{
+					uiRowData = ABUiRowData( this.prvVar4dp4comAdgUiRowData.getItemAt(i) );
+						
+					for( periodLoc=0; periodLoc <= periodDiff; periodLoc = periodLoc+1)
+					{
+						if( isNaN( uiRowData.pubFun4getPeriodDataValue(periodLoc) ) )
+						{
+							uiRowData.pubFun4setPeriodDataValue( periodLoc, 0 );
+						}
+					}
+					
+					//	传到服务器端的应该是以基准单位计数的	begin
+					uiRowData_save = new ABUiRowData();
+					uiRowData_save.copyDeep( uiRowData );
+					if( selectedUnit.isBase == BizConst.GLOBAL_YESNO_NO )
+					{
+						uiRowData_save.exchangeUnit( selectedUnit.exchangeRate, 1 );
+					}
+					//	传到服务器端的应该是以基准单位计数的	end
+					arr4uiRowData4save.addItem( uiRowData_save );
+				}
+
+				this.srvHistory.saveHistoryDatas4InputUI( arr4uiRowData4save );	
+			}
+			
+			private function faultHandler4saveHistoryDatas4InputUI(event:FaultEvent):void
+			{
+				UtilUi.pubFun4RemoveWaitWindow();
+				Alert.show( UtilExceptionLocale.getExceptionMessageLocaleByFaultEvent( event ), resourceManager.getString('main','alt_title_warn') );
+			}	
+			
+			private function resultHandler4saveHistoryDatas4InputUI(event:ResultEvent):void 
+			{
+				UtilUi.pubFun4RemoveWaitWindow();
+				
+				var alert_title_hint:String = resourceManager.getString('mod_history_historydata_input','alert_title_hint');
+				var alert_msg:String = resourceManager.getString('mod_history_historydata_input','alert_msg_succeed');					
+				Alert.show( alert_msg, alert_title_hint);	
+				
+				//	重新查询当前页数据
+				var blPageProOrg:Boolean = this.comProOrgBizDataPeriodScope.pubFun4getParamOut4blPageProOrg();
+				if( blPageProOrg == true )
+				{						
+					//	查询当前页
+					this.prvFun4pageQueryHistoryDatas( this.comAksDataGridControlBar.pubFun4geParamOut4pageIndex() );
+				}
+				else
+				{	
+					//	不分页查询
+					UtilUi.pubFun4PopWaitWindow( this );
+					this.srvUiRowData.getUiRowDatas( this.prvVar4qcondArrUiRowDataProOrgs, this.prvVar4qcondPeriodBegin, this.prvVar4qcondPeriodEnd, this.prvVar4qcondArrBizDatas, ClientEnvironment.getSysPeriod()  );
+				}				
+				
+			}			
+			
+			//	5	事件响应方法    end
+			
+			//	6	本地方法    begin
+			//	6	本地方法   end	
+			
+		]]>
+	</fx:Script>
+	
+	<mx:VDividedBox width="100%" height="1000">
+		<containers:AksAdvancedPanel paramIn4expandable="true" width="100%" height="390" minHeight="30" title="{resourceManager.getString('mod_history_historydata_input','inputcondition')}">
+			<containers:layout>
+				<s:VerticalLayout/>
+			</containers:layout>
+			<security:Com_Security_ProOrg_BizData_Period_Scope id="comProOrgBizDataPeriodScope" paramIn4uiCode="{UIConst.UICODE_HISTORYDATA_INPUT}" width="100%" height="100%" paramIn4arrDictBizDataType="{this.prvVar4arrDictBizDataType}" paramIn4blOnlyIsManagingBizData="true" paramIn4blAllowMultipleSelectionBizData="false" paramIn4blShowDisplayOption="false" paramIn4executeCallback4thisObject="{this}" paramIn4executeCallback4function="{this.callbackFunction4execute4comProOrgBizDataPeriodScope}" paramIn4onChange4comUiPopbScopeFieldCallback4thisObject="{this}" paramIn4onChange4comUiPopbScopeFieldCallback4function="{this.callbackFunction4onChange4comUiPopbScopeField4comProOrgBizDataPeriodScope}">
+			</security:Com_Security_ProOrg_BizData_Period_Scope>
+		</containers:AksAdvancedPanel>
+		<containers:AksAdvancedPanel paramIn4expandable="true" width="100%" height="60%" minHeight="30" title="{resourceManager.getString('mod_history_historydata_input','historydata_table')}">
+			<containers:layout>
+				<s:VerticalLayout/>
+			</containers:layout>
+			<controls:AksDataGridControlBar id="comAksDataGridControlBar" paramIn4enabled4BtnSetColumns="false" paramIn4dataGrid="{this.comAdgUiRowData}" paramIn4callback4thisObject="{this}" paramIn4callback4queryFunction="{this.prvFun4pageQueryHistoryDatas}">
+			</controls:AksDataGridControlBar>
+			<uirowdata:Com_UiRowData_UiRowData_DisplayControlBar id="comUiRowDataDisplayControlBar" paramIn4change4Callback4thisObject="{this}" paramIn4changeCallback4function="{this.callbackFunction4onChange4comUiRowDataDisplayControlBar}" paramIn4unitGroup="{this.prvVar4unitGroup}" paramIn4enabled4Product="{this.prvVar4blDispProduct}" paramIn4enabled4ProductCharacter="{this.prvVar4blDispProductCharacter}"  paramIn4enabled4Organization="{this.prvVar4blDispOrganization}" paramIn4enabled4OrganizationCharacter="{this.prvVar4blDispOrganizationCharacter}">
+			</uirowdata:Com_UiRowData_UiRowData_DisplayControlBar>		
+			<containers:AksControlBar>
+				<s:Button click="onSave()" label="{resourceManager.getString('mod_history_historydata_input','btn_save')}"/>
+			</containers:AksControlBar>			
+			<uirowdata:Com_UiRowData_UiRowData_AdvancedDataGrid id="comAdgUiRowData" dataProvider="{this.prvVar4dp4comAdgUiRowData}" editable="true" width="100%" height="100%"/>
+		</containers:AksAdvancedPanel>		
+	</mx:VDividedBox>
+	
+	
+</mx:Module>

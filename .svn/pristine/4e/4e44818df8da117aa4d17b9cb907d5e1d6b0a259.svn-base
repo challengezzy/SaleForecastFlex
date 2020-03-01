@@ -1,0 +1,330 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Module xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		   xmlns:s="library://ns.adobe.com/flex/spark" 
+		   xmlns:mx="library://ns.adobe.com/flex/mx" layout="vertical" width="100%" height="100%" paddingLeft="10" paddingRight="10"
+		   creationComplete="creationCompleteHandler(event)" keyDown="dataGridKeyDownHandler(event)"  
+		   xmlns:common="dmdd.dmddmx.com.common.*"
+		   xmlns:containers="aks.aksmx.containers.*" xmlns:product="dmdd.dmddmx.com.product.*">
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+		<s:RemoteObject endpoint="{ClientEnvironment.endpoint}" id="srvProduct" destination="ProductService">	
+			<s:method name="importProductCharacter" result="resultHandler4importProductCharacter(event)" fault="faultHandler4importProductCharacter(event)">
+			</s:method>							  
+		</s:RemoteObject>	
+	</fx:Declarations>
+	<fx:Metadata>
+		[ResourceBundle("mod_maindata_product_productcharacter_import")]
+	</fx:Metadata>	
+	
+	<fx:Script>
+		<![CDATA[
+			import aks.aksas.utils.UtilUi;
+			
+			import dmdd.dmddas.common.constant.BizConst;
+			import dmdd.dmddas.common.system.ClientEnvironment;
+			import dmdd.dmddas.common.utils.UtilExceptionLocale;
+			import dmdd.dmddas.dataaccess.aidobject.ABImProductCharacter;
+			import dmdd.dmddas.common.constant.SkinConst;
+			import com.cool.assets.CoolAssetsFile;
+			import mx.collections.ArrayCollection;
+			import mx.controls.Alert;
+			import mx.events.FlexEvent;
+			import mx.rpc.events.FaultEvent;
+			import mx.rpc.events.ResultEvent;
+			
+			//	描述    begin
+			//	描述    end
+			
+			//	0	输入参数    begin						
+			//	0	输入参数    end
+			
+			//	1	输出参数    begin
+			//	1	输出参数    end
+			
+			//	2	本地变量    begin	
+			[Bindable]
+			private var prvVar4dp4comAdgImProductCharacter:ArrayCollection = new ArrayCollection();	
+			
+			private var prvVar4arrFailedRecord:ArrayCollection = new ArrayCollection();
+			//	2	本地变量    end			
+			
+			//	3	公共方法    begin			
+			//	3	公共方法    end		
+			
+			//	4	初始化方法    begin	
+			protected function creationCompleteHandler(event:FlexEvent):void
+			{
+				this.btnSave.enabled = false;
+				this.btnExport.enabled = false;
+			}			
+			//	4	初始化方法    end				
+			
+			//	5	事件响应方法    begin
+			
+			private function onClear():void
+			{
+				this.prvVar4dp4comAdgImProductCharacter = new ArrayCollection();
+				this.comAdgImProductCharacter.columnImportResult.visible = false;
+				this.btnSave.enabled = false;
+				this.btnExport.enabled = false;
+			}
+			
+			private function onSave():void
+			{
+				var alert_title_hint:String = resourceManager.getString('alert','alert_title_hint');
+				var alert_msg:String = null;  
+				
+				if( this.prvVar4dp4comAdgImProductCharacter.length <= 0 )
+				{
+					alert_msg = resourceManager.getString('alert','alert_msg_nodatatosave');
+					Alert.show( alert_msg, alert_title_hint );	
+					return;												
+				}
+				
+				this.btnSave.enabled = false;
+				this.btnExport.enabled = false;
+				
+				UtilUi.pubFun4PopWaitWindow( this );
+				
+				this.srvProduct.importProductCharacter( this.prvVar4dp4comAdgImProductCharacter );
+			}	
+			
+			private function faultHandler4importProductCharacter(event:FaultEvent):void
+			{
+				UtilUi.pubFun4RemoveWaitWindow();
+				Alert.show( UtilExceptionLocale.getExceptionMessageLocaleByFaultEvent( event ), resourceManager.getString('main','alt_title_warn') );
+			}
+			
+			private function resultHandler4importProductCharacter(event:ResultEvent):void 
+			{			
+				this.prvVar4dp4comAdgImProductCharacter = ArrayCollection(event.result);
+				
+				this.prvVar4arrFailedRecord = new ArrayCollection();
+				
+				var totalNum:int = 0; 
+				var failNum:int = 0;
+				var i:int;
+				var rstImProductCharacter:ABImProductCharacter = null;
+				if( this.prvVar4dp4comAdgImProductCharacter != null )
+				{
+					totalNum = this.prvVar4dp4comAdgImProductCharacter.length;
+					for( i=0; i<this.prvVar4dp4comAdgImProductCharacter.length; i=i+1 )
+					{
+						rstImProductCharacter = ABImProductCharacter(this.prvVar4dp4comAdgImProductCharacter.getItemAt(i));
+						if( rstImProductCharacter.importResult != BizConst.IMPORT_RESULT_SUCCESS )
+						{
+							rstImProductCharacter.importResult = UtilExceptionLocale.getExceptionMessageLocaleByCauseMessage( rstImProductCharacter.importResult );
+							
+							this.prvVar4arrFailedRecord.addItem( rstImProductCharacter );
+						}
+					}
+					failNum = this.prvVar4arrFailedRecord.length;
+				}
+				
+				UtilUi.pubFun4RemoveWaitWindow();
+				this.comAdgImProductCharacter.columnImportResult.visible = true;
+				
+				var alert_title_hint:String = resourceManager.getString('alert','alert_title_hint');
+				var alert_msg:String = null;  	
+				
+				alert_msg = resourceManager.getString('alert','alert_msg_totalnum');
+				alert_msg = alert_msg + totalNum + "\n";
+				alert_msg = alert_msg + resourceManager.getString('alert','alert_msg_failnum');
+				alert_msg = alert_msg + failNum + "\n";
+				
+				Alert.show( alert_msg, alert_title_hint );
+				
+				if( failNum > 0 )
+				{
+					this.btnExport.enabled = true;
+				}
+				else
+				{
+					this.btnExport.enabled = false;
+				}				
+				
+			}		
+			
+			private function onExport():void
+			{
+				var TSVString:String = "";
+				
+				// Run through each field to create the column headers row
+				TSVString += this.comAdgImProductCharacter.columnParentCode.headerText + "\t";
+				TSVString += this.comAdgImProductCharacter.columnLayerValue.headerText + "\t";
+				
+				TSVString += this.comAdgImProductCharacter.columnCode.headerText + "\t";
+				TSVString += this.comAdgImProductCharacter.columnName.headerText + "\t";
+				TSVString += this.comAdgImProductCharacter.columnType.headerText + "\t";
+				TSVString += this.comAdgImProductCharacter.columnIsCatalog.headerText + "\t";
+				TSVString += this.comAdgImProductCharacter.columnDescription.headerText + "\t";
+				TSVString += this.comAdgImProductCharacter.columnComments.headerText + "\t";
+				
+				TSVString += this.comAdgImProductCharacter.columnImportResult.headerText + "\n";
+				
+							
+				var i:int;
+				var failImProductCharacter:ABImProductCharacter = null;
+				if( this.prvVar4arrFailedRecord != null )
+				{
+					for( i=0; i<this.prvVar4arrFailedRecord.length; i=i+1 )
+					{
+						failImProductCharacter = ABImProductCharacter( this.prvVar4arrFailedRecord.getItemAt( i ) );
+						
+						TSVString += failImProductCharacter.parentCode + "\t";
+						TSVString += failImProductCharacter.layerValue + "\t";
+						
+						TSVString += failImProductCharacter.code + "\t";
+						TSVString += failImProductCharacter.name + "\t";
+						TSVString += failImProductCharacter.type + "\t";
+						TSVString += failImProductCharacter.isCatalog + "\t";
+						TSVString += failImProductCharacter.description + "\t";						
+						TSVString += failImProductCharacter.comments + "\t";
+						
+						TSVString += failImProductCharacter.importResult + "\n";          			           				
+					}	
+				}	
+				// Copy the TSV string to the clipboard
+				System.setClipboard(TSVString);					
+			}			
+			
+			//	5	事件响应方法    end
+			
+			//	6	本地方法    begin
+			protected function dataGridKeyDownHandler(event:KeyboardEvent):void
+			{     
+				if (event.ctrlKey && this.comAdgImProductCharacter.getChildByName("clipboardProxy") == null )     
+				{       
+					// Add an invisible TextField object to the DataGrid       
+					var textFieldClipboard:TextField = new TextField();       
+					textFieldClipboard.name = "clipboardProxy";       
+					this.comAdgImProductCharacter.addChild(textFieldClipboard);       
+					textFieldClipboard.visible = false;       
+					textFieldClipboard.type = TextFieldType.INPUT;       
+					textFieldClipboard.multiline = true;       
+					// Populate the TextField with selected data in TSV format       
+					// textField.text = getTextFromItems(dataGrid.selectedItems);       
+					// textField.setSelection(0, textField.text.length - 1);       
+					// Listen for textInput event       
+					textFieldClipboard.addEventListener(TextEvent.TEXT_INPUT, clipboardProxyPasteHandler);    
+					// Set player-level focus to the TextField       
+					systemManager.stage.focus = textFieldClipboard;     
+				}   
+			}
+			
+			private function clipboardProxyPasteHandler(event:TextEvent):void   
+			{     
+				// Extract values from TSV format and populate the DataGrid
+				if( this.comAdgImProductCharacter.columnImportResult.visible == true )
+				{
+					this.comAdgImProductCharacter.columnImportResult.visible = false;
+				}
+				
+				this.prvVar4dp4comAdgImProductCharacter = new ArrayCollection();
+				this.getImProductCharactersFromText( event.text );  
+				this.btnSave.enabled = true;
+				
+				// 一定要在这里把 textField移除，不然会报 Flash.events.event 到 indexChang eEvent 的类型转换错误
+				// 移去 textField
+				var textFieldClipboard:TextField = TextField(this.comAdgImProductCharacter.getChildByName("clipboardProxy"));       
+				if ( textFieldClipboard != null )
+				{         
+					this.comAdgImProductCharacter.removeChild(textFieldClipboard);
+				}   								
+			}   
+			
+			private function getImProductCharactersFromText(text:String):void   
+			{     
+				var alert_title_hint:String = resourceManager.getString('alert','alert_title_hint');
+				var alert_msg:String = null;  
+				
+				var rstArrayImHistoryData:Array = new Array();
+				var rows:Array = text.split("\n");
+				if( rows == null )
+				{
+					alert_msg = resourceManager.getString('alert','alert_msg_noCopy');
+					Alert.show( alert_msg, alert_title_hint );	
+					return;	
+				}     
+				if (!rows[rows.length - 1])
+				{       
+					rows.pop();
+				}     
+				
+				if( rows.length <= 1 )
+				{
+					alert_msg = resourceManager.getString('alert','alert_msg_noCopy');
+					Alert.show( alert_msg, alert_title_hint );						
+					return;
+				}
+				
+				
+				var rwHeader:String = rows[0];
+				var fieldsHeader:Array = rwHeader.split( "\t" );
+				if(!(fieldsHeader[fieldsHeader.length-1]))
+				{
+					fieldsHeader.pop();
+				} 				
+				if( fieldsHeader.length < 8 )
+				{
+					alert_msg = resourceManager.getString('alert','alert_msg_errorcolumnheader');
+					Alert.show( alert_msg, alert_title_hint );						
+					return;					
+				}
+				
+				
+				var rowIdx:int;				
+				var row:String = null;
+				var fields:Array = null;
+				
+				
+				var newImProductCharacter:ABImProductCharacter = null;
+				for( rowIdx=1; rowIdx<rows.length; rowIdx=rowIdx+1 )
+				{
+					newImProductCharacter = new ABImProductCharacter();
+					newImProductCharacter.importResult = null;
+					
+					row = rows[rowIdx];
+					fields = row.split("\t");
+					
+					//	上级产品特征编码
+					newImProductCharacter.parentCode = fields[0];
+					
+					//	层次值
+					newImProductCharacter.layerValue = fields[1];
+					
+					//	编码
+					newImProductCharacter.code = fields[2];
+					
+					//	名称
+					newImProductCharacter.name = fields[3];
+					
+					//	类型
+					newImProductCharacter.type = fields[4];
+					
+					//	是否目录（0否1是）
+					newImProductCharacter.isCatalog = fields[5];
+				
+					//	描述
+					newImProductCharacter.description = fields[6];
+					
+					//	备注
+					newImProductCharacter.comments = fields[7];
+					
+					
+					this.prvVar4dp4comAdgImProductCharacter.addItem( newImProductCharacter );
+				}
+			}   			
+			//	6	本地方法   end				
+		]]>
+	</fx:Script>	
+	<common:LabelBoundary paddingTop="5" labelText="{resourceManager.getString('menu','proChar')}" />
+
+	<containers:AksControlBar>
+		<s:Button label="{resourceManager.getString('button','save')}" icon="{CoolAssetsFile.saveIcon}" click="onSave()" id="btnSave"/> 
+		<s:Button label="{resourceManager.getString('button','clear')}"  icon="{CoolAssetsFile.clearIcon}" click="onClear()"/>
+		<s:Button label="{resourceManager.getString('button','failed_exp')}"  icon="{CoolAssetsFile.doctableIcon}" click="onExport()" id="btnExport"/>
+	</containers:AksControlBar>
+	<product:Com_Product_ImProductCharacter_AdvancedDataGrid id="comAdgImProductCharacter" dataProvider="{this.prvVar4dp4comAdgImProductCharacter}" width="100%" height="100%"/>
+	
+</mx:Module>

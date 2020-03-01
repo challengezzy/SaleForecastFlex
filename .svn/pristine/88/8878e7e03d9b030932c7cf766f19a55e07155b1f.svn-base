@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Panel xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx" width="400" height="300"
+		 creationComplete="creationCompleteHandler(event)">
+	<s:layout>
+		<s:BasicLayout/>
+	</s:layout>
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+	</fx:Declarations>
+	<fx:Script>
+		<![CDATA[
+			import mx.events.FlexEvent;
+			import mx.events.ResizeEvent;
+			
+			import spark.effects.Resize;
+			
+			//	描述		begin
+			//	描述		end
+			
+			//	0	输入参数    begin	
+			//	0	输入参数    end
+			
+			//	1	输出参数    begin	
+			//	1	输出参数    end
+			
+			//	2	本地变量    begin
+			//	2	本地变量    end			
+			
+			//	3	公共方法    begin
+			public function pubFun4CloseWin():void
+			{
+				myResize.heightTo= 25;
+				myResize.heightBy =10;
+				myResize.play();
+				this.prvVar4blExpanded = false;
+				this.contentGroup.visible=false;
+			}
+			//	3	公共方法    end		
+			
+			//	4	初始化方法    begin			
+			protected function creationCompleteHandler(event:FlexEvent):void
+			{
+				this.prvFun4init4expand();
+				this.lastHeight= this.height;
+			}							
+			//	4	初始化方法    end				
+			
+			//	5	事件响应方法    begin					
+			//	5	事件响应方法    end
+			
+			//	6	本地方法    begin		
+			//	6	本地方法   end		
+			
+			//	F1. 双击收缩/展开功能    begin
+			
+			//	F1.1 输入参数    begin
+			[Bindable]
+			public var paramIn4expandable:Boolean = false;
+	
+			//	F1.1 输入参数    end
+			
+			//	F1.2 本地变量    begin
+			private var prvVar4blExpanded:Boolean = true;
+			
+			private var prvVar4PanelHeight:int = 0;
+			private var myResize:Resize=new Resize();
+			
+			private var lastHeight:int = 0;
+			//	F1.2 本地变量    end	
+			
+			//	F1.3 初始化方法    begin
+			private function prvFun4init4expand():void
+			{
+				prvVar4PanelHeight = this.height;
+				myResize.target=this;
+				if( this.paramIn4expandable == true )
+				{
+					this.doubleClickEnabled = true;
+					this.titleDisplay.addEventListener(MouseEvent.DOUBLE_CLICK, onDoubleClick);		
+					this.addEventListener(ResizeEvent.RESIZE,onResize);
+				}
+			}		
+			//	F1.3 初始化方法    end
+			
+			//	F1.4 事件响应方法    begin
+			private function onResize(evnet:ResizeEvent):void
+			{
+				if(this.prvVar4blExpanded == true)
+				{
+					lastHeight = this.height;
+				}	
+			}
+			
+			private function onDoubleClick( mouseEvent:MouseEvent ):void
+			{			
+				if( this.prvVar4blExpanded == true )//收缩
+				{						
+					myResize.heightTo= 25;
+					myResize.heightBy =10;
+					myResize.play();
+					this.prvVar4blExpanded = false;
+					this.contentGroup.visible=false;
+				}
+				else//展开
+				{
+					myResize.heightTo=lastHeight;
+					myResize.heightBy =10;
+					myResize.play();
+					this.prvVar4blExpanded = true;
+					this.contentGroup.visible=true;
+				}
+				
+			}  
+			//	F1.4 事件响应方法    end			
+			
+			//	F1. 双击收缩/展开功能    end				
+			
+		]]>
+	</fx:Script>
+</s:Panel>

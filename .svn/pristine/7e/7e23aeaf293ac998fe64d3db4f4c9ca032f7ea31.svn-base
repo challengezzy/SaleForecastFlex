@@ -1,0 +1,14 @@
+
+title=Title
+summary=Abstract
+comments=Remarks
+content=Content
+
+alert_title_hint=Alert
+alert_msg_titleisnull=Title is missing!
+
+btn_save=Save
+btn_cancel=Cancel
+
+
+

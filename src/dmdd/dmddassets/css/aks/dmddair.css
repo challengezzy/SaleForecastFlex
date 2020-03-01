@@ -1,0 +1,320 @@
+/* CSS file */
+@namespace s "library://ns.adobe.com/flex/spark";
+@namespace mx "library://ns.adobe.com/flex/mx";
+
+s|Panel
+{
+	backgroundColor: #E4ECF7;
+	borderAlpha: 1.0;
+	borderColor: #ACC6DD;
+	chromeColor: #9abee3;
+	dropShadowVisible: false;
+	skinClass: ClassReference("spark.skins.spark.PanelSkin");
+	borderVisible: true;
+	font-size: 12;
+}
+
+s|VGroup
+{
+	backgroundColor: #E4ECF7;
+	borderAlpha: 1.0;
+	borderColor: #ACC6DD;
+	chromeColor: #9abee3;
+}
+
+s|HGroup
+{
+	backgroundColor: #E4ECF7;
+	borderAlpha: 1.0;
+	borderColor: #ACC6DD;
+	chromeColor: #9abee3;
+}
+
+s|Button
+{
+	cornerRadius: 3;
+	fontWeight:bold;
+  /*
+	skinClass: ClassReference("dmdd.dmddmx.skins.dmddButtonSkin");
+	chromeColor: #FFF441;
+	cornerRadius: 0;
+	skinClass: ClassReference("spark.skins.spark.ButtonSkin");
+*/
+}
+
+s|TitleWindow
+{
+	dropShadowVisible: false;
+	borderColor: #142B80;
+	borderVisible: true;
+	/*
+	chromeColor: #005DBC;
+*/
+	chromeColor:#9abee3;
+	borderAlpha: 1.0;
+}
+
+s|BorderContainer
+{
+	backgroundColor: #E4ECF7;
+	chromeColor: #9abee3;
+	borderVisible:false;
+}
+
+s|Module
+{
+	backgroundColor: #E4ECF7;
+	chromeColor: #9abee3;
+}
+
+mx|Module
+{
+	backgroundColor: #E4ECF7;
+	chromeColor: #9abee3;
+}
+
+mx|Button
+{
+	cornerRadius: 5;
+	/*
+	chromeColor: #FFF441;
+	cornerRadius: 0;
+	skinClass: ClassReference("spark.skins.spark.ButtonSkin");
+	*/
+}
+
+mx|DateChooser {
+	cornerRadius: 0;
+}
+.BC1
+{
+	backgroundColor: #ffffff;
+}
+mx|NumericStepper {
+	borderStyle: solid;
+	borderColor: #999999;
+	backgroundAlpha: 1;
+	cornerRadius: 0;
+	border-thickness-left:0;
+}
+
+mx|MenuBar {
+	fontWeight :normal;
+	fontSize : 13;
+	backgroundAlpha: "0.5";
+	rollOverColor: #9C9C9C;
+	color : #494949;
+	
+	backgroundSkin : ClassReference("dmdd.dmddmx.skins.MenuBarNoBorderFillSkin");
+	
+	itemOverSkin :ClassReference("dmdd.dmddmx.skins.MenuBarActiveSkin");
+	itemDownSkin : ClassReference("dmdd.dmddmx.skins.MenuBarActiveSkin");
+	menuStyleName:"myMenus"
+}
+
+.myMenus{
+	backgroundAlpha: "0.98";
+	backgroundColor: #F5F4F4;
+	textRollOverColor:#FFFFFF;
+	textSelectedColor:#FFFFFF;
+	rollOverColor : #9C9C9C;
+}
+
+
+mx|TabNavigator {
+	borderStyle: solid;
+	borderColor: #93B2D0;
+	tabHeight: 25;
+	backgroundAlpha: 1;
+	borderThickness: 1;
+	tabStyleName: "myTabs";
+	firstTabStyleName: "myTabs";
+	lastTabStyleName: "myTabs";
+	selectedTabTextStyleName: "mySelectedTabs";
+	paddingLeft: 0;
+	paddingRight: 0;
+	paddingBottom: 0;
+	backgroundColor: #E4ECF7;
+	backgroundAlpha: 1;
+	fontWeight: normal;
+}
+.myTabs {
+	cornerRadius: 2;
+	highlightAlphas: 0, 0;
+	fillAlphas: 0.96, 1.0, 0.96, 1.0;
+	fillColors: #C8DCED, #C8DCED;
+	borderColor: #93B2D0;
+	color: #000000;
+	textRollOverColor: #375471;
+	backgroundColor: #E4ECF7;
+	backgroundAlpha : 1;
+	fontWeight :normal;
+}
+.mySelectedTabs {
+	highlightAlphas: 0, 0;
+	fillAlphas: 0.96, 1.0, 0.96, 1.0;
+	fillColors: #C1D7EA, #C1D7EA;
+	color: #375471;
+	textRollOverColor: #375471;
+	backgroundColor: #C0D4EB;
+	fontWeight: bold;
+}
+
+mx|TabBar {
+	font-size: 12;
+	tabHeight: 30;
+	backgroundAlpha: 1;
+	borderColor: #333333;
+	borderThickness: 1;
+	tabStyleName: "myTabs2";
+	firstTabStyleName: "myTabs2";
+	lastTabStyleName: "myTabs2";
+	selectedTabTextStyleName: "mySelectedTabs2";
+}
+.myTabs2 {
+	cornerRadius: 0;
+	highlightAlphas: 0, 0;
+	fillAlphas: 0.96, 1;
+	fillColors: #3E60B0, #3E60B0;
+	borderColor: #3E60B0;
+	borderThickness: 5;
+	color: #FFFFFF;
+	textRollOverColor: #FFFFFF;
+	themeColor: #333333;
+	fontWeight: bold;
+}
+.mySelectedTabs2 {
+	fillColors: #3E60B0, #3E60B0;
+	fontWeight: bold;
+	color: #333333;
+	textRollOverColor: #3E60B0;
+}
+mx|Alert {
+	border-style:solid;
+	border-color:#D0DDEB;
+	border-thickness:1;
+	drop-shadow-enabled:true;
+	corner-radius:0;
+	header-height:30;
+	title-style-name: alertHeader;
+	controlBarStyleName: darkControlBar;
+	button-style-name:Button;
+	button-height:30;
+}
+
+mx|ToolTip {
+	cornerRadius: 0;
+	color: #000000;
+	drop-shadow-enabled:false;
+	dropShadowEnabled: false;
+}
+mx|AccordionHeader	{
+	color: #ffffff;
+	textRollOverColor: #ffffff;
+	text-selected-color: #ffffff;
+}
+mx|DataGrid {
+	selectionColor: #FFCC00;
+	headerColors: #D6DBE0,#D6DBE0;
+	fontStyle: normal;
+	fontWeight: normal;
+	headerStyleName: myHeaderStyle;
+}
+
+.myHeaderStyle {
+	fontWeight: normal;
+}
+.dg1 {
+	selectionColor: #FFCC00;
+	headerColors: #D6DBE0,#D6DBE0;
+	fontStyle: normal;
+	fontWeight: normal;
+	headerStyleName: myHeaderStyle;
+}
+
+mx|AdvancedDataGrid {
+	headerColors: #D6DBE0,#D6DBE0;
+	selectionColor: #FFCC00;
+	headerStyleName: myHeaderStyle2;
+	horizontalScrollPolicy: on;
+}
+.adv1 {
+	headerColors: #D6DBE0,#D6DBE0;
+	selectionColor: #FFCC00;
+	headerStyleName: myHeaderStyle2;
+	horizontalScrollPolicy: on;
+}
+
+
+
+.myHeaderStyle2 {
+	fontWeight: normal;
+}
+
+
+mx|DateChooser {
+	cornerRadius: 0;
+	borderThickness: 1;
+	horizontalGap: 0;
+	verticalGap: 6;
+	headerColors: #666666, #666666;
+	highlightAlphas: 1, 1;
+	fillAlphas: 1, 1, 1, 1;
+	fillColors: #003333, #003333, #009999, #009999;
+	borderColor: #666666;
+	backgroundAlpha: 1;
+	dropShadowEnabled: false;
+	shadowDistance: 0;
+	shadowDirection: right;
+	fontSize: 11;
+	headerStyleName: "mydateChooserHeaderStyle";   weekDayStyleName: "mydateChooserWeekDayStyle";   todayStyleName: "mydateChooserTodayStyle";
+	fontWeight: normal;
+}
+
+.mydateChooserHeaderStyle {
+	color: #ffffff;
+	fontFamily: Verdana;
+	fontWeight: normal;
+	fontSize: 11;
+	fontStyle: normal;
+	textDecoration: none;
+}
+
+.mydateChooserWeekDayStyle {
+	fontFamily: Georgia;
+}
+
+.mydateChooserTodayStyle {
+	color: #ffffff;
+	fontWeight: normal;
+	fontStyle: normal;
+	textDecoration: none;
+}
+
+mx|HScrollBar {
+	fillAlphas: 1.0, 1.0, 1.0, 1.0;
+	fillColors: #FFFFFF, #FFFFFF, #FFFFFF, #EEEEEE;
+	cornerRadius: 0;
+	trackColors: #DFEBF5, #DFEBF5;
+}
+
+mx|VScrollBar {
+	fillAlphas: 1.0, 1.0, 1.0, 1.0;
+	fillColors: #FFFFFF, #FFFFFF, #FFFFFF, #EEEEEE;
+	cornerRadius: 0;
+	trackColors: #DFEBF5, #DFEBF5;
+}
+
+mx|LinkButton {
+	color: #000000;
+}
+
+mx|RadioButton 
+{ 
+	highlightAlphas: 0, 0;
+	fillColors: #ffffff, #ffffff, #ffffff, #ffffff;  
+}
+global
+{
+	font-size: 12;
+}

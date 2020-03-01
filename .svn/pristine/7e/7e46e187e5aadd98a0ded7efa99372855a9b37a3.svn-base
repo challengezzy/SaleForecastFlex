@@ -1,0 +1,10 @@
+﻿compileperiod=编制期间(YYYYMM)
+forecastinstcode=预测策略编码
+forecastinstname=预测策略名称
+chkbox_like=模糊匹配
+chkbox_pagequery=分页查询
+
+btn_query=查询
+
+alert_title_hint=提示
+alert_msg_compileperiodisinvalid=请正确输入编制期间

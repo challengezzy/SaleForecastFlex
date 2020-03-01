@@ -1,0 +1,709 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:TitleWindow xmlns:fx="http://ns.adobe.com/mxml/2009" 
+			   xmlns:s="library://ns.adobe.com/flex/spark" 
+			   xmlns:mx="library://ns.adobe.com/flex/mx" width="800" height="600" close="onCancel()"
+			   creationComplete="creationCompleteHandler(event)" 
+			   xmlns:containers="aks.aksmx.containers.*" xmlns:product="dmdd.dmddmx.com.product.*" xmlns:unit="dmdd.dmddmx.com.unit.*" xmlns:common="dmdd.dmddmx.com.common.*" xmlns:buttons="com.cool.buttons.*">
+	<s:layout>
+		<s:VerticalLayout paddingLeft="10" paddingRight="10" paddingTop="10" paddingBottom="10"/>
+	</s:layout>
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+		<s:RemoteObject endpoint="{ClientEnvironment.endpoint}" id="srvProduct" destination="ProductService">
+			<s:method name="newProduct" result="resultHandler4saveProduct(event)" fault="faultHandler4saveProduct(event)">
+			</s:method>	
+			<s:method name="updProduct" result="resultHandler4saveProduct(event)" fault="faultHandler4saveProduct(event)">
+			</s:method>
+		</s:RemoteObject>		
+	</fx:Declarations>
+	
+	<fx:Script>
+		<![CDATA[
+			import aks.aksas.collections.HashMap;
+			import aks.aksas.utils.UtilUi;
+			
+			import com.cool.assets.CoolAssetsFile;
+			
+			import dmdd.dmddas.common.constant.BizConst;
+			import dmdd.dmddas.common.system.ClientEnvironment;
+			import dmdd.dmddas.common.utils.UtilExceptionLocale;
+			import dmdd.dmddas.common.utils.UtilProduct;
+			import dmdd.dmddas.dataaccess.bizobject.BProduct;
+			import dmdd.dmddas.dataaccess.bizobject.BProductCharacter;
+			import dmdd.dmddas.dataaccess.bizobject.BProductLayer;
+			import dmdd.dmddas.dataaccess.bizobject.BProductProCharacter;
+			import dmdd.dmddas.dataaccess.bizobject.BSuitSkuRel;
+			import dmdd.dmddas.dataaccess.bizobject.BSysDictionaryItem;
+			import dmdd.dmddas.dataaccess.bizobject.BUnit;
+			
+			import mx.collections.ArrayCollection;
+			import mx.controls.Alert;
+			import mx.events.FlexEvent;
+			import mx.managers.PopUpManager;
+			import mx.rpc.events.FaultEvent;
+			import mx.rpc.events.ResultEvent;
+			import mx.utils.StringUtil;
+			//	描述		begin
+			//	描述		end
+			
+			//	0	输入参数    begin		
+			private var paramIn4closeCallback4thisObject:Object = null;
+			private var paramIn4closeCallback4function:Function = null;
+			
+			private var paramIo4winUse:int = UtilUi.AUWINDOW_USE_NEW;
+			
+			[Bindable]
+			private var paramIo4product:BProduct = null;							
+			//	0	输入参数    end
+			
+			//	1	输出参数    begin
+			private var paramOut4winCloseWay:int = UtilUi.WINDOW_CLOSEWAY_CANCEL;
+			
+			//	1	输出参数    end
+			
+			//	2	本地变量    begin
+			[Bindable]
+			private var prvVar4arrDictGlobalYesNo:ArrayCollection = ClientEnvironment.getSysDictionaryItems("GLOBAL", "YESNO", false);	
+			
+			private var prvVar4chooserWindow_parentProduct:Com_Product_Product_Chooser = null;
+			private var prvVar4chooserWindow_productCharacter:Com_Product_ProductCharacter_Chooser = null;
+			
+			private var skuChooserWin:Com_Product_Product_Chooser = null;
+			//	2	本地变量    end			
+			
+			//	3	公共方法    begin	
+			//	构造函数
+			public function pubFun4constructor( _paramIo4product:BProduct, _paramIo4winUse:int, _paramIn4closeCallback4thisObject:Object, _paramIn4closeCallback4function:Function ):void
+			{
+				this.pubFun4setParamIo4product( _paramIo4product, _paramIo4winUse );
+				this.pubFun4setParamIn4closeCallback( _paramIn4closeCallback4thisObject, _paramIn4closeCallback4function );
+			}	
+			
+			//	关闭回调函数参数													
+			public function pubFun4setParamIn4closeCallback( _thisObject:Object, _function:Function ):void
+			{
+				this.paramIn4closeCallback4thisObject = _thisObject;
+				this.paramIn4closeCallback4function = _function;	
+			}
+			//	关闭方式参数
+			public function pubFun4getParamOut4winCloseWay():int
+			{
+				return this.paramOut4winCloseWay;
+			}
+			//	关闭窗口
+			private function prvFun4close():void
+			{
+				PopUpManager.removePopUp( this );						
+				this.paramIn4closeCallback4function.call( this.paramIn4closeCallback4thisObject );				
+			}				
+			
+			//	界面用途参数
+			public function pubFun4getParamIo4winUse():int
+			{
+				return this.paramIo4winUse;
+			}			
+			
+			
+			//	处理对象参数
+			/**
+			 * _paramIo4product:BProduct	处理对象
+			 * _paramIo4winUse:int	处理动作
+			 */ 			
+			public function pubFun4setParamIo4product( _paramIo4product:BProduct, _paramIo4winUse:int ):void
+			{
+				this.paramIo4product = _paramIo4product;
+				this.paramIo4winUse = _paramIo4winUse;
+				
+				this.comboBoxIsCatalog.selectedIndex = ClientEnvironment.getSysDictionaryItemIndexByValue( this.prvVar4arrDictGlobalYesNo, this.paramIo4product.isCatalog );
+				this.comboBoxIsValid.selectedIndex = ClientEnvironment.getSysDictionaryItemIndexByValue( this.prvVar4arrDictGlobalYesNo, this.paramIo4product.isValid );
+				this.comboBoxUnit.selectedItem = this.paramIo4product.unit;
+
+				this.comboBoxIsSuit.selectedIndex = ClientEnvironment.getSysDictionaryItemIndexByValue( prvVar4arrDictGlobalYesNo, paramIo4product.isSuit );
+				
+				if(paramIo4product.isSuit == BizConst.GLOBAL_YESNO_YES){
+					btnSkuAdd.enabled = true;
+					btnSkuDel.enabled = true;
+				}else{
+					btnSkuAdd.enabled = false;
+					btnSkuDel.enabled = false;
+				}
+				
+				if( this.paramIo4product.isCatalog == BizConst.GLOBAL_YESNO_YES )
+				{
+					this.btnAddProductProCharacter.enabled = false;
+				}
+				else
+				{
+					this.btnAddProductProCharacter.enabled = true;
+				}
+				
+				if( this.paramIo4winUse == UtilUi.AUWINDOW_USE_NEW )
+				{
+					this.comboBoxIsCatalog.enabled = true;
+					this.comboBoxIsValid.enabled = true;
+					if( this.paramIo4product.parentProduct != null && this.paramIo4product.parentProduct.unitGroup != null )
+					{
+						//	单位组需与父节点保持一致
+						this.comUnitGroupField.paramIn4enabled4btnOpenChooser = false;
+						this.comUnitGroupField.paramIn4enabled4btnClear = false;
+					}
+					else
+					{
+						this.comUnitGroupField.paramIn4enabled4btnOpenChooser = true;
+						this.comUnitGroupField.paramIn4enabled4btnClear = true;						
+					}
+					this.btnParentProductChooser.enabled = false;
+				}
+				else if( this.paramIo4winUse == UtilUi.AUWINDOW_USE_UPD )
+				{
+					this.comboBoxIsCatalog.enabled = false;
+					if( this.paramIo4product.parentProduct != null &&
+						this.paramIo4product.parentProduct.isValid == BizConst.GLOBAL_YESNO_NO )
+					{
+						//	父节点无效, 本节点不能改为有效
+						this.comboBoxIsValid.enabled = false;
+					}
+					else
+					{
+						this.comboBoxIsValid.enabled = true;
+					}
+					if( this.paramIo4product.parentProduct != null && this.paramIo4product.parentProduct.unitGroup != null )
+					{
+						//	单位组需与父节点保持一致
+						this.comUnitGroupField.paramIn4enabled4btnOpenChooser = false;
+						this.comUnitGroupField.paramIn4enabled4btnClear = false;
+					}
+					else
+					{
+						this.comUnitGroupField.paramIn4enabled4btnOpenChooser = true;
+						this.comUnitGroupField.paramIn4enabled4btnClear = true;						
+					}					
+					this.btnParentProductChooser.enabled = true;
+				}
+			}
+			public function pubFun4getParamIo4product():BProduct
+			{
+				return this.paramIo4product;
+			}				
+			//	3	公共方法    end		
+			 
+			//	4	初始化方法    begin			
+			private function creationCompleteHandler(event:FlexEvent):void
+			{
+				this.x = 100;
+				this.y = 50;
+			}						
+			//	4	初始化方法    end				
+			
+			//	5	事件响应方法    begin	
+			private function onChange4comUnitGroupField():void
+			{
+				//	单位组变化时, 选中的单位默认设置为基准单位
+				if( this.comUnitGroupField.paramIo4selectedUnitGroup != null )
+				{
+					var baseUnit:BUnit = this.comUnitGroupField.paramIo4selectedUnitGroup.getBaseUnit();
+					this.comboBoxUnit.selectedItem = baseUnit;
+				}
+				else
+				{
+					this.comboBoxUnit.selectedItem = null;
+				}
+			}
+			
+			private function onChange4comboBoxIsCatalog():void
+			{
+				//	组织目录不能分配特征
+				//	从否变是的时候，要把productProCharacters数据清除
+				if( BSysDictionaryItem(this.comboBoxIsCatalog.selectedItem).value == BizConst.GLOBAL_YESNO_YES )
+				{
+					if( this.paramIo4product.productProCharacters != null )
+					{
+						this.paramIo4product.productProCharacters.removeAll();
+					}
+					this.btnAddProductProCharacter.enabled = false;
+				}
+				else
+				{
+					this.btnAddProductProCharacter.enabled = true;
+				}
+			}	
+			
+			private function onChooseParentProduct():void
+			{
+				if( this.prvVar4chooserWindow_parentProduct ==  null )
+				{
+					this.prvVar4chooserWindow_parentProduct = Com_Product_Product_Chooser(PopUpManager.createPopUp(this, Com_Product_Product_Chooser, true));
+					this.prvVar4chooserWindow_parentProduct.pubFun4setParamIn4closeCallback( this, callbackFunction4ChooserWinClose_parentProduct );
+				}
+				else
+				{
+					PopUpManager.addPopUp( this.prvVar4chooserWindow_parentProduct, this, true );
+				}	 		
+			}	
+			
+			private function callbackFunction4ChooserWinClose_parentProduct():void
+			{
+				var alert_title_hint:String = resourceManager.getString('alert','alert_title_hint');
+				var alert_msg:String = "";	
+				
+				if( this.prvVar4chooserWindow_parentProduct.pubFun4getParamOut4winCloseWay() == UtilUi.WINDOW_CLOSEWAY_OK )
+				{
+					var selectedProduct:BProduct = this.prvVar4chooserWindow_parentProduct.pubFun4getParamOut4selectedProduct();
+					if( selectedProduct == null )
+					{
+						return;
+					}
+					if( selectedProduct.isCatalog == BizConst.GLOBAL_YESNO_NO )
+					{
+						alert_msg =	resourceManager.getString('alert','alert_msg_parentisnotcatalog1');
+						Alert.show( alert_msg, alert_title_hint );
+						return;						
+					}
+					
+					if( selectedProduct.id == this.paramIo4product.id )
+					{
+						alert_msg =	resourceManager.getString('alert','alert_msg_parentisself1');
+						Alert.show( alert_msg, alert_title_hint );
+						return;		
+					}
+					
+ 					if( UtilProduct.isAncestorOf(this.paramIo4product, selectedProduct) == true )
+					{
+						alert_msg =	resourceManager.getString('alert','alert_msg_parentisdescendent1');
+						Alert.show( alert_msg, alert_title_hint );
+						return;							
+					}
+					
+					var productLayer_new:BProductLayer = ClientEnvironment.getProductLayerByValue( selectedProduct.productLayer.value + 1 );
+					if( productLayer_new == null )
+					{
+						alert_msg = resourceManager.getString('alert','alert_msg_maxlayer1');					
+						Alert.show( alert_msg, alert_title_hint );
+						return;					
+					}
+
+					this.paramIo4product.parentProduct = selectedProduct;
+					this.paramIo4product.productLayer = productLayer_new;
+					this.paramIo4product.unitGroup = selectedProduct.unitGroup;	//	这句会影响comboBoxUnit 的 dataProvider 变化, 保证选中的单位是单位组内的
+					if( this.paramIo4product.parentProduct != null && this.paramIo4product.parentProduct.unitGroup != null )
+					{
+						//	单位组需与父节点保持一致
+						this.comUnitGroupField.paramIn4enabled4btnOpenChooser = false;
+						this.comUnitGroupField.paramIn4enabled4btnClear = false;
+						
+						this.comboBoxUnit.selectedIndex = -1; //清除单位选择
+					}
+					else
+					{
+						this.comUnitGroupField.paramIn4enabled4btnOpenChooser = true;
+						this.comUnitGroupField.paramIn4enabled4btnClear = true;						
+					}	
+				}														
+			}		
+			
+			
+			private function onAddProductProCharacter():void
+			{
+				if( this.prvVar4chooserWindow_productCharacter == null )
+				{
+					this.prvVar4chooserWindow_productCharacter = Com_Product_ProductCharacter_Chooser(PopUpManager.createPopUp(this, Com_Product_ProductCharacter_Chooser, true));
+					this.prvVar4chooserWindow_productCharacter.pubFun4setParamIn4closeCallback( this, this.callbackFunction4ChooserWinClose_productCharacter );					
+				}
+				else
+				{
+					PopUpManager.addPopUp( this.prvVar4chooserWindow_productCharacter, this, true );
+				}									
+			}	
+			
+			private function callbackFunction4ChooserWinClose_productCharacter():void
+			{
+				var alert_title_hint:String = resourceManager.getString('alert','alert_title_hint');
+				var alert_msg:String = "";	
+				
+				if( this.prvVar4chooserWindow_productCharacter.pubFun4getParamOut4winCloseWay() == UtilUi.WINDOW_CLOSEWAY_OK )
+				{
+					var selectedProductCharacter:BProductCharacter = this.prvVar4chooserWindow_productCharacter.pubFun4getParamOut4selectedProductCharacter();
+					if( selectedProductCharacter == null )
+					{
+						return;
+					}
+					if( selectedProductCharacter.isCatalog == BizConst.GLOBAL_YESNO_YES )
+					{
+						alert_msg = resourceManager.getString('alert','alert_msg_productcharacterisnotdetail1');
+						Alert.show( alert_msg, alert_title_hint );
+						return;					
+					}
+
+					if( this.paramIo4product.productProCharacters == null )
+					{
+						this.paramIo4product.productProCharacters = new ArrayCollection();
+					}
+					
+					var i:int;
+					for( i=0; i<this.paramIo4product.productProCharacters.length; i=i+1 )
+					{
+						var inProductProCharacter:BProductProCharacter = BProductProCharacter( this.paramIo4product.productProCharacters.getItemAt(i) );
+						if( selectedProductCharacter.id == inProductProCharacter.productCharacter.id )
+						{
+							alert_msg = resourceManager.getString('alert','alert_msg_alreadyin1');
+							Alert.show( alert_msg, alert_title_hint );							
+							return;
+						}
+						else if( selectedProductCharacter.type == inProductProCharacter.productCharacter.type )
+						{
+							alert_msg = resourceManager.getString('alert','alert_msg_sametypealreadyin1');
+							Alert.show( alert_msg, alert_title_hint );									
+							return;
+						}
+					}					
+					
+					var newProductProCharacter:BProductProCharacter = new BProductProCharacter();
+					newProductProCharacter.product = this.paramIo4product;
+					newProductProCharacter.productCharacter = selectedProductCharacter;
+					this.paramIo4product.productProCharacters.addItem( newProductProCharacter );					
+				}														
+			}			
+			
+			private function onDelProductProCharacter():void
+			{
+				this.paramIo4product.productProCharacters.removeItemAt( this.comAdgProductProCharacter.selectedIndex );
+			}			
+			
+			
+			private function onSave():void
+			{				
+				if( this.prvFun4prepare4save() == true )
+				{
+					UtilUi.pubFun4PopWaitWindow( this );
+					if( this.paramIo4winUse == UtilUi.AUWINDOW_USE_NEW )
+					{
+						this.srvProduct.newProduct( this.paramIo4product );
+					}
+					else if( this.paramIo4winUse == UtilUi.AUWINDOW_USE_UPD )
+					{
+						this.srvProduct.updProduct( this.paramIo4product );
+					}
+					else
+					{
+						Alert.show( '意外情形，请联系技术支持人员', '提示' );	
+					}
+				}
+			}			
+			
+			private function faultHandler4saveProduct(event:FaultEvent):void
+			{
+				UtilUi.pubFun4RemoveWaitWindow();
+				Alert.show( UtilExceptionLocale.getExceptionMessageLocaleByFaultEvent( event ), resourceManager.getString('alert','alt_title_warn') );
+			}	
+			
+			private function resultHandler4saveProduct(event:ResultEvent):void 
+			{
+				this.paramIo4product = BProduct(event.result);	
+				UtilUi.pubFun4RemoveWaitWindow();
+				
+				this.paramOut4winCloseWay = UtilUi.WINDOW_CLOSEWAY_OK;
+				this.prvFun4close();
+			}				
+			
+			private function onCancel():void
+			{
+				this.paramOut4winCloseWay = UtilUi.WINDOW_CLOSEWAY_CANCEL;
+				this.prvFun4close();
+			}	
+			
+			//	5	事件响应方法    end
+			
+			//	6	本地方法    begin
+			private function prvFun4prepare4save():Boolean
+			{
+				this.paramIo4product.code = StringUtil.trim(this.txtCode.text);
+				this.paramIo4product.name = StringUtil.trim(this.txtName.text);
+				this.paramIo4product.isCatalog = BSysDictionaryItem(this.comboBoxIsCatalog.selectedItem).value;
+				this.paramIo4product.isValid = BSysDictionaryItem(this.comboBoxIsValid.selectedItem).value;
+				this.paramIo4product.description = StringUtil.trim(this.txtDescription.text);
+				this.paramIo4product.comments = StringUtil.trim(this.txtComments.text);
+				// productLayer parentProduct productProCharacters 都实时处理
+				this.paramIo4product.unitGroup = this.comUnitGroupField.paramIo4selectedUnitGroup;
+				this.paramIo4product.unit = BUnit(this.comboBoxUnit.selectedItem);
+				this.paramIo4product.isSuit = BSysDictionaryItem(this.comboBoxIsSuit.selectedItem).value;
+				this.paramIo4product.shelfLife = Number(StringUtil.trim(this.txtShelfLife.text));
+				this.paramIo4product.purchaseLeadTime = Number(StringUtil.trim(this.txtPurchaseLeadTime.text));
+				this.paramIo4product.withdrawLeadTime = Number(StringUtil.trim(this.txtWithdrawLeadTime.text));
+				
+				var alert_title_hint:String = resourceManager.getString('alert','alert_title_hint');
+				var alert_msg:String = "";				
+				if( this.paramIo4product.code == null || this.paramIo4product.code == "" )
+				{
+					alert_msg = resourceManager.getString('alert','alert_msg_codeisnull');
+					Alert.show( alert_msg, alert_title_hint );
+					return false;						
+				}
+				if( this.paramIo4product.name == null || this.paramIo4product.name == "" )
+				{
+					alert_msg = resourceManager.getString('alert','alert_msg_nameisnull');
+					Alert.show( alert_msg, alert_title_hint );
+					return false;						
+				}
+				
+				if( this.paramIo4product.parentProduct != null && this.paramIo4product.parentProduct.unitGroup != null )
+				{
+					//	上级节点单位组不为空, 本节点需与上级结点保持一致
+					if( (this.paramIo4product.unitGroup == null) ||
+						(this.paramIo4product.unitGroup.id != this.paramIo4product.parentProduct.unitGroup.id) )
+					{
+						alert_msg = resourceManager.getString('alert','alert_msg_unitgroup_samewithparentproduct1');
+						Alert.show( alert_msg, alert_title_hint );
+						return false;							
+					}
+				}
+
+				if( this.paramIo4product.isCatalog == BizConst.GLOBAL_YESNO_NO )
+				{
+					//	明细产品的单位组和单位不能为空
+					if( this.paramIo4product.unitGroup == null || this.paramIo4product.unit == null )
+					{
+						alert_msg = resourceManager.getString('alert','alert_msg_detailproduct_unitgroupisnull1');
+						Alert.show( alert_msg, alert_title_hint );
+						return false;							
+					}
+				}
+				
+				return true;		
+			}				
+			
+			private function onAddSuitProduct():void
+			{
+				if( this.skuChooserWin == null )
+				{
+					this.skuChooserWin = Com_Product_Product_Chooser(PopUpManager.createPopUp(this, Com_Product_Product_Chooser, true));
+					this.skuChooserWin.pubFun4setParamIn4closeCallback( this, callback4ChooserSuitSku );					
+				}
+				else
+				{
+					PopUpManager.addPopUp( skuChooserWin, this, true );
+				}									
+			}
+			
+			private function callback4ChooserSuitSku():void
+			{
+				var titleHint:String = resourceManager.getString('alert','alert_title_hint');
+				if( skuChooserWin.pubFun4getParamOut4winCloseWay() == UtilUi.WINDOW_CLOSEWAY_OK )
+				{
+					var selectedProduct:BProduct = this.skuChooserWin.pubFun4getParamOut4selectedProduct();
+					if( selectedProduct == null )
+					{
+						return;
+					}
+					if( selectedProduct.isCatalog == BizConst.GLOBAL_YESNO_YES )
+					{
+						Alert.show( "套装SKU必须为明细SKU", titleHint );
+						return;						
+					}
+					
+					if( selectedProduct.isSuit == BizConst.GLOBAL_YESNO_YES )
+					{
+						Alert.show( "套装SKU不能为套装产品", titleHint );
+						return;		
+					}
+					
+					if(paramIo4product.suitSkus == null){			
+						paramIo4product.suitSkus = new ArrayCollection();
+					}
+					
+					var i:int;
+					for( i=0; i<this.paramIo4product.suitSkus.length; i=i+1 )
+					{
+						//判断是否SKU重复
+						var skuRel: BSuitSkuRel = paramIo4product.suitSkus.getItemAt(i) as BSuitSkuRel;
+						if(skuRel.proId == selectedProduct.id){
+							Alert.show( "套装SKU不能重复", titleHint );
+							return ;
+						}
+					}
+					
+					var newRel:BSuitSkuRel = new BSuitSkuRel();
+					newRel.proId = selectedProduct.id;
+					newRel.proCode = selectedProduct.code;
+					newRel.proName = selectedProduct.name;
+					newRel.ratio = 1;
+					
+					paramIo4product.suitSkus.addItem(newRel);
+					
+				}														
+			}
+			
+			private function onDelSuitProduct():void
+			{
+				paramIo4product.suitSkus.removeItemAt( suitAdg.selectedIndex );
+			}
+			
+			//	6	本地方法   end						
+		]]>
+	</fx:Script>
+	
+	<common:LabelBoundary labelText="{resourceManager.getString('menu','product')}" />
+	<s:VGroup width="100%" height="245" paddingLeft="10" paddingRight="10" paddingTop="5">
+		<mx:Grid width="100%" height="100%">
+			<mx:GridRow width="100%" height="100%" verticalAlign="middle">
+				<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+					<s:Label text="{resourceManager.getString('note','proCode')}"/>
+				</mx:GridItem>
+				<mx:GridItem width="100%" height="100%" verticalAlign="middle">
+					<mx:TextInput id="txtCode" maxChars="255" width="100%" text="{this.paramIo4product.code}"/>
+				</mx:GridItem>
+				<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+				</mx:GridItem>
+				<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+					<s:Label text="{resourceManager.getString('note','proName')}"/>
+				</mx:GridItem>
+				<mx:GridItem width="100%" height="100%" verticalAlign="middle">
+					<mx:TextInput id="txtName" maxChars="255" width="100%" text="{this.paramIo4product.name}"/>
+				</mx:GridItem>
+			</mx:GridRow>
+			<mx:GridRow width="100%" height="100%" verticalAlign="middle">
+				<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+					<s:Label text="{resourceManager.getString('note','isCatagory')}"/>
+				</mx:GridItem>
+				<mx:GridItem width="100%" height="100%" verticalAlign="middle">
+					<s:ComboBox id="comboBoxIsCatalog" dataProvider="{this.prvVar4arrDictGlobalYesNo}" width="100%" change="onChange4comboBoxIsCatalog()">
+					</s:ComboBox>							
+				</mx:GridItem>
+				<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+				</mx:GridItem>
+				<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+					<s:Label text="{resourceManager.getString('note','isValid')}"/>
+				</mx:GridItem>
+				<mx:GridItem width="100%" height="100%" verticalAlign="middle">
+					<s:ComboBox width="100%" id="comboBoxIsValid" dataProvider="{this.prvVar4arrDictGlobalYesNo}">
+					</s:ComboBox>						
+				</mx:GridItem>
+			</mx:GridRow>
+			<mx:GridRow width="100%" height="100%" verticalAlign="middle">
+				<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+					<s:Label text="{resourceManager.getString('note','parentPro')}"/>
+				</mx:GridItem>
+				<mx:GridItem width="100%" height="100%" verticalAlign="middle">
+					<mx:TextInput width="100%" text="{this.paramIo4product.parentProduct.toString()}" enabled="false"/>
+					<s:Button icon="{CoolAssetsFile.findIcon}" width="30" id="btnParentProductChooser" click="onChooseParentProduct()"/>															
+				</mx:GridItem>
+				<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+				</mx:GridItem>
+				<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+					<s:Label text="{resourceManager.getString('note','proLayer')}"/>					
+				</mx:GridItem>
+				<mx:GridItem width="100%" height="100%" verticalAlign="middle">
+					<mx:TextInput width="100%" enabled="false" text="{this.paramIo4product.productLayer.toString()}"/>
+				</mx:GridItem>
+			</mx:GridRow>	
+			<mx:GridRow width="100%" height="100%" verticalAlign="middle">
+				<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+					<s:Label text="{resourceManager.getString('note','unitGroup')}"/>
+				</mx:GridItem>
+				<mx:GridItem width="100%" height="100%" verticalAlign="middle">
+					<unit:Com_Unit_UnitGroup_Field width="100%" id="comUnitGroupField" paramIo4selectedUnitGroup="{this.paramIo4product.unitGroup}" paramIn4selectChangeCallback4thisObject="{this}" paramIn4selectChangeCallback4function="{this.onChange4comUnitGroupField}">
+					</unit:Com_Unit_UnitGroup_Field>
+				</mx:GridItem>
+				<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+				</mx:GridItem>
+				<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+					<s:Label text="{resourceManager.getString('note','unitManage')}"/>
+				</mx:GridItem>
+				<mx:GridItem width="100%" height="100%" verticalAlign="middle">
+					<s:ComboBox id="comboBoxUnit" dataProvider="{this.comUnitGroupField.paramIo4selectedUnitGroup.units}" width="100%"/>
+				</mx:GridItem>
+			</mx:GridRow>
+			<mx:GridRow width="100%" height="100%" verticalAlign="middle">
+				<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+					<s:Label text="{resourceManager.getString('note','isKit')}"/>
+				</mx:GridItem>
+				<mx:GridItem width="100%" height="100%" verticalAlign="middle">
+					<s:ComboBox width="100%" id="comboBoxIsSuit" dataProvider="{this.prvVar4arrDictGlobalYesNo}" />
+				</mx:GridItem>
+				<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+				</mx:GridItem>
+				<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+					<s:Label text="{resourceManager.getString('note','productionLT')}"/>
+				</mx:GridItem>
+				<mx:GridItem width="100%" height="100%" verticalAlign="middle">
+					<mx:TextInput id="txtPurchaseLeadTime" maxChars="4" width="100%" text="{this.paramIo4product.purchaseLeadTime}"/>
+				</mx:GridItem>
+				
+			</mx:GridRow>
+			<mx:GridRow width="100%" height="100%" verticalAlign="middle">
+				<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+					<s:Label text="{resourceManager.getString('note','shelfLife')}"/>
+				</mx:GridItem>
+				<mx:GridItem width="100%" height="100%" verticalAlign="middle">
+					<mx:TextInput id="txtShelfLife" maxChars="4" width="100%" text="{this.paramIo4product.shelfLife}"/>
+				</mx:GridItem>
+				<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+				</mx:GridItem>
+				<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+					<s:Label text="{resourceManager.getString('note','offShelfLT')}"/>
+				</mx:GridItem>
+				<mx:GridItem width="100%" height="100%" verticalAlign="middle">
+					<mx:TextInput id="txtWithdrawLeadTime" maxChars="4" width="100%" text="{this.paramIo4product.withdrawLeadTime}"/>
+				</mx:GridItem>
+			</mx:GridRow>
+			<mx:GridRow width="100%" height="100%" verticalAlign="middle">
+				<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+					<s:Label text="{resourceManager.getString('note','longDesc')}"/>
+				</mx:GridItem>
+				<mx:GridItem width="100%" height="100%" verticalAlign="middle" colSpan="4">
+					<mx:TextInput id="txtDescription" width="400" maxChars="255" text="{this.paramIo4product.description}"/>
+				</mx:GridItem>
+			</mx:GridRow>	
+			<mx:GridRow width="100%" height="100%" verticalAlign="middle">
+				<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+					<s:Label text="{resourceManager.getString('note','remark')}"/>
+				</mx:GridItem>
+				<mx:GridItem width="100%" height="100%" verticalAlign="middle" colSpan="4">
+					<mx:TextInput width="400" id="txtComments" maxChars="255" text="{this.paramIo4product.comments}"/>
+				</mx:GridItem>
+			</mx:GridRow>							
+		</mx:Grid>			
+	</s:VGroup>
+	
+	<s:HGroup width="100%">
+		<s:VGroup width="100%">
+			<common:LabelBoundary labelText="{resourceManager.getString('menu','proChar')}" />
+			<s:VGroup width="100%" height="100%" >
+				<containers:AksControlBar>
+					<s:Button label="{resourceManager.getString('button','add')}" id="btnAddProductProCharacter" 
+							  click="onAddProductProCharacter()" icon="{CoolAssetsFile.addIcon}" />
+					<s:Button label="{resourceManager.getString('button','remove')}" enabled="{this.comAdgProductProCharacter.selectedItem}" 
+							  click="onDelProductProCharacter()" icon="{CoolAssetsFile.minus2Icon}"/>						
+				</containers:AksControlBar>
+				<product:Com_Product_ProductProCharacter_AdvancedDataGrid dataProvider="{this.paramIo4product.productProCharacters}" width="100%" height="100%" id="comAdgProductProCharacter"/>
+			</s:VGroup>
+		</s:VGroup>
+		<s:VGroup width="100%">
+			<common:LabelBoundary labelText="{resourceManager.getString('menu','suitSku')}" />
+			<s:VGroup width="100%" height="100%" >
+				<containers:AksControlBar>
+					<s:Button id="btnSkuAdd" label="{resourceManager.getString('button','add')}"
+							  click="onAddSuitProduct()" icon="{CoolAssetsFile.addIcon}" />
+					<s:Button id="btnSkuDel" label="{resourceManager.getString('button','remove')}" enabled="{this.comAdgProductProCharacter.selectedItem}" 
+							  click="onDelSuitProduct()" icon="{CoolAssetsFile.minus2Icon}"/>						
+				</containers:AksControlBar>
+				<mx:AdvancedDataGrid id="suitAdg" dataProvider="{paramIo4product.suitSkus}" width="100%" height="100%" editable="true" >
+					<mx:columns>
+						<mx:AdvancedDataGridColumn width="70" headerText="{resourceManager.getString('label','suitItemRatio')}" dataField="ratio" editable="true" />
+						<mx:AdvancedDataGridColumn width="120" headerText="{resourceManager.getString('label','suitItemCode')}" dataField="proCode" editable="false" />
+						<mx:AdvancedDataGridColumn width="160" headerText="{resourceManager.getString('label','suitItemName')}" dataField="proName" editable="false" />
+					</mx:columns>
+				</mx:AdvancedDataGrid>
+			</s:VGroup>
+		</s:VGroup>
+	</s:HGroup>
+	
+	
+	<s:BorderContainer width="100%" height="25" borderColor="#E4ECF7">
+		<s:layout>
+			<s:HorizontalLayout horizontalAlign="center"/>
+		</s:layout>
+		<buttons:ButtonSave click="onSave()" />
+		<buttons:ButtonCancel click="onCancel()" />
+	</s:BorderContainer>
+
+</s:TitleWindow>

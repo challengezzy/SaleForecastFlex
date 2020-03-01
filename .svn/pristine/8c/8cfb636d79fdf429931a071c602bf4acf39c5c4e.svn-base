@@ -1,0 +1,14 @@
+check=Run
+code=ID
+name=Description
+fcperiodnum=Forecasting Horizon
+fzperiodnum=Offset Horizon
+errorthreshold=Error Threshold
+mappingfcmodelruntime=Last Run On
+runproductlayer=ForecastingLevel-Product
+runorganizationlayer=ForecastingLevel-SalesOrg
+finalfcbizdata=Final Forecast
+distributerefformula=Distributing Formula
+distributerefbizdata=Refer to Key Figure
+distributerefperiodnum=Depends on Period Number
+isvalid=Valid

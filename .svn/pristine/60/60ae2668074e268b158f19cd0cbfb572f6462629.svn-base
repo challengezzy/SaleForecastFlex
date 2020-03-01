@@ -1,0 +1,216 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:TitleWindow xmlns:fx="http://ns.adobe.com/mxml/2009" 
+			   xmlns:s="library://ns.adobe.com/flex/spark" 
+			   xmlns:mx="library://ns.adobe.com/flex/mx" width="800" height="600" close="onCancel()"
+			   creationComplete="creationCompleteHandler(event)" 
+			   xmlns:controls="aks.aksmx.controls.*" xmlns:containers="aks.aksmx.containers.*" 
+			   xmlns:forecast="dmdd.dmddmx.com.forecast.*" xmlns:buttons="com.cool.buttons.*" xmlns:common="dmdd.dmddmx.com.common.*" >
+	<s:layout>
+		<s:VerticalLayout paddingBottom="5" paddingTop="5" paddingLeft="10" paddingRight="10"/>
+	</s:layout>
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+		<s:RemoteObject endpoint="{ClientEnvironment.endpoint}" id="srvForecast" destination="ForecastService">
+			<s:method name="getForecastModelMsStat" result="resultHandler4getForecastModelMsStat(event)" fault="faultHandler4getForecastModelMsStat(event)">
+			</s:method>			
+			<s:method name="getForecastModelMs" result="resultHandler4getForecastModelMs(event)" fault="faultHandler4getForecastModelMs(event)">
+			</s:method>
+		</s:RemoteObject>		
+	</fx:Declarations>
+	<fx:Metadata>
+		[ResourceBundle("com_forecast_forecastmodelm_chooser")]
+	</fx:Metadata>	
+	<fx:Script>
+		<![CDATA[
+			import aks.aksas.utils.UtilUi;
+			
+			import dmdd.dmddas.common.constant.SysConst;
+			import dmdd.dmddas.common.constant.UIConst;
+			import dmdd.dmddas.common.system.ClientEnvironment;
+			import dmdd.dmddas.common.utils.UtilExceptionLocale;
+			import dmdd.dmddas.dataaccess.bizobject.BForecastModelM;
+			
+			import mx.collections.ArrayCollection;
+			import mx.controls.Alert;
+			import mx.events.FlexEvent;
+			import mx.managers.PopUpManager;
+			import mx.rpc.events.FaultEvent;
+			import mx.rpc.events.ResultEvent;
+			
+			//	描述		begin
+			//	描述		end
+			
+			//	0	输入参数    begin	
+			private var paramIn4closeCallback4thisObject:Object = null;
+			private var paramIn4closeCallback4function:Function = null;				
+			//	0	输入参数    end
+			
+			//	1	输出参数    begin
+			private var paramOut4selectedForecastModelM:BForecastModelM = null;	
+			private var paramOut4selectedForecastModelMs:ArrayCollection = new ArrayCollection();;			
+			
+			private var paramOut4winCloseWay:int = UtilUi.WINDOW_CLOSEWAY_CANCEL;		
+			//	1	输出参数    end
+			
+			//	2	本地变量    begin				
+			[Bindable]
+			private var prvVar4dp4comAdgForecastModelM:ArrayCollection = new ArrayCollection();
+			
+			private var prvVar4sqlRestriction:String = null;										
+			//	2	本地变量    end			
+			
+			//	3	公共方法    begin	
+			//	关闭回调函数参数													
+			public function pubFun4setParamIn4closeCallback( _thisObject:Object, _function:Function ):void
+			{
+				this.paramIn4closeCallback4thisObject = _thisObject;
+				this.paramIn4closeCallback4function = _function;	
+			}
+			//	关闭方式参数
+			public function pubFun4getParamOut4winCloseWay():int
+			{
+				return this.paramOut4winCloseWay;
+			}				
+			//	关闭窗口
+			private function prvFun4close():void
+			{
+				PopUpManager.removePopUp( this );						
+				this.paramIn4closeCallback4function.call( this.paramIn4closeCallback4thisObject );				
+			}							
+			
+			
+			//	处理对象参数
+			public function pubFun4getParamOut4selectedForecastModelM():BForecastModelM
+			{
+				return this.paramOut4selectedForecastModelM;
+			}	
+			public function pubFun4getParamOut4selectedForecastModelMs():ArrayCollection
+			{
+				return this.paramOut4selectedForecastModelMs;
+			}			
+			//	3	公共方法    end		
+			
+			//	4	初始化方法    begin			
+			protected function creationCompleteHandler(event:FlexEvent):void
+			{
+				this.title = resourceManager.getString('com_forecast_forecastmodelm_chooser','choosertitle');	
+				this.x = 100;
+				this.y = 50;						
+			}				
+					
+			//	4	初始化方法    end				
+			
+			//	5	事件响应方法    begin	
+			private function callbackFunction4query4comQCond():void
+			{				
+				this.prvVar4sqlRestriction = this.comQCond.pubFun4getParamOut4sqlRestriction();
+				var blPageQuery:Boolean = this.comQCond.pubFun4getParamOut4blPageQuery();
+				
+				if( blPageQuery == true )
+				{	
+					UtilUi.pubFun4PopWaitWindow( this );
+					this.srvForecast.getForecastModelMsStat( this.prvVar4sqlRestriction );	
+				}
+				else
+				{	
+					//	不分页查询
+					UtilUi.pubFun4PopWaitWindow( this );
+					this.srvForecast.getForecastModelMs( this.prvVar4sqlRestriction, -1, ClientEnvironment.getSysParamPageSize() );
+				}								
+			}			
+			
+			//	分页查询相关		begin
+			private function faultHandler4getForecastModelMsStat(event:FaultEvent):void
+			{
+				UtilUi.pubFun4RemoveWaitWindow();
+				Alert.show( UtilExceptionLocale.getExceptionMessageLocaleByFaultEvent( event ), resourceManager.getString('main','alt_title_warn') );
+			}	
+			
+			private function resultHandler4getForecastModelMsStat(event:ResultEvent):void 
+			{
+				//	初始化数据表格控制板
+				var rstSize:Number = Number(event.result);
+				this.comAksDataGridControlBar.pubFun4setResultParams( true, rstSize, ClientEnvironment.getSysParamPageSize() );
+				
+				//	去执行第一页查询
+				this.srvForecast.getForecastModelMs( this.prvVar4sqlRestriction, 1, ClientEnvironment.getSysParamPageSize() );
+			}
+			
+			private function prvFun4pageQueryForecastModelMs( _pageIndex:int ):void
+			{
+				UtilUi.pubFun4PopWaitWindow( this );
+				this.srvForecast.getForecastModelMs( this.prvVar4sqlRestriction, _pageIndex, ClientEnvironment.getSysParamPageSize() );					
+			}			
+			//	分页查询相关		end
+			
+			
+			private function faultHandler4getForecastModelMs(event:FaultEvent):void
+			{
+				UtilUi.pubFun4RemoveWaitWindow();
+				Alert.show( UtilExceptionLocale.getExceptionMessageLocaleByFaultEvent( event ), resourceManager.getString('main','alt_title_warn') );
+			}	
+			
+			private function resultHandler4getForecastModelMs(event:ResultEvent):void 
+			{
+				this.prvVar4dp4comAdgForecastModelM = ArrayCollection(event.result);
+				
+				if( this.comQCond.pubFun4getParamOut4blPageQuery() == false )
+				{
+					//	不是分页查询，需要根据查询结果初始化数据表格控制板
+					this.comAksDataGridControlBar.pubFun4setResultParams( false, this.prvVar4dp4comAdgForecastModelM.length, this.prvVar4dp4comAdgForecastModelM.length );
+				}
+				
+				UtilUi.pubFun4RemoveWaitWindow();
+			}					
+			
+			
+			
+			private function onOk():void
+			{
+				this.paramOut4selectedForecastModelM = BForecastModelM( this.comAdgForecastModelM.selectedItem );
+				this.paramOut4selectedForecastModelMs = new ArrayCollection( this.comAdgForecastModelM.selectedItems );
+				
+				this.paramOut4winCloseWay = UtilUi.WINDOW_CLOSEWAY_OK;
+				this.prvFun4close();
+			}	
+			
+			private function onCancel():void
+			{	
+				this.paramOut4winCloseWay = UtilUi.WINDOW_CLOSEWAY_CANCEL;
+				this.prvFun4close();
+			}		
+			//	5	事件响应方法    end
+			
+			//	6	本地方法    begin
+			//	6	本地方法   end				
+
+
+
+		]]>
+	</fx:Script>	
+	<forecast:Com_Forecast_ForecastModelM_QueryCond id="comQCond" paramIn4queryCallback4thisObject="{this}" 
+													paramIn4queryCallback4function="{this.callbackFunction4query4comQCond}">
+	</forecast:Com_Forecast_ForecastModelM_QueryCond>
+	
+	<mx:VDividedBox width="100%" height="100%">
+		<s:VGroup height="40%" minHeight="100" width="100%">
+			<common:LabelBoundary labelText="{resourceManager.getString('com_forecast_forecastmodelm_chooser','forecastmodelm')}" />
+			<controls:AksDataGridControlBar id="comAksDataGridControlBar" paramIn4callback4thisObject="{this}" 
+											paramIn4callback4queryFunction="{this.prvFun4pageQueryForecastModelMs}" paramIn4dataGrid="{this.comAdgForecastModelM}">
+			</controls:AksDataGridControlBar>
+			<forecast:Com_Forecast_ForecastModelM_AdvancedDataGrid id="comAdgForecastModelM" 
+									dataProvider="{this.prvVar4dp4comAdgForecastModelM}" width="100%" height="100%"/>
+		</s:VGroup>
+		<s:VGroup height="60%" minHeight="100" width="100%">
+			<common:LabelBoundary labelText="{resourceManager.getString('com_forecast_forecastmodelm_chooser','forecastmodelmparam')}" />
+			<forecast:Com_Forecast_ForecastModelM_Properties paramIo4forecastModelM="{BForecastModelM(this.comAdgForecastModelM.selectedItem)}" 
+													paramIn4editable="false" paramIn4blShowBaseInfo="false" width="100%" height="100%">
+			</forecast:Com_Forecast_ForecastModelM_Properties>
+		</s:VGroup>
+	</mx:VDividedBox>
+	<s:HGroup horizontalAlign="center" verticalAlign="middle" width="100%">
+		<buttons:ButtonOk enabled="{this.comAdgForecastModelM.selectedItems.pop()}" click="onOk()" />
+		<buttons:ButtonCancel click="onCancel()" />
+	</s:HGroup>
+</s:TitleWindow>
+

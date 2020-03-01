@@ -1,0 +1,202 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:BorderContainer xmlns:fx="http://ns.adobe.com/mxml/2009" 
+				   xmlns:s="library://ns.adobe.com/flex/spark" 
+				   xmlns:mx="library://ns.adobe.com/flex/mx" height="260" width="100%"
+				   creationComplete="creationCompleteHandler(event)" 
+				   xmlns:bizdata="dmdd.dmddmx.com.bizdata.*" 
+				   xmlns:containers="aks.aksmx.containers.*">
+	<s:layout>
+		<s:VerticalLayout />
+	</s:layout>
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+		<mx:NumberValidator id="numberValidator4SeasonSmoothingingFactor" source="{this.txtSeasonSmoothingFactor}" property="text" allowNegative="false" 
+							negativeError="{resourceManager.getString('alert','alert_msg_seasonsmoothingfactor9')}" 
+							invalidCharError="{resourceManager.getString('alert','alert_msg_seasonsmoothingfactor9')}" 
+							lowerThanMinError="{resourceManager.getString('alert','alert_msg_seasonsmoothingfactor9')}" 
+							exceedsMaxError="{resourceManager.getString('alert','alert_msg_seasonsmoothingfactor9')}"  
+							minValue="0" maxValue="1.0" domain="real" 
+							trigger="{this.txtSeasonSmoothingFactor}" triggerEvent="change">
+		</mx:NumberValidator>		
+	</fx:Declarations>
+
+	<fx:Script>
+		<![CDATA[
+			import dmdd.dmddas.dataaccess.bizobject.BForecastModelMSLWma;
+			import dmdd.dmddas.dataaccess.bizobject.BForecastModelMSLWmaItem;
+			
+			import mx.controls.Alert;
+			import mx.events.FlexEvent;
+			import mx.utils.StringUtil;
+
+			//	描述    begin
+			//	描述    end
+			
+			//	0	输入参数    begin		
+			[Bindable]
+			public var paramIo4forecastModelMSLWma:BForecastModelMSLWma = null;
+			
+			[Bindable]
+			public var paramIn4editable:Boolean = false;				
+			//	0	输入参数    end
+			
+			//	1	输出参数    begin
+			[Bindable]
+			public var paramOut4historyDependPeriodNum:int = 1;				
+			//	1	输出参数    end
+
+			//	2	本地变量    begin									
+			//	2	本地变量    end			
+			
+			//	3	公共方法    begin	
+			public function pubFun4prepare4save():Boolean
+			{
+				var alert_title_hint:String = resourceManager.getString('alert','alert_title_hint')
+				var alert_msg:String = "";
+				
+				this.paramIo4forecastModelMSLWma.dataPeriodNum = this.paramIo4forecastModelMSLWma.forecastModelMSLWmaItems.length;
+				this.paramIo4forecastModelMSLWma.seasonSmoothingFactor = Number( StringUtil.trim(this.txtSeasonSmoothingFactor.text) );
+				
+				if( this.paramIo4forecastModelMSLWma.dataPeriodNum < 2 || this.paramIo4forecastModelMSLWma.dataPeriodNum > 24 )
+				{
+					alert_msg = resourceManager.getString('alert','alert_msg_dataperiodnum_2_249');
+					Alert.show( alert_msg, alert_title_hint );
+					return false;					
+				}				
+				
+				if( this.numberValidator4SeasonSmoothingingFactor.validate(this.txtSeasonSmoothingFactor.text).results != null )
+				{
+					alert_msg = resourceManager.getString('alert','alert_msg_seasonsmoothingfactor9');
+					Alert.show( alert_msg, alert_title_hint );
+					return false;
+				}								
+				
+				return true;										
+			}				
+			//	3	公共方法    end		
+			
+			//	4	初始化方法    begin	
+			protected function creationCompleteHandler(event:FlexEvent):void
+			{
+				if( this.paramIn4editable == false )
+				{
+					this.removeElement( this.aksControlBar );
+				}				
+			}			
+			//	4	初始化方法    end				
+			
+			//	5	事件响应方法    begin
+			private function onAdd():void
+			{
+				var forecastModelMSLWmaItem:BForecastModelMSLWmaItem = new BForecastModelMSLWmaItem();
+				forecastModelMSLWmaItem.coefficient = 1.0; 
+				
+				if( this.adgForecastModelMSLWmaItem.selectedItem == null )
+				{
+					this.paramIo4forecastModelMSLWma.forecastModelMSLWmaItems.addItem( forecastModelMSLWmaItem );	
+				}
+				else
+				{
+					this.paramIo4forecastModelMSLWma.forecastModelMSLWmaItems.addItemAt( forecastModelMSLWmaItem, this.adgForecastModelMSLWmaItem.selectedIndex );
+				}
+				
+				var idx:int;
+				for( idx = 0; idx < this.paramIo4forecastModelMSLWma.forecastModelMSLWmaItems.length; idx=idx+1 )
+				{
+					forecastModelMSLWmaItem = BForecastModelMSLWmaItem( this.paramIo4forecastModelMSLWma.forecastModelMSLWmaItems.getItemAt( idx ) );
+					forecastModelMSLWmaItem.periodSeqNo = idx + 1;
+					
+					this.paramIo4forecastModelMSLWma.forecastModelMSLWmaItems.setItemAt( forecastModelMSLWmaItem, idx );
+				}	
+				
+				this.paramIo4forecastModelMSLWma.dataPeriodNum = this.paramIo4forecastModelMSLWma.forecastModelMSLWmaItems.length;							
+			}
+			
+			private function onDel():void
+			{
+				this.paramIo4forecastModelMSLWma.forecastModelMSLWmaItems.removeItemAt( this.adgForecastModelMSLWmaItem.selectedIndex );
+				if( this.paramIo4forecastModelMSLWma.forecastModelMSLWmaItems.length >= 1 )
+				{
+					var idx:int;
+					var forecastModelMSLWmaItem:BForecastModelMSLWmaItem = null;
+					for( idx = 0; idx < this.paramIo4forecastModelMSLWma.forecastModelMSLWmaItems.length; idx=idx+1 )
+					{
+						forecastModelMSLWmaItem = this.paramIo4forecastModelMSLWma.forecastModelMSLWmaItems.getItemAt( idx ) as BForecastModelMSLWmaItem;
+						forecastModelMSLWmaItem.periodSeqNo = idx + 1;
+						
+						this.paramIo4forecastModelMSLWma.forecastModelMSLWmaItems.setItemAt( forecastModelMSLWmaItem, idx );
+					}
+				}
+				
+				this.paramIo4forecastModelMSLWma.dataPeriodNum = this.paramIo4forecastModelMSLWma.forecastModelMSLWmaItems.length;				
+			}		
+			
+			protected function onChange4historyDependPeriodNum( txt:String ):Boolean
+			{
+				// TODO Auto-generated method stub
+				//				if( this.numberValidator4DataPeriodNum.validate(this.txtDataPeriodNum.text).results != null )
+				//				{
+				//					return false;
+				//				}
+				
+				this.paramOut4historyDependPeriodNum = Number( StringUtil.trim(this.txtDataPeriodNum.text) );
+				return false;
+			}				
+			//	5	事件响应方法    end
+			
+			//	6	本地方法    begin
+		
+			//	6	本地方法   end				
+
+
+
+		]]>
+	</fx:Script>
+	
+
+	
+	<mx:Grid width="100%" height="60">
+		<mx:GridRow width="100%" height="100%" verticalAlign="middle">
+			<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+				<s:Label text="{resourceManager.getString('note','modelPara')}" fontWeight="bold"/>
+			</mx:GridItem>
+		</mx:GridRow>
+		<mx:GridRow width="100%" height="100%" verticalAlign="middle">
+			<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+				<s:Label text="{resourceManager.getString('note','useHistoryDataPeriod')}"/>
+			</mx:GridItem>
+			<mx:GridItem width="100%" height="100%" verticalAlign="middle">
+				<s:TextInput width="100%" id="txtDataPeriodNum" maxChars="20" editable="false" text="{this.paramIo4forecastModelMSLWma.dataPeriodNum}"/>
+				<s:Button width="0" visible="false" enabled="{this.onChange4historyDependPeriodNum(this.txtDataPeriodNum.text)}"/>
+			</mx:GridItem>
+			<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+			</mx:GridItem>
+			<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+				<s:Label text="{resourceManager.getString('note','seasonSmoothFactor')}"/>
+			</mx:GridItem>
+			<mx:GridItem width="100%" height="100%" verticalAlign="middle">
+				<s:TextInput width="100%" id="txtSeasonSmoothingFactor" maxChars="20" enabled="{this.paramIn4editable}" text="{this.paramIo4forecastModelMSLWma.seasonSmoothingFactor}"/>
+			</mx:GridItem>
+			<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+			</mx:GridItem>
+			<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+			</mx:GridItem>
+			<mx:GridItem width="100%" height="100%" verticalAlign="middle">
+			</mx:GridItem>
+		</mx:GridRow>		
+	</mx:Grid>	
+	
+	<containers:AksControlBar width="100%" id="aksControlBar">
+		<s:Button label="{resourceManager.getString('button','add')}" id="btnAdd" click="onAdd()"/>
+		<s:Button label="{resourceManager.getString('button','del')}" id="btnDel" enabled="{this.adgForecastModelMSLWmaItem.selectedItem}" click="onDel()"/>						
+	</containers:AksControlBar>
+	
+	
+	<mx:AdvancedDataGrid width="100%" height="100%" id="adgForecastModelMSLWmaItem" dataProvider="{this.paramIo4forecastModelMSLWma.forecastModelMSLWmaItems}" editable="true">
+		<mx:columns>
+			<mx:AdvancedDataGridColumn headerText="{resourceManager.getString('label','PreNPeriod')}" dataField="periodSeqNo" editable="false"/>
+			<mx:AdvancedDataGridColumn headerText="{resourceManager.getString('label','weightCoef')}" dataField="coefficient" editable="{this.paramIn4editable}"/>
+		</mx:columns>
+	</mx:AdvancedDataGrid>		
+	
+</s:BorderContainer>

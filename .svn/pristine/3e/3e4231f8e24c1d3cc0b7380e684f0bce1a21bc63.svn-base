@@ -1,0 +1,103 @@
+replenish_history_report=Replenish HisReport
+stockdays_import=Import DOS
+termend_import=Import Closing Inventory
+replenish_report=MultiPeriod Report
+replenish_current=One period Report
+recompute=Re-calculate
+
+creatby=Created By  
+computeResult=Result
+beginTime=Start From
+endTime=End On
+details=Details
+
+
+--import
+btn_paste=Paste
+btn_save=Save
+btn_clear=Clear
+btn_export=Failed Export
+btn_exportwarninfo=Warning Info Export
+
+bizdata=BizData
+stockdays=DOS
+termend=Closing Inventory
+
+alert_title_hint=Reminder
+alert_msg_nobizdata=Please select key figure
+alert_msg_nounitgroup=Please select UOM group
+alert_msg_nounit=Please select UOM
+
+alert_msg_nodatatosave=No data is changed!
+
+alert_msg_nohistorydata=No data is pasted!
+alert_msg_nohistorydatacolumen=Hisotrical data cannot be found (from 3rd column)
+alert_msg_errorhistorydatacolumnheader=The head of column is wrong,please follow YYYYMM
+alert_msg_historydatacolumnheaderperiodnotsucceed=The periods cannot be discontiuned!
+
+alert_msg_periodendgtopen=The ending period exceeds the maximum number. 
+alter_msg_perioddiffover=The selected periods exceeds the maximum display periods
+
+alert_msg_replenish_compute_tip=??????????????????????????
+
+alert_msg_replenish_compute_ok=???????????
+
+Created By
+Result
+Start From
+
+alert_msg_totalnum=Total records:
+alert_msg_failnum=Total failed records:
+
+----report
+querycondition=Query
+reportdata_table=Table
+reportdata_chart=Graphic Chart
+reportdata_chartscaleline=Line Chart
+reportdata_chartscalecolumn=Bar Chart
+
+btn_remove=Remove
+btn_query=Go
+btn_refreshchart=Refresh Chart
+btn_load=Select Scope
+btn_exportdata=Copy
+btn_viewdetail=Detail
+
+check=Chart
+proCode=Pro ID
+proName=Pro Descripiton
+dcCode=DC ID
+dcName=DC Descripiton
+unitGroupCode=UOMGroup ID
+unitGroupName=UOMGroup Description
+unitCode=UOM ID
+unitName=UOM Description
+
+alert_msg_error_period=cannot exceed 18 periods!
+
+alert_msg_nopro=Please select product!
+alert_msg_nodc=Please select DC!
+alert_msg_noselect=Please select data!
+
+
+--report current
+detailtitle=Detail
+btn_ok=OK
+sellIn=Sell In
+period=Period
+sellOut=Sell Out
+termEnd=Closing Inv.
+termBegin=Beginning Inv.
+stockDay=DOS
+dataType=Data Type
+compileperiod=Current Period
+queryperiod=Query Period
+safety_inventory_computing_method=Safety Inventory Computing Method
+month_average=N-month average
+monthly_deduction=Monthly deduction
+alert_msg_perioderror=Period is not valid\!
+
+
+termEndName=Term End Name
+termEndCode=Term End Code
+termEndValue=Term End Value

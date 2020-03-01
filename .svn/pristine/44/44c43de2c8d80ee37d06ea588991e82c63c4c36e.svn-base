@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:DataGrid xmlns:fx="http://ns.adobe.com/mxml/2009" 
+					 xmlns:s="library://ns.adobe.com/flex/spark" 
+					 xmlns:mx="library://ns.adobe.com/flex/mx" styleName="adv1">
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+	</fx:Declarations>
+	<fx:Metadata>
+		[ResourceBundle("com_bulletin_bulletin_advanceddatagrid")]
+	</fx:Metadata>
+	<fx:Script>
+		<![CDATA[
+			import dmdd.dmddas.common.utils.UtilDataGridColumnLabelFunction;
+			
+			import mx.resources.ResourceManager;
+			
+			//	描述    begin
+			//	描述    end
+			
+			//	0	输入参数    begin
+			[Bindable]
+			public var showDetail:Boolean = true;			
+			//	0	输入参数    end
+			
+			//	1	输出参数    begin
+			//	1	输出参数    end
+			
+			//	2	本地变量    begin			
+			//	2	本地变量    end			
+			
+			//	3	公共方法    begin							
+			//	3	公共方法    end		
+			
+			//	4	初始化方法    begin				
+			//	4	初始化方法    end				
+			
+			//	5	事件响应方法    begin
+			//	5	事件响应方法    end
+			
+			//	6	本地方法    begin						
+			//	6	本地方法   end					
+		]]>
+	</fx:Script>
+	<mx:columns>	
+		<mx:DataGridColumn id="columnTitle" 		headerText="{ResourceManager.getInstance().getString('com_bulletin_bulletin_advanceddatagrid','title')}"				dataField="title"/>
+		<mx:DataGridColumn id="columnIsPublish" 	headerText="{ResourceManager.getInstance().getString('com_bulletin_bulletin_advanceddatagrid','ispublish')}"			dataField="isPublish"		visible="{this.paramIn4visible4columns4detail}" 	labelFunction="UtilDataGridColumnLabelFunction.getGlobalYesNoLocale"/>
+		<mx:DataGridColumn id="columnSummary" 		headerText="{ResourceManager.getInstance().getString('com_bulletin_bulletin_advanceddatagrid','summary')}"			dataField="summary"/>
+		<mx:DataGridColumn id="columnCreateTime" 	headerText="{ResourceManager.getInstance().getString('com_bulletin_bulletin_advanceddatagrid','createtime')}"			dataField="createTime"		visible="{this.paramIn4visible4columns4detail}" 	labelFunction="UtilDataGridColumnLabelFunction.getDateTimeStr"/>
+		<mx:DataGridColumn id="columnModifyTime" 	headerText="{ResourceManager.getInstance().getString('com_bulletin_bulletin_advanceddatagrid','modifytime')}" 		dataField="modifyTime"		visible="{this.paramIn4visible4columns4detail}" 	labelFunction="UtilDataGridColumnLabelFunction.getDateTimeStr"/>
+		<mx:DataGridColumn id="columnPublishTime" 	headerText="{ResourceManager.getInstance().getString('com_bulletin_bulletin_advanceddatagrid','publishtime')}" 		dataField="publishTime"															labelFunction="UtilDataGridColumnLabelFunction.getDateTimeStr"/>
+		<mx:DataGridColumn id="columnComments" 		headerText="{ResourceManager.getInstance().getString('com_bulletin_bulletin_advanceddatagrid','comments')}" 			dataField="comments"		visible="{this.paramIn4visible4columns4detail}" 	/>
+		
+	</mx:columns>	
+</mx:DataGrid>

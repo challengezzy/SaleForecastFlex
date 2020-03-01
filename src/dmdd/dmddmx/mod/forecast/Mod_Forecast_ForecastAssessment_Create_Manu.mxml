@@ -1,0 +1,183 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Module xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		   xmlns:s="library://ns.adobe.com/flex/spark" 
+		   xmlns:mx="library://ns.adobe.com/flex/mx" layout="vertical" width="100%" height="100%" 
+		   paddingLeft="10" paddingRight="10" paddingBottom="10"
+		   creationComplete="creationCompleteHandler(event)" 
+		   xmlns:security="dmdd.dmddmx.com.security.*"
+		   xmlns:controls="aks.aksmx.controls.*" xmlns:containers="aks.aksmx.containers.*" 
+		   xmlns:common="dmdd.dmddmx.com.common.*">
+	<fx:Declarations>
+		<s:RemoteObject endpoint="{ClientEnvironment.endpoint}" id="forecastassessment" destination="ForecastAssessmentService">	
+			<s:method name="createForecastAssessment" result="resultHandler4createForecastAssessment(event)" fault="faultHandler4createForecastAssessment(event)">
+			</s:method>				
+		</s:RemoteObject>				
+	</fx:Declarations>
+	<fx:Script>
+		<![CDATA[
+			import aks.aksas.collections.HashMap;
+			import aks.aksas.utils.UtilArrayCollection;
+			import aks.aksas.utils.UtilUi;
+			
+			import com.cool.assets.CoolAssetsFile;
+			import com.cool.utils.AlertUtil;
+			
+			import dmdd.dmddas.common.constant.BizConst;
+			import dmdd.dmddas.common.constant.SkinConst;
+			import dmdd.dmddas.common.constant.SysConst;
+			import dmdd.dmddas.common.constant.UIConst;
+			import dmdd.dmddas.common.system.ClientEnvironment;
+			import dmdd.dmddas.common.utils.UtilExceptionLocale;
+			import dmdd.dmddas.common.utils.UtilProOrg;
+			import dmdd.dmddas.common.utils.UtilUiPopbScope;
+			import dmdd.dmddas.dataaccess.bizobject.BBizData;
+			import dmdd.dmddas.dataaccess.bizobject.BSysDictionaryItem;
+			import dmdd.dmddas.dataaccess.bizobject.BUiPopbScope;
+			
+			import mx.collections.ArrayCollection;
+			import mx.controls.Alert;
+			import mx.events.CloseEvent;
+			import mx.events.FlexEvent;
+			import mx.managers.PopUpManager;
+			import mx.rpc.events.FaultEvent;
+			import mx.rpc.events.ResultEvent;
+			
+			//	描述    begin
+			//	描述    end
+			
+			//	0	输入参数    begin						
+			//	0	输入参数    end
+			
+			//	1	输出参数    begin
+			//	1	输出参数    end
+			
+			//	2	本地变量    begin	
+			[Bindable]
+			public var arrDictBizDataType:ArrayCollection = new ArrayCollection();
+			
+			private var uiPopbScope:BUiPopbScope;
+			
+			private var arrProOrg:ArrayCollection ;
+			
+			private var arrBizData:ArrayCollection ;
+			
+			//	2	本地变量    end
+			
+			//	3	公共方法    begin			
+			//	3	公共方法    end		
+			
+			//	4	初始化方法    begin	
+			protected function creationCompleteHandler(event:FlexEvent):void
+			{				
+				arrDictBizDataType = new ArrayCollection();
+				var arrSysDictBizDataType:ArrayCollection = ClientEnvironment.getBizDataTypeArr();
+				if( arrSysDictBizDataType != null )
+				{
+					var i:int;
+					var sysDictionaryItem:BSysDictionaryItem = null;
+					for( i=0; i<arrSysDictBizDataType.length; i=i+1 )
+					{
+						sysDictionaryItem = BSysDictionaryItem(arrSysDictBizDataType.getItemAt(i));
+						if( 
+							sysDictionaryItem.value == BizConst.BIZDATA_TYPE_FORECASTASSESSMENT
+						)
+						{
+							arrDictBizDataType.addItem( sysDictionaryItem );
+						}				
+					}
+				}
+			}			
+			//	4	初始化方法    end				
+			
+			private function onCreate():void
+			{
+				var alert_msg:String = "";
+				uiPopbScope = condSetComp.getUiPopbScope();
+				if(uiPopbScope == null){
+					//未选择查询条件
+					AlertUtil.show(resourceManager.getString('alert','alert_msg_proorgisnull14'));
+					return;
+				}
+				
+				arrProOrg = UtilUiPopbScope.getProOrgsArrByUiScope(uiPopbScope);
+				if( arrProOrg == null || arrProOrg.length <= 0 )
+				{
+					alert_msg = resourceManager.getString('alert','alert_msg_proorgisnull14');
+					AlertUtil.show(alert_msg);
+					return;						
+				}
+				
+				arrBizData = UtilUiPopbScope.getBizDatasArrByUiScope(uiPopbScope);
+				if( arrBizData == null || arrBizData.length <= 0 )
+				{
+					alert_msg = resourceManager.getString('alert','alert_msg_bizdataisnull14');
+					AlertUtil.show(alert_msg);
+					return;						
+				}
+				
+				
+				var alert_msg_waitforcreate:String = resourceManager.getString('alert','fc_assessment_waitforcreate');
+				
+				AlertUtil.show(alert_msg_waitforcreate,AlertUtil.MESSAGE_QUERY,"",this,alert_msg_waitforcreateConfirmHandler);
+			}
+			
+			private function alert_msg_waitforcreateConfirmHandler(event:CloseEvent):void
+			{
+				if( event.detail == Alert.YES )
+				{
+					//	已经确认过，执行操作
+					UtilUi.pubFun4PopWaitWindow(this);
+					var bBizdata:BBizData = BBizData(arrBizData.getItemAt(0))
+					var detailProOrgs:ArrayCollection =  UtilProOrg.getDetailProOrgs(arrProOrg,true); //获取明细层业务范围
+					
+					forecastassessment.createForecastAssessment(detailProOrgs,bBizdata);
+				}
+			}
+			
+			private function faultHandler4createForecastAssessment(event:FaultEvent):void
+			{
+				UtilUi.pubFun4RemoveWaitWindow();
+				AlertUtil.show(UtilExceptionLocale.getExceptionMessageLocaleByFaultEvent( event ),AlertUtil.MESSAGE_ERROR);
+			}
+			
+			private function resultHandler4createForecastAssessment(event:ResultEvent):void 
+			{
+				UtilUi.pubFun4RemoveWaitWindow();
+				var isOk:Boolean = Boolean(event.result);
+				var alert_msg:String = "";
+				if(isOk)
+				{
+					alert_msg = resourceManager.getString('alert','fc_assessment_createsucceed');
+					AlertUtil.show( alert_msg);
+				}
+				else
+				{
+					alert_msg = resourceManager.getString('alert','fc_assessment_createfail');
+					AlertUtil.show( alert_msg);
+				}
+			}
+			
+			//	5	事件响应方法    end
+			
+			//	6	本地方法    begin
+		
+				
+			//	6	本地方法   end	
+			
+		]]>
+	</fx:Script>
+
+	<common:LabelBoundary paddingTop="5" labelText="{resourceManager.getString('menu','versionForecastCondition')}" />
+	
+	<security:Com_Security_ProOrg_BizData_Period_Quick id="condSetComp" width="100%" height="30" 
+													   arrDictBizDataType="{arrDictBizDataType}" blOnlyIsManagingBizData="false"  
+													   uiCode="{UIConst.UICODE_FORECAST_FORECASTASSESSMENT_CREATE_MANU}"  
+													   visible4ExeBtn="false" showDisplayOption="false"  visible4span4periodSpan="false">
+	</security:Com_Security_ProOrg_BizData_Period_Quick>
+	
+	<common:LabelBoundary paddingTop="5" labelText="{resourceManager.getString('menu','versionForecastAction')}" />
+	<s:HGroup paddingTop="20" paddingLeft="30">
+		<s:Button label="{resourceManager.getString('button','versionCreate')}" click="onCreate()" icon="{CoolAssetsFile.copyIcon}"/>	
+	</s:HGroup>
+	
+</mx:Module>

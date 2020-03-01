@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Module xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		  xmlns:s="library://ns.adobe.com/flex/spark" 
+		  initialize="initializeHandler(event)"
+		  creationComplete="creationCompleteHandler(event)"
+		  xmlns:mx="library://ns.adobe.com/flex/mx" 
+		  width="100%" height="100%" layout="vertical" paddingLeft="10" paddingRight="10"
+		  xmlns:components="com.cool.components.*" xmlns:containers="aks.aksmx.containers.*" xmlns:buttons="com.cool.buttons.*">
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+		<s:RemoteObject endpoint="{ClientEnvironment.endpoint}" id="srvReplenish" destination="ReplenishService">	
+			<s:method name="replenishCompute" result="resultHandler4ReplenishCompute(event)" fault="faultHandler4ReplenishCompute(event)">
+			</s:method>	
+			
+		</s:RemoteObject>
+	</fx:Declarations>
+	<fx:Metadata>
+		[ResourceBundle("mod_replenish")]
+	</fx:Metadata>
+	
+	<fx:Script>
+		<![CDATA[
+			import aks.aksas.utils.UtilUi;
+			
+			import com.cool.assets.CoolAssetsFile;
+			import com.cool.constant.DataViewConst;
+			import com.cool.utils.DateUtil;
+			import com.cool.utils.OperatingTipUtil;
+			
+			import dmdd.dmddas.common.system.ClientEnvironment;
+			import dmdd.dmddas.common.utils.UtilExceptionLocale;
+			
+			import mx.controls.Alert;
+			import mx.events.CloseEvent;
+			import mx.events.FlexEvent;
+			import mx.rpc.events.FaultEvent;
+			import mx.rpc.events.ResultEvent;
+			import mx.collections.ArrayCollection;
+			
+			[Bindable]
+			private var safeStockTypes:ArrayCollection = new ArrayCollection([{label:"N个月平均", data:"1"},
+				                                                              {label:"逐月扣减", data:"2"}]);
+			[Bindable]
+			private var aervageMonths:ArrayCollection = new ArrayCollection([{label:"1个月", data:"1"},
+				                                                              {label:"2个月", data:"2"},
+																			  {label:"3个月", data:"3"},
+																			  {label:"4个月", data:"4"},
+																			  {label:"5个月", data:"5"},
+				                                                              {label:"6个月", data:"6"}]);
+			
+			[Bindable]
+			private var endTime:Date = new Date();
+			
+			[Bindable]
+			private var beginTime:Date;
+			
+			[Bindable]
+			private var queryColumns:Array = new Array();
+			
+			[Bindable]
+			private var querySql:String = "";
+			
+			protected function initializeHandler(event:FlexEvent):void
+			{
+				beginTime = DateUtil.moveDay(endTime,-7);
+				
+			}
+			
+			protected function creationCompleteHandler(event:FlexEvent):void
+			{
+				
+			}
+			
+			private function onReCompute():void{
+				var alert_title_hint:String = resourceManager.getString('mod_replenish','alert_title_hint');
+				var alert_msg_refreshuserstats:String = resourceManager.getString('mod_replenish','alert_msg_replenish_compute_tip');
+				Alert.show(alert_msg_refreshuserstats,alert_title_hint,Alert.OK|Alert.CANCEL,this,replenishRecompute,null,Alert.OK);							
+			}
+			
+			private function replenishRecompute(event:CloseEvent):void
+			{
+				if( event.detail == Alert.OK )
+				{							
+					UtilUi.pubFun4PopWaitWindowAndConent(this,"Data is refreshing,please wait!");
+					this.srvReplenish.replenishCompute(ClientEnvironment.getOperatorUser().userName,
+						comboSafeStockTypes.selectedItem.data,aervageMoth.selectedItem.data);
+				}
+			}
+			
+			private function faultHandler4ReplenishCompute(event:FaultEvent):void
+			{
+				UtilUi.pubFun4RemoveWaitWindow();
+				Alert.show( UtilExceptionLocale.getExceptionMessageLocaleByFaultEvent( event ), resourceManager.getString('main','alt_title_warn') );
+			}
+			
+			private function resultHandler4ReplenishCompute(event:ResultEvent):void 
+			{
+				UtilUi.pubFun4RemoveWaitWindow();
+				
+				var alert_msg:String = resourceManager.getString('mod_replenish','alert_msg_replenish_compute_ok');
+				Alert.show(alert_msg);
+			}
+			
+			protected function queryBtnClickHandler(event:MouseEvent):void
+			{
+				OperatingTipUtil.popWaitWindowAndConent(this,"Quering....");
+				querySql =  "SELECT T.ID,CONVERT(varchar(100),T.BEGINTIME, 120) BEGINTIME,"
+					+ "CONVERT(varchar(100),T.ENDTIME, 120) ENDTIME,"
+					+ "T.CURRENTPERIOD,T.OPERATOR,T.RESULT,T.DETAILRESULT,T.TERMENDTYPE,T.TERMENDNAME"
+					+ " FROM REPLENISHCOMPUTELOG T WHERE 1=1 ";
+				
+				querySql += " AND T.BEGINTIME >= convert(datetime,'" + time_begin.text + "', 20) ";
+				querySql += " AND T.BEGINTIME <= convert(datetime,'" + time_end.text + "', 20)";
+				
+				if(periodTextInput.text != null && periodTextInput.text != ""){
+					querySql += " AND  CURRENTPERIOD =  " +periodTextInput.text;
+				}
+				
+				//querySql += " ORDER BY T.BEGINTIME DESC ";
+				logListPanel.sql = querySql;
+				logListPanel.refresh();
+			}
+			
+		]]>
+	</fx:Script>
+	<containers:AksControlBar width="100%" height="35">
+		<s:Spacer width="10" />
+		<s:Button label="{resourceManager.getString('mod_replenish','recompute')}" click="onReCompute()" 
+				  toolTip="ReCompute Replenishment Data" icon="{CoolAssetsFile.computeIcon}" />
+		<s:Spacer width="10" />
+		<mx:Label text="{resourceManager.getString('mod_replenish','safety_inventory_computing_method')}" paddingLeft="5"/>
+		<s:ComboBox id="comboSafeStockTypes" dataProvider="{safeStockTypes}" width="85" selectedIndex="0" />
+		<s:Spacer width="10" />
+		<mx:Label text="{resourceManager.getString('mod_replenish','aervage_month')}" paddingLeft="5"/>
+		<s:ComboBox id="aervageMoth" dataProvider="{aervageMonths}" width="60" selectedIndex="2" />
+		<s:Spacer width="10" />
+		<mx:Label text="{resourceManager.getString('mod_replenish','beginTime')}"/>
+		<components:DateTimeChooser id="time_begin" nowTime="{beginTime}" editable="true" />
+		<mx:Label text="{resourceManager.getString('mod_replenish','endTime')}" />
+		<components:DateTimeChooser id="time_end" nowTime="{endTime}" editable="true" />
+		<s:Label text="{resourceManager.getString('mod_replenish','period')}" />
+		<s:TextInput id="periodTextInput" maxChars="6" width="70" text="{ClientEnvironment.getSysPeriod().compilePeriod}" />
+		<s:Spacer width="10" />
+		<buttons:ButtonQuery click="queryBtnClickHandler(event)"  />
+	</containers:AksControlBar>
+	<components:AdvDataGridPanel id="logListPanel" width="100%" height="100%"  minColumnWidth="100"
+								 pageSize="200" 
+								 sql="{querySql}" dataSource="{DataViewConst.DATASOURCE_DEFAULT}" queryColumns="{queryColumns}" >
+		<components:columns>
+			<mx:DataGridColumn headerText="{resourceManager.getString('mod_replenish','period')}"	 dataField="currentperiod" width="80" />
+			<mx:DataGridColumn headerText="{resourceManager.getString('mod_replenish','creatby')}"	 dataField="operator" width="80" />
+			<mx:DataGridColumn headerText="{resourceManager.getString('mod_replenish','termendtype')}"	 dataField="termendname" width="100" />
+			<mx:DataGridColumn headerText="{resourceManager.getString('mod_replenish','computeResult')}"	 dataField="result" width="80" />
+			<mx:DataGridColumn headerText="{resourceManager.getString('mod_replenish','beginTime')}"	 dataField="begintime" width="145" />
+			<mx:DataGridColumn headerText="{resourceManager.getString('mod_replenish','endTime')}"	 dataField="endtime" width="145" />
+			<mx:DataGridColumn headerText="{resourceManager.getString('mod_replenish','details')}"	 dataField="detailresult" width="180" />
+		</components:columns>
+	</components:AdvDataGridPanel>
+</mx:Module>

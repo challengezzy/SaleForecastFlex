@@ -1,0 +1,253 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Module xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		   xmlns:s="library://ns.adobe.com/flex/spark" 
+		   xmlns:mx="library://ns.adobe.com/flex/mx" layout="vertical" width="100%" height="100%" paddingLeft="10" paddingRight="10" paddingBottom="10"
+		   creationComplete="creationCompleteHandler(event)"
+		   xmlns:containers="aks.aksmx.containers.*" xmlns:security="dmdd.dmddmx.com.security.*" xmlns:common="dmdd.dmddmx.com.common.*" >
+	<fx:Declarations>
+		<s:RemoteObject endpoint="{ClientEnvironment.endpoint}" id="srvSecurity" destination="SecurityService">
+			<s:method name="saveOperatorUserProOrgs4ImportUI" result="resultHandler4saveOperatorUserProOrgs4ImportUI(event)" fault="faultHandler4saveOperatorUserProOrgs4ImportUI(event)">
+			</s:method>					
+		</s:RemoteObject>
+	</fx:Declarations>
+	<fx:Script>
+		<![CDATA[
+			import aks.aksas.collections.HashMap;
+			import aks.aksas.utils.UtilUi;
+			
+			import com.cool.assets.CoolAssetsFile;
+			import com.cool.utils.DataListExportUtil;
+			
+			import dmdd.dmddas.common.system.ClientEnvironment;
+			import dmdd.dmddas.common.utils.UtilExceptionLocale;
+			import dmdd.dmddas.dataaccess.aidobject.ABForecastSetting;
+			import dmdd.dmddas.dataaccess.aidobject.ABImOperatorUserProOrg;
+			
+			import mx.collections.ArrayCollection;
+			import mx.collections.IViewCursor;
+			import mx.controls.AdvancedDataGrid;
+			import mx.controls.Alert;
+			import mx.controls.DataGrid;
+			import mx.controls.advancedDataGridClasses.AdvancedDataGridColumn;
+			import mx.controls.dataGridClasses.DataGridColumn;
+			import mx.events.FlexEvent;
+			import mx.managers.SystemManager;
+			import mx.resources.ResourceManager;
+			import mx.rpc.events.FaultEvent;
+			import mx.rpc.events.ResultEvent;
+			import mx.utils.StringUtil;
+			
+			
+			//	描述    begin
+			//	描述    end
+			
+			//	0	输入参数    begin						
+			//	0	输入参数    end
+			
+			//	1	输出参数    begin
+			//	1	输出参数    end
+			
+			//	2	本地变量    begin		
+			[Bindable]
+			private var prvVar4dp4comAdgImOperatorUserProOrgData:ArrayCollection = new ArrayCollection();
+			
+			private var prvVar4arrFailedRecord:ArrayCollection = new ArrayCollection();
+			//	2	本地变量    end			
+			
+			//	3	公共方法    begin			
+			//	3	公共方法    end		
+			
+			//	4	初始化方法    begin	
+			protected function creationCompleteHandler(event:FlexEvent):void
+			{
+				this.btnSave.enabled = false;
+				this.btnExport.enabled = false;
+				
+				comAdgImOperatorUserProOrgData.pasteFunction = handleTextPaste;
+			}				
+			//	4	初始化方法    end				
+			
+			//	5	事件响应方法    begin
+			
+			private function handleTextPaste( event:TextEvent ):void
+			{
+				var str:String = event.text;
+				fromText(str);	
+				this.btnSave.enabled = true;
+			}
+			
+			private function onSave():void
+			{
+				var alert_title_hint:String = resourceManager.getString('alert','alert_hint_title');
+				var alert_msg:String = null;  
+				if( this.prvVar4dp4comAdgImOperatorUserProOrgData.length <= 0 )
+				{
+					alert_msg = resourceManager.getString('alert','alert_msg_nodatatosave12');
+					Alert.show( alert_msg, alert_title_hint );	
+					return;												
+				}				
+				UtilUi.pubFun4PopWaitWindow( this );
+				this.btnSave.enabled = false;
+				this.btnExport.enabled = false;
+				this.srvSecurity.saveOperatorUserProOrgs4ImportUI(prvVar4dp4comAdgImOperatorUserProOrgData);				
+			}
+			
+			private function faultHandler4saveOperatorUserProOrgs4ImportUI(event:FaultEvent):void
+			{
+				UtilUi.pubFun4RemoveWaitWindow();
+				Alert.show( UtilExceptionLocale.getExceptionMessageLocaleByFaultEvent( event ), resourceManager.getString('alert','alt_title_warn') );
+				
+			}
+			
+			private function resultHandler4saveOperatorUserProOrgs4ImportUI(event:ResultEvent):void 
+			{
+				UtilUi.pubFun4RemoveWaitWindow();
+				var alert_title_hint:String = resourceManager.getString('alert','alert_title_hint');
+				var alert_msg:String = null;  
+				
+				var arrErrorImOperatorUserProOrgData:ArrayCollection = ArrayCollection(event.result);
+				if( arrErrorImOperatorUserProOrgData == null || arrErrorImOperatorUserProOrgData.length <= 0 )
+				{
+					this.comAdgImOperatorUserProOrgData.columnErrorInfo.visible = false;
+					this.prvVar4dp4comAdgImOperatorUserProOrgData = new ArrayCollection();
+					
+					alert_msg = resourceManager.getString('alert','alert_msg_savesucceed12');
+					Alert.show( alert_msg, alert_title_hint );	
+				}
+				else
+				{
+					this.comAdgImOperatorUserProOrgData.columnErrorInfo.visible = true;
+					var totalNum:int =prvVar4dp4comAdgImOperatorUserProOrgData.length;
+					this.prvVar4dp4comAdgImOperatorUserProOrgData = arrErrorImOperatorUserProOrgData;
+					var i:int; 
+					var failNum:int = 0;
+					this.prvVar4arrFailedRecord= new ArrayCollection();
+					var operatorUserProOrg:ABImOperatorUserProOrg=null;
+
+					for( i=0; i<this.prvVar4dp4comAdgImOperatorUserProOrgData.length; i=i+1 )
+					{
+						operatorUserProOrg = ABImOperatorUserProOrg(this.prvVar4dp4comAdgImOperatorUserProOrgData.getItemAt(i));
+						operatorUserProOrg.errorInfo = UtilExceptionLocale.getExceptionMessageLocaleByCauseMessage( operatorUserProOrg.errorInfo );
+						if( operatorUserProOrg.errorInfo!=null &&  !operatorUserProOrg.errorInfo=="")
+						{								
+							this.prvVar4arrFailedRecord.addItem( operatorUserProOrg ); 
+						}							
+						
+					}
+					failNum = this.prvVar4arrFailedRecord.length;
+					
+					
+					alert_msg = resourceManager.getString('alert','alert_msg_totalnum12');
+					alert_msg = alert_msg + totalNum + "\n";
+					alert_msg = alert_msg + resourceManager.getString('alert','alert_msg_failnum12');
+					alert_msg = alert_msg + failNum + "\n";
+					
+					Alert.show( alert_msg, alert_title_hint );
+					
+					if( failNum > 0 )
+					{
+						this.btnExport.enabled = true;
+					}
+					else
+					{
+						this.btnExport.enabled = false;
+					}										
+				}
+			}
+			
+			private function onClear():void
+			{
+				this.prvVar4dp4comAdgImOperatorUserProOrgData = new ArrayCollection();
+				this.comAdgImOperatorUserProOrgData.columnErrorInfo.visible = false;
+				this.btnSave.enabled = false;
+				this.btnExport.enabled = false;
+			}
+			private function onExport():void
+			{
+				var TSVString:String =DataListExportUtil.generateCsvData(comAdgImOperatorUserProOrgData,0) ;
+				
+				// Copy the TSV string to the clipboard
+				System.setClipboard(TSVString);	
+			}	
+			
+			//	5	事件响应方法    end
+			
+			//	6	本地方法    begin				
+			private function fromText(text:String):void   
+			{     
+				var alert_title_hint:String = resourceManager.getString('alert','alert_hint_title');
+				var alert_msg:String = null;  
+				
+				var rstArrayImHistoryData:Array = new Array();
+				var rows:Array = text.split("\n");
+				if( rows == null )
+				{
+					alert_msg = resourceManager.getString('alert','alert_msg_nooperatoruserproorgdata12');
+					Alert.show( alert_msg, alert_title_hint );	
+					return;	
+				}     
+				if (!rows[rows.length - 1])
+				{       
+					rows.pop();
+				}     
+				
+				if( rows.length <= 1 )
+				{
+					alert_msg = resourceManager.getString('alert','alert_msg_nooperatoruserproorgdata12');
+					Alert.show( alert_msg, alert_title_hint );						
+					return;
+				}
+				
+				var rwHeader:String = rows[0];
+				var fieldsHeader:Array = rwHeader.split( "\t" );
+				if(!(fieldsHeader[fieldsHeader.length-1]))
+				{
+					fieldsHeader.pop();
+				} 				
+				if( fieldsHeader.length < 3 )
+				{
+					alert_msg = resourceManager.getString('alert','alert_msg_nooperatoruserproorgcolumen12');
+					Alert.show( alert_msg, alert_title_hint );						
+					return;					
+				}
+				
+				
+				var row:String = null;
+				var rowIdx:int;
+				var fields:Array = null;
+				var periodIdx:int;
+				var periodNum:int;
+				var operatorUserProOrg:ABImOperatorUserProOrg=new ABImOperatorUserProOrg();
+				this.prvVar4dp4comAdgImOperatorUserProOrgData = new ArrayCollection();
+				for( rowIdx=1; rowIdx<rows.length; rowIdx=rowIdx+1 )
+				{
+					operatorUserProOrg = new ABImOperatorUserProOrg();
+					operatorUserProOrg.errorInfo = null;
+					
+					row = rows[rowIdx];
+					fields = row.split("\t");
+					if( fields.length < 3 )
+					{
+						continue;
+					}
+					if(StringUtil.trim(fields[0])=="")
+						continue;
+					operatorUserProOrg.username = fields[0];
+					operatorUserProOrg.productcode = fields[1];
+					operatorUserProOrg.organizationcode=fields[2];
+					this.prvVar4dp4comAdgImOperatorUserProOrgData.addItem( operatorUserProOrg );
+				}
+			}   		
+			//	6	本地方法   end				
+		]]>
+	</fx:Script>
+	
+	<common:LabelBoundary paddingTop="5" labelText="{ResourceManager.getInstance().getString('menu','userBusScope')}" />
+	<s:HGroup paddingLeft="10" paddingTop="5">
+		<s:Button label="{ResourceManager.getInstance().getString('button','save')}" click="onSave()" id="btnSave" enabled="false" icon="{CoolAssetsFile.saveIcon}"/> 
+		<s:Button label="{ResourceManager.getInstance().getString('button','clear')}" click="onClear()" icon="{CoolAssetsFile.clearIcon}"/>
+		<s:Button label="{ResourceManager.getInstance().getString('button','expLogFailed')}" click="onExport()" id="btnExport" icon="{CoolAssetsFile.exportIcon}"/>
+	</s:HGroup>
+	<security:Com_Security_ImportOperatorUserProOrg_AdvancedDataGrid id="comAdgImOperatorUserProOrgData" width="100%" height="100%"  
+															dataProvider="{this.prvVar4dp4comAdgImOperatorUserProOrgData}"/>
+</mx:Module>

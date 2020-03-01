@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:BorderContainer xmlns:fx="http://ns.adobe.com/mxml/2009" 
+				   xmlns:s="library://ns.adobe.com/flex/spark" 
+				   xmlns:mx="library://ns.adobe.com/flex/mx" width="100%"
+				   creationComplete="creationCompleteHandler(event)">
+	<s:layout>
+		<s:VerticalLayout paddingLeft="10" paddingRight="10" paddingTop="0" verticalAlign="middle"/>
+	</s:layout>
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+	</fx:Declarations>
+	<fx:Metadata>
+		[ResourceBundle("com_report_period_statistics")]
+	</fx:Metadata>	
+	<fx:Script>
+		<![CDATA[
+			import dmdd.dmddas.common.constant.SysConst;
+			import dmdd.dmddas.common.system.ClientEnvironment;
+			import dmdd.dmddas.common.utils.UtilPeriod;
+			
+			import mx.controls.Alert;
+			import mx.events.FlexEvent;
+			import mx.utils.StringUtil;
+			
+			//	描述		begin
+			//	描述		end
+			
+			//	0	输入参数    begin		
+			//	0	输入参数    end
+			
+			//	1	输出参数    begin 
+			private var paramOut4period:int = SysConst.PERIOD_NULL;
+			//	1	输出参数    end 
+			
+			//	2	本地变量    begin	
+			//	2	本地变量    end			
+			
+			//	3	公共方法    begin	
+			public function pubFun4checkPeriodSpan(diff:int):Boolean
+			{
+				var alert_title_hint:String = resourceManager.getString('com_report_period_statistics','alert_title_hint');
+				var alert_msg:String = "";
+				
+				
+				if(StringUtil.trim(this.txt_period_statistics.text)=="")
+				{
+					alert_msg = resourceManager.getString('com_report_period_statistics','alert_msg_input_period');
+					Alert.show( alert_msg, alert_title_hint);
+					return false;
+				}
+				var temStr:Number = Number(StringUtil.trim(this.txt_period_statistics.text));
+				if(isNaN(temStr))
+				{
+					alert_msg = resourceManager.getString('com_report_period_statistics','alert_msg_period');
+					Alert.show( alert_msg, alert_title_hint);
+					return false;
+				}
+				var period:int =new int( temStr );
+				
+				if( period == SysConst.PERIOD_NULL )
+				{
+					alert_msg = resourceManager.getString('com_report_period_statistics','alert_msg_period');
+					Alert.show( alert_msg, alert_title_hint);
+					return false;						
+				}
+				
+				var divisor:Number = diff%period;
+				if(divisor!=0)
+				{
+					alert_msg = resourceManager.getString('com_report_period_statistics','alert_msg_period_error');
+					Alert.show( alert_msg, alert_title_hint);
+					return false;
+				}
+				
+				this.paramOut4period = period;
+				return true;
+			}
+			
+			public function pubFun4getParamOut4periodEnd():int
+			{
+				return this.paramOut4period;
+			}
+			//	3	公共方法    end		
+			
+			//	4	初始化方法    begin			
+			protected function creationCompleteHandler(event:FlexEvent):void
+			{
+				
+			}						
+			//	4	初始化方法    end				
+			
+			//	5	事件响应方法    begin												
+			//	5	事件响应方法    end
+			
+			//	6	本地方法    begin
+			
+			//	6	本地方法   end				
+			
+		]]>
+	</fx:Script>		
+	<s:HGroup width="100%" verticalAlign="middle">
+		<mx:Label text="{resourceManager.getString('com_report_period_statistics','period_statistics')}"/>
+		<s:TextInput maxChars="2" text="" width="100" id="txt_period_statistics"/>
+	</s:HGroup>
+</s:BorderContainer>

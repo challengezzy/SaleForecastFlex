@@ -1,0 +1,393 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:TitleWindow xmlns:fx="http://ns.adobe.com/mxml/2009" 
+			   xmlns:s="library://ns.adobe.com/flex/spark" 
+			   xmlns:mx="library://ns.adobe.com/flex/mx" width="840" height="500" close="onCancel()"
+			   creationComplete="creationCompleteHandler(event)" 
+			   xmlns:controls="aks.aksmx.controls.*" xmlns:containers="aks.aksmx.containers.*" 
+			   xmlns:security="dmdd.dmddmx.com.security.*" xmlns:common="dmdd.dmddmx.com.common.*" xmlns:buttons="com.cool.buttons.*" >
+	<s:layout>
+		<s:VerticalLayout paddingTop="5" paddingBottom="3" paddingLeft="5" paddingRight="5"/>
+	</s:layout>
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+		<s:RemoteObject endpoint="{ClientEnvironment.endpoint}" id="srvUi" destination="UiService">
+			<s:method name="getUiPopbScopesStat" result="resultHandler4getUiPopbScopesStat(event)" fault="faultHandler4getUiPopbScopesStat(event)">
+			</s:method>			
+			<s:method name="getUiPopbScopes" result="resultHandler4getUiPopbScopes(event)" fault="faultHandler4getUiPopbScopes(event)">
+			</s:method>
+			<s:method name="delUiPopbScope" result="resultHandler4delUiPopbScope(event)" fault="faultHandler4delUiPopbScope(event)">
+			</s:method>				
+			<s:method name="getUiPopbScope" result="resultHandler4getUiPopbScope(event)" fault="faultHandler4getUiPopbScope(event)">
+			</s:method>	
+		</s:RemoteObject>		
+		
+	</fx:Declarations>
+	<fx:Metadata>
+	</fx:Metadata>	
+	<fx:Script>
+		<![CDATA[
+			import aks.aksas.utils.UtilUi;
+			
+			import com.cool.assets.CoolAssetsFile;
+			
+			import dmdd.dmddas.common.constant.SysConst;
+			import dmdd.dmddas.common.constant.UIConst;
+			import dmdd.dmddas.common.system.ClientEnvironment;
+			import dmdd.dmddas.common.utils.UtilExceptionLocale;
+			import dmdd.dmddas.dataaccess.bizobject.BUiPopbScope;
+			import dmdd.dmddmx.com.setting.SetCom_ProOrg_BizData_Period;
+			
+			import mx.collections.ArrayCollection;
+			import mx.controls.Alert;
+			import mx.events.CloseEvent;
+			import mx.events.FlexEvent;
+			import mx.events.ListEvent;
+			import mx.managers.PopUpManager;
+			import mx.rpc.events.FaultEvent;
+			import mx.rpc.events.ResultEvent;
+			
+			//	描述		begin
+			//	描述		end
+			
+			//	0	输入参数    begin	
+			private var paramIn4closeCallback4thisObject:Object = null;
+			private var paramIn4closeCallback4function:Function = null;		
+			
+			private var paramIn4uiCode:String = null;
+			//	0	输入参数    end
+			
+			//	1	输出参数    begin
+			[Bindable]
+			private var paramOut4selectedUiPopbScope:BUiPopbScope = null;	
+			
+			private var paramOut4winCloseWay:int = UtilUi.WINDOW_CLOSEWAY_CANCEL;		
+			//	1	输出参数    end
+			
+			//	2	本地变量    begin				
+			[Bindable]
+			private var prvVar4dp4comAdgUiPopbScope:ArrayCollection = new ArrayCollection();
+			
+			private var prvVar4sqlRestriction:String = null;	
+			
+			[Bindable]
+			private var prvVar4selectedUiPopbScopeNum:int = -1;
+			
+			[Bindable]
+			private var isOkBtnEnable:Boolean = false;//OK按钮是否可用,必须数据查询完成后才可用
+			
+			/** 详细内容设置框 */
+			private var condSetWindow:SetCom_ProOrg_BizData_Period;
+			
+			private var selectedScope:BUiPopbScope;
+			
+			//	2	本地变量    end			
+			
+			//	3	公共方法    begin	
+			//	关闭回调函数参数													
+			public function pubFun4setParamIn4closeCallback( _thisObject:Object, _function:Function ):void
+			{
+				paramIn4closeCallback4thisObject = _thisObject;
+				paramIn4closeCallback4function = _function;	
+			}
+			//	关闭方式参数
+			public function pubFun4getParamOut4winCloseWay():int
+			{
+				return paramOut4winCloseWay;
+			}				
+			//	关闭窗口
+			private function prvFun4close():void
+			{
+				PopUpManager.removePopUp( this );						
+				paramIn4closeCallback4function.call( paramIn4closeCallback4thisObject );				
+			}							
+			
+			
+			//	处理对象参数
+			public function pubFun4getParamOut4selectedUiPopbScope():BUiPopbScope
+			{
+				return paramOut4selectedUiPopbScope;
+			}		
+			
+			public function pubFun4setParamIn4uiCode( _paramIn4uiCode:String ):void
+			{
+				paramIn4uiCode = _paramIn4uiCode;	
+			}
+			
+			//	3	公共方法    end		
+			
+			//	4	初始化方法    begin			
+			protected function creationCompleteHandler(event:FlexEvent):void
+			{
+				title = resourceManager.getString('menu','generalCondManage');	
+				x = 100;
+				y = 50;	
+				
+				callbackFunction4query4comQCond();
+			}				
+					
+			//	4	初始化方法    end				
+			
+			//	5	事件响应方法    begin	
+			private function callbackFunction4query4comQCond():void
+			{				
+				prvVar4sqlRestriction = comQCond.pubFun4getParamOut4sqlRestriction();
+				
+				if( prvVar4sqlRestriction == null || prvVar4sqlRestriction == "" )
+				{
+					prvVar4sqlRestriction = " ( operatorUserId = " + ClientEnvironment.getOperatorUser().id + " ) ";
+				}
+				else
+				{
+					prvVar4sqlRestriction = prvVar4sqlRestriction + " and ( operatorUserId = " + ClientEnvironment.getOperatorUser().id + " ) ";
+				}
+				
+				if( paramIn4uiCode != null && paramIn4uiCode != "" )
+				{
+					prvVar4sqlRestriction = prvVar4sqlRestriction + " and ( uiCode = '" + paramIn4uiCode + "' ) ";
+				}
+				else
+				{
+					//	防止参数不设时乱查询
+					prvVar4sqlRestriction = prvVar4sqlRestriction + " and ( uiCode = '' ) ";
+				}
+				
+				var blPageQuery:Boolean = comQCond.pubFun4getParamOut4blPageQuery();
+				
+				if( blPageQuery == true )
+				{	
+					UtilUi.pubFun4PopWaitWindow( this );
+					srvUi.getUiPopbScopesStat( prvVar4sqlRestriction );	
+				}
+				else
+				{	
+					//	不分页查询
+					UtilUi.pubFun4PopWaitWindow( this );
+					srvUi.getUiPopbScopes( prvVar4sqlRestriction, -1, ClientEnvironment.getSysParamPageSize() );
+				}								
+			}			
+			
+			//	分页查询相关		begin
+			private function faultHandler4getUiPopbScopesStat(event:FaultEvent):void
+			{
+				UtilUi.pubFun4RemoveWaitWindow();
+				Alert.show( UtilExceptionLocale.getExceptionMessageLocaleByFaultEvent( event ), resourceManager.getString('alert','alt_title_warn') );
+			}	
+			
+			private function resultHandler4getUiPopbScopesStat(event:ResultEvent):void 
+			{
+				//	初始化数据表格控制板
+				var rstSize:Number = Number(event.result);
+				comAksDataGridControlBar.pubFun4setResultParams( true, rstSize, ClientEnvironment.getSysParamPageSize() );
+				
+				//	去执行第一页查询
+				srvUi.getUiPopbScopes( prvVar4sqlRestriction, 1, ClientEnvironment.getSysParamPageSize() );
+			}
+			
+			private function prvFun4pageQueryUiPopbScopes( _pageIndex:int ):void
+			{
+				UtilUi.pubFun4PopWaitWindow( this );
+				srvUi.getUiPopbScopes( prvVar4sqlRestriction, _pageIndex, ClientEnvironment.getSysParamPageSize() );					
+			}			
+			//	分页查询相关		end
+			
+			
+			private function faultHandler4getUiPopbScopes(event:FaultEvent):void
+			{
+				UtilUi.pubFun4RemoveWaitWindow();
+				Alert.show( UtilExceptionLocale.getExceptionMessageLocaleByFaultEvent( event ), resourceManager.getString('alert','alt_title_warn') );
+			}	
+			
+			private function resultHandler4getUiPopbScopes(event:ResultEvent):void 
+			{
+				prvVar4dp4comAdgUiPopbScope = ArrayCollection(event.result);
+				
+				if( comQCond.pubFun4getParamOut4blPageQuery() == false )
+				{
+					//	不是分页查询，需要根据查询结果初始化数据表格控制板
+					comAksDataGridControlBar.pubFun4setResultParams( false, prvVar4dp4comAdgUiPopbScope.length, prvVar4dp4comAdgUiPopbScope.length );
+				}
+				
+				UtilUi.pubFun4RemoveWaitWindow();
+			}	
+			
+			private function onDel():void
+			{
+				var alert_title_hint:String = resourceManager.getString('alert','alert_title_hint');
+				var alert_msg_deleteconfirm:String = resourceManager.getString('alert','alert_msg_deleteconfirm4');
+				
+				Alert.show( alert_msg_deleteconfirm, alert_title_hint, Alert.OK | Alert.CANCEL, this, deleteConfirmHandler, null, Alert.OK );
+				
+			}				
+			
+			private function deleteConfirmHandler(event:CloseEvent):void
+			{
+				if( event.detail == Alert.OK )
+				{
+					// 相关检查都已在 prvFun4getEnabled4BtnDel中执行，此处不再检查    begin
+					var selectedUiPopbScope:BUiPopbScope = BUiPopbScope(comAdgUiPopbScope.selectedItem);
+					// 相关检查都已在 prvFun4getEnabled4BtnDel中执行，此处不再检查    end					
+					UtilUi.pubFun4PopWaitWindow( this );
+					srvUi.delUiPopbScope( selectedUiPopbScope );										
+				}
+			}	
+			
+			private function faultHandler4delUiPopbScope(event:FaultEvent):void
+			{
+				UtilUi.pubFun4RemoveWaitWindow();
+				Alert.show( UtilExceptionLocale.getExceptionMessageLocaleByFaultEvent( event ), resourceManager.getString('alert','alt_title_warn') );
+			}	
+			
+			private function resultHandler4delUiPopbScope(event:ResultEvent):void 
+			{
+				UtilUi.pubFun4RemoveWaitWindow();
+				var alert_title_hint:String = resourceManager.getString('alert','alert_title_hint');
+				var alert_msg:String = null;
+				
+				var blSucceed:Boolean = Boolean(event.result);
+				if( blSucceed == true )
+				{
+					alert_msg = resourceManager.getString('alert','alert_msg_succeed');
+					Alert.show(alert_msg, alert_title_hint);
+					prvVar4dp4comAdgUiPopbScope.removeItemAt( comAdgUiPopbScope.selectedIndex );					
+				}
+				else
+				{
+					alert_msg = resourceManager.getString('alert','alert_msg_fail');
+					Alert.show(alert_msg, alert_title_hint);
+				}				
+			}	
+			
+			
+			
+			private function onOk():void
+			{
+				paramOut4selectedUiPopbScope = BUiPopbScope( comAdgUiPopbScope.selectedItem );
+				
+				paramOut4winCloseWay = UtilUi.WINDOW_CLOSEWAY_OK;
+				prvFun4close();
+			}	
+			
+			private function onCancel():void
+			{	
+				paramOut4winCloseWay = UtilUi.WINDOW_CLOSEWAY_CANCEL;
+				prvFun4close();
+			}		
+			
+			protected function comAdgUiPopbScope_changeHandler(event:ListEvent):void
+			{
+				if(comAdgUiPopbScope.selectedIndex>-1)
+				{
+					var selectedUiPopbScope:BUiPopbScope = BUiPopbScope( comAdgUiPopbScope.selectedItem );
+					prvVar4selectedUiPopbScopeNum = comAdgUiPopbScope.selectedIndex;
+					if(selectedUiPopbScope.isGetDetail == false)
+					{
+						isOkBtnEnable = false;
+						srvUi.getUiPopbScope(selectedUiPopbScope.id,ClientEnvironment.getOperatorUser().id);
+						UtilUi.pubFun4PopWaitWindow(this);
+					}
+				}
+			}
+			
+			
+			private function faultHandler4getUiPopbScope(event:FaultEvent):void
+			{
+				UtilUi.pubFun4RemoveWaitWindow();
+				Alert.show( UtilExceptionLocale.getExceptionMessageLocaleByFaultEvent( event ), resourceManager.getString('alert','alt_title_warn') );
+			}	
+			
+			private function resultHandler4getUiPopbScope(event:ResultEvent):void 
+			{
+				isOkBtnEnable = true;
+				UtilUi.pubFun4RemoveWaitWindow();
+				selectedScope = BUiPopbScope( event.result);
+				selectedScope.isGetDetail = true;
+				prvVar4dp4comAdgUiPopbScope.removeItemAt(prvVar4selectedUiPopbScopeNum);
+				prvVar4dp4comAdgUiPopbScope.addItemAt(selectedScope,prvVar4selectedUiPopbScopeNum);			
+				comAdgUiPopbScope.selectedItem = selectedScope;
+				
+			}
+			
+			protected function onViewCondDetail(event:MouseEvent):void
+			{
+				if(condSetWindow == null){
+					condSetWindow = new SetCom_ProOrg_BizData_Period();
+					condSetWindow.uicode = selectedScope.uiCode;
+//					condSetWindow.setOkCallbackFun = onCondSetCallbackFun;
+//					condSetWindow.arrDictBizDataType = arrDictBizDataType;
+//					condSetWindow.blOnlyIsManagingBizData = blOnlyIsManagingBizData;
+//					condSetWindow.blAllowMultipleSelectionBizData = blAllowMultipleSelectionBizData;
+//					condSetWindow.visiableBaseBizData = visiableBaseBizData;
+					
+					condSetWindow.editModel = false;
+					condSetWindow.showDisplayOption = selectedScope.isDisplayControl ==1 ?true:false;
+					condSetWindow.visible4span4periodSpan = selectedScope.isPeriodControl ==1 ?true:false;
+					condSetWindow.visible4forecast4periodspan = false;
+//					condSetWindow.fcPeriodNum4periodSpan = fcPeriodNum4periodSpan;
+//					condSetWindow.fzPeriodNum4periodSpan = fzPeriodNum4periodSpan;
+				}
+				
+				PopUpManager.addPopUp(condSetWindow,ClientEnvironment.modWork,true);
+				PopUpManager.centerPopUp(condSetWindow);
+				
+				condSetWindow.setUiPopbScope(selectedScope);
+				condSetWindow.updateUIControl();					
+			}
+			//	5	事件响应方法    end
+			
+			//	6	本地方法    begin
+			//	6	本地方法   end				
+
+
+		]]>
+	</fx:Script>	
+	<security:Com_Security_UiPopbScope_QueryCond id="comQCond" paramIn4queryCallback4thisObject="{this}" 
+												 paramIn4queryCallback4function="{callbackFunction4query4comQCond}">
+	</security:Com_Security_UiPopbScope_QueryCond>
+	<mx:HRule width="100%" />
+	
+	<s:VGroup width="100%" height="100%">
+		<s:HGroup width="100%">
+			<containers:AksControlBar>
+				<buttons:ButtonDelete  enabled="{comAdgUiPopbScope.selectedItems.pop()}" click="onDel()" />
+				<buttons:ButtonView label="{resourceManager.getString('button','condDetail')}" enabled="{isOkBtnEnable}" 
+									click="onViewCondDetail(event)" />
+			</containers:AksControlBar>
+			<controls:AksDataGridControlBar id="comAksDataGridControlBar" paramIn4callback4thisObject="{this}" paramIn4callback4queryFunction="{prvFun4pageQueryUiPopbScopes}" paramIn4dataGrid="{comAdgUiPopbScope}">
+			</controls:AksDataGridControlBar>
+		</s:HGroup>
+		
+		<security:Com_Security_UiPopbScope_AdvancedDataGrid id="comAdgUiPopbScope" width="100%" height="100%" dataProvider="{prvVar4dp4comAdgUiPopbScope}" 
+															paramIn4visible4displayControl="false"  paramIn4visible4periodControl="false"  
+															change="comAdgUiPopbScope_changeHandler(event)"/>
+	</s:VGroup>
+	<!--
+	<mx:VDividedBox width="100%" height="100%">
+		
+		<s:VGroup width="100%" height="100%">
+			<common:LabelBoundary labelText="{resourceManager.getString('menu','condDetail')}" />
+			<mx:TabNavigator width="100%" height="100%">
+				<s:NavigatorContent label="{resourceManager.getString('menu','busScope')}" width="100%" height="100%">
+					<s:layout>
+						<s:VerticalLayout/>
+					</s:layout>
+					<security:Com_Security_UiPopbScopeProOrg_AdvancedDataGrid dataProvider="{BUiPopbScope(comAdgUiPopbScope.selectedItem).uiPopbScopeProOrgs}" width="100%" height="100%"/>
+				</s:NavigatorContent>				
+				<s:NavigatorContent label="{resourceManager.getString('menu','busData')}" width="100%" height="100%">
+					<s:layout>
+						<s:VerticalLayout/>
+					</s:layout>
+					<security:Com_Security_UiPopbScopeBizData_AdvancedDataGrid dataProvider="{BUiPopbScope(comAdgUiPopbScope.selectedItem).uiPopbScopeBizDatas}" width="100%" height="100%"/>
+				</s:NavigatorContent>
+			</mx:TabNavigator>
+		</s:VGroup>
+	</mx:VDividedBox>
+	-->
+	<s:BorderContainer width="100%" height="25" borderColor="#E4ECF7">
+		<s:layout>
+			<s:HorizontalLayout horizontalAlign="center"/>
+		</s:layout>
+		<buttons:ButtonOk enabled="{isOkBtnEnable}" click="onOk()" />
+		<buttons:ButtonCancel click="onCancel()"/>
+	</s:BorderContainer>
+</s:TitleWindow>
+

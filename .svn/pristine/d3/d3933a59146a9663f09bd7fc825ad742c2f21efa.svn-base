@@ -1,0 +1,1207 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Module xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		   xmlns:s="library://ns.adobe.com/flex/spark" 
+		   xmlns:mx="library://ns.adobe.com/flex/mx" layout="vertical" width="100%" height="100%"
+		   paddingRight="10" paddingLeft="10"
+		   creationComplete="creationCompleteHandler(event)" 
+		   xmlns:security="dmdd.dmddmx.com.security.*" xmlns:uirowdata="dmdd.dmddmx.com.uirowdata.*" 
+		   xmlns:controls="aks.aksmx.controls.*" xmlns:charts="aks.aksmx.charts.*" xmlns:containers="aks.aksmx.containers.*" xmlns:report="dmdd.dmddmx.com.report.*" xmlns:common="dmdd.dmddmx.com.common.*">
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+		<s:RemoteObject endpoint="{ClientEnvironment.endpoint}" id="srvUiRowData" destination="UiRowDataService">	
+			<s:method name="getUiRowDatas" result="resultHandler4getUiRowDatas(event)" fault="faultHandler4getUiRowDatas(event)">
+			</s:method>							  
+		</s:RemoteObject>		
+	</fx:Declarations>
+	<fx:Metadata>
+		[ResourceBundle("mod_report")]
+	</fx:Metadata>
+	<fx:Script>
+		<![CDATA[
+			import aks.aksas.charts.AksChartDataObject;
+			import aks.aksas.controls.AksLockDataGridObject;
+			import aks.aksas.utils.UtilUi;
+			
+			import com.cool.assets.CoolAssetsFile;
+			import com.cool.utils.AlertUtil;
+			import com.cool.utils.DataListExportUtil;
+			
+			import dmdd.dmddas.common.constant.BizConst;
+			import dmdd.dmddas.common.constant.SysConst;
+			import dmdd.dmddas.common.constant.UIConst;
+			import dmdd.dmddas.common.system.ClientEnvironment;
+			import dmdd.dmddas.common.utils.UtilExceptionLocale;
+			import dmdd.dmddas.common.utils.UtilPeriod;
+			import dmdd.dmddas.common.utils.UtilUiPopbScope;
+			import dmdd.dmddas.common.utils.UtilUiRowData;
+			import dmdd.dmddas.common.vo.UiCondVo;
+			import dmdd.dmddas.dataaccess.aidobject.ABUiRowData;
+			import dmdd.dmddas.dataaccess.bizobject.BBizDataDefItemKpi;
+			import dmdd.dmddas.dataaccess.bizobject.BSysDictionaryItem;
+			import dmdd.dmddas.dataaccess.bizobject.BUiPopbScope;
+			import dmdd.dmddas.dataaccess.bizobject.BUnit;
+			import dmdd.dmddas.dataaccess.bizobject.BUnitGroup;
+			import dmdd.dmddmx.com.chart.ForecastDataChartWindow;
+			import dmdd.dmddmx.com.uirowdata.Com_UiRowData_ColumnSet;
+			
+			import mx.collections.ArrayCollection;
+			import mx.collections.IViewCursor;
+			import mx.controls.Alert;
+			import mx.controls.DataGrid;
+			import mx.controls.dataGridClasses.DataGridColumn;
+			import mx.events.FlexEvent;
+			import mx.events.IndexChangedEvent;
+			import mx.formatters.NumberFormatter;
+			import mx.managers.PopUpManager;
+			import mx.resources.ResourceManager;
+			import mx.rpc.events.FaultEvent;
+			import mx.rpc.events.ResultEvent;
+			
+			
+			
+			//	描述    begin
+			//	描述    end
+			
+			//	0	输入参数    begin						
+			//	0	输入参数    end
+			
+			//	1	输出参数    begin
+			//	1	输出参数    end
+			
+			//	2	本地变量    begin	
+			[Bindable]
+			private var dp4adgUiRowData:ArrayCollection = new ArrayCollection();
+			
+			[Bindable]
+			private var arrDictBizDataType:ArrayCollection = ClientEnvironment.getBizDataTypeArr();	
+			
+			[Bindable]
+			private var dp4chart4scale:ArrayCollection = new ArrayCollection();
+			
+			private var arr4displayName4chart4scale:ArrayCollection = new ArrayCollection();
+			private var arr4yField4chart4scale:ArrayCollection = new ArrayCollection();		
+			
+			[Bindable]
+			private var dp4chart4kpi:ArrayCollection = new ArrayCollection();
+			
+			private var arr4displayName4chart4kpi:ArrayCollection = new ArrayCollection();
+			private var arr4yField4chart4kpi:ArrayCollection = new ArrayCollection();				
+			
+			//条件中是否选中对应项
+			private var isDisPro:Boolean = false;
+			private var isDisProChar:Boolean = false;
+			private var isDisOrg:Boolean = false;
+			private var isDisOrgChar:Boolean = false;
+			
+			/** 可选单位 */
+			[Bindable]
+			private var arrUnits:ArrayCollection = new ArrayCollection();
+			[Bindable]
+			private var unitGroup:BUnitGroup = null;
+			private var unit:BUnit = null;
+			
+			//	 显示设置		end
+			
+			
+			//	查询条件		begin
+			private var uiCondVo:UiCondVo; //快速查询条件，转换后
+			private var uiPopbScope:BUiPopbScope;
+			
+			private var qcondArrUiRowDataProOrgs:ArrayCollection = new ArrayCollection();
+			private var qcondArrBizDatas:ArrayCollection = new ArrayCollection();
+			
+			private var qcondPeriodBegin:int;
+			private var qcondPeriodEnd:int;
+			//	查询条件		end
+			
+			//弹出框
+			/** 图形展示 */
+			private var chartWindow:ForecastDataChartWindow;
+			
+			private var qcondPeriodStatistics:int;
+			//	查询条件		end
+			
+			//	2	本地变量    end			
+			
+			//	3	公共方法    begin			
+			//	3	公共方法    end		
+			
+			//	4	初始化方法    begin	
+			protected function creationCompleteHandler(event:FlexEvent):void
+			{				
+				//增加右键锁定模块 begin
+				var aksright_edit:AksLockDataGridObject = new AksLockDataGridObject(adgUiRowData);				
+				//增加右键锁定模块 end
+			}					
+			//	4	初始化方法    end				
+			
+			//	5	事件响应方法    begin	
+			private function callbackFunction4execute4comProOrgBizDataPeriodScope():void
+			{												
+				uiPopbScope = condSetComp.getUiPopbScope();
+				uiCondVo = UtilUiPopbScope.getUiScopeCondVo(uiPopbScope,this);
+				
+				if(uiCondVo.isValid == false){
+					AlertUtil.show(uiCondVo.inValidStr,AlertUtil.MESSAGE_ERROR);
+					return;
+				}
+				
+				refreshColumnDispControlSet(1);
+				
+				//设置单位
+				unitGroup = uiCondVo.unitGroup;
+				unit = uiCondVo.unit;
+				unitGroupSet(unit);
+				
+				//	从 comProOrgBizDataPeriodScope中取得查询条件
+				qcondArrUiRowDataProOrgs = uiCondVo.arrUiRowDataProOrgs;
+				qcondArrBizDatas = uiCondVo.arrBizDatas;
+				
+				//	从 comPeriodSpan 取得查询期间
+				qcondPeriodBegin = uiCondVo.periodBegin;
+				qcondPeriodEnd = uiCondVo.periodEnd;
+				
+				//判断汇总期间数是否合法 begin
+				var diff:int = UtilPeriod.getPeriodDifference(qcondPeriodBegin,qcondPeriodEnd);//这里算出的差值需要加上1
+				if(comPeroidStatistics.pubFun4checkPeriodSpan(diff+1) == true)
+				{
+					qcondPeriodStatistics = comPeroidStatistics.pubFun4getParamOut4periodEnd();
+				}
+				else
+				{
+					return ;
+				}
+				//判断汇总期间数是否合法end
+				
+				adgUiRowData.pubFun4setParamIo4periodStatistics( qcondPeriodBegin, qcondPeriodEnd, false,qcondPeriodStatistics );
+				
+				
+				var blPageProOrg:Boolean = condSetComp.isPageProOrg;
+				if( blPageProOrg == true )
+				{	
+					//	初始化数据表格控制板
+					comAksDataGridControlBar.pubFun4setResultParams( true, qcondArrUiRowDataProOrgs.length, ClientEnvironment.getSysParamPageSize() );
+					
+					//	去执行第一页查询
+					prvFun4pageQueryReportDatas( 1 );
+				}
+				else
+				{	
+					//	初始化数据表格控制板					
+					comAksDataGridControlBar.pubFun4setResultParams( false, qcondArrUiRowDataProOrgs.length, qcondArrUiRowDataProOrgs.length );
+					
+					//	不分页查询
+					UtilUi.pubFun4PopWaitWindow( this );
+					dp4adgUiRowData = new ArrayCollection();
+					srvUiRowData.getUiRowDatas( qcondArrUiRowDataProOrgs, qcondPeriodBegin, qcondPeriodEnd, qcondArrBizDatas, ClientEnvironment.getSysPeriod()  );
+				}								
+			}			
+			
+			//	分页查询相关		begin			
+			private function prvFun4pageQueryReportDatas( _pageIndex:int ):void
+			{
+				UtilUi.pubFun4PopWaitWindow( this );
+				var arrUiRowDataProOrgs:ArrayCollection = new ArrayCollection();
+				var i:int;
+				var pageSize:int = ClientEnvironment.getSysParamPageSize();
+				var indexBegin:int = pageSize * (_pageIndex-1);
+				var indexEnd:int = pageSize * _pageIndex;
+				if( indexEnd > qcondArrUiRowDataProOrgs.length )
+				{
+					indexEnd = qcondArrUiRowDataProOrgs.length;
+				}
+				//	分页查询,根据pageIndex计算需要传递给服务器的查询条件
+				for( i=indexBegin; i<indexEnd; i=i+1 )
+				{
+					arrUiRowDataProOrgs.addItem( qcondArrUiRowDataProOrgs.getItemAt(i) );	
+				}
+				
+				
+				dp4adgUiRowData = new ArrayCollection();
+				srvUiRowData.getUiRowDatas( arrUiRowDataProOrgs, qcondPeriodBegin, qcondPeriodEnd, qcondArrBizDatas, ClientEnvironment.getSysPeriod()  );					
+			}			
+			//	分页查询相关		end		
+			
+			private function faultHandler4getUiRowDatas(event:FaultEvent):void
+			{
+				UtilUi.pubFun4RemoveWaitWindow();
+				Alert.show( UtilExceptionLocale.getExceptionMessageLocaleByFaultEvent( event ), resourceManager.getString('main','alt_title_warn') );
+			}	
+			
+			private function resultHandler4getUiRowDatas(event:ResultEvent):void 
+			{
+				btnExportData.enabled = true;
+				btnRefreshChart.enabled = true;
+				
+				
+				dp4adgUiRowData = ArrayCollection(event.result);
+				
+				var i:int;
+				var seledtedUnit:BUnit = null;
+				var uiRowData:ABUiRowData = null;
+				
+				var periodDiff:int;
+				var periodLoc:int;
+				var aitemValue:Number;
+				var bitemValue:Number;
+				var kpiValue:Number;
+				var kpiFormula:int;
+				
+				var numberFormatter:NumberFormatter = new NumberFormatter();
+				numberFormatter.precision = 2;
+				var myPattern:RegExp = /,/g;//用来去掉格式化后的逗号
+				
+				if( dp4adgUiRowData != null )
+				{
+					seledtedUnit = BUnit(comboBoxUnit.selectedItem);		
+					
+					for( i=0; i<dp4adgUiRowData.length; i=i+1 )
+					{
+						uiRowData = ABUiRowData(dp4adgUiRowData.getItemAt(i));
+						
+						if( uiRowData.bizData.type != BizConst.BIZDATA_TYPE_KPI )
+						{
+							//	非Kpi数据换算后放入显示表格
+							if( seledtedUnit != null && seledtedUnit.isBase == BizConst.GLOBAL_YESNO_NO )
+							{
+								uiRowData.exchangeUnit( 1, seledtedUnit.exchangeRate );						
+							}						
+						}
+						else
+						{
+							if( uiRowData.bizData.bizDataDefItems != null && uiRowData.bizData.bizDataDefItems.length == 1 )
+							{
+								kpiFormula = BBizDataDefItemKpi(uiRowData.bizData.bizDataDefItems.getItemAt(0)).kpiFormula;
+							}
+							if( seledtedUnit != null && seledtedUnit.isBase == BizConst.GLOBAL_YESNO_NO )
+							{
+								uiRowData.exchangeKPIUnit( 1, seledtedUnit.exchangeRate );						
+							}
+						}
+						
+						//按照汇总期间数来分解  begin
+						periodDiff = UtilPeriod.getPeriodDifference( uiRowData.periodBegin, uiRowData.periodEnd );
+						var diff:int = (periodDiff+1)/qcondPeriodStatistics;
+						var total:Number  = 0;
+						var diff_num:int = 1;
+						var total_statistics:Number = 0;
+						var total_statistics_a:Number = 0,total_statistics_b:Number = 0;
+						var total_a:Number=0,total_b:Number=0;
+						for( periodLoc = 0; periodLoc <= periodDiff; periodLoc = periodLoc + 1 )
+						{
+							if( uiRowData.bizData.type != BizConst.BIZDATA_TYPE_KPI )
+							{	
+								total_statistics = total_statistics+uiRowData.pubFun4getPeriodDataValue(periodLoc);
+								
+								if(periodLoc == (diff_num*qcondPeriodStatistics-1))
+								{
+									total_statistics = Number(total_statistics.toPrecision(15));
+									uiRowData.pubFun4setPeriodDataValue((diff_num-1),total_statistics);
+									uiRowData.pubFun4setPeriodDataValueBak((diff_num-1),total_statistics);
+									if(periodDiff != periodLoc)
+									{
+										diff_num = diff_num+1;
+									}
+									total = total + total_statistics;
+									total_statistics = 0;
+									
+								}
+								if(periodDiff == periodLoc) // 汇总
+								{
+									total = Number((total + total_statistics).toPrecision(15));
+									uiRowData.pubFun4setPeriodDataValue((diff_num),total);
+									uiRowData.pubFun4setPeriodDataValueBak((diff_num),total);										
+								}
+							}
+							else
+							{								
+								//	kpi数据，计算真正的Kpi值														
+								aitemValue = uiRowData.pubFun4getPeriodDataValue( periodLoc );
+								bitemValue = uiRowData.pubFun4getPeriodDataValueBak( periodLoc );
+								
+								if( kpiFormula == BizConst.BIZDATADEFITEM_KPIFORMULA_RATIO )
+								{									
+									if( isNaN(aitemValue)  )
+									{
+										aitemValue = 0;
+									}
+									if(isNaN(bitemValue))
+									{
+										bitemValue = 0;
+									}
+									total_statistics_a = total_statistics_a+aitemValue;
+									total_statistics_b = total_statistics_b+bitemValue;
+									
+									if(periodLoc == (diff_num*qcondPeriodStatistics-1))
+									{
+										if( isNaN(total_statistics_a) || isNaN(total_statistics_b) )
+										{
+											uiRowData.pubFun4setPeriodDataValue( (diff_num-1), NaN );
+											uiRowData.pubFun4setPeriodDataValueBak( (diff_num-1), NaN );
+										}
+										else if( total_statistics_b == 0 )
+										{
+											uiRowData.pubFun4setPeriodDataValue( (diff_num-1), NaN );
+											uiRowData.pubFun4setPeriodDataValueBak( (diff_num-1), NaN );								
+										}
+										else
+										{
+											kpiValue = total_statistics_a / total_statistics_b * 100.0;
+											kpiValue = Number( numberFormatter.format( kpiValue ).replace(myPattern,"" ));
+											
+											uiRowData.pubFun4setPeriodDataValue( (diff_num-1), kpiValue );
+											uiRowData.pubFun4setPeriodDataValueBak( (diff_num-1), kpiValue );
+											total_a = total_a  + total_statistics_a;
+											total_b = total_b + total_statistics_b ;
+											total_statistics_a = 0;
+											total_statistics_b = 0;
+											
+										}
+										
+										if(periodDiff != periodLoc)
+										{
+											diff_num = diff_num+1;
+										}
+									}
+									
+									if(periodDiff == periodLoc) // 汇总
+									{
+										total_a = total_a  + total_statistics_a;
+										total_b = total_b + total_statistics_b ;
+										
+										if( isNaN(total_a) || isNaN(total_b) )
+										{
+											uiRowData.pubFun4setPeriodDataValue( diff_num, NaN );
+											uiRowData.pubFun4setPeriodDataValueBak(diff_num, NaN );
+											
+										}
+										else if( total_b == 0 )
+										{
+											uiRowData.pubFun4setPeriodDataValue( diff_num, NaN );
+											uiRowData.pubFun4setPeriodDataValueBak( diff_num, NaN );								
+										}
+										else
+										{
+											kpiValue = total_a / total_b * 100.0;
+											kpiValue = Number( numberFormatter.format( kpiValue ).replace(myPattern,"" ));
+											
+											uiRowData.pubFun4setPeriodDataValue( diff_num, kpiValue );
+											uiRowData.pubFun4setPeriodDataValueBak( diff_num, kpiValue );
+										}
+									}
+								}
+								else if( kpiFormula == BizConst.BIZDATADEFITEM_KPIFORMULA_INCREMENTRATIO )
+								{
+									
+									if( isNaN(aitemValue)  )
+									{
+										aitemValue = 0;
+									}
+									if(isNaN(bitemValue))
+									{
+										bitemValue = 0;
+									}
+									total_statistics_a = total_statistics_a+aitemValue;
+									total_statistics_b = total_statistics_b+bitemValue;		
+									
+									if(periodLoc == (diff_num*qcondPeriodStatistics-1))
+									{	
+										if( isNaN(total_statistics_a) || isNaN(total_statistics_b) )
+										{
+											uiRowData.pubFun4setPeriodDataValue(  (diff_num-1), NaN );
+											uiRowData.pubFun4setPeriodDataValueBak(  (diff_num-1), NaN );
+										}
+										else if( total_statistics_b == 0 )
+										{
+											uiRowData.pubFun4setPeriodDataValue(  (diff_num-1), NaN );
+											uiRowData.pubFun4setPeriodDataValueBak(  (diff_num-1), NaN );								
+										}
+										else
+										{
+											kpiValue = Math.abs( total_statistics_a - total_statistics_b ) / total_statistics_b * 100.0;
+											kpiValue = Number( numberFormatter.format( kpiValue ).replace(myPattern,"" ) );
+											
+											uiRowData.pubFun4setPeriodDataValue( (diff_num-1), kpiValue );
+											uiRowData.pubFun4setPeriodDataValueBak( (diff_num-1), kpiValue );	
+											total_a = total_a + total_statistics_a;
+											total_b = total_b + total_statistics_b ;
+											total_statistics_a = 0;
+											total_statistics_b = 0;
+											
+										}	
+										if(periodDiff != periodLoc)
+										{
+											diff_num = diff_num+1;
+										}
+									}
+									if(periodDiff == periodLoc)  // 汇总
+									{
+										total_a = total_a + total_statistics_a;
+										total_b = total_b + total_statistics_b ;
+										
+										if( isNaN(total_a) || isNaN(total_b) )
+										{
+											uiRowData.pubFun4setPeriodDataValue( diff_num, NaN );
+											uiRowData.pubFun4setPeriodDataValueBak( diff_num, NaN );
+										}
+										else if( total_b == 0 )
+										{
+											uiRowData.pubFun4setPeriodDataValue( diff_num, NaN );
+											uiRowData.pubFun4setPeriodDataValueBak( diff_num, NaN );								
+										}
+										else
+										{
+											kpiValue = Math.abs( total_a - total_b ) / total_b * 100.0;
+											kpiValue = Number( numberFormatter.format( kpiValue ).replace(myPattern,"" ) );
+											
+											uiRowData.pubFun4setPeriodDataValue(diff_num, kpiValue );
+											uiRowData.pubFun4setPeriodDataValueBak( diff_num, kpiValue );								
+										}	
+									}
+								}
+								else if( kpiFormula == BizConst.BIZDATADEFITEM_KPIFORMULA_INCREMENTRATIO_I )
+								{
+									if( isNaN(aitemValue)  )
+									{
+										aitemValue = 0;
+									}
+									if(isNaN(bitemValue))
+									{
+										bitemValue = 0;
+									}
+									total_statistics_a = total_statistics_a+aitemValue;
+									total_statistics_b = total_statistics_b+bitemValue;		
+									
+									
+									if(periodLoc == (diff_num*qcondPeriodStatistics-1))
+									{
+										if( isNaN(total_statistics_a) || isNaN(total_statistics_b) )
+										{
+											uiRowData.pubFun4setPeriodDataValue( (diff_num-1), NaN );
+											uiRowData.pubFun4setPeriodDataValueBak( (diff_num-1), NaN );
+										}
+										else if( total_statistics_b == 0 )
+										{
+											uiRowData.pubFun4setPeriodDataValue( (diff_num-1), NaN );
+											uiRowData.pubFun4setPeriodDataValueBak( (diff_num-1), NaN );								
+										}
+										else
+										{
+											kpiValue = (1 - Math.abs( total_statistics_a - total_statistics_b ) / total_statistics_b) * 100.0;
+											kpiValue = Number( numberFormatter.format( kpiValue ).replace(myPattern,"" ) );
+											
+											uiRowData.pubFun4setPeriodDataValue( (diff_num-1), kpiValue );
+											uiRowData.pubFun4setPeriodDataValueBak( (diff_num-1), kpiValue );
+											total_a = total_a + total_statistics_a;
+											total_b = total_b + total_statistics_b ;
+											total_statistics_a = 0;
+											total_statistics_b = 0;
+											
+										}
+										if(periodDiff != periodLoc)
+										{
+											diff_num = diff_num+1;
+										}
+									}	
+									if(periodDiff == periodLoc) // 汇总
+									{
+										total_a = total_a + total_statistics_a;
+										total_b = total_b + total_statistics_b ;
+										
+										if( isNaN(total_a) || isNaN(total_b) )
+										{
+											uiRowData.pubFun4setPeriodDataValue( diff_num, NaN );
+											uiRowData.pubFun4setPeriodDataValueBak( diff_num, NaN );
+										}
+										else if( total_b == 0 )
+										{
+											uiRowData.pubFun4setPeriodDataValue( diff_num, NaN );
+											uiRowData.pubFun4setPeriodDataValueBak( diff_num, NaN );						
+										}
+										else
+										{
+											kpiValue = (1 - Math.abs( total_a - total_b ) / total_b) * 100.0;
+											kpiValue = Number( numberFormatter.format( kpiValue ).replace(myPattern,"" ) );
+											
+											uiRowData.pubFun4setPeriodDataValue( diff_num, kpiValue );
+											uiRowData.pubFun4setPeriodDataValueBak( diff_num, kpiValue );								
+										}
+									}										
+								}
+								else if( kpiFormula == BizConst.BIZDATADEFITEM_KPIFORMULA_INCREMENTRATIO_II )
+								{
+										if( isNaN(aitemValue)  )
+										{
+											aitemValue = 0;
+										}
+										if(isNaN(bitemValue))
+										{
+											bitemValue = 0;
+										}
+										total_statistics_a = total_statistics_a+aitemValue;
+										total_statistics_b = total_statistics_b+bitemValue;		
+										
+									
+									if(periodLoc == (diff_num*qcondPeriodStatistics-1))
+									{
+										if( isNaN(total_statistics_a) )
+										{
+											total_statistics_a = 0;
+										}
+										if( isNaN(total_statistics_b) )
+										{
+											total_statistics_b = 0;
+										}
+										
+										if( total_statistics_a + total_statistics_b == 0 )
+										{
+											//	分母为0
+											uiRowData.pubFun4setPeriodDataValue( (diff_num-1), NaN );
+											uiRowData.pubFun4setPeriodDataValueBak( (diff_num-1), NaN );																		
+										}
+										else
+										{
+											kpiValue = 2.0 * Math.abs(total_statistics_a - total_statistics_b) / (total_statistics_a + total_statistics_b) * 100.0;
+											kpiValue = Number( numberFormatter.format( kpiValue ).replace(myPattern,"" ) ); 
+											
+											uiRowData.pubFun4setPeriodDataValue( (diff_num-1), kpiValue );
+											uiRowData.pubFun4setPeriodDataValueBak( (diff_num-1), kpiValue );	
+											
+											total_a = total_a + total_statistics_a;
+											total_b = total_b + total_statistics_b ;
+											total_statistics_a = 0;
+											total_statistics_b = 0;
+											
+										}	
+										if(periodDiff != periodLoc)
+										{
+											diff_num = diff_num+1;
+										}
+									}
+									if(periodDiff == periodLoc)// 汇总
+									{
+										total_a = total_a + total_statistics_a;
+										total_b = total_b + total_statistics_b ;
+										
+										if( isNaN(total_a) )
+										{
+											total_a = 0;
+										}
+										if( isNaN(total_b) )
+										{
+											total_b = 0;
+										}
+										
+										if( total_a + total_b == 0 )
+										{
+											//	分母为0
+											uiRowData.pubFun4setPeriodDataValue( diff_num, NaN );
+											uiRowData.pubFun4setPeriodDataValueBak( diff_num, NaN );																		
+										}
+										else
+										{
+											kpiValue = 2.0 * Math.abs(total_a - total_b) / (total_a + total_b) * 100.0;
+											kpiValue = Number( numberFormatter.format( kpiValue ).replace(myPattern,"" ) ); 
+											
+											uiRowData.pubFun4setPeriodDataValue( diff_num, kpiValue );
+											uiRowData.pubFun4setPeriodDataValueBak( diff_num, kpiValue );									
+										}
+									}					
+								}	
+								else if(kpiFormula == BizConst.BIZDATADEFITEM_KPIFORMULA_INCREMENTRATIO_III)
+								{
+
+									if( isNaN(aitemValue)  )
+									{
+										aitemValue = 0;
+									}
+									if(isNaN(bitemValue))
+									{
+										bitemValue = 0;
+									}
+									total_statistics_a = total_statistics_a+aitemValue;
+									total_statistics_b = total_statistics_b+bitemValue;	
+									
+									if(periodLoc == (diff_num*qcondPeriodStatistics-1))
+									{		
+										if( isNaN(total_statistics_a) )
+										{
+											total_statistics_a = 0;
+										}
+										if( isNaN(total_statistics_b) )
+										{
+											total_statistics_b = 0;
+										}
+										kpiValue = (total_statistics_a - total_statistics_b)  ;
+										kpiValue = Number( numberFormatter.format( kpiValue ).replace(myPattern,"" ) ); 
+										
+										uiRowData.pubFun4setPeriodDataValue( (diff_num-1), kpiValue );
+										uiRowData.pubFun4setPeriodDataValueBak( (diff_num-1), kpiValue );
+										
+										total_a = total_a + total_statistics_a;
+										total_b = total_b + total_statistics_b ;
+										total_statistics_a = 0;
+										total_statistics_b = 0;
+										if(periodDiff != periodLoc)
+										{
+											diff_num = diff_num+1;
+										}
+									}
+									if(periodDiff == periodLoc)// 汇总
+									{
+										total_a = total_a + total_statistics_a;
+										total_b = total_b + total_statistics_b ;
+										
+										if( isNaN(total_a) )
+										{
+											total_a = 0;
+										}
+										if( isNaN(total_b) )
+										{
+											total_b = 0;
+										}
+										kpiValue = (total_a - total_b)  ;
+										kpiValue = Number( numberFormatter.format( kpiValue ).replace(myPattern,"" ) ); 
+										
+										uiRowData.pubFun4setPeriodDataValue( diff_num, kpiValue );
+										uiRowData.pubFun4setPeriodDataValueBak( diff_num, kpiValue );
+									}
+								}
+								else if(kpiFormula == BizConst.BIZDATADEFITEM_KPIFORMULA_INCREMENTRATIO_IV)
+								{
+									if( isNaN(aitemValue)  )
+									{
+										aitemValue = 0;
+									}
+									if(isNaN(bitemValue))
+									{
+										bitemValue = 0;
+									}
+									total_statistics_a = total_statistics_a+aitemValue;
+									total_statistics_b = total_statistics_b+bitemValue;	
+									
+									if(periodLoc == (diff_num*qcondPeriodStatistics-1))
+									{
+					
+										if( isNaN(total_statistics_a) )
+										{
+											total_statistics_a = 0;
+										}
+										if( isNaN(total_statistics_b) )
+										{
+											total_statistics_b = 0;
+										}
+										kpiValue =  Math.abs(total_statistics_a - total_statistics_b) ;
+										kpiValue = Number( numberFormatter.format( kpiValue ).replace(myPattern,"" ) ); 
+										
+										uiRowData.pubFun4setPeriodDataValue( (diff_num-1), kpiValue );
+										uiRowData.pubFun4setPeriodDataValueBak( (diff_num-1), kpiValue );
+										
+										total_a = total_a + total_statistics_a;
+										total_b = total_b + total_statistics_b ;
+										total_statistics_a = 0;
+										total_statistics_b = 0;
+										if(periodDiff != periodLoc)
+										{
+											diff_num = diff_num+1;
+										}
+									}
+									
+									if(periodDiff == periodLoc) // 汇总
+									{
+										total_a = total_a + total_statistics_a;
+										total_b = total_b + total_statistics_b ;
+										
+										if( isNaN(total_a) )
+										{
+											total_a = 0;
+										}
+										if( isNaN(total_b) )
+										{
+											total_b = 0;
+										}
+										kpiValue =  Math.abs(total_a - total_b) ;
+										kpiValue = Number( numberFormatter.format( kpiValue ).replace(myPattern,"" ) ); 
+										
+										uiRowData.pubFun4setPeriodDataValue( diff_num, kpiValue );
+										uiRowData.pubFun4setPeriodDataValueBak( diff_num, kpiValue );
+									}
+								}
+								else if(kpiFormula == BizConst.BIZDATADEFITEM_KPIFORMULA_INCREMENTRATIO_V)
+								{
+									if( isNaN(aitemValue)  )
+									{
+										aitemValue = 0;
+									}
+									if(isNaN(bitemValue))
+									{
+										bitemValue = 0;
+									}
+									total_statistics_a = total_statistics_a+aitemValue;
+									total_statistics_b = total_statistics_b+bitemValue;		
+									
+									if(periodLoc == (diff_num*qcondPeriodStatistics-1))
+									{	
+										if( isNaN(total_statistics_a) || isNaN(total_statistics_b) )
+										{
+											uiRowData.pubFun4setPeriodDataValue(  (diff_num-1), NaN );
+											uiRowData.pubFun4setPeriodDataValueBak(  (diff_num-1), NaN );
+										}
+										else if( total_statistics_b == 0 )
+										{
+											uiRowData.pubFun4setPeriodDataValue(  (diff_num-1), NaN );
+											uiRowData.pubFun4setPeriodDataValueBak(  (diff_num-1), NaN );								
+										}
+										else
+										{
+											kpiValue = ( total_statistics_a - total_statistics_b ) / total_statistics_b * 100.0;
+											kpiValue = Number( numberFormatter.format( kpiValue ).replace(myPattern,"" ) );
+											
+											uiRowData.pubFun4setPeriodDataValue( (diff_num-1), kpiValue );
+											uiRowData.pubFun4setPeriodDataValueBak( (diff_num-1), kpiValue );	
+											total_a = total_a + total_statistics_a;
+											total_b = total_b + total_statistics_b ;
+											total_statistics_a = 0;
+											total_statistics_b = 0;
+											
+										}	
+										if(periodDiff != periodLoc)
+										{
+											diff_num = diff_num+1;
+										}
+									}
+									if(periodDiff == periodLoc)  // 汇总
+									{
+										total_a = total_a + total_statistics_a;
+										total_b = total_b + total_statistics_b ;
+										
+										if( isNaN(total_a) || isNaN(total_b) )
+										{
+											uiRowData.pubFun4setPeriodDataValue( diff_num, NaN );
+											uiRowData.pubFun4setPeriodDataValueBak( diff_num, NaN );
+										}
+										else if( total_b == 0 )
+										{
+											uiRowData.pubFun4setPeriodDataValue( diff_num, NaN );
+											uiRowData.pubFun4setPeriodDataValueBak( diff_num, NaN );								
+										}
+										else
+										{
+											kpiValue = ( total_a - total_b ) / total_b * 100.0;
+											kpiValue = Number( numberFormatter.format( kpiValue ).replace(myPattern,"" ) );
+											
+											uiRowData.pubFun4setPeriodDataValue(diff_num, kpiValue );
+											uiRowData.pubFun4setPeriodDataValueBak( diff_num, kpiValue );								
+										}	
+									}
+								}
+								else if(kpiFormula == BizConst.BIZDATADEFITEM_KPIFORMULA_INCREMENTRATIO_VI)
+								{
+									if( isNaN(aitemValue)  )
+									{
+										aitemValue = 0;
+									}
+									if(isNaN(bitemValue))
+									{
+										bitemValue = 0;
+									}
+									total_statistics_a = total_statistics_a+aitemValue;
+									total_statistics_b = total_statistics_b+bitemValue;
+									
+									if(periodLoc == (diff_num*qcondPeriodStatistics-1))
+									{
+										if( isNaN(total_statistics_a) || isNaN(total_statistics_b) )
+										{
+											uiRowData.pubFun4setPeriodDataValue( (diff_num-1), NaN );
+											uiRowData.pubFun4setPeriodDataValueBak( (diff_num-1), NaN );
+										}
+										else if( total_statistics_b == 0 )
+										{
+											uiRowData.pubFun4setPeriodDataValue( (diff_num-1), NaN );
+											uiRowData.pubFun4setPeriodDataValueBak( (diff_num-1), NaN );								
+										}
+										else if(total_statistics_b <0 || total_statistics_a<0)
+										{
+											uiRowData.pubFun4setPeriodDataValue( (diff_num-1), 0 );
+											uiRowData.pubFun4setPeriodDataValueBak( (diff_num-1), 0 );	
+										}
+										else
+										{
+											if(total_statistics_a<total_statistics_b)
+											{
+												kpiValue = total_statistics_a / total_statistics_b * 100.0;
+												kpiValue = Number( numberFormatter.format( kpiValue ).replace(myPattern,"" ));
+											}
+											else
+											{
+												kpiValue = total_statistics_b / total_statistics_a * 100.0;
+												kpiValue = Number( numberFormatter.format( kpiValue ).replace(myPattern,"" ));
+											}
+											
+											uiRowData.pubFun4setPeriodDataValue( (diff_num-1), kpiValue );
+											uiRowData.pubFun4setPeriodDataValueBak( (diff_num-1), kpiValue );
+											total_a = total_a  + total_statistics_a;
+											total_b = total_b + total_statistics_b ;
+											total_statistics_a = 0;
+											total_statistics_b = 0;
+											
+										}
+										
+										if(periodDiff != periodLoc)
+										{
+											diff_num = diff_num+1;
+										}
+									}
+									
+									if(periodDiff == periodLoc) // 汇总
+									{
+										total_a = total_a  + total_statistics_a;
+										total_b = total_b + total_statistics_b ;
+										
+										if( isNaN(total_a) || isNaN(total_b) )
+										{
+											uiRowData.pubFun4setPeriodDataValue( diff_num, NaN );
+											uiRowData.pubFun4setPeriodDataValueBak(diff_num, NaN );
+											
+										}
+										else if( total_b == 0 )
+										{
+											uiRowData.pubFun4setPeriodDataValue( diff_num, NaN );
+											uiRowData.pubFun4setPeriodDataValueBak( diff_num, NaN );								
+										}
+										else if(total_b<0 || total_a<0)
+										{
+											uiRowData.pubFun4setPeriodDataValue( diff_num, 0 );
+											uiRowData.pubFun4setPeriodDataValueBak( diff_num, 0 );
+										}
+										else
+										{
+											if(total_a<total_b)
+											{
+												kpiValue = total_a / total_b * 100.0;
+												kpiValue = Number( numberFormatter.format( kpiValue ).replace(myPattern,"" ));
+											}
+											else
+											{
+												kpiValue = total_b / total_a * 100.0;
+												kpiValue = Number( numberFormatter.format( kpiValue ).replace(myPattern,"" ));	
+											}
+											uiRowData.pubFun4setPeriodDataValue( diff_num, kpiValue );
+											uiRowData.pubFun4setPeriodDataValueBak( diff_num, kpiValue );
+										}
+									}
+								}
+								else
+								{
+									//	out of design
+									uiRowData.pubFun4setPeriodDataValue( (diff_num), NaN );
+									uiRowData.pubFun4setPeriodDataValueBak( (diff_num), NaN );										
+								}
+										
+									
+									
+								}
+							}
+							//清除其他数据
+						for(var num:int  = diff_num+1;num<SysConst.PERIODNUM_MAX_NUM;num++)
+						{
+							uiRowData.pubFun4setPeriodDataValueBak(num,NaN);
+						}
+						
+							
+							
+						}
+						//按照汇总期间数来分解 end
+						
+					}					
+				
+				UtilUi.pubFun4RemoveWaitWindow();
+			}				
+			
+			/** 设置单位组中的单位 */
+			private function unitGroupSet(unit:BUnit):void
+			{
+				var unitGroupId:Number = unit.unitGroup.id;
+				arrUnits = ClientEnvironment.getUnitGroup(unitGroupId).units;
+				
+				var selUnit:BUnit =null;
+				for(var i:int=0;i<arrUnits.length;i++)
+				{
+					selUnit = BUnit(arrUnits.getItemAt(i));
+					if(selUnit.id == unit.id)
+					{	
+						comboBoxUnit.selectedIndex = i; 
+						comboBoxUnit.selectedItem = selUnit;
+						break;
+					}
+				}
+				
+				comboBoxUnit.enabled = true;
+			}
+			
+			private function onChange4comboBoxUnit():void
+			{
+				//	单位变化	begin
+				var selectedUnit:BUnit = BUnit(comboBoxUnit.selectedItem)
+				var i:int;
+				
+				var uiRowData:ABUiRowData = null;
+				if( selectedUnit != null && unit != null && selectedUnit.id != unit.id )
+				{
+					if( dp4adgUiRowData != null )
+					{
+						for( i=0; i<dp4adgUiRowData.length; i=i+1 )
+						{
+							uiRowData = ABUiRowData(dp4adgUiRowData.getItemAt(i));
+							uiRowData.exchangeUnit( unit.exchangeRate, selectedUnit.exchangeRate );
+						}
+					}	
+					
+					unit = selectedUnit;
+				}
+				//	单位变化	end
+			}
+			
+			private function onColumnSet():void
+			{
+				if(uiCondVo == null)
+					return; //还没查询过数据
+				
+				adgUiRowData.onColumnSet(null);
+			}
+			
+			private function refreshColumnDispControlSet(type:Number):void{
+				//3个入口，设置显示列 1，查询条件中执行后 2，分层计算后 3，列显示手工设置后
+				
+				if(type == 1){ 
+					//1查询条件中执行后
+					isDisPro = uiCondVo.isShowProduct;
+					isDisProChar = uiCondVo.isShowProductCharacter;
+					isDisOrg = uiCondVo.isShowOrganization;
+					isDisOrgChar = uiCondVo.isShowOrganizationCharacter;
+					
+				}
+				//同步设置
+				adgUiRowData.setVisible4Dimension(isDisPro,isDisProChar,isDisOrg,isDisOrgChar);
+				
+			}
+			
+			private function onExport():void
+			{				
+				var TSVString:String = DataListExportUtil.generateCsvData(adgUiRowData,1) ;
+				
+				// Copy the TSV string to the clipboard
+				System.setClipboard(TSVString);					
+			}
+			
+			private function onRefreshChart():void
+			{
+				var i:int;
+				var uiRowData:ABUiRowData = null;
+				
+				//	收集被勾选的 uiRowData	begin
+				var arr4checkedUiRowData4scale:ArrayCollection = new ArrayCollection();
+				var arr4checkedUiRowData4kpi:ArrayCollection = new ArrayCollection();
+				
+				if( dp4adgUiRowData != null )
+				{
+					for( i=0; i<dp4adgUiRowData.length; i=i+1 )
+					{
+						uiRowData = ABUiRowData(dp4adgUiRowData.getItemAt(i));
+						if( uiRowData.isChecked == true )
+						{
+							if( uiRowData.bizData.type == BizConst.BIZDATA_TYPE_KPI )
+							{
+								arr4checkedUiRowData4kpi.addItem( uiRowData );
+							}
+							else
+							{
+								arr4checkedUiRowData4scale.addItem( uiRowData );
+							}
+						}
+					}
+				}
+				
+				var alert_title_hint:String = resourceManager.getString('mod_report','alert_title_hint');
+				var alert_msg:String = "";			
+				
+				if( arr4checkedUiRowData4scale.length > SysConst.CHART_MAX_NUM )
+				{
+					alert_msg = resourceManager.getString('mod_report','alert_msg_chartexceedmaxnum_scale');
+					Alert.show( alert_msg, alert_title_hint);					
+				}
+				
+				if( arr4checkedUiRowData4kpi.length > SysConst.CHART_MAX_NUM )
+				{
+					alert_msg = resourceManager.getString('mod_report','alert_msg_chartexceedmaxnum_kpi');
+					Alert.show( alert_msg, alert_title_hint);					
+				}				
+				//	收集被勾选的 uiRowData	begin
+				
+				//	收集displayName 和 yFieldName	begin
+				var displayName:String = null;
+				var yFieldName:String = null;
+				
+				arr4displayName4chart4scale = new ArrayCollection();
+				arr4yField4chart4scale = new ArrayCollection();
+				for( i=0; i<arr4checkedUiRowData4scale.length; i=i+1 )
+				{
+					uiRowData = ABUiRowData( arr4checkedUiRowData4scale.getItemAt(i) );
+					
+					displayName = UtilUiRowData.getDisplayName4Chart( isDisPro, uiRowData.product,
+						isDisProChar, uiRowData.productCharacter,
+						isDisOrg, uiRowData.organization,
+						isDisOrgChar, uiRowData.organizationCharacter,
+						true, uiRowData.bizData );
+					
+					yFieldName = AksChartDataObject.getFiledName(i);
+					
+					arr4displayName4chart4scale.addItem( displayName );
+					arr4yField4chart4scale.addItem( yFieldName );	
+				}	
+				
+				arr4displayName4chart4kpi = new ArrayCollection();
+				arr4yField4chart4kpi = new ArrayCollection();
+				for( i=0; i<arr4checkedUiRowData4kpi.length; i=i+1 )
+				{
+					uiRowData = ABUiRowData( arr4checkedUiRowData4kpi.getItemAt(i) );
+					
+					displayName = UtilUiRowData.getDisplayName4Chart( isDisPro, uiRowData.product,
+						isDisProChar, uiRowData.productCharacter,
+						isDisOrg, uiRowData.organization,
+						isDisOrgChar, uiRowData.organizationCharacter,
+						true, uiRowData.bizData );
+					
+					yFieldName = AksChartDataObject.getFiledName(i);
+					
+					arr4displayName4chart4kpi.addItem( displayName );
+					arr4yField4chart4kpi.addItem( yFieldName );	
+				}					
+				//	收集displayName 和 yFieldName	begin			
+				
+				// 收集chart 数据源    begin
+				dp4chart4scale = new ArrayCollection();
+				dp4chart4kpi = new ArrayCollection();
+				
+				var periodDiff:int = UtilPeriod.getPeriodDifference( qcondPeriodBegin, qcondPeriodEnd );
+				 periodDiff = (periodDiff+1)/qcondPeriodStatistics;
+				if( periodDiff == SysConst.PERIOD_DIFF_NULL )
+				{
+					return;
+				}
+				
+				var periodLoc:int;
+				
+				var aksChartDataObject:AksChartDataObject = null;
+				var value4chart:Number;
+				for( periodLoc=0; periodLoc<periodDiff; periodLoc=periodLoc+1 )
+				{
+					aksChartDataObject = new AksChartDataObject();
+					if(periodLoc==periodDiff)
+					{
+						//aksChartDataObject.categoryFieldValue = ResourceManager.getInstance().getString('com_uirowdata_uirowdata_advanceddatagrid','total');
+					}
+					else
+					{
+					aksChartDataObject.categoryFieldValue = String(UtilPeriod.getPeriod( qcondPeriodBegin, periodLoc*qcondPeriodStatistics )+"-"
+						+UtilPeriod.getPeriod( qcondPeriodBegin, (periodLoc+1)*qcondPeriodStatistics-1 ));
+					}
+					//aksChartDataObject.categoryFieldValue = String( UtilPeriod.getPeriod( qcondPeriodBegin, periodLoc ) );
+					for( i=0; i<arr4checkedUiRowData4scale.length; i=i+1 )
+					{
+						uiRowData = ABUiRowData( arr4checkedUiRowData4scale.getItemAt(i) );
+						
+						//	历史类数据 0 值处不画图，免得掉下来	begin
+						value4chart = uiRowData.pubFun4getPeriodDataValue(periodLoc);
+						
+						if( uiRowData.bizData.type == BizConst.BIZDATA_TYPE_HISTORY ||
+							uiRowData.bizData.type == BizConst.BIZDATA_TYPE_HISTORYAD ||
+							uiRowData.bizData.type == BizConst.BIZDATA_TYPE_HISTORYADR || 
+							uiRowData.bizData.type == BizConst.BIZDATA_TYPE_TIMEHIS )
+						{
+							if( value4chart == 0 )
+							{
+								value4chart = NaN;
+							}
+						}
+						//	历史类数据 0 值处不画图，免得掉下来	end
+						
+						aksChartDataObject.setData( i, value4chart );
+					}
+					dp4chart4scale.addItem( aksChartDataObject );
+				}
+				
+				for( periodLoc=0; periodLoc<periodDiff; periodLoc=periodLoc+1 )
+				{
+					aksChartDataObject = new AksChartDataObject();
+//					aksChartDataObject.categoryFieldValue = String( UtilPeriod.getPeriod( qcondPeriodBegin, periodLoc ) );
+					if(periodLoc==periodDiff)
+					{
+						//aksChartDataObject.categoryFieldValue = ResourceManager.getInstance().getString('com_uirowdata_uirowdata_advanceddatagrid','total');
+					}
+					else
+					{
+					aksChartDataObject.categoryFieldValue = String(UtilPeriod.getPeriod( qcondPeriodBegin, periodLoc*qcondPeriodStatistics )+"-"
+						+UtilPeriod.getPeriod( qcondPeriodBegin, (periodLoc+1)*qcondPeriodStatistics-1 ));
+					}
+					for( i=0; i<arr4checkedUiRowData4kpi.length; i=i+1 )
+					{
+						uiRowData = ABUiRowData( arr4checkedUiRowData4kpi.getItemAt(i) );
+						
+						aksChartDataObject.setData( i, uiRowData.pubFun4getPeriodDataValue(periodLoc) );
+					}
+					dp4chart4kpi.addItem( aksChartDataObject );
+				}				
+				// 收集chart 数据源    end				
+				
+				if(chartWindow == null){
+					chartWindow = new ForecastDataChartWindow();
+				}
+				
+				chartWindow.arr4displayName4chart4scale = arr4displayName4chart4scale;
+				chartWindow.arr4yField4chart4scale = arr4yField4chart4scale;
+				chartWindow.dp4chart4scale = dp4chart4scale;
+				
+				chartWindow.arr4displayName4chart4kpi = arr4displayName4chart4kpi;
+				chartWindow.arr4yField4chart4kpi = arr4yField4chart4kpi;
+				chartWindow.dp4chart4kpi = dp4chart4kpi;
+				
+				PopUpManager.addPopUp(chartWindow,ClientEnvironment.modWork);
+				PopUpManager.centerPopUp(chartWindow);
+				chartWindow.refreshTabStatus();
+			}
+			
+			//	5	事件响应方法    end
+			
+			//	6	本地方法    begin
+			//	6	本地方法   end	
+			
+		]]>
+	</fx:Script>
+	
+	<common:LabelBoundary paddingTop="5" labelText="{resourceManager.getString('mod_report','querycondition')}" />
+	<s:HGroup width="100%">
+		<report:Com_Report_Period_Statistics id = "comPeroidStatistics" width="200" height="25"/>
+		<security:Com_Security_ProOrg_BizData_Period_Quick id="condSetComp" width="100%" uiCode="{UIConst.UICODE_REPORT_STATISTICS}"  
+										arrDictBizDataType="{arrDictBizDataType}" blOnlyIsManagingBizData="false" 
+										executeCallback4thisObject="{this}" executeCallback4function="{callbackFunction4execute4comProOrgBizDataPeriodScope}">
+		</security:Com_Security_ProOrg_BizData_Period_Quick>
+		
+	</s:HGroup>
+	
+	<common:LabelBoundary paddingTop="5" labelText="{resourceManager.getString('mod_report','reportdata_table')}" />
+	<s:HGroup width="100%" verticalAlign="middle" paddingTop="3" paddingLeft="10">
+		<s:Label text="{resourceManager.getString('note','unit')}" id="lbUnit"/>
+		<s:ComboBox id="comboBoxUnit" dataProvider="{arrUnits}" change="onChange4comboBoxUnit()" enabled="false"/>
+		<s:Spacer width="10" />
+		<s:Button id="btnRefreshChart" click="onRefreshChart()" label="{resourceManager.getString('button','chartView')}" icon="{CoolAssetsFile.chart_lineIcon}" />
+		<s:Button id="btnExportData" click="onExport()" label="{resourceManager.getString('button','export')}" icon="{CoolAssetsFile.excelIcon}"/>
+		<s:Button id="btnColumnSet" click="onColumnSet()" label="{resourceManager.getString('button','columnViewSet')}" icon="{CoolAssetsFile.optsetIcon}"/>
+	</s:HGroup>
+	<uirowdata:Com_UiRowData_UiRowData_AdvancedDataGrid id="adgUiRowData" dataProvider="{dp4adgUiRowData}" 
+												editable="true" width="100%" height="100%"/>
+	<controls:AksDataGridControlBar id="comAksDataGridControlBar" paramIn4enabled4BtnSetColumns="false" paramIn4dataGrid="{adgUiRowData}" 
+							paramIn4callback4thisObject="{this}" paramIn4callback4queryFunction="{prvFun4pageQueryReportDatas}">
+	</controls:AksDataGridControlBar>
+	
+</mx:Module>

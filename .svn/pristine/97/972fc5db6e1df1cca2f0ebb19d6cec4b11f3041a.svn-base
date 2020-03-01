@@ -1,0 +1,666 @@
+package dmdd.dmddas.common.constant
+{
+	[Bindable]
+	public class BizConst
+	{		
+		public function BizConst()
+		{
+			//TODO: implement function
+		}
+		
+		//	系统参数		begin
+		public static var SYSPARAM_CODE_PAGESIZE:String = "SYSPARAM_CODE_PAGESIZE";
+		public static var SYSPARAM_CODE_DATABASE:String = "SYSPARAM_CODE_DATABASE";
+		public static var SYSPARAM_CODE_USERLICENSENUM:String = "SYSPARAM_CODE_XXYYZZ";
+		public static var SYSPARAM_CODE_PROBATION:String="SYSPARAM_CODE_ZZYYXX";//单位为天
+		public static var SYSPARAM_CODE_GENUINE:String="SYSPARAM_CODE_WWWYYY";//是否正版
+		public static var SYSPARAM_CODE_HISTORYDATAIMPORTWARN:String = "SYSPARAM_CODE_HISTORYDATAIMPORTWARN";//历史导入是否要判断新预测项
+		public static var SYSPARAM_VALUE_DATABASE_ORACLE:String ="oracle";
+		public static var SYSPARAM_VALUE_DATABASE_SQLSERVER:String="sqlserver";
+		//	系统参数		end
+		
+		//	系统状态		begin
+		public static var SYSTEM_STATUS_NORMAL:int = 0;						//	正常
+		public static var SYSTEM_STATUS_EXCEPTION_START:int = 1;			//	启动异常
+		public static var SYSTEM_STATUS_EXCEPTION_ROLLINGPERIOD:int = 2;	//	执行期间滚动时异常
+		public static var SYSTEM_STATUS_ROLLINGPERIOD:int = 3;				//	正在执行期间滚动
+		public static var SYSTEM_STATUS_RUNNINGFORECAST:int = 4;			//	正在运行预测
+		public static var SYSTEM_STATUS_EXCEPTION_RUNNINGFORECAST:int = 5;	//	执行预测运行时异常
+		//	系统状态		end			
+		
+		
+		// 数据字典    begin
+		// GLOBAL NULL    begin
+		public static var GLOBAL_NULL_NULL:int = -1;
+		// GLOBAL NULL    end
+		
+		// GLOBAL YESNO    begin
+		public static var GLOBAL_YESNO_NO:int = 0;
+		public static var GLOBAL_YESNO_YES:int = 1;
+		// GLOBAL YESNO    end
+		
+		// GLOBAL DATASOURCE    begin
+		public static var GLOBAL_DATASOURCE_SYSTEMDEFINE:int	= 0;
+		public static var GLOBAL_DATASOURCE_USERDEFINE:int		= 1;
+		// GLOBAL DATASOURCE    end
+		
+		// BIZDATA TYPE    begin
+		/**历史数据类 */
+		public static var BIZDATA_TYPE_HISTORY:int		= 0;
+		/**历史数据修正类 */
+		public static var BIZDATA_TYPE_HISTORYAD:int	= 1;
+		/**历史修正原因类 */
+		public static var BIZDATA_TYPE_HISTORYADR:int	= 2;
+			
+		/**统计预测类 */
+		public static var BIZDATA_TYPE_FCMODEL:int		= 20;
+		/**判断预测类 */
+		public static var BIZDATA_TYPE_FCHAND:int		= 21;
+		/**组合预测类 */
+		public static var BIZDATA_TYPE_FCCOMB:int		= 22;
+		/**最终预测类 */
+		public static var BIZDATA_TYPE_FCFINAL:int		= 23;
+		/**版本预测类 */
+		public static var BIZDATA_TYPE_FORECASTASSESSMENT:int	= 24;
+		
+		/**期间历史类 */
+		public static var BIZDATA_TYPE_TIMEHIS:int			= 30;
+		/**期间预测类 */
+		public static var BIZDATA_TYPE_TIMEFC:int			= 31;
+		/**KPI */
+		public static var BIZDATA_TYPE_KPI:int			= 32;
+		/**金额类 */
+		public static var BIZDATA_TYPE_MONEY:int			= 33;
+		/**组合金额类 */
+		public static var BIZDATA_TYPE_MONEYCOMB:int			= 34;
+		
+		/**历史平均类*/
+		public static var BIZDATA_TYPE_AVGHIS:int	= 37;
+		/** 期间累积类 */
+		public static var BIZDATA_TYPE_ADDFC:int	= 38;
+		/** 历史累积类 */
+		public static var BIZDATA_TYPE_ADDHIS:int	= 39;
+		
+		/** M-N版本预测*/
+		public static var BIZDATA_TYPE_PERIODVERSION:int = 44;
+
+		public static var BIZDATA_TYPE_DC_STOCKDAY:int = 40;//库存天数
+		public static var BIZDATA_TYPE_DC_TERMEND:int = 41;//期末库存
+		public static var BIZDATA_TYPE_DC_LASTTERMEND:int = 42;//上期期末库存
+		public static var BIZDATA_TYPE_DC_RESTOCK:int = 43;//补货
+		public static var BIZDATA_TYPE_DC_SENDOUT:int = 44;//发货
+		
+		// BIZDATA TYPE    end
+		
+		//BREAKDOWNRULE_TYPE begin
+		public static var BREAKDOWNRULE_TYPE_WORK:int = 1;
+		public static var BREAKDOWNRULE_TYPE_CALENDAR:int =2 ;
+		//BREAKDOWNRULE_TYPE end
+		
+		// BIZDATADEFITEM TIMEFORMULA    begin
+		/**前一年同期 */
+		public static var BIZDATADEFITEM_TIMEFORMULA_COUNTERPARTOFLAST1YEAR:int	= 0;
+		/**前二年同期 */
+		public static var BIZDATADEFITEM_TIMEFORMULA_COUNTERPARTOFLAST2YEAR:int	= 1;
+		/**前三年同期 */
+		public static var BIZDATADEFITEM_TIMEFORMULA_COUNTERPARTOFLAST3YEAR:int	= 2;
+		/**上一期 */
+		public static var BIZDATADEFITEM_TIMEFORMULA_LAST1PERIOD:int	= 3;
+		// BIZDATADEFITEM TIMEFORMULA    end
+	
+	
+		// BIZDATADEFITEM KPIFORMULA    begin
+		/** A/B	 */
+		public static var BIZDATADEFITEM_KPIFORMULA_RATIO:int	= 0;				//	A/B	
+		/** |A-B|/B */
+		public static var BIZDATADEFITEM_KPIFORMULA_INCREMENTRATIO:int	= 1;		//	|A-B|/B
+		/** 1-|A-B|/B */
+		public static var BIZDATADEFITEM_KPIFORMULA_INCREMENTRATIO_I:int	= 2;	//	1-|A-B|/B
+		/** |A-B|/((A+B)/2) */
+		public static var BIZDATADEFITEM_KPIFORMULA_INCREMENTRATIO_II:int	= 3;	//	|A-B|/((A+B)/2)
+		/** A-B */
+		public static var BIZDATADEFITEM_KPIFORMULA_INCREMENTRATIO_III:int	= 4;	//	A-B
+		/** |A-B| */
+		public static var BIZDATADEFITEM_KPIFORMULA_INCREMENTRATIO_IV:int	= 5;	//	|A-B|
+		/** (A-B)/B*100 */
+		public static var BIZDATADEFITEM_KPIFORMULA_INCREMENTRATIO_V:int	= 6;	//	(A-B)/B*100
+		/** A/B or B/A */
+		public static var BIZDATADEFITEM_KPIFORMULA_INCREMENTRATIO_VI:int = 7;      //	A/B or B/A
+		/** ∑|A(t)-B(t)|/∑A(t) */
+		public static var BIZDATADEFITEM_KPIFORMULA_INCREMENTRATIO_VII:int = 8;      //	∑|A(t)-B(t)|/∑A(t)
+		// BIZDATADEFITEM KPIFORMULA    end		
+		
+		
+		
+		// FORECAST FCPERIODNUM    begin
+		public static var FORECAST_FCPERIODNUM_1:int				= 1;
+		public static var FORECAST_FCPERIODNUM_2:int				= 2;
+		public static var FORECAST_FCPERIODNUM_3:int				= 3;
+		public static var FORECAST_FCPERIODNUM_4:int				= 4;
+		public static var FORECAST_FCPERIODNUM_5:int				= 5;
+		public static var FORECAST_FCPERIODNUM_6:int				= 6;	
+		public static var FORECAST_FCPERIODNUM_7:int				= 7;
+		public static var FORECAST_FCPERIODNUM_8:int				= 8;
+		public static var FORECAST_FCPERIODNUM_9:int				= 9;
+		public static var FORECAST_FCPERIODNUM_10:int				= 10;
+		public static var FORECAST_FCPERIODNUM_11:int				= 11;
+		public static var FORECAST_FCPERIODNUM_12:int				= 12;
+		public static var FORECAST_FCPERIODNUM_13:int				= 13;
+		public static var FORECAST_FCPERIODNUM_14:int				= 14;
+		public static var FORECAST_FCPERIODNUM_15:int				= 15;
+		public static var FORECAST_FCPERIODNUM_16:int				= 16;
+		public static var FORECAST_FCPERIODNUM_17:int				= 17;
+		public static var FORECAST_FCPERIODNUM_18:int				= 18;
+		public static var FORECAST_FCPERIODNUM_19:int				= 19;
+		public static var FORECAST_FCPERIODNUM_20:int				= 20;
+		public static var FORECAST_FCPERIODNUM_21:int				= 21;
+		public static var FORECAST_FCPERIODNUM_22:int				= 22;
+		public static var FORECAST_FCPERIODNUM_23:int				= 23;
+		public static var FORECAST_FCPERIODNUM_24:int				= 24;	
+		public static var FORECAST_FCPERIODNUM_25:int = 25;
+		public static var FORECAST_FCPERIODNUM_26:int = 26;
+		public static var FORECAST_FCPERIODNUM_27:int = 27;
+		public static var FORECAST_FCPERIODNUM_28:int = 28;
+		public static var FORECAST_FCPERIODNUM_29:int = 29;
+		public static var FORECAST_FCPERIODNUM_30:int = 30;
+		public static var FORECAST_FCPERIODNUM_31:int = 31;
+		public static var FORECAST_FCPERIODNUM_32:int = 32;
+		public static var FORECAST_FCPERIODNUM_33:int = 33;
+		public static var FORECAST_FCPERIODNUM_34:int = 34;
+		public static var FORECAST_FCPERIODNUM_35:int = 35;
+		public static var FORECAST_FCPERIODNUM_36:int = 36;
+		public static var FORECAST_FCPERIODNUM_37:int = 37;
+		public static var FORECAST_FCPERIODNUM_38:int = 38;
+		public static var FORECAST_FCPERIODNUM_39:int = 39;
+		public static var FORECAST_FCPERIODNUM_40:int = 40;
+		public static var FORECAST_FCPERIODNUM_41:int = 41;
+		public static var FORECAST_FCPERIODNUM_42:int = 42;
+		public static var FORECAST_FCPERIODNUM_43:int = 43;
+		public static var FORECAST_FCPERIODNUM_44:int = 44;
+		public static var FORECAST_FCPERIODNUM_45:int = 45;
+		public static var FORECAST_FCPERIODNUM_46:int = 46;
+		public static var FORECAST_FCPERIODNUM_47:int = 47;
+		public static var FORECAST_FCPERIODNUM_48:int = 48;
+		public static var FORECAST_FCPERIODNUM_49:int = 49;
+		public static var FORECAST_FCPERIODNUM_50:int = 50;
+		public static var FORECAST_FCPERIODNUM_51:int = 51;
+		public static var FORECAST_FCPERIODNUM_52:int = 52;
+		public static var FORECAST_FCPERIODNUM_53:int = 53;
+		public static var FORECAST_FCPERIODNUM_54:int = 54;
+		public static var FORECAST_FCPERIODNUM_55:int = 55;
+		public static var FORECAST_FCPERIODNUM_56:int = 56;
+		public static var FORECAST_FCPERIODNUM_57:int = 57;
+		public static var FORECAST_FCPERIODNUM_58:int = 58;
+		public static var FORECAST_FCPERIODNUM_59:int = 59;
+		public static var FORECAST_FCPERIODNUM_60:int = 60;
+		public static var FORECAST_FCPERIODNUM_61:int = 61;
+		public static var FORECAST_FCPERIODNUM_62:int = 62;
+		public static var FORECAST_FCPERIODNUM_63:int = 63;
+		public static var FORECAST_FCPERIODNUM_64:int = 64;
+		public static var FORECAST_FCPERIODNUM_65:int = 65;
+		public static var FORECAST_FCPERIODNUM_66:int = 66;
+		public static var FORECAST_FCPERIODNUM_67:int = 67;
+		public static var FORECAST_FCPERIODNUM_68:int = 68;
+		public static var FORECAST_FCPERIODNUM_69:int = 69;
+		public static var FORECAST_FCPERIODNUM_70:int = 70;
+		public static var FORECAST_FCPERIODNUM_71:int = 71;
+		public static var FORECAST_FCPERIODNUM_72:int = 72;
+		// FORECAST FCPERIODNUM    end
+	
+		// FORECAST FZPERIODNUM    begin
+		public static var FORECAST_FZPERIODNUM_0:int				= 0;
+		public static var FORECAST_FZPERIODNUM_1:int				= 1;
+		public static var FORECAST_FZPERIODNUM_2:int				= 2;
+		public static var FORECAST_FZPERIODNUM_3:int				= 3;
+		public static var FORECAST_FZPERIODNUM_4:int				= 4;
+		public static var FORECAST_FZPERIODNUM_5:int				= 5;
+		public static var FORECAST_FZPERIODNUM_6:int				= 6;	
+		public static var FORECAST_FZPERIODNUM_7:int				= 7;
+		public static var FORECAST_FZPERIODNUM_8:int				= 8;
+		public static var FORECAST_FZPERIODNUM_9:int				= 9;
+		public static var FORECAST_FZPERIODNUM_10:int				= 10;
+		public static var FORECAST_FZPERIODNUM_11:int				= 11;
+		public static var FORECAST_FZPERIODNUM_12:int				= 12;
+		public static var FORECAST_FZPERIODNUM_13:int				= 13;
+		public static var FORECAST_FZPERIODNUM_14:int				= 14;
+		public static var FORECAST_FZPERIODNUM_15:int				= 15;
+		public static var FORECAST_FZPERIODNUM_16:int				= 16;
+		public static var FORECAST_FZPERIODNUM_17:int				= 17;
+		public static var FORECAST_FZPERIODNUM_18:int				= 18;
+		public static var FORECAST_FZPERIODNUM_19:int				= 19;
+		public static var FORECAST_FZPERIODNUM_20:int				= 20;
+		public static var FORECAST_FZPERIODNUM_21:int				= 21;
+		public static var FORECAST_FZPERIODNUM_22:int				= 22;
+		public static var FORECAST_FZPERIODNUM_23:int				= 23;
+		public static var FORECAST_FZPERIODNUM_24:int				= 24;	
+		public static var FORECAST_FZPERIODNUM_25:int = 25;
+		public static var FORECAST_FZPERIODNUM_26:int = 26;
+		public static var FORECAST_FZPERIODNUM_27:int = 27;
+		public static var FORECAST_FZPERIODNUM_28:int = 28;
+		public static var FORECAST_FZPERIODNUM_29:int = 29;
+		public static var FORECAST_FZPERIODNUM_30:int = 30;
+		public static var FORECAST_FZPERIODNUM_31:int = 31;
+		public static var FORECAST_FZPERIODNUM_32:int = 32;
+		public static var FORECAST_FZPERIODNUM_33:int = 33;
+		public static var FORECAST_FZPERIODNUM_34:int = 34;
+		public static var FORECAST_FZPERIODNUM_35:int = 35;
+		public static var FORECAST_FZPERIODNUM_36:int = 36;
+		public static var FORECAST_FZPERIODNUM_37:int = 37;
+		public static var FORECAST_FZPERIODNUM_38:int = 38;
+		public static var FORECAST_FZPERIODNUM_39:int = 39;
+		public static var FORECAST_FZPERIODNUM_40:int = 40;
+		public static var FORECAST_FZPERIODNUM_41:int = 41;
+		public static var FORECAST_FZPERIODNUM_42:int = 42;
+		public static var FORECAST_FZPERIODNUM_43:int = 43;
+		public static var FORECAST_FZPERIODNUM_44:int = 44;
+		public static var FORECAST_FZPERIODNUM_45:int = 45;
+		public static var FORECAST_FZPERIODNUM_46:int = 46;
+		public static var FORECAST_FZPERIODNUM_47:int = 47;
+		public static var FORECAST_FZPERIODNUM_48:int = 48;
+		public static var FORECAST_FZPERIODNUM_49:int = 49;
+		public static var FORECAST_FZPERIODNUM_50:int = 50;
+		public static var FORECAST_FZPERIODNUM_51:int = 51;
+		public static var FORECAST_FZPERIODNUM_52:int = 52;
+		public static var FORECAST_FZPERIODNUM_53:int = 53;
+		public static var FORECAST_FZPERIODNUM_54:int = 54;
+		public static var FORECAST_FZPERIODNUM_55:int = 55;
+		public static var FORECAST_FZPERIODNUM_56:int = 56;
+		public static var FORECAST_FZPERIODNUM_57:int = 57;
+		public static var FORECAST_FZPERIODNUM_58:int = 58;
+		public static var FORECAST_FZPERIODNUM_59:int = 59;
+		public static var FORECAST_FZPERIODNUM_60:int = 60;
+		public static var FORECAST_FZPERIODNUM_61:int = 61;
+		public static var FORECAST_FZPERIODNUM_62:int = 62;
+		public static var FORECAST_FZPERIODNUM_63:int = 63;
+		public static var FORECAST_FZPERIODNUM_64:int = 64;
+		public static var FORECAST_FZPERIODNUM_65:int = 65;
+		public static var FORECAST_FZPERIODNUM_66:int = 66;
+		public static var FORECAST_FZPERIODNUM_67:int = 67;
+		public static var FORECAST_FZPERIODNUM_68:int = 68;
+		public static var FORECAST_FZPERIODNUM_69:int = 69;
+		public static var FORECAST_FZPERIODNUM_70:int = 70;
+		public static var FORECAST_FZPERIODNUM_71:int = 71;
+		public static var FORECAST_FZPERIODNUM_72:int = 72;
+		// FORECAST FZPERIODNUM    end	
+		
+		//	FORECAST DISTRIBUTEREFFORMULA	begin
+		public static var FORECAST_DISTRIBUTEREFFORMULA_AVERAGE:int	= 0;	//	N期平均
+		public static var FORECAST_DISTRIBUTEREFFORMULA_COUNTERPARTOFLAST1YEAR:int	= 1;	//	去年同期
+		//	FORECAST DISTRIBUTEREFFORMULA	end
+		
+		
+		// FORECASTDATA STATUS    begin
+		public static var FORECASTDATA_STATUS_ACTIVE:int		= 0;
+		public static var FORECASTDATA_STATUS_INACTIVE:int		= 1;
+		// FORECASTDATA STATUS    end	
+	
+		// FORECASTMAKELOG ACTIONTYPE    begin
+		public static var FORECASTMAKELOG_ACTIONTYPE_ACTIVATE:int		= 0;
+		public static var FORECASTMAKELOG_ACTIONTYPE_INACTIVATE:int		= 1;
+		public static var FORECASTMAKELOG_ACTIONTYPE_HFC:int			= 2;
+		// FORECASTMAKELOG ACTIONTYPE    end
+		
+		// FORECASTMODELM TYPE    begin
+		/**水平模型 */
+		public static var FORECASTMODELM_TYPE_LEVEL:int			= 0;	// 水平模型
+		/**趋势模型 */
+		public static var FORECASTMODELM_TYPE_TREND:int			= 1;	// 趋势模型
+		/**季节模型 */
+		public static var FORECASTMODELM_TYPE_SEASONLEVEL:int	= 2;	// 季节模型
+		/**季节趋势模型 */
+		public static var FORECASTMODELM_TYPE_SEASONTREND:int	= 3;	// 季节趋势模型
+		/**类比模型 */
+		public static var FORECASTMODELM_TYPE_ANALOG:int		= 4;	// 类比模型
+		// FORECASTMODELM TYPE    end	
+		
+		//	FORECASTRUNTASK STATUS	begin
+		public static var FORECASTRUNTASK_STATUS_RUNNING:int		= 0;	// 运行中
+		public static var FORECASTRUNTASK_STATUS_RUNNED:int			= 1;	// 已完成
+		//	FORECASTRUNTASK STATUS	end
+		
+		//	FORECASTRUNTASKITEM STATUS	begin
+		public static var FORECASTRUNTASKITEM_STATUS_TORUN:int			= 0;	// 待运行		
+		public static var FORECASTRUNTASKITEM_STATUS_RUNNING:int		= 1;	// 运行中
+		public static var FORECASTRUNTASKITEM_STATUS_RUNNED:int			= 2;	// 已完成
+		//	FORECASTRUNTASKITEM STATUS	end		
+		
+		//	FORECASTRUNTASKITEM RESULT	begin
+		public static var FORECASTRUNTASKITEM_RESULT_TORUN:int				= 0;	// 待运行
+		public static var FORECASTRUNTASKITEM_RESULT_SUCCEED:int			= 1;	// 成功		
+		public static var FORECASTRUNTASKITEM_RESULT_ERRORTHRESHOLD:int		= 2;	// 误差阈值
+		public static var FORECASTRUNTASKITEM_RESULT_EXCEPTION:int			= 3;	// 异常
+		//	FORECASTRUNTASKITEM RESULT	end			
+		
+		//	PRICE TYPE	begin
+		public static var PRICE_TYPE_STANDARD:int		= 0;	// 标准价格
+		public static var PRICE_TYPE_REAL:int			= 1;	// 实际价格		
+		//	PRICE TYPE	end		
+		
+		// PERIODROLLTASK CATEGORY    begin
+		public static var PERIODROLLTASK_CATEGORY_PERIOD:int			= 0;	// 编制期间
+		public static var PERIODROLLTASK_CATEGORY_HISTORYDATA:int		= 1;	// 历史数据
+		public static var PERIODROLLTASK_CATEGORY_FORECASTINST:int		= 2;	// 预测类别
+		// PERIODROLLTASK CATEGORY    end		
+	
+		// PERIODROLLTASK STATUS    begin
+		public static var PERIODROLLTASK_STATUS_TORUN:int		= 0;	// 待运行
+		public static var PERIODROLLTASK_STATUS_RUNNING:int		= 1;	// 运行中
+		public static var PERIODROLLTASK_STATUS_RUNNED:int		= 2;	// 已运行
+		// PERIODROLLTASK STATUS    end					
+						
+		// 数据字典    end	
+		
+		// BIZDATADEFITEM INDICATOR    begin
+		public static var BIZDATADEFITEM_INDICATOR_HISTORYAD:String		= "BIZDATADEFITEM_INDICATOR_HISTORYAD";
+		public static var BIZDATADEFITEM_INDICATOR_HISTORYADR:String	= "BIZDATADEFITEM_INDICATOR_HISTORYADR";
+		
+		
+		public static var BIZDATADEFITEM_INDICATOR_FCHAND:String		= "BIZDATADEFITEM_INDICATOR_FCHAND";
+		public static var BIZDATADEFITEM_INDICATOR_FCCOMB:String		= "BIZDATADEFITEM_INDICATOR_FCCOMB";
+		public static var BIZDATADEFITEM_INDICATOR_FORECASTASSESSMENT:String		= "BIZDATADEFITEM_INDICATOR_FORECASTASSESSMENT";
+		
+		public static var BIZDATADEFITEM_INDICATOR_TIMEHIS:String		= "BIZDATADEFITEM_INDICATOR_TIMEHIS";
+		public static var BIZDATADEFITEM_INDICATOR_TIMEFC:String		= "BIZDATADEFITEM_INDICATOR_TIMEFC";
+		public static var BIZDATADEFITEM_INDICATOR_KPI:String			= "BIZDATADEFITEM_INDICATOR_KPI";
+		public static var BIZDATADEFITEM_INDICATOR_MONEY:String			= "BIZDATADEFITEM_INDICATOR_MONEY";
+		public static var BIZDATADEFITEM_INDICATOR_MONEYCOMB:String		= "BIZDATADEFITEM_INDICATOR_MONEYCOMB";
+		
+		/** 历史期间平均 */
+		public static var BIZDATADEFITEM_INDICATOR_AVGHIS:String		= "BIZDATADEFITEM_INDICATOR_AVGHIS";
+		/** 历史期间累积 */
+		public static var BIZDATADEFITEM_INDICATOR_ADDHIS:String		= "BIZDATADEFITEM_INDICATOR_ADDHIS";
+		/** 预测期间累积 */
+		public static var BIZDATADEFITEM_INDICATOR_ADDFC:String		    = "BIZDATADEFITEM_INDICATOR_ADDFC";
+		
+		/** M-N版本预测 */
+		public static var BIZDATADEFITEM_INDICATOR_PERIODVERSION:String = "BIZDATADEFITEM_INDICATOR_PERIODVERSION";
+		// BIZDATADEFITEM INDICATOR    end
+		
+		// FORECASTMODELM INDICATOR    begin
+		// 水平模型
+		/**移动平均法 */
+		public static var FORECASTMODELM_INDICATOR_LMA:String			= "FORECASTMODELM_INDICATOR_LMA"; 
+		/**加权移动平均法 */
+		public static var FORECASTMODELM_INDICATOR_LWMA:String			= "FORECASTMODELM_INDICATOR_LWMA"; 
+		/**指数平滑法 */
+		public static var FORECASTMODELM_INDICATOR_LES:String			= "FORECASTMODELM_INDICATOR_LES";
+		/**自适应指数平滑法 */
+		public static var FORECASTMODELM_INDICATOR_LESO:String			= "FORECASTMODELM_INDICATOR_LESO";
+		/** */
+	
+		// 趋势模型	
+		/**去年百分比法 */
+		public static var FORECASTMODELM_INDICATOR_TPLY:String			= "FORECASTMODELM_INDICATOR_TPLY";
+		/**已计去年百分比法 */
+		public static var FORECASTMODELM_INDICATOR_TCPLY:String			= "FORECASTMODELM_INDICATOR_TCPLY";
+		/**趋势指数平滑法 */
+		public static var FORECASTMODELM_INDICATOR_TES:String			= "FORECASTMODELM_INDICATOR_TES";
+		/**自适应趋势指数平滑法 */
+		public static var FORECASTMODELM_INDICATOR_TESO:String			= "FORECASTMODELM_INDICATOR_TESO";
+		/**线性逼近法 */
+		public static var FORECASTMODELM_INDICATOR_TLA:String			= "FORECASTMODELM_INDICATOR_TLA";
+		/** */
+		public static var FORECASTMODELM_INDICATOR_TLR:String			= "FORECASTMODELM_INDICATOR_TLR";
+		/** */
+		public static var FORECASTMODELM_INDICATOR_TSDA:String			= "FORECASTMODELM_INDICATOR_TSDA";
+		/** */
+	
+		// 季节模型
+		/**季节移动平均法 */
+		public static var FORECASTMODELM_INDICATOR_SLMA:String			= "FORECASTMODELM_INDICATOR_SLMA"; 
+		/**季节加权移动平均法 */
+		public static var FORECASTMODELM_INDICATOR_SLWMA:String			= "FORECASTMODELM_INDICATOR_SLWMA"; 
+		/**季节指数平滑法 */
+		public static var FORECASTMODELM_INDICATOR_SLES:String			= "FORECASTMODELM_INDICATOR_SLES";
+		/**自适应季节指数平滑法 */
+		public static var FORECASTMODELM_INDICATOR_SLESO:String			= "FORECASTMODELM_INDICATOR_SLESO";
+	
+		// 季节趋势模型
+		/**季节去年百分比法 */
+		public static var FORECASTMODELM_INDICATOR_STPLY:String			= "FORECASTMODELM_INDICATOR_STPLY";
+		/**季节已计去年百分比法 */
+		public static var FORECASTMODELM_INDICATOR_STCPLY:String		= "FORECASTMODELM_INDICATOR_STCPLY";
+		/**季节趋势指数平滑法(叠加法) */
+		public static var FORECASTMODELM_INDICATOR_STESA:String			= "FORECASTMODELM_INDICATOR_STESA";
+		/**自适应季节趋势指数平滑法(叠加法) */
+		public static var FORECASTMODELM_INDICATOR_STESAO:String		= "FORECASTMODELM_INDICATOR_STESAO";
+		/**Multi 季节趋势指数平滑法(相乘法) */
+		public static var FORECASTMODELM_INDICATOR_STESM:String			= "FORECASTMODELM_INDICATOR_STESM";
+		/**自适应季节趋势指数平滑法(相乘法) */
+		public static var FORECASTMODELM_INDICATOR_STESMO:String		= "FORECASTMODELM_INDICATOR_STESMO";
+		/**季节线性逼近法 */
+		public static var FORECASTMODELM_INDICATOR_STLA:String			= "FORECASTMODELM_INDICATOR_STLA";
+		/** */
+		public static var FORECASTMODELM_INDICATOR_STLR:String			= "FORECASTMODELM_INDICATOR_STLR";
+		
+		//	类比模型
+		/**类比法 */
+		public static var FORECASTMODELM_INDICATOR_AANALOG:String		= "FORECASTMODELM_INDICATOR_AANALOG";		
+		// FORECASTMODELM INDICATOR    end		
+		
+		// 系统预定义业务数据编码    begin
+		// 历史数据    begin
+		public static var SYSTEMDEFINE_BIZDATA_CODE_SD_HISTORY_SO:String			= "SD_HISTORY_SO";		// 销售定单
+		public static var SYSTEMDEFINE_BIZDATA_CODE_SD_HISTORY_GI:String			= "SD_HISTORY_GI";		// 销售发货
+		public static var SYSTEMDEFINE_BIZDATA_CODE_SD_HISTORY_SI:String			= "SD_HISTORY_SI";		// 销售发票
+	
+		public static var SYSTEMDEFINE_BIZDATA_CODE_SD_HISTORYAD_SO:String			= "SD_HISTORYAD_SO";	// 销售定单调整
+		public static var SYSTEMDEFINE_BIZDATA_CODE_SD_HISTORYAD_GI:String			= "SD_HISTORYAD_GI";	// 销售发货调整
+		public static var SYSTEMDEFINE_BIZDATA_CODE_SD_HISTORYAD_SI:String			= "SD_HISTORYAD_SI";	// 销售发票调整
+		
+		
+		//新增的六种历史数据
+		public static var SYSTEMDEFINE_BIZDATA_CODE_SD_HISTORY_H1:String = "SD_HISTORY_H1"; // ----AOP 数量
+		public static var SYSTEMDEFINE_BIZDATA_CODE_SD_HISTORY_H2:String = "SD_HISTORY_H2"; // ----AOP 金额
+		public static var SYSTEMDEFINE_BIZDATA_CODE_SD_HISTORY_H3:String = "SD_HISTORY_H3"; //----AOP 折扣金额
+		public static var SYSTEMDEFINE_BIZDATA_CODE_SD_HISTORY_H4:String = "SD_HISTORY_H4"; // ----经销商库存
+		public static var SYSTEMDEFINE_BIZDATA_CODE_SD_HISTORY_H5:String = "SD_HISTORY_H5"; // ----分仓库存
+		public static var SYSTEMDEFINE_BIZDATA_CODE_SD_HISTORY_H6:String = "SD_HISTORY_H6"; // ----工厂库存
+		public static var SYSTEMDEFINE_BIZDATA_CODE_SD_HISTORY_H7:String = "SD_HISTORY_H7"; // ----7
+		
+		public static var SYSTEMDEFINE_BIZDATA_CODE_SD_HISTORYAD_H1:String = "SD_HISTORYAD_H1"; // ----AOP 数量
+		public static var SYSTEMDEFINE_BIZDATA_CODE_SD_HISTORYAD_H2:String = "SD_HISTORYAD_H2"; // ----AOP 金额
+		public static var SYSTEMDEFINE_BIZDATA_CODE_SD_HISTORYAD_H3:String = "SD_HISTORYAD_H3"; //----AOP 折扣金额
+		public static var SYSTEMDEFINE_BIZDATA_CODE_SD_HISTORYAD_H4:String = "SD_HISTORYAD_H4"; // ----经销商库存
+		public static var SYSTEMDEFINE_BIZDATA_CODE_SD_HISTORYAD_H5:String = "SD_HISTORYAD_H5"; // ----分仓库存
+		public static var SYSTEMDEFINE_BIZDATA_CODE_SD_HISTORYAD_H6:String = "SD_HISTORYAD_H6"; // ----工厂库存
+		public static var SYSTEMDEFINE_BIZDATA_CODE_SD_HISTORYAD_H7:String = "SD_HISTORYAD_H7"; // ----工厂库存
+		// 历史数据    end
+
+		// 统计预测    begin
+		public static var SYSTEMDEFINE_BIZDATA_CODE_SD_FORECAST_MAPPING:String		= "SD_FORECAST_MAPPING";	// 映射模型预测
+		// 统计预测    end	
+		// 最终预测    begin
+		public static var SYSTEMDEFINE_BIZDATA_CODE_SD_FORECAST_FINAL:String		= "SD_FORECAST_FINAL";		// 最终预测
+		// 最终预测    end		
+		// 系统预定义业务数据编码    end	
+		
+		// 系统预定义映射模型编码    begin
+		// 水平模型
+		public static var SYSTEMDEFINE_FORECASTMOELM_CODE_SD_FM_L_MA:String				= "SD_FM_L_MA";			// 移动平均法
+		public static var SYSTEMDEFINE_FORECASTMOELM_CODE_SD_FM_L_WMA:String			= "SD_FM_L_WMA";		// 加权移动平均法
+		public static var SYSTEMDEFINE_FORECASTMOELM_CODE_SD_FM_L_ES:String				= "SD_FM_L_ES";			// 指数平滑法
+		public static var SYSTEMDEFINE_FORECASTMOELM_CODE_SD_FM_L_ES_OP:String			= "SD_FM_L_ES_OP";		// 自适应指数平滑法
+	
+		// 趋势模型	
+		public static var SYSTEMDEFINE_FORECASTMOELM_CODE_SD_FM_T_POLY:String			= "SD_FM_T_POLY";		// 去年百分比法
+		public static var SYSTEMDEFINE_FORECASTMOELM_CODE_SD_FM_T_CPOLY:String			= "SD_FM_T_CPOLY";		// 已计去年百分比法
+		public static var SYSTEMDEFINE_FORECASTMOELM_CODE_SD_FM_T_ES:String				= "SD_FM_T_ES";			// 趋势指数平滑法
+		public static var SYSTEMDEFINE_FORECASTMOELM_CODE_SD_FM_T_ES_OP:String			= "SD_FM_T_ES_OP";		// 自适应趋势指数平滑法
+		public static var SYSTEMDEFINE_FORECASTMOELM_CODE_SD_FM_T_LA:String				= "SD_FM_T_LA";			// 线性逼近法
+		public static var SYSTEMDEFINE_FORECASTMOELM_CODE_SD_FM_T_LR:String				= "SD_FM_T_LR";			// 一元线性回归法
+		public static var SYSTEMDEFINE_FORECASTMOELM_CODE_SD_FM_T_SDA:String			= "SD_FM_T_SDA";		// 二次线性逼近法
+	
+		// 季节模型
+		public static var SYSTEMDEFINE_FORECASTMOELM_CODE_SD_FM_SL_MA:String			= "SD_FM_SL_MA";		// 季节移动平均法
+		public static var SYSTEMDEFINE_FORECASTMOELM_CODE_SD_FM_SL_WMA:String			= "SD_FM_SL_WMA"; 		// 季节加权移动平均法
+		public static var SYSTEMDEFINE_FORECASTMOELM_CODE_SD_FM_SL_ES:String			= "SD_FM_SL_ES";		// 季节指数平滑法
+		public static var SYSTEMDEFINE_FORECASTMOELM_CODE_SD_FM_SL_ES_OP:String			= "SD_FM_SL_ES_OP";		// 自适应季节指数平滑法
+	
+		// 季节趋势模型
+		public static var SYSTEMDEFINE_FORECASTMOELM_CODE_SD_FM_ST_POLY:String			= "SD_FM_ST_POLY";		// 季节去年百分比法
+		public static var SYSTEMDEFINE_FORECASTMOELM_CODE_SD_FM_ST_CPOLY:String			= "SD_FM_ST_CPOLY";		// 季节已计去年百分比法
+		public static var SYSTEMDEFINE_FORECASTMOELM_CODE_SD_FM_ST_ES_ADD:String		= "SD_FM_ST_ES_ADD";	// 季节趋势指数平滑法 （叠加法）
+		public static var SYSTEMDEFINE_FORECASTMOELM_CODE_SD_FM_ST_ES_ADD_OP:String		= "SD_FM_ST_ES_ADD_OP";	// 自适应季节趋势指数平滑法 （叠加法）
+		public static var SYSTEMDEFINE_FORECASTMOELM_CODE_SD_FM_ST_ES_MUL:String		= "SD_FM_ST_ES_MUL";	// 季节趋势指数平滑法（相乘法）
+		public static var SYSTEMDEFINE_FORECASTMOELM_CODE_SD_FM_ST_ES_MUL_OP:String		= "SD_FM_ST_ES_MUL_OP";	// 自适应季节趋势指数平滑法（相乘法）
+		public static var SYSTEMDEFINE_FORECASTMOELM_CODE_SD_FM_ST_LA:String			= "SD_FM_ST_LA";		// 季节线性逼近法
+		public static var SYSTEMDEFINE_FORECASTMOELM_CODE_SD_FM_ST_LR:String			= "SD_FM_ST_LR";		// 季节一元线性回归法
+		
+		//	类比模型
+		public static var SYSTEMDEFINE_FORECASTMOELM_CODE_SD_FM_A_ANALOG:String			= "SD_FM_A_ANALOG";		// 类比法		
+		// 系统预定义映射模型编码    end
+		
+		//	导入数据结果	begin
+		public static var IMPORT_RESULT_SUCCESS:String	= "OK";		// 导入成功
+		
+		public static var HISTORYDATA_IMPORT_WARNINFO_1:String = "HISTORYDATA_IMPORT_WARNINFO_1";
+		public static var HISTORYDATA_IMPORT_WARNINFO_2:String = "HISTORYDATA_IMPORT_WARNINFO_2";
+		public static var HISTORYDATA_IMPORT_WARNINFO_3:String = "HISTORYDATA_IMPORT_WARNINFO_3";
+		public static var HISTORYDATA_IMPORT_WARNINFO_4:String = "HISTORYDATA_IMPORT_WARNINFO_4";
+		//	导入数据结果	end		
+		
+		//add by luowang 20101203 增加了AD验证部分参数 start.
+		public static var CONFIG_AD_ISOPEN:String="isOpenAD";//是否验证AD，如果为false则直接以正常状态打开客户端
+		public static var CONFIG_AD_ADADDRESS:String="ADAddress"; //ad服务器地址
+		public static var CONFIG_AD_ADPORT:String="ADPort";//AD链接端口，默认是389，一般不需要改动
+		public static var CONFIG_AD_DOMAIN:String="ADDomain";//AD用户名后缀名，一般为@XX.com，也有特殊的，这个主要取决于AD服务器配置,根据实际情况而不同.
+		//add by luowang 20101203 end.
+		
+		//add by luowang 20110308 增加了服务端和数据库版本参数 start.
+		public static var CONFIG_VERSION_SERVER:String="version_server";
+		public static var CONFIG_VERSION_DATABASE:String="version_database";
+		//add by luowang 20110308 增加了服务端和数据库版本参数 end.
+		
+		//add by luowang 20110415 增加了权重基准数据选择 begin.
+		public static var REPORT_WEIGHT_BASEDATA_A:int = 0;
+		public static var REPORT_WEIGHT_BASEDATA_B:int = 1;
+		public static var REPORT_WEIGHT_BASEDATA_A_add_B:int = 2;
+		//add by luowang 20110415 增加了权重基准数据选择 end.
+		
+		//add by luowang 20110609 增加了接口配置列表说明 begin.
+		//------------sap配置，目前支持系统r3(一般来说，SAP系统接口都是以R3系统为核心)------------
+		public static var INTERFACE_CONFIG_SAP:String="SAP";
+		public static var INTERFACE_CONFIG_SAP_R3:String="R3";
+		//add by luowang 20110609 增加了接口配置列表说明 end.
+		
+		//add by luowang 20111109 导入价格时可以自选导入何种价格  begin
+		public static var PRICE_IMPORT_STANDARDPRICE:int = 0;
+		public static var PRICE_IMPORT_REALPRICE:int = 1;
+		public static var PRICE_IMPORT_BOTHPRICE:int = 2;
+		//add by luowang 20111109 导入价格时可以自选导入何种价格  end
+		
+		//add by luowang 20111208 增加了拆分报表两种日历分解 begin
+		public static var REPORT_PERIOD_BREAKDOWN_TYPE_CALENDARWEK:int = 0;
+		public static var REPORT_PERIOD_BREAKDOWN_TYPE_WORKWEEK:int = 1;
+		//add by luowang 20111208 增加了拆分报表两种日历分解 end
+		// 系统功能权限列表     begin
+		// 1
+		
+		// 1.1
+		public static var FUNPERMISSION_MAINDATA_UNIT_QUERY:String						= "FUNPERMISSION_MAINDATA_UNIT_QUERY";
+		public static var FUNPERMISSION_MAINDATA_UNIT_MANAGE:String						= "FUNPERMISSION_MAINDATA_UNIT_MANAGE";
+		// 1.2
+		public static var FUNPERMISSION_MAINDATA_PRODUCT_PRODUCT_QUERY:String					= "FUNPERMISSION_MAINDATA_PRODUCT_PRODUCT_QUERY";
+		public static var FUNPERMISSION_MAINDATA_PRODUCT_PRODUCT_MANAGE:String					= "FUNPERMISSION_MAINDATA_PRODUCT_PRODUCT_MANAGE";
+		public static var FUNPERMISSION_MAINDATA_PRODUCT_PRODUCTLAYER_QUERY:String				= "FUNPERMISSION_MAINDATA_PRODUCT_PRODUCTLAYER_QUERY";
+		public static var FUNPERMISSION_MAINDATA_PRODUCT_PRODUCTLAYER_MANAGE:String				= "FUNPERMISSION_MAINDATA_PRODUCT_PRODUCTLAYER_MANAGE";
+		public static var FUNPERMISSION_MAINDATA_PRODUCT_PRODUCTCHARACTER_QUERY:String			= "FUNPERMISSION_MAINDATA_PRODUCT_PRODUCTCHARACTER_QUERY";
+		public static var FUNPERMISSION_MAINDATA_PRODUCT_PRODUCTCHARACTER_MANAGE:String			= "FUNPERMISSION_MAINDATA_PRODUCT_PRODUCTCHARACTER_MANAGE";
+		public static var FUNPERMISSION_MAINDATA_PRODUCT_PRODUCTCHARACTERLAYER_QUERY:String		= "FUNPERMISSION_MAINDATA_PRODUCT_PRODUCTCHARACTERLAYER_QUERY";
+		public static var FUNPERMISSION_MAINDATA_PRODUCT_PRODUCTCHARACTERLAYER_MANAGE:String	= "FUNPERMISSION_MAINDATA_PRODUCT_PRODUCTCHARACTERLAYER_MANAGE";
+		
+		
+		public static var FUNPERMISSION_MAINDATA_PRODUCT_PRODUCT_IMPORT:String					= "FUNPERMISSION_MAINDATA_PRODUCT_PRODUCT_IMPORT";
+		public static var FUNPERMISSION_MAINDATA_PRODUCT_PRODUCTCHARACTER_IMPORT:String			= "FUNPERMISSION_MAINDATA_PRODUCT_PRODUCTCHARACTER_IMPORT";
+		public static var FUNPERMISSION_MAINDATA_PRODUCT_PRODUCTPROCHARACTER_IMPORT:String		= "FUNPERMISSION_MAINDATA_PRODUCT_PRODUCTPROCHARACTER_IMPORT";
+				
+		// 1.3
+		public static var FUNPERMISSION_MAINDATA_ORGANIZATION_ORGANIZATION_QUERY:String						= "FUNPERMISSION_MAINDATA_ORGANIZATION_ORGANIZATION_QUERY";
+		public static var FUNPERMISSION_MAINDATA_ORGANIZATION_ORGANIZATION_MANAGE:String					= "FUNPERMISSION_MAINDATA_ORGANIZATION_ORGANIZATION_MANAGE";
+		public static var FUNPERMISSION_MAINDATA_ORGANIZATION_ORGANIZATIONLAYER_QUERY:String				= "FUNPERMISSION_MAINDATA_ORGANIZATION_ORGANIZATIONLAYER_QUERY";
+		public static var FUNPERMISSION_MAINDATA_ORGANIZATION_ORGANIZATIONLAYER_MANAGE:String				= "FUNPERMISSION_MAINDATA_ORGANIZATION_ORGANIZATIONLAYER_MANAGE";
+		public static var FUNPERMISSION_MAINDATA_ORGANIZATION_ORGANIZATIONCHARACTER_QUERY:String			= "FUNPERMISSION_MAINDATA_ORGANIZATION_ORGANIZATIONCHARACTER_QUERY";
+		public static var FUNPERMISSION_MAINDATA_ORGANIZATION_ORGANIZATIONCHARACTER_MANAGE:String			= "FUNPERMISSION_MAINDATA_ORGANIZATION_ORGANIZATIONCHARACTER_MANAGE";
+		public static var FUNPERMISSION_MAINDATA_ORGANIZATION_ORGANIZATIONCHARACTERLAYER_QUERY:String		= "FUNPERMISSION_MAINDATA_ORGANIZATION_ORGANIZATIONCHARACTERLAYER_QUERY";
+		public static var FUNPERMISSION_MAINDATA_ORGANIZATION_ORGANIZATIONCHARACTERLAYER_MANAGE:String		= "FUNPERMISSION_MAINDATA_ORGANIZATION_ORGANIZATIONCHARACTERLAYER_MANAGE";
+		
+		public static var FUNPERMISSION_MAINDATA_ORGANIZATION_ORGANIZATION_IMPORT:String					= "FUNPERMISSION_MAINDATA_ORGANIZATION_ORGANIZATION_IMPORT";
+		public static var FUNPERMISSION_MAINDATA_ORGANIZATION_ORGANIZATIONCHARACTER_IMPORT:String			= "FUNPERMISSION_MAINDATA_ORGANIZATION_ORGANIZATIONCHARACTER_IMPORT";
+		public static var FUNPERMISSION_MAINDATA_ORGANIZATION_ORGANIZATIONORGCHARACTER_IMPORT:String		= "FUNPERMISSION_MAINDATA_ORGANIZATION_ORGANIZATIONORGCHARACTER_IMPORT";		
+		// 1.4
+
+		// 1.5
+		public static var FUNPERMISSION_MAINDATA_BIZDATA_QUERY:String					= "FUNPERMISSION_MAINDATA_BIZDATA_QUERY";		
+		public static var FUNPERMISSION_MAINDATA_BIZDATA_MANAGE:String					= "FUNPERMISSION_MAINDATA_BIZDATA_MANAGE";
+		
+		// 1.6 分仓
+		public static var FUNPERMISSION_MAINDATA_DISTRIBUTIONCENTER:String              = "FUNPERMISSION_MAINDATA_DISTRIBUTIONCENTER";
+
+		// 2
+		public static var FUNPERMISSION_OPERATORUSER_QUERY:String						= "FUNPERMISSION_OPERATORUSER_QUERY";
+		public static var FUNPERMISSION_OPERATORUSER_MANAGE:String						= "FUNPERMISSION_OPERATORUSER_MANAGE";
+		public static var FUNPERMISSION_OPERATORUSER_PASSWORD:String					= "FUNPERMISSION_OPERATORUSER_PASSWORD";
+		public static var FUNPERMISSION_OPERATORUSER_INTERFACE:String					= "FUNPERMISSION_OPERATORUSER_INTERFACE";
+		public static var FUNPERMISSION_OPERATORUSER_INTERFACEPRICEDATA:String          = "FUNPERMISSION_OPERATORUSER_INTERFACEPRICEDATA";
+		public static var FUNPERMISSION_OPERATORUSER_SYSBAK:String                      = "FUNPERMISSION_OPERATORUSER_SYSBAK";
+		public static var FUNPERMISSION_SECURITY_INTERFACE_STANDARD:String              = "FUNPERMISSION_SECURITY_INTERFACE_STANDARD";
+		// 3
+		public static var FUNPERMISSION_HISTORY_HISTORYDATA_QUERY:String				= "FUNPERMISSION_HISTORY_HISTORYDATA_QUERY";
+		public static var FUNPERMISSION_HISTORY_HISTORYDATA_ADJUST:String				= "FUNPERMISSION_HISTORY_HISTORYDATA_ADJUST";
+		//	2010.12.10 by liuzhen	数据框架设计中去掉历史数据录入功能，这个功能项也不再使用		begin
+		//	public static var FUNPERMISSION_HISTORY_HISTORYDATA_INPUT:String				= "FUNPERMISSION_HISTORY_HISTORYDATA_INPUT";
+		//	2010.12.10 by liuzhen	数据框架设计中去掉历史数据录入功能，这个功能项也不再使用		end
+		public static var FUNPERMISSION_HISTORY_HISTORYDATA_IMPORT:String				= "FUNPERMISSION_HISTORY_HISTORYDATA_IMPORT";		
+		public static var FUNPERMISSION_HISTORY_HISTORYADJUSTLOG_QUERY:String			= "FUNPERMISSION_HISTORY_HISTORYADJUSTLOG_QUERY";
+		public static var FUNPERMISSION_HISTORY_HISTORYADRDATA_IMPORT:String				= "FUNPERMISSION_HISTORY_HISTORYADRDATA_IMPORT";	
+		// 4
+		public static var FUNPERMISSION_PRICE_PRICEDATA_QUERY:String				= "FUNPERMISSION_PRICE_PRICEDATA_QUERY";	//	价格查询
+		public static var FUNPERMISSION_PRICE_PRICEDATA_ADJUST:String				= "FUNPERMISSION_PRICE_PRICEDATA_ADJUST";	//	价格调整
+		public static var FUNPERMISSION_PRICE_PRICEDATA_IMPORT:String				= "FUNPERMISSION_PRICE_PRICEDATA_IMPORT";	//	价格导入		
+		
+		// 5
+		// 5.1
+		public static var FUNPERMISSION_FORECAST_FORECASTMODEL_QUERY:String				= "FUNPERMISSION_FORECAST_FORECASTMODEL_QUERY";
+		public static var FUNPERMISSION_FORECAST_FORECASTMODEL_MANAGE:String			= "FUNPERMISSION_FORECAST_FORECASTMODEL_MANAGE";		
+		// 5.2
+		public static var FUNPERMISSION_FORECAST_FORECASTINST_QUERY:String				= "FUNPERMISSION_FORECAST_FORECASTINST_QUERY";
+		public static var FUNPERMISSION_FORECAST_FORECASTINST_MANAGE:String				= "FUNPERMISSION_FORECAST_FORECASTINST_MANAGE";
+		// 5.3
+		public static var FUNPERMISSION_FORECAST_FORECASTDATA_QUERY:String				= "FUNPERMISSION_FORECAST_FORECASTDATA_QUERY";
+		public static var FUNPERMISSION_FORECAST_FORECASTDATA_FCHAND:String				= "FUNPERMISSION_FORECAST_FORECASTDATA_FCHAND";
+		public static var FUNPERMISSION_FORECAST_FORECASTDATA_AUDIT:String				= "FUNPERMISSION_FORECAST_FORECASTDATA_AUDIT";
+		public static var FUNPERMISSION_FORECAST_FORECASTDATA_FCMODEL:String			= "FUNPERMISSION_FORECAST_FORECASTDATA_FCMODEL";
+		// 5.4
+		public static var FUNPERMISSION_FORECAST_FORECASTMAKELOG_QUERY:String			= "FUNPERMISSION_FORECAST_FORECASTMAKELOG_QUERY";
+		// 5.5
+		public static var FUNPERMISSION_FORECAST_FORECASTERROR_QUERY:String				= "FUNPERMISSION_FORECAST_FORECASTERROR_QUERY";
+		//5.6
+		public static var FUNPERMISSION_FORECAST_FORECASTASSESSMENT_MANAGE:String				= "FUNPERMISSION_FORECAST_FORECASTASSESSMENT_MANAGE";
+		
+		// 6
+		public static var FUNPERMISSION_REPORT_REPORT_QUERY:String						= "FUNPERMISSION_REPORT_REPORT_QUERY";
+		public static var FUNPERMISSION_REPORT_REPORT_STATISTIC:String 					="FUNPERMISSION_REPORT_REPORT_STATISTIC";
+		public static var FUNPERMISSION_REPORT_REPORT_BREAKDOWN:String					="FUNPERMISSION_REPORT_REPORT_BREAKDOWN";
+		public static var FUNPERMISSION_REPORT_REPORT_EXPANSION:String					="FUNPERMISSION_REPORT_REPORT_EXPANSION";
+		public static var FUNPERMISSION_REPORT_REPORT_HISTORYFORECAST:String			="FUNPERMISSION_REPORT_REPORT_HISTORYFORECAST";
+		// 7
+		public static var FUNPERMISSION_BULLETIN_BULLETIN_QUERY:String					= "FUNPERMISSION_BULLETIN_BULLETIN_QUERY";
+		public static var FUNPERMISSION_BULLETIN_BULLETIN_MANAGE:String					= "FUNPERMISSION_BULLETIN_BULLETIN_MANAGE";
+		
+		// 8
+		public static var FUNPERMISSION_SYSTEM_PERIOD_ROLL:String						= "FUNPERMISSION_SYSTEM_PERIOD_ROLL";				
+		
+		//9
+		public static var FUNPERMISSION_CONVERSION_UNIT_MANAGE:String = "FUNPERMISSION_CONVERSION_UNIT_MANAGE";
+		
+		//10 补货
+		public static var FUNPERMISSION_DISTRIBUTIONCENTER_MNG:String = "FUNPERMISSION_DISTRIBUTIONCENTER_MNG";//分销中心管理 权限
+		
+		public static var FUNPERMISSION_REPLENISH_MNG:String = "FUNPERMISSION_REPLENISH_MNG";
+		
+		//11 移动服务端管理
+		public static var FUNPERMISSION_SECURITY_MOBILE:String="FUNPERMISSION_SECURITY_MOBILE";
+		// 系统功能权限列表     end
+	}
+}

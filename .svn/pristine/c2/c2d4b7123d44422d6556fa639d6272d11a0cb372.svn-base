@@ -1,0 +1,129 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<mx:AdvancedDataGrid xmlns:fx="http://ns.adobe.com/mxml/2009" 
+					 xmlns:s="library://ns.adobe.com/flex/spark" 
+					 xmlns:mx="library://ns.adobe.com/flex/mx"
+					 creationComplete="creationCompleteHandler(event)" horizontalScrollPolicy="on" styleName="adv1" >
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+	</fx:Declarations>
+
+	<fx:Script>
+		<![CDATA[						
+			import dmdd.dmddas.common.constant.BizConst;
+			import dmdd.dmddas.common.utils.UtilDataGridColumnLabelFunction;
+			import dmdd.dmddas.dataaccess.bizobject.BOperatorUserBizData;
+			
+			import mx.events.FlexEvent;
+			
+			import spark.components.CheckBox;
+			import mx.resources.ResourceManager;
+			//	描述    begin
+			//	描述    end
+			
+			//	0	输入参数    begin	
+			//	0	输入参数    end
+			
+			//	1	输出参数    begin
+			//	1	输出参数    end
+			
+			//	2	本地变量    begin			
+			//	2	本地变量    end			
+			
+			//	3	公共方法    begin			
+			//	3	公共方法    end		
+			
+			//	4	初始化方法    begin	
+			protected function creationCompleteHandler(event:FlexEvent):void
+			{
+			}				
+			//	4	初始化方法    end				
+			
+			//	5	事件响应方法    begin
+			//	5	事件响应方法    end
+			
+			//	6	本地方法    begin
+			private function sortCompareFunction4BizDataCode(obj1:BOperatorUserBizData, obj2:BOperatorUserBizData):int
+			{
+				if( obj1 == null )
+				{
+					return -1;
+				}
+				
+				if( obj2 == null )
+				{
+					return 1;
+				}
+				
+				var rstCompare:int = obj1.bizData.code.localeCompare( obj2.bizData.code )
+				if( rstCompare < 0 )
+				{
+					return -1;
+				}
+				else if( rstCompare > 0 )
+				{
+					return 1;
+				}
+				else
+				{
+					return 0;
+				}
+			}			
+			
+			private function sortCompareFunction4BizDataName(obj1:BOperatorUserBizData, obj2:BOperatorUserBizData):int
+			{
+				if( obj1 == null )
+				{
+					return -1;
+				}
+				
+				if( obj2 == null )
+				{
+					return 1;
+				}
+				
+				var rstCompare:int = obj1.bizData.name.localeCompare( obj2.bizData.name )
+				if( rstCompare < 0 )
+				{
+					return -1;
+				}
+				else if( rstCompare > 0 )
+				{
+					return 1;
+				}
+				else
+				{
+					return 0;
+				}
+			}						
+			//	6	本地方法   end				
+		]]>
+	</fx:Script>
+	<mx:columns>
+		<mx:AdvancedDataGridColumn headerText="{ResourceManager.getInstance().getString('label','busDataCode')}" dataField="bizData" labelFunction="UtilDataGridColumnLabelFunction.getBizDataCode" editable="false" sortCompareFunction="sortCompareFunction4BizDataCode"/>
+		<mx:AdvancedDataGridColumn headerText="{ResourceManager.getInstance().getString('label','busDataName')}" dataField="bizData" labelFunction="UtilDataGridColumnLabelFunction.getBizDataName" editable="false" sortCompareFunction="sortCompareFunction4BizDataName"/>
+		<mx:AdvancedDataGridColumn headerText="{ResourceManager.getInstance().getString('label','isEdit')}" 	dataField="isManaging" rendererIsEditor="true" editorDataField="value" editable="true">
+			<mx:itemRenderer>
+				<fx:Component>
+					<mx:Box horizontalAlign="center">
+						<fx:Script>
+                             <![CDATA[
+                                 public function get value(): Object
+                               {
+                                    return checkbox.selected ? 1 : 0;                                    
+                                }
+                                 
+                                override public function set data(value:Object) : void
+                                {
+                                    super.data = value;
+									if(value!=null)
+									checkbox.selected = value.isManaging == 1;                                    
+                                }
+							  ]]>
+							</fx:Script>
+						<mx:CheckBox id="checkbox"/>
+					</mx:Box>        
+				</fx:Component>
+			</mx:itemRenderer>
+		</mx:AdvancedDataGridColumn>		
+	</mx:columns>
+</mx:AdvancedDataGrid>

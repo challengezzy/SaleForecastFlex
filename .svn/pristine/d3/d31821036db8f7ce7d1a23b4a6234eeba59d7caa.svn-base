@@ -1,0 +1,693 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Module xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		   xmlns:s="library://ns.adobe.com/flex/spark" 
+		   xmlns:mx="library://ns.adobe.com/flex/mx" layout="vertical" width="100%" height="100%" paddingLeft="10" paddingRight="10"
+		   creationComplete="creationCompleteHandler(event)" 
+		   xmlns:security="dmdd.dmddmx.com.security.*"
+		   xmlns:common="dmdd.dmddmx.com.common.*"
+		   xmlns:controls="aks.aksmx.controls.*" xmlns:charts="aks.aksmx.charts.*" xmlns:containers="aks.aksmx.containers.*" 
+		   xmlns:proorg="dmdd.dmddmx.com.proorg.*" xmlns:period="dmdd.dmddmx.com.period.*" xmlns:price="dmdd.dmddmx.com.price.*">
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+		<s:RemoteObject endpoint="{ClientEnvironment.endpoint}" id="srvPrice" destination="PriceService">	
+			<s:method name="getPriceDatasStat" result="resultHandler4getPriceDatasStat(event)" fault="faultHandler4getPriceDatasStat(event)">
+			</s:method>	
+			<s:method name="getPriceDatas" result="resultHandler4getPriceDatas(event)" fault="faultHandler4getPriceDatas(event)">
+			</s:method>			
+			<s:method name="savePriceDatas4AdjustUI" result="resultHandler4savePriceDatas4AdjustUI(event)" fault="faultHandler4savePriceDatas4AdjustUI(event)">
+			</s:method>				
+		</s:RemoteObject>
+		<s:RadioButtonGroup id="group"/>
+	</fx:Declarations>
+	
+	<fx:Script>
+		<![CDATA[
+			import aks.aksas.charts.AksChartDataObject;
+			import aks.aksas.utils.UtilArrayCollection;
+			import aks.aksas.utils.UtilUi;
+			
+			import com.cool.assets.CoolAssetsFile;
+			
+			import dmdd.dmddas.common.constant.BizConst;
+			import dmdd.dmddas.common.constant.SysConst;
+			import dmdd.dmddas.common.constant.UIConst;
+			import dmdd.dmddas.common.system.ClientEnvironment;
+			import dmdd.dmddas.common.utils.UtilExceptionLocale;
+			import dmdd.dmddas.common.utils.UtilPeriod;
+			import dmdd.dmddas.common.utils.UtilProOrg;
+			import dmdd.dmddas.common.utils.UtilUiPopbScope;
+			import dmdd.dmddas.common.utils.UtilUnit;
+			import dmdd.dmddas.dataaccess.aidobject.ABProOrg;
+			import dmdd.dmddas.dataaccess.bizobject.BOperatorUserProOrg;
+			import dmdd.dmddas.dataaccess.bizobject.BPriceData;
+			import dmdd.dmddas.dataaccess.bizobject.BSysDictionaryItem;
+			import dmdd.dmddas.dataaccess.bizobject.BUiPopbScope;
+			import dmdd.dmddas.dataaccess.bizobject.BUiPopbScopeProOrg;
+			import dmdd.dmddas.dataaccess.bizobject.BUnit;
+			import dmdd.dmddas.dataaccess.bizobject.BUnitGroup;
+			import dmdd.dmddmx.com.security.Com_Security_ProOrg_Chooser;
+			import dmdd.dmddmx.com.security.Com_Security_UiPopbScope_AU;
+			
+			import mx.collections.ArrayCollection;
+			import mx.controls.Alert;
+			import mx.events.FlexEvent;
+			import mx.events.IndexChangedEvent;
+			import mx.managers.PopUpManager;
+			import mx.rpc.events.FaultEvent;
+			import mx.rpc.events.ResultEvent;
+			
+			
+			//	描述    begin
+			//	描述    end
+			
+			//	0	输入参数    begin						
+			//	0	输入参数    end
+			
+			//	1	输出参数    begin
+			//	1	输出参数    end
+			
+			//	2	本地变量    begin	
+			[Bindable]
+			private var dp4comAdgPriceData:ArrayCollection = new ArrayCollection();
+						
+			private var blPageQuery:Boolean = true;
+			
+			//	 显示设置		begin			
+			private var unit:BUnit = null;
+			
+			/** 可选单位 */
+			[Bindable]
+			private var arrUnits:ArrayCollection = new ArrayCollection();
+			
+			private var arrDetailProOrgs:ArrayCollection = null;
+			
+			private var uiPopbScope:BUiPopbScope;
+			
+			//查询期间
+			private var periodBegin:int = ClientEnvironment.getSysPeriod().compilePeriod;
+			private var periodEnd:int = ClientEnvironment.getSysPeriod().compilePeriod;
+			//	 显示设置		end			
+			
+			//	2	本地变量    end			
+			
+			//	3	公共方法    begin			
+			//	3	公共方法    end		
+			
+			//	4	初始化方法    begin	
+			protected function creationCompleteHandler(event:FlexEvent):void
+			{
+				
+			}			
+			//	4	初始化方法    end				
+			
+			//	5	事件响应方法    begin	
+			private function onQuery():void
+			{
+				var alert_msg:String = null;
+				var alert_title_hint:String = resourceManager.getString('alert','alert_title_hint');
+				
+				UtilUi.pubFun4PopWaitWindow( this );
+				
+				uiPopbScope = condSetComp.getUiPopbScope();
+				
+				var arrCondProOrgs:ArrayCollection = UtilUiPopbScope.getProOrgsArrByUiScope(uiPopbScope);
+				//	求明细业务范围，并检查单位组		begin
+				//	如果单位检查可以更改算法，这里可以不必到明细， 但因为要计算默认显示单位，所以，还是要打碎到明细才行
+				arrDetailProOrgs = UtilProOrg.getDetailProOrgs( arrCondProOrgs, true );
+				if( arrDetailProOrgs == null || arrDetailProOrgs.length <= 0)
+				{
+					UtilUi.pubFun4RemoveWaitWindow();
+					alert_msg = resourceManager.getString('alert','alter_msg_detailproorgisnull14');
+					Alert.show( alert_msg, alert_title_hint);
+					return;						
+				}
+				
+				unit = UtilUnit.getUnitByProOrgs(arrDetailProOrgs,this);
+				unitGroupSet(unit);
+				
+				//查询期间
+				periodBegin = UtilPeriod.getPeriod( ClientEnvironment.getSysPeriod().compilePeriod, uiPopbScope.periodOffsetBegin );
+				periodEnd = UtilPeriod.getPeriod( ClientEnvironment.getSysPeriod().compilePeriod, uiPopbScope.periodOffsetEnd );
+				
+				//	分页查询	
+				blPageQuery = condSetComp.isPageProOrg;
+				
+				UtilUi.pubFun4RemoveWaitWindow();
+				
+				if( blPageQuery == true )
+				{	
+					UtilUi.pubFun4PopWaitWindow( this );
+					srvPrice.getPriceDatasStat( arrDetailProOrgs,periodBegin,periodEnd);	
+				}
+				else
+				{	
+					//	不分页查询
+					UtilUi.pubFun4PopWaitWindow( this );
+					srvPrice.getPriceDatas( arrDetailProOrgs,periodBegin,periodEnd, -1, ClientEnvironment.getSysParamPageSize() );
+				}							
+			}
+			
+			/** 设置单位组中的单位 */
+			private function unitGroupSet(unit:BUnit):void
+			{
+				var unitGroupId:Number = unit.unitGroup.id;
+				arrUnits = ClientEnvironment.getUnitGroup(unitGroupId).units;
+				
+				var selUnit:BUnit =null;
+				for(var i:int=0;i<arrUnits.length;i++)
+				{
+					selUnit = BUnit(arrUnits.getItemAt(i));
+					if(selUnit.id == unit.id)
+					{	
+						comboBoxUnit.selectedIndex = i; 
+						comboBoxUnit.selectedItem = selUnit;
+						break;
+					}
+				}
+				
+				comboBoxUnit.enabled = true;
+			}
+
+			//	分页查询相关		begin
+			private function faultHandler4getPriceDatasStat(event:FaultEvent):void
+			{
+				UtilUi.pubFun4RemoveWaitWindow();
+				Alert.show( UtilExceptionLocale.getExceptionMessageLocaleByFaultEvent( event ), resourceManager.getString('alert','alt_title_warn') );
+			}	
+			
+			private function resultHandler4getPriceDatasStat(event:ResultEvent):void 
+			{
+				//	初始化数据表格控制板
+				var rstSize:Number = Number(event.result);
+				comAksDataGridControlBar.pubFun4setResultParams( true, rstSize, ClientEnvironment.getSysParamPageSize() );
+				
+				//	去执行第一页查询
+				srvPrice.getPriceDatas(arrDetailProOrgs,periodBegin,periodEnd, 1, ClientEnvironment.getSysParamPageSize() );
+			}
+			
+			private function pageQueryPriceDatas( _pageIndex:int ):void
+			{
+				UtilUi.pubFun4PopWaitWindow( this );
+				
+				srvPrice.getPriceDatas( arrDetailProOrgs,periodBegin,periodEnd, _pageIndex, ClientEnvironment.getSysParamPageSize() );					
+			}			
+			//	分页查询相关		end
+			
+			
+			private function faultHandler4getPriceDatas(event:FaultEvent):void
+			{
+				UtilUi.pubFun4RemoveWaitWindow();
+				Alert.show( UtilExceptionLocale.getExceptionMessageLocaleByFaultEvent( event ), resourceManager.getString('alert','alt_title_warn') );
+			}	
+			
+			private function resultHandler4getPriceDatas(event:ResultEvent):void 
+			{
+				dp4comAdgPriceData = ArrayCollection(event.result);
+
+				var i:int;
+				var priceData:BPriceData = null;
+				//	备份数据值	begin
+				if( dp4comAdgPriceData != null && dp4comAdgPriceData.length > 0 )
+				{
+					for( i=0; i<dp4comAdgPriceData.length; i=i+1 )
+					{
+						priceData = BPriceData(dp4comAdgPriceData.getItemAt(i));
+						priceData.standardPriceBak = priceData.standardPrice;
+						priceData.realPriceBak = priceData.realPrice;
+					}					
+				}
+				//	备份数据值	end
+				
+				if( blPageQuery == false )
+				{
+					//	不是分页查询，需要根据查询结果初始化数据表格控制板
+					comAksDataGridControlBar.pubFun4setResultParams( false, dp4comAdgPriceData.length, dp4comAdgPriceData.length );
+				}
+				
+
+				var seledtedUnit:BUnit = null;
+				
+				if( dp4comAdgPriceData != null )
+				{
+					seledtedUnit = BUnit(comboBoxUnit.selectedItem);		
+					if( seledtedUnit != null && seledtedUnit.isBase == BizConst.GLOBAL_YESNO_NO )
+					{
+						for( i=0; i<dp4comAdgPriceData.length; i=i+1 )
+						{
+							priceData = BPriceData(dp4comAdgPriceData.getItemAt(i));
+							priceData.exchangeUnit( 1, seledtedUnit.exchangeRate );
+						}						
+					}
+					
+				}				
+				
+				UtilUi.pubFun4RemoveWaitWindow();
+			}				
+		
+			
+			private function onChange4comboBoxUnit():void
+			{
+				//	单位变化	begin
+				var selectedUnit:BUnit = BUnit(comboBoxUnit.selectedItem)
+				var i:int;
+				
+				var priceData:BPriceData = null;
+				if( selectedUnit != null && unit != null && selectedUnit.id != unit.id )
+				{
+					if( dp4comAdgPriceData != null )
+					{
+						for( i=0; i<dp4comAdgPriceData.length; i=i+1 )
+						{
+							priceData = BPriceData(dp4comAdgPriceData.getItemAt(i));
+							priceData.exchangeUnit( unit.exchangeRate, selectedUnit.exchangeRate );
+						}
+					}	
+					
+					unit = selectedUnit;
+				}
+				//	单位变化	end
+			}		
+			
+			private function onAddScale():void
+			{
+				var alert_title_hint:String = resourceManager.getString('alert','alert_title_hint');
+				var alert_msg:String = "";
+				
+				var selectedPriceDatas:ArrayCollection = getSelectedPriceDatas();
+				if( selectedPriceDatas == null || selectedPriceDatas.length <= 0 )
+				{
+					alert_msg = resourceManager.getString('alert','alter_msg_noselectedpricedatas14');
+					Alert.show( alert_msg, alert_title_hint);
+					return;		
+				}
+				
+				var scaleValue:Number = Number(txtScale.text);
+				if( checkScaleValue(scaleValue) == false )
+				{
+					return;	
+				}
+				scaleValue=Number(scaleValue.toFixed(2));    //只计算2位小数
+				var priceData:BPriceData = null;
+				var i:int;
+				var oldValue:Number;
+				var newValue:Number
+				for( i=0; i<selectedPriceDatas.length; i=i+1 )
+				{
+					priceData = BPriceData( selectedPriceDatas.getItemAt(i) );
+					if(group.selectedValue=="standprice")
+					{
+						oldValue = priceData.standardPrice;
+						newValue = oldValue+scaleValue;
+						priceData.standardPrice = newValue;
+					}
+					else if(group.selectedValue=="realprice")
+					{
+						oldValue = priceData.realPrice;
+						newValue = oldValue+scaleValue;
+						priceData.realPrice = newValue;
+					}
+				}
+			}			
+			
+			private function onSubScale():void
+			{
+				var alert_title_hint:String = resourceManager.getString('alert','alert_title_hint');
+				var alert_msg:String = "";
+				
+				var selectedPriceDatas:ArrayCollection = getSelectedPriceDatas();
+				if( selectedPriceDatas == null || selectedPriceDatas.length <= 0 )
+				{
+					alert_msg = resourceManager.getString('alert','alter_msg_noselectedpricedatas14');
+					Alert.show( alert_msg, alert_title_hint);
+					return;		
+				}
+				
+				var scaleValue:Number = Number(txtScale.text);
+				if( checkScaleValue(scaleValue) == false )
+				{
+					return;	
+				}
+				scaleValue=Number(scaleValue.toFixed(2));    //只计算2位小数
+				var priceData:BPriceData = null;
+				var i:int;
+				var oldValue:Number;
+				var newValue:Number
+				for( i=0; i<selectedPriceDatas.length; i=i+1 )
+				{
+					priceData = BPriceData( selectedPriceDatas.getItemAt(i) );
+					if(group.selectedValue=="standprice")
+					{
+						oldValue = priceData.standardPrice;
+						newValue = oldValue-scaleValue;
+						if(newValue<0)
+						{
+							alert_msg = resourceManager.getString('alert','alert_msg_notnegative14');
+							Alert.show( alert_msg, alert_title_hint);
+							continue;	
+						}
+						priceData.standardPrice = newValue;
+					}
+					else if(group.selectedValue=="realprice")
+					{
+						oldValue = priceData.realPrice;
+						newValue = oldValue-scaleValue;
+						if(newValue<0)
+						{
+							alert_msg = resourceManager.getString('alert','alert_msg_notnegative14');
+							Alert.show( alert_msg, alert_title_hint);
+							continue;	
+						}
+						priceData.realPrice = newValue;
+					}		
+				}
+			}	
+			
+			private function onSetScale():void
+			{
+				var alert_title_hint:String = resourceManager.getString('alert','alert_title_hint');
+				var alert_msg:String = "";
+				
+				var selectedPriceDatas:ArrayCollection = getSelectedPriceDatas();
+				if( selectedPriceDatas == null || selectedPriceDatas.length <= 0 )
+				{
+					alert_msg = resourceManager.getString('alert','alter_msg_noselectedpricedatas14');
+					Alert.show( alert_msg, alert_title_hint);
+					return;		
+				}
+				
+				var scaleValue:Number = Number(txtScale.text);
+				if( checkScaleValue(scaleValue) == false )
+				{
+					return;	
+				}
+				scaleValue=Number(scaleValue.toFixed(2));    //只计算2位小数
+
+				var priceData:BPriceData = null;
+				var i:int;
+
+				for( i=0; i<selectedPriceDatas.length; i=i+1 )
+				{
+					priceData = BPriceData( selectedPriceDatas.getItemAt(i) );
+					if(group.selectedValue=="standprice")
+					{
+						priceData.standardPrice = scaleValue;
+					}
+					else if(group.selectedValue=="realprice")
+					{
+						priceData.realPrice = scaleValue;
+					}
+					
+				}
+			}	
+			
+			
+			private function onAddPercent():void
+			{
+				var alert_title_hint:String = resourceManager.getString('alert','alert_title_hint');
+				var alert_msg:String = "";
+				
+				var selectedPriceDatas:ArrayCollection = getSelectedPriceDatas();
+				if( selectedPriceDatas == null || selectedPriceDatas.length <= 0 )
+				{
+					alert_msg = resourceManager.getString('alert','alter_msg_noselectedpricedatas14');
+					Alert.show( alert_msg, alert_title_hint);
+					return;		
+				}
+				
+				var percentValue:Number = Number(txtPercent.text);
+				if( checkPercentValue(percentValue) == false )
+				{
+					return;	
+				}
+				
+				var priceData:BPriceData = null;
+				var i:int;
+				var oldValue:Number;
+				var newValue:Number
+				for( i=0; i<selectedPriceDatas.length; i=i+1 )
+				{
+					priceData = BPriceData( selectedPriceDatas.getItemAt(i) );
+					if(group.selectedValue=="standprice")
+					{
+						oldValue = priceData.standardPrice;
+						newValue = oldValue + oldValue*percentValue*0.01;
+						priceData.standardPrice = newValue;
+					}
+					else if(group.selectedValue=="realprice")
+					{
+						oldValue = priceData.realPrice;
+						newValue = oldValue + oldValue*percentValue*0.01;
+						priceData.realPrice = newValue;
+					}					
+				}
+			}	
+			
+			private function onSubPercent():void
+			{
+				var alert_title_hint:String = resourceManager.getString('alert','alert_title_hint');
+				var alert_msg:String = "";
+				
+				var selectedPriceDatas:ArrayCollection = getSelectedPriceDatas();
+				if( selectedPriceDatas == null || selectedPriceDatas.length <= 0 )
+				{
+					alert_msg = resourceManager.getString('alert','alter_msg_noselectedpricedatas14');
+					Alert.show( alert_msg, alert_title_hint);
+					return;		
+				}
+				
+				var percentValue:Number = Number(txtPercent.text);
+				if( checkPercentValue(percentValue) == false )
+				{
+					return;	
+				}
+				
+				var priceData:BPriceData = null;
+				var i:int;
+				var oldValue:Number;
+				var newValue:Number
+				for( i=0; i<selectedPriceDatas.length; i=i+1 )
+				{
+					priceData = BPriceData( selectedPriceDatas.getItemAt(i) );
+					if(group.selectedValue=="standprice")
+					{
+						oldValue = priceData.standardPrice;
+						newValue = oldValue - oldValue*percentValue*0.01;
+						priceData.standardPrice = newValue;
+					}
+					else if(group.selectedValue=="realprice")
+					{
+						oldValue = priceData.realPrice;
+						newValue = oldValue - oldValue*percentValue*0.01;
+						priceData.realPrice = newValue;
+					}						
+				}
+			}	
+			
+			private function onSave():void
+			{
+				UtilUi.pubFun4PopWaitWindow( this );
+				
+				var arrPriceData4save:ArrayCollection = new ArrayCollection();
+				
+				var i:int;
+				var priceData:BPriceData = null;
+				var priceData4save:BPriceData = null;
+
+				//	收集变化的 priceData	begin
+				var selectedUnit:BUnit = BUnit(comboBoxUnit.selectedItem);				
+				if( dp4comAdgPriceData != null && dp4comAdgPriceData.length > 0 )
+				{
+					for( i=0; i<dp4comAdgPriceData.length; i=i+1 )
+					{
+						priceData = BPriceData(dp4comAdgPriceData.getItemAt( i ));
+						//判断，如果修改的实际价格为负数
+						if(priceData.realPrice<0)
+						{
+							UtilUi.pubFun4RemoveWaitWindow();
+							alert_msg = resourceManager.getString('alert','alert_msg_notnegative14');
+							Alert.show( alert_msg, alert_title_hint);
+							return ;	
+						}
+						//判断，如果修改的标准价格为负数
+						if(priceData.standardPrice<0)
+						{
+							UtilUi.pubFun4RemoveWaitWindow();
+							alert_msg = resourceManager.getString('alert','alert_msg_notnegative14');
+							Alert.show( alert_msg, alert_title_hint);
+							return ;	
+						}
+						
+//						if( Math.abs(priceData.realPrice * selectedUnit.exchangeRate - priceData.realPriceBak) > 0.0000001  )
+//						{
+							priceData4save = new BPriceData();
+							priceData4save.copyDeep( priceData );							
+							priceData4save.standardPrice = priceData4save.standardPrice / selectedUnit.exchangeRate;
+								
+							priceData4save.realPrice = priceData4save.realPrice / selectedUnit.exchangeRate;
+							
+							arrPriceData4save.addItem( priceData4save );
+						//}
+					}	
+				}
+				//	收集变化的 priceData	end
+				
+				
+				var alert_title_hint:String = resourceManager.getString('alert','alert_title_hint');
+				var alert_msg:String = "";
+				
+				if( arrPriceData4save.length == 0 )
+				{					
+					UtilUi.pubFun4RemoveWaitWindow();
+					alert_msg = resourceManager.getString('alert','alert_msg_noadjust14');
+					Alert.show(alert_msg, alert_title_hint);
+					return;					
+				}				
+					
+				srvPrice.savePriceDatas4AdjustUI( arrPriceData4save );
+
+			}			
+			
+			private function faultHandler4savePriceDatas4AdjustUI(event:FaultEvent):void
+			{
+				UtilUi.pubFun4RemoveWaitWindow();
+				
+				Alert.show( UtilExceptionLocale.getExceptionMessageLocaleByFaultEvent( event ), resourceManager.getString('alert','alt_title_warn') );			
+			}
+			
+			private function resultHandler4savePriceDatas4AdjustUI(event:ResultEvent):void 
+			{
+				UtilUi.pubFun4RemoveWaitWindow();
+				
+				var alert_title_hint:String = resourceManager.getString('alert','alert_title_hint');
+				var alert_msg:String = resourceManager.getString('alert','alert_msg_savesucceed14');
+				Alert.show( alert_msg, alert_title_hint);
+								
+				//	重新查询当前页数据
+				if( blPageQuery == true )
+				{						
+					//	查询当前页
+					pageQueryPriceDatas( comAksDataGridControlBar.pubFun4geParamOut4pageIndex() );
+				}
+				else
+				{	
+					//	不分页查询
+					UtilUi.pubFun4PopWaitWindow( this );
+					
+					srvPrice.getPriceDatas( arrDetailProOrgs,periodBegin,periodEnd, -1, ClientEnvironment.getSysParamPageSize() );
+				}	
+			}
+			//	5	事件响应方法    end
+			
+			//	6	本地方法    begin
+			private function getSelectedPriceDatas():ArrayCollection
+			{
+				var rstArr:ArrayCollection = new ArrayCollection();
+				var i:int;
+				var priceData:BPriceData = null;
+				if( dp4comAdgPriceData != null && dp4comAdgPriceData.length > 0 )
+				{
+					for( i=0; i<dp4comAdgPriceData.length; i=i+1 )
+					{
+						priceData = BPriceData( dp4comAdgPriceData.getItemAt(i) );
+						if( priceData.isChecked == true )
+						{
+							rstArr.addItem( priceData );
+						}
+					}
+				}
+				
+				return rstArr;
+			}
+			
+			
+			private function checkScaleValue( _scaleValue:Number ):Boolean
+			{
+				var alert_title_hint:String = resourceManager.getString('alert','alert_title_hint');	
+				var alert_msg:String = alert_msg = resourceManager.getString('alert','alert_msg_scale14');				
+				
+				if( isNaN(_scaleValue) )
+				{
+					Alert.show(alert_msg, alert_title_hint);
+					return false;							
+				}
+				
+//				if( Math.floor( _scaleValue ) != _scaleValue )
+//				{
+//					Alert.show(alert_msg, alert_title_hint);
+//					return false;								
+//				}
+				
+				if( _scaleValue < 0 || _scaleValue > 999999999 )
+				{
+					Alert.show(alert_msg, alert_title_hint);
+					return false;					
+				}
+
+				return true;
+			}	
+			
+			private function checkPercentValue( _percentValue:Number ):Boolean
+			{
+				var alert_title_hint:String = resourceManager.getString('alert','alert_title_hint');	
+				var alert_msg:String = resourceManager.getString('alert','alert_msg_percent14');				
+				
+				if( isNaN(_percentValue) )
+				{
+					Alert.show(alert_msg, alert_title_hint);
+					return false;							
+				}
+				
+				if( Math.floor( _percentValue ) != _percentValue )
+				{
+					Alert.show(alert_msg, alert_title_hint);
+					return false;								
+				}
+				
+				if( _percentValue < 0 || _percentValue > 999 )
+				{
+					Alert.show(alert_msg, alert_title_hint);
+					return false;					
+				}
+				
+				return true;
+			}	
+			//	6	本地方法   end	
+			
+		]]>
+	</fx:Script>
+	
+	<common:LabelBoundary paddingTop="5" labelText="{resourceManager.getString('menu','queryCond')}" />
+	<security:Com_Security_ProOrg_Period_Quick  id="condSetComp" width="100%" height="26"
+								uiCode="{UIConst.UICODE_PRICEDATA_ADJUST}"								
+								executeCallback4thisObject="{this}" executeCallback4function="{onQuery}">
+	</security:Com_Security_ProOrg_Period_Quick>
+	
+	<common:LabelBoundary paddingTop="3" labelText="{resourceManager.getString('menu','priceData')}" />
+	<s:HGroup width="100%" verticalAlign="middle" paddingTop="3" paddingLeft="10">
+		<s:Label text="{resourceManager.getString('note','unit')}" id="lbUnit"/>
+		<s:ComboBox id="comboBoxUnit" dataProvider="{arrUnits}" change="onChange4comboBoxUnit()" enabled="false"/>
+		<s:Spacer width="10" />
+		<s:RadioButton value="standprice" groupName="group" label="{resourceManager.getString('note','standardPrice')}"/>
+		<s:RadioButton value="realprice" groupName="group"  label="{resourceManager.getString('note','actualPrice')}"  selected="true"/>
+		<mx:Spacer width="10"/>				
+		<s:Button label="{resourceManager.getString('button','addscale')}" click="onAddScale()" icon="{CoolAssetsFile.arrow_upIcon}"/>
+		<s:Button label="{resourceManager.getString('button','subscale')}" click="onSubScale()" icon="{CoolAssetsFile.arrow_downIcon}" />
+		<s:Button label="{resourceManager.getString('button','setscale')}" click="onSetScale()" icon="{CoolAssetsFile}" />			
+		<s:TextInput width="100" maxChars="9" id="txtScale"/>
+		<mx:Spacer width="10"/>
+		<s:Button label="{resourceManager.getString('button','addpercent')}" click="onAddPercent()" icon="{CoolAssetsFile.arrow_upIcon}"/>
+		<s:Button label="{resourceManager.getString('button','subpercent')}" click="onSubPercent()" icon="{CoolAssetsFile.arrow_downIcon}"/>
+		<s:TextInput width="50" maxChars="3" id="txtPercent"/>
+		<s:Spacer width="15"/>
+		<s:Button label="{resourceManager.getString('button','save')}" icon="{CoolAssetsFile.save_allIcon}"  click="onSave()"/>										
+	</s:HGroup>		
+	<price:Com_Price_PriceData_AdvancedDataGrid id="comAdgPriceData" width="100%" height="100%" 
+												dataProvider="{dp4comAdgPriceData}" editable="true" paramIn4editable="true" 
+												paramIn4visible4ProductCode="true" paramIn4visible4ProductName="true" 
+												paramIn4visible4OrganizationCode="true" paramIn4visible4OrganizationName="true"/>
+	<controls:AksDataGridControlBar id="comAksDataGridControlBar" paramIn4enabled4BtnSetColumns="true" 
+									paramIn4dataGrid="{comAdgPriceData}" paramIn4callback4thisObject="{this}" 
+									paramIn4callback4queryFunction="{pageQueryPriceDatas}">
+	</controls:AksDataGridControlBar>
+	
+</mx:Module>

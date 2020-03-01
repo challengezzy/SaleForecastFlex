@@ -1,0 +1,337 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Module xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		   xmlns:s="library://ns.adobe.com/flex/spark" 
+		   xmlns:mx="library://ns.adobe.com/flex/mx" layout="vertical" width="100%" height="100%" paddingLeft="10" paddingRight="10"
+		   creationComplete="creationCompleteHandler(event)"  
+		   xmlns:common="dmdd.dmddmx.com.common.*"
+		   xmlns:containers="aks.aksmx.containers.*" xmlns:controls="aks.aksmx.controls.*" 
+		   xmlns:bizdata="dmdd.dmddmx.com.bizdata.*">
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+		<s:RemoteObject endpoint="{ClientEnvironment.endpoint}" id="srvBizData" destination="BizDataService">
+			<s:method name="getBizDatasStat" result="resultHandler4getBizDatasStat(event)" fault="faultHandler4getBizDatasStat(event)">
+			</s:method>			
+			<s:method name="getBizDatas" result="resultHandler4getBizDatas(event)" fault="faultHandler4getBizDatas(event)">
+			</s:method>
+			<s:method name="delBizData" result="resultHandler4delBizData(event)" fault="faultHandler4delBizData(event)">
+			</s:method>			
+		</s:RemoteObject>		
+	</fx:Declarations>
+
+	<fx:Script>
+		<![CDATA[
+			import aks.aksas.utils.UtilUi;
+			
+			import dmdd.dmddas.common.constant.BizConst;
+			import dmdd.dmddas.common.constant.FunPermiConst;
+			import dmdd.dmddas.common.system.ClientEnvironment;
+			import dmdd.dmddas.common.utils.UtilExceptionLocale;
+			import dmdd.dmddas.dataaccess.bizobject.BBizData;
+			import dmdd.dmddas.dataaccess.bizobject.BSysDictionaryItem;
+			import dmdd.dmddmx.com.bizdata.Com_BizData_BizData_AU;
+			import dmdd.dmddas.common.constant.SkinConst;
+			import com.cool.assets.CoolAssetsFile;
+			import mx.collections.ArrayCollection;
+			import mx.controls.Alert;
+			import mx.events.CloseEvent;
+			import mx.events.FlexEvent;
+			import mx.managers.PopUpManager;
+			import mx.rpc.events.FaultEvent;
+			import mx.rpc.events.ResultEvent;
+			
+			
+			//	描述    begin
+			//	描述    end
+			
+			//	0	输入参数    begin						
+			//	0	输入参数    end
+			
+			//	1	输出参数    begin
+			//	1	输出参数    end
+			
+			//	2	本地变量    begin	
+			[Bindable]
+			private var prvVar4dp4comAdgBizData:ArrayCollection = new ArrayCollection();
+			
+			private var prvVar4sqlRestriction:String = null;	
+			
+			[Bindable]
+			private var prvVar4arrDictBizDataType:ArrayCollection = new ArrayCollection();
+			
+			
+			private var prvVar4auWindow:Com_BizData_BizData_AU = null;
+			
+			[Bindable]
+			private var prvVar4blFunPermission4query:Boolean = true;			
+			[Bindable]
+			private var prvVar4blFunPermission4manage:Boolean = true;
+			//	2	本地变量    end			
+			
+			//	3	公共方法    begin			
+			//	3	公共方法    end		
+			
+			//	4	初始化方法    begin	
+			protected function creationCompleteHandler(event:FlexEvent):void
+			{
+				this.prvVar4blFunPermission4manage = ClientEnvironment.checkIsPermission( FunPermiConst.MAINDATA_BIZDATA_MANAGE );
+				
+				this.prvVar4arrDictBizDataType = new ArrayCollection();
+				
+				var arrDictBizDataType:ArrayCollection = ClientEnvironment.getBizDataTypeArr();
+				if( arrDictBizDataType != null )
+				{
+					var i:int;
+					var sysDictionaryItem:BSysDictionaryItem = null;
+					for( i=0; i<arrDictBizDataType.length; i=i+1 )
+					{
+						sysDictionaryItem = BSysDictionaryItem(arrDictBizDataType.getItemAt(i));
+						if( sysDictionaryItem.value == BizConst.BIZDATA_TYPE_ADDFC )
+						{
+							this.prvVar4arrDictBizDataType.addItem( sysDictionaryItem );
+						}
+					}
+				}				
+			}			
+			//	4	初始化方法    end				
+			
+			//	5	事件响应方法    begin		
+			private function callbackFunction4query4comQCond():void
+			{				
+				this.prvVar4sqlRestriction = this.comQCond.pubFun4getParamOut4sqlRestriction();
+				//	受权限约束
+				var subQueryStr4Id:String = " and ( id in (select BIZDATAID from OPERATORUSER_BIZDATA where OPERATORUSERID = " + ClientEnvironment.getOperatorUser().id + ") )";
+				this.prvVar4sqlRestriction = this.prvVar4sqlRestriction + subQueryStr4Id;				
+				
+				var blPageQuery:Boolean = this.comQCond.pubFun4getParamOut4blPageQuery();
+				
+				if( blPageQuery == true )
+				{	
+					UtilUi.pubFun4PopWaitWindow( this );
+					this.srvBizData.getBizDatasStat( this.prvVar4sqlRestriction );	
+				}
+				else
+				{	
+					//	不分页查询
+					UtilUi.pubFun4PopWaitWindow( this );
+					this.srvBizData.getBizDatas( this.prvVar4sqlRestriction, true, -1, ClientEnvironment.getSysParamPageSize() );
+				}								
+			}			
+			
+			//	分页查询相关		begin
+			private function faultHandler4getBizDatasStat(event:FaultEvent):void
+			{
+				UtilUi.pubFun4RemoveWaitWindow();
+				Alert.show( UtilExceptionLocale.getExceptionMessageLocaleByFaultEvent( event ), resourceManager.getString('alart','alt_title_warn') );
+			}	
+			
+			private function resultHandler4getBizDatasStat(event:ResultEvent):void 
+			{
+				//	初始化数据表格控制板
+				var rstSize:Number = Number(event.result);
+				this.comAksDataGridControlBar.pubFun4setResultParams( true, rstSize, ClientEnvironment.getSysParamPageSize() );
+				
+				//	去执行第一页查询
+				this.srvBizData.getBizDatas( this.prvVar4sqlRestriction, true, 1, ClientEnvironment.getSysParamPageSize() );
+			}
+			
+			private function prvFun4pageQueryBizDatas( _pageIndex:int ):void
+			{
+				UtilUi.pubFun4PopWaitWindow( this );
+				this.srvBizData.getBizDatas( this.prvVar4sqlRestriction, true, _pageIndex, ClientEnvironment.getSysParamPageSize() );					
+			}			
+			//	分页查询相关		end
+			
+			
+			private function faultHandler4getBizDatas(event:FaultEvent):void
+			{
+				UtilUi.pubFun4RemoveWaitWindow();
+				Alert.show( UtilExceptionLocale.getExceptionMessageLocaleByFaultEvent( event ), resourceManager.getString('alart','alt_title_warn') );
+			}	
+			
+			private function resultHandler4getBizDatas(event:ResultEvent):void 
+			{
+				this.prvVar4dp4comAdgBizData = ArrayCollection(event.result);
+				
+				if( this.comQCond.pubFun4getParamOut4blPageQuery() == false )
+				{
+					//	不是分页查询，需要根据查询结果初始化数据表格控制板
+					this.comAksDataGridControlBar.pubFun4setResultParams( false, this.prvVar4dp4comAdgBizData.length, this.prvVar4dp4comAdgBizData.length );
+				}
+				
+				UtilUi.pubFun4RemoveWaitWindow();
+			}					
+			
+			
+			private function onNew():void
+			{
+				if( this.prvVar4auWindow == null )
+				{
+					this.prvVar4auWindow = Com_BizData_BizData_AU(PopUpManager.createPopUp(this, Com_BizData_BizData_AU, true));
+					this.prvVar4auWindow.pubFun4setParamIn4closeCallback( this, callbackFunction4auWinClose );
+				}
+				else
+				{
+					PopUpManager.addPopUp( this.prvVar4auWindow, this, true );
+				}	
+				
+				this.prvVar4auWindow.title = resourceManager.getString('menu','newBusData');
+				
+				// 这里的代码须如此：先准备好后再设置给 auWindow
+				// 如果直接设置一个新建对象给auWindow，然后再操作其准备其内容，则可能不能触发auWindow内部的相关绑定动作	
+				var newBizData:BBizData = new BBizData();
+				newBizData.source = BizConst.GLOBAL_DATASOURCE_USERDEFINE;
+				newBizData.type = BizConst.BIZDATA_TYPE_ADDFC;
+				newBizData.isValid = BizConst.GLOBAL_YESNO_YES;
+				
+				this.prvVar4auWindow.pubFun4setParamIo4bizData( newBizData, UtilUi.AUWINDOW_USE_NEW );								
+			} 
+			
+			private function onUpd():void
+			{
+				var selectedBizData:BBizData = BBizData( this.comAdgBizData.selectedItem );
+				// 不必检查，这个方法被调用的前提已经保证 
+				if( selectedBizData.code.indexOf(BizConst.AMOUNT_BIZ_DATA_SUFFIX) > 0 ){
+					Alert.show( "折合业务数据不能编辑", resourceManager.getString('alert','alt_title_warn') );
+					return;
+				}
+				
+				if( this.prvVar4auWindow == null )
+				{
+					this.prvVar4auWindow = Com_BizData_BizData_AU(PopUpManager.createPopUp(this, Com_BizData_BizData_AU, true));
+					this.prvVar4auWindow.pubFun4setParamIn4closeCallback( this, callbackFunction4auWinClose );	
+				}
+				else
+				{
+					PopUpManager.addPopUp( this.prvVar4auWindow, this, true );
+				}	
+				
+				this.prvVar4auWindow.title = resourceManager.getString('menu','editBusData');
+				
+				// 这里的代码须如此：先准备好后再设置给 auWindow
+				// 如果直接设置一个新建对象给auWindow，然后再操作其准备其内容，则可能不能触发auWindow内部的相关绑定动作	
+				var updBizData:BBizData = new BBizData();	
+				updBizData.copyDeep( selectedBizData );			
+				this.prvVar4auWindow.pubFun4setParamIo4bizData( updBizData, UtilUi.AUWINDOW_USE_UPD );							 
+				
+			} 
+			
+			private function callbackFunction4auWinClose():void
+			{
+				if( this.prvVar4auWindow.pubFun4getParamOut4winCloseWay() == UtilUi.WINDOW_CLOSEWAY_OK )
+				{
+					var rstBizData:BBizData = this.prvVar4auWindow.pubFun4getParamIo4bizData();
+					if( rstBizData != null )
+					{
+						if( this.prvVar4auWindow.pubFun4getParamIo4winUse() == UtilUi.AUWINDOW_USE_NEW )
+						{
+							if( this.prvVar4dp4comAdgBizData == null )
+							{
+								this.prvVar4dp4comAdgBizData = new ArrayCollection();
+							}
+							this.prvVar4dp4comAdgBizData.addItemAt( rstBizData, 0 );							
+						}
+						else if( this.prvVar4auWindow.pubFun4getParamIo4winUse() == UtilUi.AUWINDOW_USE_UPD )
+						{
+							this.prvVar4dp4comAdgBizData.setItemAt( rstBizData, this.comAdgBizData.selectedIndex );
+						}
+					}
+				}
+				//this.prvVar4auWindow = null;														
+			}			
+			
+			
+			private function onDel():void
+			{
+				var alert_title_hint:String = resourceManager.getString('alert','alert_title_hint');
+				var alert_msg_deleteconfirm:String = resourceManager.getString('alert','alert_msg_deleteconfirm8');
+				
+				Alert.show( alert_msg_deleteconfirm, alert_title_hint, Alert.OK | Alert.CANCEL, this, deleteConfirmHandler, null, Alert.OK );
+				
+			}				
+			
+			private function deleteConfirmHandler(event:CloseEvent):void
+			{
+				if( event.detail == Alert.OK )
+				{
+					// 相关检查都已在 prvFun4getEnabled4BtnDel中执行，此处不再检查    begin
+					var selectedBizData:BBizData = BBizData(this.comAdgBizData.selectedItem);
+					// 相关检查都已在 prvFun4getEnabled4BtnDel中执行，此处不再检查    end					
+					UtilUi.pubFun4PopWaitWindow( this );
+					this.srvBizData.delBizData( selectedBizData );										
+				}
+			}	
+			
+			private function faultHandler4delBizData(event:FaultEvent):void
+			{
+				UtilUi.pubFun4RemoveWaitWindow();
+				Alert.show( UtilExceptionLocale.getExceptionMessageLocaleByFaultEvent( event ), resourceManager.getString('alert','alt_title_warn') );
+			}	
+			
+			private function resultHandler4delBizData(event:ResultEvent):void 
+			{
+				UtilUi.pubFun4RemoveWaitWindow();
+				var alert_title_hint:String = resourceManager.getString('alert','alert_title_hint');
+				var alert_msg:String = null;
+				
+				var blSucceed:Boolean = Boolean(event.result);
+				if( blSucceed == true )
+				{
+					alert_msg = resourceManager.getString('alert','alert_msg_succeed');
+					Alert.show(alert_msg, alert_title_hint);
+					this.prvVar4dp4comAdgBizData.removeItemAt( this.comAdgBizData.selectedIndex );					
+				}
+				else
+				{
+					alert_msg = resourceManager.getString('alert','alert_msg_fail');
+					Alert.show(alert_msg, alert_title_hint);
+				}				
+			}			
+			//	5	事件响应方法    end
+			
+			//	6	本地方法    begin
+			private function prvFun4getEnabled4BtnManage( _selectedItem:Object ):Boolean
+			{
+				// todo
+				if( _selectedItem == null )
+				{
+					return false;
+				}
+				
+				if( this.prvVar4blFunPermission4manage == false )
+				{
+					return false;
+				}
+				
+				return true;
+			}
+			//	6	本地方法   end	
+			
+		]]>
+	</fx:Script>
+
+	<bizdata:Com_BizData_BizData_QueryCond width="100%" id="comQCond" paramIn4queryCallback4thisObject="{this}" paramIn4queryCallback4function="{this.callbackFunction4query4comQCond}" paramIn4arrDictBizDataType="{this.prvVar4arrDictBizDataType}" paramIn4enabled="{this.prvVar4blFunPermission4query}">
+	</bizdata:Com_BizData_BizData_QueryCond>	
+	
+	<mx:VDividedBox width="100%" height="100%">
+		<s:VGroup width="100%" height="65%">
+			<common:LabelBoundary paddingTop="5" labelText="{resourceManager.getString('menu','busData')}" />
+
+			<containers:AksControlBar>
+				<s:Button label="{resourceManager.getString('button','new')}" icon="{CoolAssetsFile.newIcon}" enabled="{this.prvVar4blFunPermission4manage}" click="onNew()"/>
+				<s:Button label="{resourceManager.getString('button','edit')}" icon="{CoolAssetsFile.editIcon}" enabled="{this.prvFun4getEnabled4BtnManage(this.comAdgBizData.selectedItem)}" click="onUpd()"/>
+				<s:Button label="{resourceManager.getString('button','del')}" icon="{CoolAssetsFile.deleteIcon}" enabled="{this.prvFun4getEnabled4BtnManage(this.comAdgBizData.selectedItem)}" click="onDel()"/>
+				<controls:AksDataGridControlBar id="comAksDataGridControlBar" width="100%" paramIn4callback4thisObject="{this}" paramIn4callback4queryFunction="{this.prvFun4pageQueryBizDatas}" paramIn4dataGrid="{this.comAdgBizData}">
+				</controls:AksDataGridControlBar>	
+			</containers:AksControlBar>
+			<bizdata:Com_BizData_BizData_AdvancedDataGrid width="100%" height="100%" doubleClickEnabled="true" itemDoubleClick="onUpd()" 
+														  id="comAdgBizData" dataProvider="{this.prvVar4dp4comAdgBizData}"/>
+		</s:VGroup>
+		<s:VGroup width="100%" height="35%">
+			<common:LabelBoundary paddingTop="5" labelText="{resourceManager.getString('mod_maindata_bizdata','bizdatadefitem')}" />
+
+			<bizdata:Com_BizData_BizDataDefItem_AdvancedDataGrid width="100%" height="100%" dataProvider="{BBizData(this.comAdgBizData.selectedItem).bizDataDefItems}"/>
+		</s:VGroup>
+
+		
+	</mx:VDividedBox>
+</mx:Module>

@@ -1,0 +1,352 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:TitleWindow xmlns:fx="http://ns.adobe.com/mxml/2009" 
+			   xmlns:s="library://ns.adobe.com/flex/spark" 
+			   xmlns:mx="library://ns.adobe.com/flex/mx" width="900" height="600" close="onCancel()" 
+			   creationComplete="creationCompleteHandler(event)" 
+			   xmlns:security="dmdd.dmddmx.com.security.*" xmlns:containers="aks.aksmx.containers.*" xmlns:buttons="com.cool.buttons.*">
+	<s:layout>
+		<s:VerticalLayout paddingBottom="5" paddingTop="5" />
+	</s:layout>
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+		<s:RemoteObject endpoint="{ClientEnvironment.endpoint}" id="srvSecurity" destination="SecurityService">
+			<s:method name="newOperatorUser" result="resultHandler4saveOperatorUser(event)" fault="faultHandler4saveOperatorUser(event)">
+			</s:method>	
+			<s:method name="updOperatorUser" result="resultHandler4saveOperatorUser(event)" fault="faultHandler4saveOperatorUser(event)">
+			</s:method>
+		</s:RemoteObject>		
+	</fx:Declarations>
+	
+	<fx:Script>
+		<![CDATA[
+			import aks.aksas.collections.HashMap;
+			import aks.aksas.utils.UtilArrayCollection;
+			import aks.aksas.utils.UtilUi;
+			
+			import dmdd.dmddas.common.constant.BizConst;
+			import dmdd.dmddas.common.system.ClientEnvironment;
+			import dmdd.dmddas.common.utils.UtilExceptionLocale;
+			import dmdd.dmddas.common.utils.UtilOperatorUser;
+			import dmdd.dmddas.dataaccess.bizobject.BBizData;
+			import dmdd.dmddas.dataaccess.bizobject.BFunPermission;
+			import dmdd.dmddas.dataaccess.bizobject.BOperatorUser;
+			import dmdd.dmddas.dataaccess.bizobject.BOperatorUserBizData;
+			import dmdd.dmddas.dataaccess.bizobject.BOperatorUserFunPermission;
+			import dmdd.dmddmx.com.bizdata.Com_BizData_BizData_Chooser;
+			import dmdd.dmddmx.com.proorg.Com_ProOrg_ProOrg_Chooser;
+			
+			import mx.collections.ArrayCollection;
+			import mx.controls.Alert;
+			import mx.events.FlexEvent;
+			import mx.managers.PopUpManager;
+			import mx.rpc.events.FaultEvent;
+			import mx.rpc.events.ResultEvent;
+			//	描述		begin
+			//	描述		end
+			
+			//	0	输入参数    begin		
+			private var paramIn4closeCallback4thisObject:Object = null;
+			private var paramIn4closeCallback4function:Function = null;
+
+			private var paramIo4winUse:int = UtilUi.AUWINDOW_USE_NEW;
+			
+			[Bindable]
+			private var paramIo4operatorUser:BOperatorUser = null;							
+			//	0	输入参数    end
+			
+			//	1	输出参数    begin
+			private var paramOut4winCloseWay:int = UtilUi.WINDOW_CLOSEWAY_CANCEL;
+			
+			//	1	输出参数    end
+			
+			//	2	本地变量    begin	
+			private var prvVar4chooserWindow_funPermission:Com_Security_FunPermission_Chooser = null;
+			private var prvVar4chooserWindow_bizData:Com_BizData_BizData_Chooser = null;
+			private var prvVar4chooserWindow_proOrg:Com_ProOrg_ProOrg_Chooser = null;
+			//	2	本地变量    end			
+			
+			//	3	公共方法    begin	
+			//	构造函数
+			public function pubFun4constructor( _paramIo4operatorUser:BOperatorUser, _paramIo4winUse:int, _paramIn4closeCallback4thisObject:Object, _paramIn4closeCallback4function:Function ):void
+			{
+				this.pubFun4setParamIo4operatorUser( _paramIo4operatorUser, _paramIo4winUse );
+				this.pubFun4setParamIn4closeCallback( _paramIn4closeCallback4thisObject, _paramIn4closeCallback4function );
+			}	
+			
+			//	关闭回调函数参数													
+			public function pubFun4setParamIn4closeCallback( _thisObject:Object, _function:Function ):void
+			{
+				this.paramIn4closeCallback4thisObject = _thisObject;
+				this.paramIn4closeCallback4function = _function;	
+			}
+			//	关闭方式参数
+			public function pubFun4getParamOut4winCloseWay():int
+			{
+				return this.paramOut4winCloseWay;
+			}
+			//	关闭窗口
+			private function prvFun4close():void
+			{
+				PopUpManager.removePopUp( this );						
+				this.paramIn4closeCallback4function.call( this.paramIn4closeCallback4thisObject );				
+			}				
+			
+			//	界面用途参数
+			public function pubFun4getParamIo4winUse():int
+			{
+				return this.paramIo4winUse;
+			}			
+			
+			//	处理对象参数
+			/**
+			 * _paramIo4operatorUser:BOperatorUser	处理对象
+			 * _paramIo4winUse:int	处理动作
+			 */ 
+			public function pubFun4setParamIo4operatorUser( _paramIo4operatorUser:BOperatorUser, _paramIo4winUse:int ):void
+			{
+				this.paramIo4operatorUser = _paramIo4operatorUser;
+				this.paramIo4winUse = _paramIo4winUse;
+				this.comOperatorUserProperties.pubFun4setPasswordConfirm(_paramIo4operatorUser.password);
+			}
+			public function pubFun4getParamIo4operatorUser():BOperatorUser
+			{
+				return this.paramIo4operatorUser;
+			}				
+			//	3	公共方法    end		
+			
+			//	4	初始化方法    begin			
+			private function creationCompleteHandler(event:FlexEvent):void
+			{
+				this.x = 100;
+				this.y = 50;
+			}						
+			//	4	初始化方法    end				
+
+			//	5	事件响应方法    begin
+			private function onAddFunPermission():void
+			{
+				if( prvVar4chooserWindow_funPermission == null )
+				{
+					prvVar4chooserWindow_funPermission = new Com_Security_FunPermission_Chooser();
+				}
+				
+				PopUpManager.addPopUp( prvVar4chooserWindow_funPermission, ClientEnvironment.modWork, true );
+				PopUpManager.centerPopUp(prvVar4chooserWindow_funPermission);
+				
+				prvVar4chooserWindow_funPermission.adgFunPermission.allowMultipleSelection = true;
+				prvVar4chooserWindow_funPermission.pubFun4setParamIn4closeCallback( this, callbackFunction4ChooserWinClose_funPermission );		
+			}	
+			
+			private function callbackFunction4ChooserWinClose_funPermission():void
+			{
+				if( prvVar4chooserWindow_funPermission.pubFun4getParamOut4winCloseWay() == UtilUi.WINDOW_CLOSEWAY_OK )
+				{
+					var arrSelectedFunPermission:ArrayCollection = prvVar4chooserWindow_funPermission.pubFun4getParamOut4selectedFunPermissions();
+										
+					if( arrSelectedFunPermission != null && arrSelectedFunPermission.length > 0 )
+					{
+						//	把新选择的权限与原有权限合并 	begin
+						UtilOperatorUser.addFunPermissionsToOperatorUser( this.paramIo4operatorUser, arrSelectedFunPermission );
+						//	把新选择的权限与原有权限合并 	end					
+					}
+					
+
+				}
+				//this.prvVar4auWindow = null;														
+			}			
+			
+			private function onDelFunPermission():void
+			{
+				var arr4remove:ArrayCollection = new ArrayCollection(this.comAdgOperatorUserFunPermission.selectedItems);
+				this.paramIo4operatorUser.operatorUserFunPermissions = UtilArrayCollection.removeItems(this.paramIo4operatorUser.operatorUserFunPermissions, arr4remove );	
+				//this.paramIo4operatorUser.operatorUserFunPermissions.removeItemAt( this.comAdgOperatorUserFunPermission.selectedIndex );
+			}
+			
+			private function onAddBizData():void
+			{
+				if( prvVar4chooserWindow_bizData == null )
+				{
+					prvVar4chooserWindow_bizData = new Com_BizData_BizData_Chooser();
+					prvVar4chooserWindow_bizData.pubFun4setParamIn4closeCallback( this, callbackFunction4ChooserWinClose_bizData );	
+					prvVar4chooserWindow_bizData.pubFun4setParamIn4blConstrainedByPermission( false );	//	不受权限约束
+					prvVar4chooserWindow_bizData.pubFun4setParamIn4arrDictBizDataType( ClientEnvironment.getSysDictionaryItems( 'BIZDATA', 'TYPE', true ) );
+				}
+					
+				PopUpManager.addPopUp( prvVar4chooserWindow_bizData, ClientEnvironment.modWork, true );
+				PopUpManager.centerPopUp(prvVar4chooserWindow_bizData);
+				
+				prvVar4chooserWindow_bizData.comAdgBizData.allowMultipleSelection = true;
+			}	
+			
+			private function callbackFunction4ChooserWinClose_bizData():void
+			{
+				if( prvVar4chooserWindow_bizData.pubFun4getParamOut4winCloseWay() == UtilUi.WINDOW_CLOSEWAY_OK )
+				{
+					var arrSelectedBizData:ArrayCollection = prvVar4chooserWindow_bizData.pubFun4getParamOut4selectedBizDatas();
+					
+					if( arrSelectedBizData != null && arrSelectedBizData.length > 0 )
+					{
+						//	把新选择的权限与原有权限合并 	begin
+						UtilOperatorUser.addBizDatasToOperatorUser( this.paramIo4operatorUser, arrSelectedBizData );
+						//	把新选择的权限与原有权限合并 	end
+					}
+				}
+				//this.prvVar4auWindow = null;														
+			}			
+			
+			private function onDelBizData():void
+			{
+				//先保存
+				var arr4remove:ArrayCollection = new ArrayCollection(this.comAdgOperatorUserBizData.selectedItems);
+				this.paramIo4operatorUser.operatorUserBizDatas = UtilArrayCollection.removeItems(this.paramIo4operatorUser.operatorUserBizDatas, arr4remove );	
+				//this.paramIo4operatorUser.operatorUserBizDatas.removeItemAt( this.comAdgOperatorUserBizData.selectedIndex );
+			}
+			
+			
+			private function onAddProOrg():void
+			{
+				if( prvVar4chooserWindow_proOrg == null )
+				{
+					prvVar4chooserWindow_proOrg = new Com_ProOrg_ProOrg_Chooser();
+				}
+					
+				PopUpManager.addPopUp( prvVar4chooserWindow_proOrg, ClientEnvironment.modWork, true );
+				PopUpManager.centerPopUp(prvVar4chooserWindow_proOrg);
+				
+				prvVar4chooserWindow_proOrg.comAdgProOrg.allowMultipleSelection = true;
+				prvVar4chooserWindow_proOrg.pubFun4setParamIn4closeCallback( this, callbackFunction4ChooserWinClose_proOrg );
+			}	
+			
+			private function callbackFunction4ChooserWinClose_proOrg():void
+			{
+				if( prvVar4chooserWindow_proOrg.pubFun4getParamOut4winCloseWay() == UtilUi.WINDOW_CLOSEWAY_OK )
+				{
+					var arrSelectedProOrg:ArrayCollection = prvVar4chooserWindow_proOrg.pubFun4getParamOut4selectedProOrgs();
+					
+					if( arrSelectedProOrg != null && arrSelectedProOrg.length > 0 )
+					{
+						//	把新选择的权限与原有权限合并 	begin
+						UtilOperatorUser.addProOrgsToOperatorUser( this.paramIo4operatorUser, arrSelectedProOrg );
+						//	把新选择的权限与原有权限合并 	end						
+					}
+				}
+				//this.prvVar4auWindow = null;														
+			}			
+			
+			private function onDelProOrg():void
+			{
+				var arr4remove:ArrayCollection = new ArrayCollection(this.comAdgOperatorUserProOrg.selectedItems);
+				this.paramIo4operatorUser.operatorUserProOrgs = UtilArrayCollection.removeItems(this.paramIo4operatorUser.operatorUserProOrgs, arr4remove );	
+			}
+			
+			
+			
+			private function onSave():void
+			{				
+				if( this.prvFun4prepare4save() == true )
+				{
+					UtilUi.pubFun4PopWaitWindow( this );
+					if( this.paramIo4winUse == UtilUi.AUWINDOW_USE_NEW )
+					{
+						this.srvSecurity.newOperatorUser( this.paramIo4operatorUser );
+					}
+					else if( this.paramIo4winUse == UtilUi.AUWINDOW_USE_UPD )
+					{
+						this.srvSecurity.updOperatorUser( this.paramIo4operatorUser );
+					}
+					else
+					{
+						Alert.show( '意外情形，请联系技术支持人员', '提示' );	
+					}
+				}
+			}			
+			
+			private function faultHandler4saveOperatorUser(event:FaultEvent):void
+			{
+				UtilUi.pubFun4RemoveWaitWindow();
+				Alert.show( UtilExceptionLocale.getExceptionMessageLocaleByFaultEvent( event ), resourceManager.getString('alert','alt_title_warn') );
+			}	
+			
+			private function resultHandler4saveOperatorUser(event:ResultEvent):void 
+			{
+				this.paramIo4operatorUser = BOperatorUser(event.result);	
+				UtilUi.pubFun4RemoveWaitWindow();
+				
+				this.paramOut4winCloseWay = UtilUi.WINDOW_CLOSEWAY_OK;
+				this.prvFun4close();
+			}				
+			
+			private function onCancel():void
+			{
+				this.paramOut4winCloseWay = UtilUi.WINDOW_CLOSEWAY_CANCEL;
+				this.prvFun4close();
+			}	
+			
+			//	5	事件响应方法    end
+			
+			//	6	本地方法    begin
+			private function prvFun4prepare4save():Boolean
+			{
+				//	基本信息
+				if( this.comOperatorUserProperties.pubFun4prepare4save() == false )
+				{
+					return false;	
+				}
+				
+				//	功能权限, 已实时处理
+				//	业务数据权限, 已实时处理
+				//	业务范围权限, 已实时处理
+				
+				return true;
+			}							
+			//	6	本地方法   end						
+
+		]]>
+	</fx:Script>
+	<s:VGroup width="100%" height="100%" paddingLeft="10" paddingRight="10">
+		<mx:TabNavigator width="100%" height="100%">
+			<s:NavigatorContent width="100%" height="100%" label="{resourceManager.getString('menu','userInfo')}">
+				<s:layout>
+					<s:VerticalLayout/>
+				</s:layout>
+				<security:Com_Security_OperatorUser_Properties id="comOperatorUserProperties" paramIn4editable="true" paramIo4operatorUser="{this.paramIo4operatorUser}" width="100%" height="100%">
+				</security:Com_Security_OperatorUser_Properties>
+			</s:NavigatorContent>
+			<s:NavigatorContent label="{resourceManager.getString('menu','funcAccess')}" width="100%" height="100%">
+				<s:layout>
+					<s:VerticalLayout/>
+				</s:layout>
+				<containers:AksControlBar>
+					<buttons:ButtonAdd click="onAddFunPermission()"/>
+					<buttons:ButtonRemove click="onDelFunPermission()" enabled="{this.comAdgOperatorUserFunPermission.selectedItems.pop()}"/>
+				</containers:AksControlBar>
+				<security:Com_Security_OperatorUserFunPermission_AdvancedDataGrid id="comAdgOperatorUserFunPermission" dataProvider="{this.paramIo4operatorUser.operatorUserFunPermissions}" width="100%" height="100%" allowMultipleSelection="true"/>
+			</s:NavigatorContent>
+			<s:NavigatorContent label="{resourceManager.getString('menu','busDataAccess')}" width="100%" height="100%">
+				<s:layout>
+					<s:VerticalLayout/>
+				</s:layout>
+				<containers:AksControlBar>
+					<buttons:ButtonAdd click="onAddBizData()"/>
+					<buttons:ButtonRemove click="onDelBizData()" enabled="{this.comAdgOperatorUserBizData.selectedItems.pop()}"/>
+				</containers:AksControlBar>			
+				<security:Com_Security_OperatorUserBizData_AdvancedDataGrid_Edit id="comAdgOperatorUserBizData" editable="true" dataProvider="{this.paramIo4operatorUser.operatorUserBizDatas}" width="100%" height="100%" allowMultipleSelection="true"/>
+			</s:NavigatorContent>
+			<s:NavigatorContent label="{resourceManager.getString('menu','busScopeAccess')}" width="100%" height="100%">
+				<s:layout>
+					<s:VerticalLayout/>
+				</s:layout>
+				<containers:AksControlBar>
+					<buttons:ButtonAdd click="onAddProOrg()"/>
+					<buttons:ButtonRemove click="onDelProOrg()" enabled="{this.comAdgOperatorUserProOrg.selectedItems.pop()}" />
+				</containers:AksControlBar>				
+				<security:Com_Security_OperatorUserProOrg_AdvancedDataGrid id="comAdgOperatorUserProOrg" dataProvider="{this.paramIo4operatorUser.operatorUserProOrgs}" width="100%" height="100%" allowMultipleSelection="true"/>
+			</s:NavigatorContent>		
+		</mx:TabNavigator>
+	</s:VGroup>
+		
+	<s:HGroup width="100%" horizontalAlign="center">
+		<buttons:ButtonSave click="onSave()"/>
+		<buttons:ButtonCancel click="onCancel()"/>
+	</s:HGroup>	
+</s:TitleWindow>

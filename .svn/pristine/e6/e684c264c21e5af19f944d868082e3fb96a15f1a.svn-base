@@ -1,0 +1,84 @@
+setparamtitle=Para Setting
+basicinfo=Basic Information
+commonpara=General Information
+
+code=ID
+name=Description
+type=Type
+description=Long Description
+comments=Comments
+
+historybizdata=History Data
+outlierfactor=Outlier Factor¦Ò
+outlieranalyzeperiodnum=Ex-Post Periods
+outlierdataisautoadjust=Outlier
+outlierdataadjusthistorywgt=Weight by History 
+outlierdataadjustcomputewgt=Weight by Ex-Post Forecast 
+historydependperiodnum=Minimum Number of History Periods
+historydependperiodnumcomments=Forecast would be misled without enough history.
+
+
+####
+modelpara=Model Settings
+
+dataperiodnum=Number of HistoricalPeriods to be considered
+smoothingfactor=Smoothing Factor¦Á
+initdataperiodnum=Number of InitialHistoryPeriods
+percentvalue=Number of Percentage(%)
+offsetperiodnum=Number of OffsetPeriod
+
+
+trenddampingisvalid=Trend Damping
+trenddampingfactor=Damping Factor¦Ä
+
+
+levelsmoothingfactor=LevelSmoothingFactor¦Á
+trendsmoothingfactor=TrendSmoothingFactor¦Â
+
+seasonsmoothingfactor=SeasonalSmoothingFactor¦Ã
+
+smoothingfactorinit=InitialFactorforOptimization
+levelsmoothingfactorinit=InitialLevelSmoothingFactor
+trendsmoothingfactorinit=InitialTrendSmoothingFactor
+seasonsmoothingfactorinit=InitialSeasonalSmoothingFactor
+
+###
+
+###
+btn_add=Add
+btn_del=Remove
+periodseqno=Order of Moving Average
+coefficient=Weights
+btn_ok=OK
+btn_cancel=Cancel
+###
+
+
+alert_title_hint=Alert
+
+alert_msg_modelnameisnull=Model Description is missing.
+
+alert_msg_dataperiodnum_1_24=Number of history periods needs to be integer number between 1-24.
+alert_msg_dataperiodnum_2_24=Number of history periods needs to be integer number between 2-24.
+alert_msg_initdataperiodnum_2_24=Number of initial history periods needs to be integer number between 2-24.
+alert_msg_initdataperiodnum_3_24=Number of initial history periods needs to be integer number between 3-24.
+alert_msg_offsetperiodnum_1_24=Number of offsetPeriod should be integer number between 1-24.
+
+alert_msg_smoothingfactor=Smoothing factor needs to be between 0-1.0.
+alert_msg_percentvalue=Percentage needs to be more than 0.
+alert_msg_levelsmoothingfactor=Level smoothing factor needs to be between 0-1.0.
+alert_msg_trendsmoothingfactor=Trend smoothing factor needs to be between 0-1.0.
+alert_msg_trenddampingfactor=Dampening factor needs to be between 0-1.0.
+alert_msg_seasonsmoothingfactor=Seasonal smoothing factor needs to be between 0-1.0.
+
+
+alert_msg_outlierfactor=Outlier factor needs to be between 0-99.99.
+alert_msg_outlieranalyzeperiodnum=Number of ex-post periods needs to be between 1-24.
+alert_msg_outlierdataadjusthistorywgt=History weight needs to be between 0-99.99.
+alert_msg_outlierdataadjustcomputewgt=Forecast weight needs to be between 0-99.99.
+
+
+alert_msg_historybizdataisnull=History data is missing!
+
+
+alert_msg_analogitem_null=Reference items of Liking model is missing.

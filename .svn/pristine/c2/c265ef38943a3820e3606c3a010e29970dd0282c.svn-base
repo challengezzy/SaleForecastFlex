@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:BorderContainer xmlns:fx="http://ns.adobe.com/mxml/2009" 
+				   xmlns:s="library://ns.adobe.com/flex/spark" 
+				   xmlns:mx="library://ns.adobe.com/flex/mx" height="80" width="100%"
+				   creationComplete="creationCompleteHandler(event)" xmlns:bizdata="dmdd.dmddmx.com.bizdata.*">
+	<s:layout>
+		<s:VerticalLayout />
+	</s:layout>
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+		<mx:NumberValidator id="numberValidator4InitDataPeriodNum" source="{this.txtInitDataPeriodNum}" property="text" allowNegative="false" 
+							negativeError="{resourceManager.getString('alert','alert_msg_initdataperiodnum_2_249')}" 
+							invalidCharError="{resourceManager.getString('alert','alert_msg_initdataperiodnum_2_249')}" 
+							lowerThanMinError="{resourceManager.getString('alert','alert_msg_initdataperiodnum_2_249')}" 
+							exceedsMaxError="{resourceManager.getString('alert','alert_msg_initdataperiodnum_2_249')}"   
+							minValue="2" maxValue="24" domain="int" 
+							trigger="{this.txtInitDataPeriodNum}" triggerEvent="change">
+		</mx:NumberValidator>	
+		
+		<mx:NumberValidator id="numberValidator4SmoothingingFactor" source="{this.txtSmoothingFactor}" property="text" allowNegative="false" 
+							negativeError="{resourceManager.getString('alert','alert_msg_smoothingfactor9')}" 
+							invalidCharError="{resourceManager.getString('alert','alert_msg_smoothingfactor9')}" 
+							lowerThanMinError="{resourceManager.getString('alert','alert_msg_smoothingfactor9')}" 
+							exceedsMaxError="{resourceManager.getString('alert','alert_msg_smoothingfactor9')}"  
+							minValue="0" maxValue="1.0" domain="real" 
+							trigger="{this.txtSmoothingFactor}" triggerEvent="change">
+		</mx:NumberValidator>	
+	</fx:Declarations>
+	<fx:Script>
+		<![CDATA[
+			import dmdd.dmddas.common.system.ClientEnvironment;
+			import dmdd.dmddas.dataaccess.bizobject.BForecastModelMLEs;
+			
+			import mx.collections.ArrayCollection;
+			import mx.controls.Alert;
+			import mx.events.FlexEvent;
+			import mx.utils.StringUtil;
+			
+			import spark.events.TextOperationEvent;
+
+			//	描述    begin
+			//	描述    end
+			
+			//	0	输入参数    begin		
+			[Bindable]
+			public var paramIo4forecastModelMLEs:BForecastModelMLEs = null;
+			
+			[Bindable]
+			public var paramIn4editable:Boolean = false;				
+			//	0	输入参数    end
+			
+			//	1	输出参数    begin
+			[Bindable]
+			public var paramOut4historyDependPeriodNum:int = 1;
+			//	1	输出参数    end
+
+			//	2	本地变量    begin									
+			//	2	本地变量    end			
+			
+			//	3	公共方法    begin	
+			public function pubFun4prepare4save():Boolean
+			{
+				this.paramIo4forecastModelMLEs.smoothingFactor = Number( StringUtil.trim(this.txtSmoothingFactor.text) );
+				this.paramIo4forecastModelMLEs.initDataPeriodNum = Number( StringUtil.trim(this.txtInitDataPeriodNum.text) );
+				
+				var alert_title_hint:String = resourceManager.getString('alert','alert_title_hint')
+				var alert_msg:String = null;
+				
+				if( this.numberValidator4InitDataPeriodNum.validate(this.txtInitDataPeriodNum.text).results != null )
+				{
+					alert_msg = resourceManager.getString('alert','alert_msg_initdataperiodnum_2_249');
+					Alert.show( alert_msg, alert_title_hint );
+					return false;
+				}			
+				
+				if( this.numberValidator4SmoothingingFactor.validate(this.txtSmoothingFactor.text).results != null )
+				{
+					alert_msg = resourceManager.getString('alert','alert_msg_smoothingfactor9');
+					Alert.show( alert_msg, alert_title_hint );
+					return false;
+				}
+				
+				return true;									
+			}				
+			//	3	公共方法    end		
+			
+			//	4	初始化方法    begin	
+			protected function creationCompleteHandler(event:FlexEvent):void
+			{
+			}			
+			//	4	初始化方法    end				
+			
+			//	5	事件响应方法    begin
+			protected function onChange4historyDependPeriodNum( txt:String ):Boolean
+			{
+				// TODO Auto-generated method stub
+				if( this.numberValidator4InitDataPeriodNum.validate(this.txtInitDataPeriodNum.text).results != null )
+				{
+					return false;
+				}
+				
+				this.paramOut4historyDependPeriodNum = Number( StringUtil.trim(this.txtInitDataPeriodNum.text) );
+				return false;
+			}			
+		
+			//	5	事件响应方法    end
+			
+			//	6	本地方法    begin
+		
+			//	6	本地方法   end				
+
+		]]>
+	</fx:Script>
+	
+	<mx:Grid width="100%" height="100%">
+		<mx:GridRow width="100%" height="100%" verticalAlign="middle">
+			<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+				<s:Label text="{resourceManager.getString('note','modelPara')}" fontWeight="bold"/>
+			</mx:GridItem>
+		</mx:GridRow>
+		<mx:GridRow width="100%" height="100%" verticalAlign="middle">
+			<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+				<s:Label text="{resourceManager.getString('note','smoothFactor')}"/>
+			</mx:GridItem>
+			<mx:GridItem width="100%" height="100%" verticalAlign="middle">
+				<s:TextInput width="100%" id="txtSmoothingFactor" maxChars="20" enabled="{this.paramIn4editable}" text="{this.paramIo4forecastModelMLEs.smoothingFactor}"/>
+			</mx:GridItem>	
+			<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+			</mx:GridItem>		
+			<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+				<s:Label text="{resourceManager.getString('note','initialOnHistoryPeriodN')}"/>
+			</mx:GridItem>
+			<mx:GridItem width="100%" height="100%" verticalAlign="middle">
+				<s:TextInput width="100%" id="txtInitDataPeriodNum" maxChars="20" enabled="{this.paramIn4editable}" text="{this.paramIo4forecastModelMLEs.initDataPeriodNum}"/>
+				<s:Button width="0" visible="false" enabled="{this.onChange4historyDependPeriodNum(this.txtInitDataPeriodNum.text)}"/>
+			</mx:GridItem>
+			<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+			</mx:GridItem>
+			<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+			</mx:GridItem>
+			<mx:GridItem width="100%" height="100%" verticalAlign="middle">
+			</mx:GridItem>		
+		</mx:GridRow>	
+	</mx:Grid>
+	
+</s:BorderContainer>

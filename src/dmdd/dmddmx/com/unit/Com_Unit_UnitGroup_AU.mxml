@@ -1,0 +1,373 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:TitleWindow xmlns:fx="http://ns.adobe.com/mxml/2009" 
+			   xmlns:s="library://ns.adobe.com/flex/spark" 
+			   xmlns:mx="library://ns.adobe.com/flex/mx" width="800" height="460" close="onCancel()"
+			   creationComplete="creationCompleteHandler(event)"  
+			   xmlns:containers="aks.aksmx.containers.*" xmlns:unit="dmdd.dmddmx.com.unit.*" xmlns:buttons="com.cool.buttons.*" xmlns:common="dmdd.dmddmx.com.common.*">
+	<s:layout>
+		<s:VerticalLayout paddingLeft="10" paddingRight="10" paddingTop="10" paddingBottom="10"/>
+	</s:layout>
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+		<s:RemoteObject endpoint="{ClientEnvironment.endpoint}" id="srvUnitGroup" destination="UnitService">
+			<s:method name="newUnitGroup" result="resultHandler4saveUnitGroup(event)" fault="faultHandler4saveUnitGroup(event)">
+			</s:method>	
+			<s:method name="updUnitGroup" result="resultHandler4saveUnitGroup(event)" fault="faultHandler4saveUnitGroup(event)">
+			</s:method>
+		</s:RemoteObject>		
+	</fx:Declarations>
+	
+	<fx:Script>
+		<![CDATA[
+			import aks.aksas.collections.HashMap;
+			import aks.aksas.utils.UtilNumber;
+			import aks.aksas.utils.UtilUi;
+			
+			import dmdd.dmddas.common.constant.BizConst;
+			import dmdd.dmddas.common.constant.UIConst;
+			import dmdd.dmddas.common.system.ClientEnvironment;
+			import dmdd.dmddas.common.utils.UtilExceptionLocale;
+			import dmdd.dmddas.dataaccess.bizobject.BUnit;
+			import dmdd.dmddas.dataaccess.bizobject.BUnitGroup;
+			
+			import mx.collections.ArrayCollection;
+			import mx.controls.Alert;
+			import mx.events.FlexEvent;
+			import mx.managers.PopUpManager;
+			import mx.rpc.events.FaultEvent;
+			import mx.rpc.events.ResultEvent;
+			import mx.utils.StringUtil;
+			//	描述		begin
+			//	描述		end
+			
+			//	0	输入参数    begin		
+			private var paramIn4closeCallback4thisObject:Object = null;
+			private var paramIn4closeCallback4function:Function = null;
+			
+			private var paramIo4winUse:int = UtilUi.AUWINDOW_USE_NEW;
+			
+			[Bindable]
+			private var paramIo4unitGroup:BUnitGroup = null;							
+			//	0	输入参数    end
+			
+			//	1	输出参数    begin
+			private var paramOut4winCloseWay:int = UtilUi.WINDOW_CLOSEWAY_CANCEL;
+			
+			//	1	输出参数    end
+			
+			//	2	本地变量    begin
+			[Bindable]
+			private var prvVar4baseUnit:BUnit = null;
+			[Bindable]
+			private var prvVar4arrNonBaseUnits:ArrayCollection = new ArrayCollection();
+			//	2	本地变量    end			
+			
+			//	3	公共方法    begin	
+			//	构造函数
+			public function pubFun4constructor( _paramIo4unitGroup:BUnitGroup, _paramIo4winUse:int, _paramIn4closeCallback4thisObject:Object, _paramIn4closeCallback4function:Function ):void
+			{
+				this.pubFun4setParamIo4unitGroup( _paramIo4unitGroup, _paramIo4winUse );
+				this.pubFun4setParamIn4closeCallback( _paramIn4closeCallback4thisObject, _paramIn4closeCallback4function );
+			}	
+			
+			//	关闭回调函数参数													
+			public function pubFun4setParamIn4closeCallback( _thisObject:Object, _function:Function ):void
+			{
+				this.paramIn4closeCallback4thisObject = _thisObject;
+				this.paramIn4closeCallback4function = _function;	
+			}
+			//	关闭方式参数
+			public function pubFun4getParamOut4winCloseWay():int
+			{
+				return this.paramOut4winCloseWay;
+			}
+			//	关闭窗口
+			private function prvFun4close():void
+			{
+				PopUpManager.removePopUp( this );						
+				this.paramIn4closeCallback4function.call( this.paramIn4closeCallback4thisObject );				
+			}				
+			
+			//	界面用途参数
+			public function pubFun4getParamIo4winUse():int
+			{
+				return this.paramIo4winUse;
+			}			
+			
+			
+			//	处理对象参数
+			/**
+			 * _paramIo4unitGroup:BUnitGroup	处理对象
+			 * _paramIo4winUse:int	处理动作
+			 */ 			
+			public function pubFun4setParamIo4unitGroup( _paramIo4unitGroup:BUnitGroup, _paramIo4winUse:int ):void
+			{
+				this.paramIo4unitGroup = _paramIo4unitGroup;
+				this.paramIo4winUse = _paramIo4winUse;
+				
+				if( this.paramIo4winUse == UtilUi.AUWINDOW_USE_NEW )
+				{
+					this.prvVar4baseUnit = new BUnit();
+					this.prvVar4baseUnit.isBase = BizConst.GLOBAL_YESNO_YES;
+					this.prvVar4baseUnit.exchangeRate = 1.0;
+					this.prvVar4baseUnit.unitGroup = this.paramIo4unitGroup;
+					
+					this.prvVar4arrNonBaseUnits = new ArrayCollection();
+				}	
+				else if( this.paramIo4winUse == UtilUi.AUWINDOW_USE_UPD )
+				{
+					this.prvVar4baseUnit = this.paramIo4unitGroup.getBaseUnit();
+					this.prvVar4arrNonBaseUnits = this.paramIo4unitGroup.getNonBaseUnits();
+				}
+			}
+			public function pubFun4getParamIo4unitGroup():BUnitGroup
+			{
+				return this.paramIo4unitGroup;
+			}				
+			//	3	公共方法    end		
+			
+			//	4	初始化方法    begin			
+			private function creationCompleteHandler(event:FlexEvent):void
+			{
+				this.x = 100;
+				this.y = 50;
+			}						
+			//	4	初始化方法    end				
+			
+			//	5	事件响应方法    begin			
+			private function onAddUnit():void
+			{
+				var newUnit:BUnit = new BUnit();
+				newUnit.isBase = BizConst.GLOBAL_YESNO_NO;
+				newUnit.exchangeRate = 1.0;
+				newUnit.unitGroup = this.paramIo4unitGroup;
+
+				this.prvVar4arrNonBaseUnits.addItem( newUnit );
+			}
+			
+			
+			private function onDelUnit():void
+			{
+				this.prvVar4arrNonBaseUnits.removeItemAt( this.comAdgUnit.selectedIndex );
+			}
+			
+			private function onSave():void
+			{				
+				if( this.prvFun4prepare4save() == true )
+				{
+					UtilUi.pubFun4PopWaitWindow( this );
+					if( this.paramIo4winUse == UtilUi.AUWINDOW_USE_NEW )
+					{
+						this.srvUnitGroup.newUnitGroup( this.paramIo4unitGroup );
+					}
+					else if( this.paramIo4winUse == UtilUi.AUWINDOW_USE_UPD )
+					{
+						this.srvUnitGroup.updUnitGroup( this.paramIo4unitGroup );
+					}
+					else
+					{
+						Alert.show( '意外情形，请联系技术支持人员', '提示' );	
+					}
+				}
+			}			
+			
+			private function faultHandler4saveUnitGroup(event:FaultEvent):void
+			{
+				UtilUi.pubFun4RemoveWaitWindow();
+
+				Alert.show( UtilExceptionLocale.getExceptionMessageLocaleByFaultEvent( event ), resourceManager.getString('alert','alt_title_warn') );
+			}	
+			
+			private function resultHandler4saveUnitGroup(event:ResultEvent):void 
+			{
+				this.paramIo4unitGroup = BUnitGroup(event.result);	
+				UtilUi.pubFun4RemoveWaitWindow();
+				
+				this.paramOut4winCloseWay = UtilUi.WINDOW_CLOSEWAY_OK;
+				this.prvFun4close();
+			}				
+			
+			private function onCancel():void
+			{
+				this.paramOut4winCloseWay = UtilUi.WINDOW_CLOSEWAY_CANCEL;
+				this.prvFun4close();
+			}	
+			
+			//	5	事件响应方法    end
+			
+			//	6	本地方法    begin
+			private function prvFun4prepare4save():Boolean
+			{
+				//	基本信息
+				var alert_title_hint:String = resourceManager.getString('alert','alert_title_hint');
+				var alert_msg:String = "";
+
+				this.paramIo4unitGroup.code = StringUtil.trim( this.txtCode.text ); 
+				this.paramIo4unitGroup.name = StringUtil.trim( this.txtName.text );
+				this.paramIo4unitGroup.description = StringUtil.trim( this.txtDescription.text );
+				this.paramIo4unitGroup.comments = StringUtil.trim( this.txtComments.text );
+				
+				if( this.paramIo4unitGroup.code == null || this.paramIo4unitGroup.code == "" )
+				{
+					alert_msg = resourceManager.getString('alert','alert_msg_unitgroupcodeisnull');
+					Alert.show( alert_msg, alert_title_hint );
+					return false;					
+				}
+				
+				if( this.paramIo4unitGroup.name == null || this.paramIo4unitGroup.name == "" )
+				{
+					alert_msg = resourceManager.getString('alert','alert_msg_unitgroupnameisnull');
+					Alert.show( alert_msg, alert_title_hint );
+					return false;					
+				}				
+				 
+				this.prvVar4baseUnit.code = StringUtil.trim( this.txtBaseUnitCode.text );
+				this.prvVar4baseUnit.name = StringUtil.trim( this.txtBaseUnitName.text );
+				
+				if( this.prvVar4baseUnit.code == null || this.prvVar4baseUnit.code == "" )
+				{
+					alert_msg = resourceManager.getString('alert','alert_msg_baseunitcodeisnull');
+					Alert.show( alert_msg, alert_title_hint );
+					return false;					
+				}
+				if( this.prvVar4baseUnit.name == null || this.prvVar4baseUnit.name == "" )
+				{
+					alert_msg = resourceManager.getString('alert','alert_msg_baseunitnameisnull');
+					Alert.show( alert_msg, alert_title_hint );
+					return false;					
+				}
+				
+				var hmap_code:HashMap = new HashMap();
+				var hmap_name:HashMap = new HashMap();
+				
+				hmap_code.put( this.prvVar4baseUnit.code, this.prvVar4baseUnit.code );
+				hmap_name.put( this.prvVar4baseUnit.name, this.prvVar4baseUnit.name );
+				 
+				var i:int;
+				var unit:BUnit = null;
+				for( i=0; i<this.prvVar4arrNonBaseUnits.length; i=i+1 )
+				{
+					unit = BUnit( this.prvVar4arrNonBaseUnits.getItemAt( i ) );
+
+					unit.code = StringUtil.trim( unit.code );
+					unit.name = StringUtil.trim( unit.name );
+					if( unit.code == null || unit.code == "" )
+					{
+						alert_msg = resourceManager.getString('alert','alert_msg_unitcodeisnull');
+						Alert.show( alert_msg, alert_title_hint );
+						return false;						
+					}
+					if( unit.name == null || unit.name == "" )
+					{
+						alert_msg = resourceManager.getString('alert','alert_msg_unitnameisnull');
+						Alert.show( alert_msg, alert_title_hint );
+						return false;
+					}		
+					
+					if( isNaN(unit.exchangeRate) || UtilNumber.isInteger(unit.exchangeRate) == false || unit.exchangeRate <= 0 )
+					{
+						alert_msg = resourceManager.getString('alert','alert_msg_exchangerateisinvalid');
+						Alert.show( alert_msg, alert_title_hint );
+						return false;	
+					}			
+					
+					if( hmap_code.getValue(unit.code) != null )
+					{
+						alert_msg = resourceManager.getString('alert','alert_msg_unitcodeisnotunique');
+						Alert.show( alert_msg, alert_title_hint );
+						return false;						
+					}
+					hmap_code.put( unit.code, unit.code );
+					
+					if( hmap_name.getValue(unit.name) != null )
+					{
+						alert_msg = resourceManager.getString('alert','alert_msg_unitnameisnotunique');
+						Alert.show( alert_msg, alert_title_hint );
+						return false;						
+					}		
+					hmap_name.put( unit.name, unit.name );
+				}				
+				
+				this.paramIo4unitGroup.units = new ArrayCollection();
+				
+				this.paramIo4unitGroup.addUnit( this.prvVar4baseUnit );
+				for( i=0; i<this.prvVar4arrNonBaseUnits.length; i=i+1 )
+				{
+					unit = BUnit( this.prvVar4arrNonBaseUnits.getItemAt( i ) );
+					this.paramIo4unitGroup.addUnit( unit );
+				}
+				return true;
+			}							
+			//	6	本地方法   end						
+
+
+		]]>
+	</fx:Script>
+	
+	<common:LabelBoundary labelText="{resourceManager.getString('menu','unitGroup')}" />
+	<s:VGroup width="100%" height="150" >
+		<mx:Grid width="100%" height="100%">
+			<mx:GridRow width="100%" height="100%" verticalAlign="middle">
+				<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+					<s:Label text="{resourceManager.getString('note','unitGroupCode1')}"/>
+				</mx:GridItem>
+				<mx:GridItem width="100%" height="100%" verticalAlign="middle">
+					<mx:TextInput width="100%" text="{this.paramIo4unitGroup.code}" maxChars="255" id="txtCode"/>
+				</mx:GridItem>
+				<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+				</mx:GridItem>
+				<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+					<s:Label text="{resourceManager.getString('note','unitGroupName1')}"/>
+				</mx:GridItem>
+				<mx:GridItem width="100%" height="100%" verticalAlign="middle">
+					<mx:TextInput width="100%" text="{this.paramIo4unitGroup.name}" maxChars="255" id="txtName"/>
+				</mx:GridItem>
+			</mx:GridRow>
+			<mx:GridRow width="100%" height="100%" verticalAlign="middle">
+				<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+					<s:Label text="{resourceManager.getString('note','unitGroupDesc')}"/>
+				</mx:GridItem>
+				<mx:GridItem width="100%" height="100%" verticalAlign="middle" colSpan="4">
+					<mx:TextInput width="100%" maxChars="255" text="{this.paramIo4unitGroup.description}" id="txtDescription"/>
+				</mx:GridItem>
+			</mx:GridRow>
+			<mx:GridRow width="100%" height="100%" verticalAlign="middle">
+				<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+					<s:Label text="{resourceManager.getString('note','unitGroupComment')}"/>
+				</mx:GridItem>
+				<mx:GridItem width="100%" height="100%" verticalAlign="middle" colSpan="4">
+					<mx:TextInput width="100%" maxChars="255" text="{this.paramIo4unitGroup.comments}" id="txtComments"/>
+				</mx:GridItem>
+			</mx:GridRow>	
+			<mx:GridRow width="100%" height="100%" verticalAlign="middle">
+				<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+					<s:Label text="{resourceManager.getString('note','baseUnitCode')}"/>
+				</mx:GridItem>
+				<mx:GridItem width="100%" height="100%" verticalAlign="middle">
+					<mx:TextInput width="100%" text="{this.prvVar4baseUnit.code}" maxChars="255" id="txtBaseUnitCode"/>
+				</mx:GridItem>
+				<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+				</mx:GridItem>
+				<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+					<s:Label text="{resourceManager.getString('note','baseUnitName')}"/>
+				</mx:GridItem>
+				<mx:GridItem width="100%" height="100%" verticalAlign="middle">
+					<mx:TextInput width="100%" text="{this.prvVar4baseUnit.name}" maxChars="255" id="txtBaseUnitName"/>
+				</mx:GridItem>
+			</mx:GridRow>			
+		</mx:Grid>			
+	</s:VGroup>
+	<common:LabelBoundary labelText="{resourceManager.getString('menu','unit')}" />
+	<s:VGroup width="100%" height="100%" >
+		<containers:AksControlBar>
+			<buttons:ButtonAdd click="onAddUnit()"/>
+			<buttons:ButtonRemove enabled="{this.comAdgUnit.selectedItem}" click="onDelUnit()"/>						
+		</containers:AksControlBar>
+		<unit:Com_Unit_Unit_AdvancedDataGrid id="comAdgUnit" dataProvider="{this.prvVar4arrNonBaseUnits}" editable="true" width="100%" height="100%"/>
+	</s:VGroup>
+	<s:HGroup width="100%" horizontalAlign="center">
+		<buttons:ButtonSave click="onSave()"/>
+		<buttons:ButtonCancel click="onCancel()"/>		
+	</s:HGroup>
+
+</s:TitleWindow>

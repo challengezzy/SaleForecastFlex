@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:DataGrid xmlns:fx="http://ns.adobe.com/mxml/2009" 
+					 xmlns:s="library://ns.adobe.com/flex/spark" 
+					 xmlns:mx="library://ns.adobe.com/flex/mx" horizontalScrollPolicy="on">
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+	</fx:Declarations>
+	<fx:Script>
+		<![CDATA[
+			import dmdd.dmddas.common.utils.UtilDataGridColumnLabelFunction;
+			
+			import mx.resources.ResourceManager;
+			
+			//	描述    begin
+			//	描述    end
+			
+			//	0	输入参数    begin				
+			[Bindable]
+			public var paramIn4visible4periodControl:Boolean = true;
+			
+			[Bindable]
+			public var paramIn4visible4displayControl:Boolean = true;			
+			//	0	输入参数    end
+			
+			//	1	输出参数    begin
+			//	1	输出参数    end
+			
+			//	2	本地变量    begin			
+			//	2	本地变量    end			
+			
+			//	3	公共方法    begin			
+			//	3	公共方法    end		
+			
+			//	4	初始化方法    begin				
+			//	4	初始化方法    end				
+			
+			//	5	事件响应方法    begin
+			//	5	事件响应方法    end
+			
+			//	6	本地方法    begin
+			//	6	本地方法   end					
+		]]>
+	</fx:Script>
+	<mx:columns>
+		<mx:DataGridColumn headerText="{ResourceManager.getInstance().getString('label','code')}" 		dataField="code" width="145"/>
+		<mx:DataGridColumn headerText="{ResourceManager.getInstance().getString('label','name')}" 		dataField="name"  width="145"/>
+		<mx:DataGridColumn headerText="{ResourceManager.getInstance().getString('label','desc')}" 	dataField="description" width="150"/>
+		<mx:DataGridColumn headerText="{ResourceManager.getInstance().getString('label','remark')}" 	dataField="comments"/>
+		
+		<mx:DataGridColumn headerText="{ResourceManager.getInstance().getString('label','periodControl')}" 	dataField="isPeriodControl"			visible="{this.paramIn4visible4periodControl}"	labelFunction="UtilDataGridColumnLabelFunction.getGlobalYesNoLocale" />
+		<mx:DataGridColumn headerText="{ResourceManager.getInstance().getString('label','startPeriodBias')}" 	dataField="periodOffsetBegin"	visible="{this.paramIn4visible4periodControl}"	/>
+		<mx:DataGridColumn headerText="{ResourceManager.getInstance().getString('label','endPeriodBias')}" 		dataField="periodOffsetEnd"		visible="{this.paramIn4visible4periodControl}"	/>
+		
+		<mx:DataGridColumn headerText="{ResourceManager.getInstance().getString('label','displayControl')}" 		dataField="isDisplayControl"	visible="{this.paramIn4visible4displayControl}"	labelFunction="UtilDataGridColumnLabelFunction.getGlobalYesNoLocale"/>
+		<mx:DataGridColumn headerText="{ResourceManager.getInstance().getString('label','showPro')}" 			dataField="isShowProduct"	visible="{this.paramIn4visible4displayControl}"	 labelFunction="UtilDataGridColumnLabelFunction.getGlobalYesNoLocale"/>
+		<mx:DataGridColumn headerText="{ResourceManager.getInstance().getString('label','showProLayer')}" 				dataField="productLayer"	visible="{this.paramIn4visible4displayControl}"	/>
+		
+		<mx:DataGridColumn headerText="{ResourceManager.getInstance().getString('label','showProChar')}" 		dataField="isShowProductCharacter"	visible="{this.paramIn4visible4displayControl}"	 labelFunction="UtilDataGridColumnLabelFunction.getGlobalYesNoLocale"/>
+		<mx:DataGridColumn headerText="{ResourceManager.getInstance().getString('label','showProCharLayer')}" 		dataField="productCharacterLayer"	visible="{this.paramIn4visible4displayControl}"	/>
+		<mx:DataGridColumn headerText="{ResourceManager.getInstance().getString('label','proCharType')}" 		dataField="productCharacterType"	visible="{this.paramIn4visible4displayControl}"	/>
+		
+		<mx:DataGridColumn headerText="{ResourceManager.getInstance().getString('label','showOrg')}" 			dataField="isShowOrganization"	visible="{this.paramIn4visible4displayControl}"	 labelFunction="UtilDataGridColumnLabelFunction.getGlobalYesNoLocale"/>
+		<mx:DataGridColumn headerText="{ResourceManager.getInstance().getString('label','showOrgLayer')}" 			dataField="organizationLayer"	visible="{this.paramIn4visible4displayControl}"	/>
+		
+		<mx:DataGridColumn headerText="{ResourceManager.getInstance().getString('label','showOrgChar')}" 		dataField="isShowOrganizationCharacter"	visible="{this.paramIn4visible4displayControl}"	 labelFunction="UtilDataGridColumnLabelFunction.getGlobalYesNoLocale"/>
+		<mx:DataGridColumn headerText="{ResourceManager.getInstance().getString('label','showOrgCharLayer')}" 		dataField="organizationCharacterLayer"	visible="{this.paramIn4visible4displayControl}"	/>
+		<mx:DataGridColumn headerText="{ResourceManager.getInstance().getString('label','orgCharType')}" 		dataField="organizationCharacterType"	visible="{this.paramIn4visible4displayControl}"	/>
+		
+	</mx:columns>	
+</mx:DataGrid>

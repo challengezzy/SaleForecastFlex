@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Module xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		   xmlns:s="library://ns.adobe.com/flex/spark" 
+		   xmlns:mx="library://ns.adobe.com/flex/mx" layout="vertical" width="100%" height="100%" paddingLeft="10" paddingRight="10"
+		   creationComplete="creationCompleteHandler(event)" 
+		   xmlns:common="dmdd.dmddmx.com.common.*"
+		   xmlns:containers="aks.aksmx.containers.*">
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+		<s:RemoteObject endpoint="{ClientEnvironment.endpoint}" id="srvUIStock" destination="UIStockService">	
+			<s:method name="querySafeStockData" result="resultHandler4querySafeStockData(event)" fault="faultHandler4querySafeStockData(event)">
+			</s:method>							  
+		</s:RemoteObject>	
+	</fx:Declarations>
+
+	
+	<fx:Script>
+		<![CDATA[
+			import aks.aksas.utils.UtilUi;
+			
+			import com.cool.assets.CoolAssetsFile;
+			import com.cool.utils.DataListExportUtil;
+			
+			import dmdd.dmddas.common.constant.BizConst;
+			import dmdd.dmddas.common.constant.SkinConst;
+			import dmdd.dmddas.common.system.ClientEnvironment;
+			import dmdd.dmddas.common.utils.UtilExceptionLocale;
+			
+			import mx.collections.ArrayCollection;
+			import mx.controls.Alert;
+			import mx.events.FlexEvent;
+			import mx.resources.ResourceManager;
+			import mx.rpc.events.FaultEvent;
+			import mx.rpc.events.ResultEvent;
+			
+			//	2	本地变量    begin	
+			[Bindable]
+			private var arrPoData:ArrayCollection = new ArrayCollection();	
+			
+			//失败记录
+			[Bindable]
+			private var arrOrderType:ArrayCollection;
+			
+			//当前期间
+			[Bindable]
+			private var curPeriod:int = ClientEnvironment.getSysPeriod().compilePeriod;
+			
+			//	2	本地变量    end			
+			
+			//	4	初始化方法    begin	
+			protected function creationCompleteHandler(event:FlexEvent):void
+			{
+				arrOrderType = new ArrayCollection([{val:""},{val:"PO"},{val:"PR"}]);
+			}			
+			
+			private function onQuery():void
+			{
+				var alert_title_hint:String = resourceManager.getString('alert','alert_title_hint');
+				var alert_msg:String = null;  
+							
+				if( (inputPeriod.text == null || inputPeriod.text =="") && (inputProCode.text == null || inputProCode.text=="") ){
+					Alert.show( "Period Or ProductCode is Null", alert_title_hint );	
+					return;												
+				}
+				
+				var queryCond:Object = new Object();
+				queryCond["period"] = inputPeriod.text;
+				queryCond["blurMatch"] = cbBlurMatch.selected?"true":"false";
+				queryCond["proCode"] = inputProCode.text;
+				queryCond["orgCode"] = inputOrgCode.text;
+				
+				UtilUi.pubFun4PopWaitWindow( this );
+				srvUIStock.querySafeStockData( queryCond );
+			}	
+			
+			private function faultHandler4querySafeStockData(event:FaultEvent):void
+			{
+				UtilUi.pubFun4RemoveWaitWindow();
+				Alert.show( event.fault.faultDetail );
+			}
+			
+			private function resultHandler4querySafeStockData(event:ResultEvent):void 
+			{
+				arrPoData = ArrayCollection(event.result);
+				
+				labelDataSize.text = arrPoData.length +"";
+				UtilUi.pubFun4RemoveWaitWindow();
+			}		
+			
+			private function onExport():void
+			{
+				//DataListExportUtil.dataGridExport2UTF8CSV(datagridPopr,"popr_data");
+				var csvstr:String = DataListExportUtil.generateCsvData(datagridPopr);
+				System.setClipboard(csvstr);
+			}
+			
+			//	6	本地方法   end				
+		]]>
+	</fx:Script>
+	
+	<s:HGroup width="100%" verticalAlign="middle">
+		<s:Label text="{resourceManager.getString('label','period')}" width="100" />
+		<s:TextInput id="inputPeriod" text="{curPeriod}" editable="true" width="100"/>
+		
+		<s:Spacer width="20" />
+		<s:Label text="{resourceManager.getString('label','proCode')}" width="100" />
+		<s:TextInput id="inputProCode" text="" editable="true" width="100"/>
+		
+		<s:Spacer width="20" />
+		<s:Label text="{resourceManager.getString('label','orgCode')}" width="100" />
+		<s:TextInput id="inputOrgCode" text="" editable="true" width="100"/>
+		<s:Spacer width="120" />
+		<s:CheckBox label="{resourceManager.getString('note','blurMatch')}" id="cbBlurMatch"/>
+		<s:Spacer width="20" />
+		<s:Button label="{resourceManager.getString('button','query')}" icon="{CoolAssetsFile.queryIcon}" click="onQuery()" id="btnSave"/> 
+		<s:Button label="{resourceManager.getString('button','export')}" icon="{CoolAssetsFile.doctableIcon}" click="onExport()" id="btnExport"/>
+	</s:HGroup>
+	<mx:DataGrid id="datagridPopr" dataProvider="{arrPoData}" width="100%" height="100%">
+		<mx:columns>
+			<mx:DataGridColumn headerText="{ResourceManager.getInstance().getString('label','period')}" dataField="PERIOD" width="80"/>
+			<mx:DataGridColumn headerText="{ResourceManager.getInstance().getString('label','proCode')}" dataField="PROCODE" width="120"/>
+			<mx:DataGridColumn headerText="{ResourceManager.getInstance().getString('label','proName')}" dataField="PRONAME" width="220"/>
+			<mx:DataGridColumn headerText="{ResourceManager.getInstance().getString('label','orgCode')}" dataField="ORGCODE" width="100"/>
+			<mx:DataGridColumn headerText="{ResourceManager.getInstance().getString('label','orgName')}" dataField="ORGNAME" width="100"/>
+			<mx:DataGridColumn headerText="{ResourceManager.getInstance().getString('label','quantity')}" dataField="QUANTITY"/>
+			<mx:DataGridColumn headerText="{ResourceManager.getInstance().getString('label','remark')}" dataField="COMMENTS"/>
+		 </mx:columns>
+	</mx:DataGrid>
+	<s:HGroup width="100%" paddingRight="10">
+		<s:Spacer width="100%" />
+		<s:Label text="{resourceManager.getString('aks','recordnum')}"/>
+		<s:Label id="labelDataSize"/>
+	</s:HGroup>
+</mx:Module>

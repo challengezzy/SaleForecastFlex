@@ -1,0 +1,227 @@
+<?xml version="1.0" encoding="utf-8"?>
+<components:AdvancedDataGrid4RightMenu xmlns:fx="http://ns.adobe.com/mxml/2009" 
+					 xmlns:s="library://ns.adobe.com/flex/spark" 
+					 xmlns:components="com.cool.components.*"
+					 xmlns:mx="library://ns.adobe.com/flex/mx" horizontalScrollPolicy="on" styleName="adv1" creationComplete="advanceddatagrid1_creationCompleteHandler(event)">
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+	</fx:Declarations>
+	<fx:Metadata>
+		[ResourceBundle("mod_replenish")]
+	</fx:Metadata> 
+	<fx:Script>
+		<![CDATA[
+			import dmdd.dmddas.common.constant.SysConst;
+			import dmdd.dmddas.common.utils.UtilPeriod;
+			
+			import mx.collections.ArrayCollection;
+			import mx.events.FlexEvent;
+			import mx.resources.ResourceManager;
+			
+			
+			//	描述    begin
+			//	描述    end
+			
+			//	0	输入参数    begin
+			[Bindable]
+			public var paramIo4dp4adgProDC:ArrayCollection = new ArrayCollection();	
+			//	0	输入参数    end
+			
+			//	1	输出参数    begin
+			//	1	输出参数    end
+			
+			//	2	本地变量    begin	
+			private var paramOut4arrDataColumns:ArrayCollection = new ArrayCollection();
+			//	2	本地变量    end		
+			
+			
+			//	3	公共方法    begin	
+			public function pubsetPeriod(beginPeriod:int,endPeriod:int):void
+			{
+				var periodDiff:Number = UtilPeriod.getPeriodDifference( beginPeriod, endPeriod );					
+				if( periodDiff == SysConst.PERIOD_DIFF_NULL )
+				{
+					for(var i:int=0; i<this.paramOut4arrDataColumns.length; i=i+1)
+					{
+						AdvancedDataGridColumn( this.paramOut4arrDataColumns.getItemAt(i) ).visible = false;
+					}
+					return;
+				}
+				
+				
+				
+				var k:int;
+				var dgclm:AdvancedDataGridColumn = null;
+				for(k=0; k<=periodDiff && k<this.paramOut4arrDataColumns.length; k=k+1)
+				{
+					dgclm = AdvancedDataGridColumn( this.paramOut4arrDataColumns.getItemAt(k) );
+					dgclm.visible = true;
+					dgclm.headerText = UtilPeriod.getHeaderTextPeriod( beginPeriod, k ); 
+					dgclm.editable = false;
+					dgclm.width = 60;						
+				}
+				
+				for(; k<this.paramOut4arrDataColumns.length; k=k+1)
+				{
+					AdvancedDataGridColumn( this.paramOut4arrDataColumns.getItemAt(k) ).visible = false; 					
+				}						
+				
+				this.validateSize( true );
+				this.validateNow();			
+			}
+			//3 end
+			//6 begin
+			//	6	本地方法   end					
+			
+			
+			
+			
+			protected function advanceddatagrid1_creationCompleteHandler(event:FlexEvent):void
+			{
+				this.paramOut4arrDataColumns = new ArrayCollection();
+				this.paramOut4arrDataColumns.addItem( this.columnPeriodDataValue00 );
+				this.paramOut4arrDataColumns.addItem( this.columnPeriodDataValue01 );
+				this.paramOut4arrDataColumns.addItem( this.columnPeriodDataValue02 );
+				this.paramOut4arrDataColumns.addItem( this.columnPeriodDataValue03 );
+				this.paramOut4arrDataColumns.addItem( this.columnPeriodDataValue04 );
+				this.paramOut4arrDataColumns.addItem( this.columnPeriodDataValue05 );
+				this.paramOut4arrDataColumns.addItem( this.columnPeriodDataValue06 );
+				this.paramOut4arrDataColumns.addItem( this.columnPeriodDataValue07 );
+				this.paramOut4arrDataColumns.addItem( this.columnPeriodDataValue08 );
+				this.paramOut4arrDataColumns.addItem( this.columnPeriodDataValue09 );
+				this.paramOut4arrDataColumns.addItem( this.columnPeriodDataValue10 );
+				this.paramOut4arrDataColumns.addItem( this.columnPeriodDataValue11 );
+				this.paramOut4arrDataColumns.addItem( this.columnPeriodDataValue12 );
+				this.paramOut4arrDataColumns.addItem( this.columnPeriodDataValue13 );
+				this.paramOut4arrDataColumns.addItem( this.columnPeriodDataValue14 );
+				this.paramOut4arrDataColumns.addItem( this.columnPeriodDataValue15 );
+				this.paramOut4arrDataColumns.addItem( this.columnPeriodDataValue16 );			
+				this.paramOut4arrDataColumns.addItem( this.columnPeriodDataValue17 );
+				this.paramOut4arrDataColumns.addItem( this.columnPeriodDataValue18 );
+				this.paramOut4arrDataColumns.addItem( this.columnPeriodDataValue19 );
+				this.paramOut4arrDataColumns.addItem( this.columnPeriodDataValue20 );
+				this.paramOut4arrDataColumns.addItem( this.columnPeriodDataValue21 );
+				this.paramOut4arrDataColumns.addItem( this.columnPeriodDataValue22 );
+				this.paramOut4arrDataColumns.addItem( this.columnPeriodDataValue23 );
+				this.paramOut4arrDataColumns.addItem( this.columnPeriodDataValue24 );
+				this.paramOut4arrDataColumns.addItem( this.columnPeriodDataValue25 );
+				this.paramOut4arrDataColumns.addItem( this.columnPeriodDataValue26 );			
+				this.paramOut4arrDataColumns.addItem( this.columnPeriodDataValue27 );
+				this.paramOut4arrDataColumns.addItem( this.columnPeriodDataValue28 );
+				this.paramOut4arrDataColumns.addItem( this.columnPeriodDataValue29 );		
+				
+				this.paramOut4arrDataColumns.addItem( this.columnPeriodDataValue30 );
+				this.paramOut4arrDataColumns.addItem( this.columnPeriodDataValue31 );
+				this.paramOut4arrDataColumns.addItem( this.columnPeriodDataValue32 );
+				this.paramOut4arrDataColumns.addItem( this.columnPeriodDataValue33 );
+				this.paramOut4arrDataColumns.addItem( this.columnPeriodDataValue34 );
+				this.paramOut4arrDataColumns.addItem( this.columnPeriodDataValue35 );
+				this.paramOut4arrDataColumns.addItem( this.columnPeriodDataValue36 );			
+				this.paramOut4arrDataColumns.addItem( this.columnPeriodDataValue37 );
+				this.paramOut4arrDataColumns.addItem( this.columnPeriodDataValue38 );
+				this.paramOut4arrDataColumns.addItem( this.columnPeriodDataValue39 );
+				
+				this.paramOut4arrDataColumns.addItem( this.columnPeriodDataValue40 );
+				this.paramOut4arrDataColumns.addItem( this.columnPeriodDataValue41 );
+				this.paramOut4arrDataColumns.addItem( this.columnPeriodDataValue42 );
+				this.paramOut4arrDataColumns.addItem( this.columnPeriodDataValue43 );
+				this.paramOut4arrDataColumns.addItem( this.columnPeriodDataValue44 );
+				this.paramOut4arrDataColumns.addItem( this.columnPeriodDataValue45 );
+				this.paramOut4arrDataColumns.addItem( this.columnPeriodDataValue46 );			
+				this.paramOut4arrDataColumns.addItem( this.columnPeriodDataValue47 );
+				this.paramOut4arrDataColumns.addItem( this.columnPeriodDataValue48 );
+				this.paramOut4arrDataColumns.addItem( this.columnPeriodDataValue49 );				
+				
+				this.paramOut4arrDataColumns.addItem( this.columnPeriodDataValue50 );
+				this.paramOut4arrDataColumns.addItem( this.columnPeriodDataValue51 );
+				this.paramOut4arrDataColumns.addItem( this.columnPeriodDataValue52 );
+				this.paramOut4arrDataColumns.addItem( this.columnPeriodDataValue53 );
+				this.paramOut4arrDataColumns.addItem( this.columnPeriodDataValue54 );
+				this.paramOut4arrDataColumns.addItem( this.columnPeriodDataValue55 );
+				this.paramOut4arrDataColumns.addItem( this.columnPeriodDataValue56 );			
+				this.paramOut4arrDataColumns.addItem( this.columnPeriodDataValue57 );
+				this.paramOut4arrDataColumns.addItem( this.columnPeriodDataValue58 );
+				this.paramOut4arrDataColumns.addItem( this.columnPeriodDataValue59 );		
+			}
+			
+		]]>
+	</fx:Script>	
+	<components:dataProvider>
+		<mx:HierarchicalData source="{this.paramIo4dp4adgProDC}" childrenField="children">
+		</mx:HierarchicalData>		
+	</components:dataProvider>	
+	<components:columns>		
+		
+		<mx:AdvancedDataGridColumn id="columnDcCode"			headerText="{ResourceManager.getInstance().getString('mod_replenish','dcCode')}" 		dataField="dcCode" 			editable="false" width="170" />
+		<mx:AdvancedDataGridColumn id="columnDcName"			headerText="{ResourceManager.getInstance().getString('mod_replenish','dcName')}" 		dataField="dcName"	editable="false" width="120" />
+		<mx:AdvancedDataGridColumn id="columnProductCode"		headerText="{ResourceManager.getInstance().getString('mod_replenish','proCode')}" 		dataField="proCode" 	editable="false" width="120"/>
+		<mx:AdvancedDataGridColumn id="columnProductName"		headerText="{ResourceManager.getInstance().getString('mod_replenish','proName')}" 		dataField="proName" 	editable="false" width="120" />	
+			<mx:AdvancedDataGridColumn id="columnPeriodDataValue00"			headerText="" 	dataField="periodDataValue00" visible="false" editable="false" 	textAlign="left"	width="80"/>
+		<mx:AdvancedDataGridColumn id="columnPeriodDataValue01"			headerText="" 	dataField="periodDataValue01" visible="false" editable="false"	textAlign="left"	width="80"/>
+		<mx:AdvancedDataGridColumn id="columnPeriodDataValue02"			headerText="" 	dataField="periodDataValue02" visible="false" editable="false"	textAlign="left"	width="80"/>
+		<mx:AdvancedDataGridColumn id="columnPeriodDataValue03"			headerText="" 	dataField="periodDataValue03" visible="false" editable="false"	textAlign="left"	width="80"/>
+		<mx:AdvancedDataGridColumn id="columnPeriodDataValue04"			headerText="" 	dataField="periodDataValue04" visible="false" editable="false"	textAlign="left"	width="80"/>
+		<mx:AdvancedDataGridColumn id="columnPeriodDataValue05"			headerText="" 	dataField="periodDataValue05" visible="false" editable="false"	textAlign="left"	width="80"/>
+		<mx:AdvancedDataGridColumn id="columnPeriodDataValue06"			headerText="" 	dataField="periodDataValue06" visible="false" editable="false"	textAlign="left"	width="80"/>
+		<mx:AdvancedDataGridColumn id="columnPeriodDataValue07"			headerText="" 	dataField="periodDataValue07" visible="false" editable="false"	textAlign="left"	width="80"/>
+		<mx:AdvancedDataGridColumn id="columnPeriodDataValue08"			headerText="" 	dataField="periodDataValue08" visible="false" editable="false"	textAlign="left"	width="80"/>
+		<mx:AdvancedDataGridColumn id="columnPeriodDataValue09"			headerText="" 	dataField="periodDataValue09" visible="false" editable="false"	textAlign="left"	width="80"/>
+		<mx:AdvancedDataGridColumn id="columnPeriodDataValue10"			headerText="" 	dataField="periodDataValue10" visible="false" editable="false"	textAlign="left"	width="80"/>
+		<mx:AdvancedDataGridColumn id="columnPeriodDataValue11"			headerText="" 	dataField="periodDataValue11" visible="false" editable="false"	textAlign="left"	width="80"/>
+		<mx:AdvancedDataGridColumn id="columnPeriodDataValue12"			headerText="" 	dataField="periodDataValue12" visible="false" editable="false"	textAlign="left"	width="80"/>
+		<mx:AdvancedDataGridColumn id="columnPeriodDataValue13"			headerText="" 	dataField="periodDataValue13" visible="false" editable="false"	textAlign="left"	width="80"/>
+		<mx:AdvancedDataGridColumn id="columnPeriodDataValue14"			headerText="" 	dataField="periodDataValue14" visible="false" editable="false"	textAlign="left"	width="80"/>
+		<mx:AdvancedDataGridColumn id="columnPeriodDataValue15"			headerText="" 	dataField="periodDataValue15" visible="false" editable="false"	textAlign="left"	width="80"/>
+		<mx:AdvancedDataGridColumn id="columnPeriodDataValue16"			headerText="" 	dataField="periodDataValue16" visible="false" editable="false"	textAlign="left"	width="80"/>
+		<mx:AdvancedDataGridColumn id="columnPeriodDataValue17"			headerText="" 	dataField="periodDataValue17" visible="false" editable="false"	textAlign="left"	width="80"/>
+		<mx:AdvancedDataGridColumn id="columnPeriodDataValue18"			headerText="" 	dataField="periodDataValue18" visible="false" editable="false"	textAlign="left"	width="80"/>
+		<mx:AdvancedDataGridColumn id="columnPeriodDataValue19"			headerText="" 	dataField="periodDataValue19" visible="false" editable="false"	textAlign="left"	width="80"/>
+		<mx:AdvancedDataGridColumn id="columnPeriodDataValue20"			headerText="" 	dataField="periodDataValue20" visible="false" editable="false"	textAlign="left"	width="80"/>		
+		<mx:AdvancedDataGridColumn id="columnPeriodDataValue21"			headerText="" 	dataField="periodDataValue21" visible="false" editable="false"	textAlign="left"	width="80"/>
+		<mx:AdvancedDataGridColumn id="columnPeriodDataValue22"			headerText="" 	dataField="periodDataValue22" visible="false" editable="false"	textAlign="left"	width="80"/>
+		<mx:AdvancedDataGridColumn id="columnPeriodDataValue23"			headerText="" 	dataField="periodDataValue23" visible="false" editable="false"	textAlign="left"	width="80"/>
+		<mx:AdvancedDataGridColumn id="columnPeriodDataValue24"			headerText="" 	dataField="periodDataValue24" visible="false" editable="false"	textAlign="left"	width="80"/>
+		<mx:AdvancedDataGridColumn id="columnPeriodDataValue25"			headerText="" 	dataField="periodDataValue25" visible="false" editable="false"	textAlign="left"	width="80"/>
+		<mx:AdvancedDataGridColumn id="columnPeriodDataValue26"			headerText="" 	dataField="periodDataValue26" visible="false" editable="false"	textAlign="left"	width="80"/>
+		<mx:AdvancedDataGridColumn id="columnPeriodDataValue27"			headerText="" 	dataField="periodDataValue27" visible="false" editable="false"	textAlign="left"	width="80"/>
+		<mx:AdvancedDataGridColumn id="columnPeriodDataValue28"			headerText="" 	dataField="periodDataValue28" visible="false" editable="false"	textAlign="left"	width="80"/>
+		<mx:AdvancedDataGridColumn id="columnPeriodDataValue29"			headerText="" 	dataField="periodDataValue29" visible="false" editable="false"	textAlign="left"	width="80"/>
+		
+		<mx:AdvancedDataGridColumn id="columnPeriodDataValue30"			headerText="" 	dataField="periodDataValue30" visible="false" editable="false"	textAlign="left"	width="80"/>		
+		<mx:AdvancedDataGridColumn id="columnPeriodDataValue31"			headerText="" 	dataField="periodDataValue31" visible="false" editable="false"	textAlign="left"	width="80"/>
+		<mx:AdvancedDataGridColumn id="columnPeriodDataValue32"			headerText="" 	dataField="periodDataValue32" visible="false" editable="false"	textAlign="left"	width="80"/>
+		<mx:AdvancedDataGridColumn id="columnPeriodDataValue33"			headerText="" 	dataField="periodDataValue33" visible="false" editable="false"	textAlign="left"	width="80"/>
+		<mx:AdvancedDataGridColumn id="columnPeriodDataValue34"			headerText="" 	dataField="periodDataValue34" visible="false" editable="false"	textAlign="left"	width="80"/>
+		<mx:AdvancedDataGridColumn id="columnPeriodDataValue35"			headerText="" 	dataField="periodDataValue35" visible="false" editable="false"	textAlign="left"	width="80"/>
+		<mx:AdvancedDataGridColumn id="columnPeriodDataValue36"			headerText="" 	dataField="periodDataValue36" visible="false" editable="false"	textAlign="left"	width="80"/>
+		<mx:AdvancedDataGridColumn id="columnPeriodDataValue37"			headerText="" 	dataField="periodDataValue37" visible="false" editable="false"	textAlign="left"	width="80"/>
+		<mx:AdvancedDataGridColumn id="columnPeriodDataValue38"			headerText="" 	dataField="periodDataValue38" visible="false" editable="false"	textAlign="left"	width="80"/>
+		<mx:AdvancedDataGridColumn id="columnPeriodDataValue39"			headerText="" 	dataField="periodDataValue39" visible="false" editable="false"	textAlign="left"	width="80"/>		
+		
+		<mx:AdvancedDataGridColumn id="columnPeriodDataValue40"			headerText="" 	dataField="periodDataValue40" visible="false" editable="false"	textAlign="left"	width="80"/>		
+		<mx:AdvancedDataGridColumn id="columnPeriodDataValue41"			headerText="" 	dataField="periodDataValue41" visible="false" editable="false"	textAlign="left"	width="80"/>
+		<mx:AdvancedDataGridColumn id="columnPeriodDataValue42"			headerText="" 	dataField="periodDataValue42" visible="false" editable="false"	textAlign="left"	width="80"/>
+		<mx:AdvancedDataGridColumn id="columnPeriodDataValue43"			headerText="" 	dataField="periodDataValue43" visible="false" editable="false"	textAlign="left"	width="80"/>
+		<mx:AdvancedDataGridColumn id="columnPeriodDataValue44"			headerText="" 	dataField="periodDataValue44" visible="false" editable="false"	textAlign="left"	width="80"/>
+		<mx:AdvancedDataGridColumn id="columnPeriodDataValue45"			headerText="" 	dataField="periodDataValue45" visible="false" editable="false"	textAlign="left"	width="80"/>
+		<mx:AdvancedDataGridColumn id="columnPeriodDataValue46"			headerText="" 	dataField="periodDataValue46" visible="false" editable="false"	textAlign="left"	width="80"/>
+		<mx:AdvancedDataGridColumn id="columnPeriodDataValue47"			headerText="" 	dataField="periodDataValue47" visible="false" editable="false"	textAlign="left"	width="80"/>
+		<mx:AdvancedDataGridColumn id="columnPeriodDataValue48"			headerText="" 	dataField="periodDataValue48" visible="false" editable="false"	textAlign="left"	width="80"/>
+		<mx:AdvancedDataGridColumn id="columnPeriodDataValue49"			headerText="" 	dataField="periodDataValue49" visible="false" editable="false"	textAlign="left"	width="80"/>			
+		
+		<mx:AdvancedDataGridColumn id="columnPeriodDataValue50"			headerText="" 	dataField="periodDataValue50" visible="false" editable="false"	textAlign="left"	width="80"/>		
+		<mx:AdvancedDataGridColumn id="columnPeriodDataValue51"			headerText="" 	dataField="periodDataValue51" visible="false" editable="false"	textAlign="left"	width="80"/>
+		<mx:AdvancedDataGridColumn id="columnPeriodDataValue52"			headerText="" 	dataField="periodDataValue52" visible="false" editable="false"	textAlign="left"	width="80"/>
+		<mx:AdvancedDataGridColumn id="columnPeriodDataValue53"			headerText="" 	dataField="periodDataValue53" visible="false" editable="false"	textAlign="left"	width="80"/>
+		<mx:AdvancedDataGridColumn id="columnPeriodDataValue54"			headerText="" 	dataField="periodDataValue54" visible="false" editable="false"	textAlign="left"	width="80"/>
+		<mx:AdvancedDataGridColumn id="columnPeriodDataValue55"			headerText="" 	dataField="periodDataValue55" visible="false" editable="false"	textAlign="left"	width="80"/>
+		<mx:AdvancedDataGridColumn id="columnPeriodDataValue56"			headerText="" 	dataField="periodDataValue56" visible="false" editable="false"	textAlign="left"	width="80"/>
+		<mx:AdvancedDataGridColumn id="columnPeriodDataValue57"			headerText="" 	dataField="periodDataValue57" visible="false" editable="false"	textAlign="left"	width="80"/>
+		<mx:AdvancedDataGridColumn id="columnPeriodDataValue58"			headerText="" 	dataField="periodDataValue58" visible="false" editable="false"	textAlign="left"	width="80"/>
+		<mx:AdvancedDataGridColumn id="columnPeriodDataValue59"			headerText="" 	dataField="periodDataValue59" visible="false" editable="false"	textAlign="left"	width="80"/>					
+		<mx:AdvancedDataGridColumn id="columnunitGroupName"			headerText="{ResourceManager.getInstance().getString('mod_replenish','unitGroupName')}" 		dataField="unitGroupName"	editable="false" width="100" />
+		<mx:AdvancedDataGridColumn id="columnunitName"			headerText="{ResourceManager.getInstance().getString('mod_replenish','unitName')}" 		dataField="unitName"	editable="false" width="100" />
+		
+	</components:columns>	
+</components:AdvancedDataGrid4RightMenu>
+

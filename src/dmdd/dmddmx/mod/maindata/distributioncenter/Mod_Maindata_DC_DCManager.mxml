@@ -1,0 +1,345 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Module xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		   xmlns:s="library://ns.adobe.com/flex/spark" 
+		   xmlns:mx="library://ns.adobe.com/flex/mx" width="100%" height="100%" paddingLeft="10" paddingRight="10"
+		   creationComplete="creationCompleteHandler(event)"  
+		   xmlns:containers="aks.aksmx.containers.*"
+		   xmlns:common="dmdd.dmddmx.com.common.*"
+		   xmlns:distributioncenter="dmdd.dmddmx.com.distributioncenter.*">
+
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+		<s:RemoteObject endpoint="{ClientEnvironment.endpoint}" id="dcService" destination="DistributionCenterService">		
+			<s:method name="getRootDC" result="resultHandler4getDCTreeRoot4UI(event)" fault="faultHandler4getDCTreeRoot4UI(event)">
+			</s:method>
+			<s:method name="deleteDCById" result="resultHandler4delDC(event)" fault="faultHandler4delDC(event)">
+			</s:method>			
+		</s:RemoteObject>		
+	</fx:Declarations>
+	<fx:Metadata>
+		[ResourceBundle("mod_maindata_distributioncenter")]
+	</fx:Metadata>
+	<fx:Script>
+		<![CDATA[
+			import aks.aksas.utils.UtilUi;
+			
+			import com.cool.assets.CoolAssetsFile;
+			
+			import dmdd.dmddas.common.constant.BizConst;
+			import dmdd.dmddas.common.constant.SkinConst;
+			import dmdd.dmddas.common.constant.SysConst;
+			import dmdd.dmddas.common.system.ClientEnvironment;
+			import dmdd.dmddas.common.utils.UtilDataGridColumnLabelFunction;
+			import dmdd.dmddas.common.utils.UtilExceptionLocale;
+			import dmdd.dmddas.dataaccess.bizobject.BDistributionCenter;
+			import dmdd.dmddmx.com.distributioncenter.Com_DistributionCenter_DistributionCenter_AU;
+			
+			import mx.collections.ArrayCollection;
+			import mx.controls.Alert;
+			import mx.events.CloseEvent;
+			import mx.events.FlexEvent;
+			import mx.events.MenuEvent;
+			import mx.managers.PopUpManager;
+			import mx.rpc.events.FaultEvent;
+			import mx.rpc.events.ResultEvent;
+			
+			//	描述    begin
+			//	描述    end
+			
+			//	0	输入参数    begin						
+			//	0	输入参数    end
+			
+			//	1	输出参数    begin
+			//	1	输出参数    end
+			
+			//	2	本地变量    begin				
+			
+			[Bindable]
+			private var prvVar4blFunPermission4manage:Boolean = true;
+			
+			private var prvVar4auWindow:Com_DistributionCenter_DistributionCenter_AU = null;
+			
+			/** 当前选中的DC */
+			private var selectedDC:BDistributionCenter;
+			//	2	本地变量    end			
+			
+			//	3	公共方法    begin			
+			//	3	公共方法    end		
+			
+			//	4	初始化方法    begin	
+			protected function creationCompleteHandler(event:FlexEvent):void
+			{
+				
+				var rightClickMenuItems:Array = [];
+				
+				rightClickMenuItems.push({label:resourceManager.getString('button','expand'),keyname:"expand"});
+				rightClickMenuItems.push({label:resourceManager.getString('button','collapse'),keyname:"collapse"});
+				
+				if(prvVar4blFunPermission4manage){
+					rightClickMenuItems.push({label:resourceManager.getString('button','new'),keyname:"new"});
+					rightClickMenuItems.push({label:resourceManager.getString('button','edit'),keyname:"edit"});
+					rightClickMenuItems.push({label:resourceManager.getString('button','del'),keyname:"del"});
+				}
+				
+				rightClickMenuItems.push({label:resourceManager.getString('button','refresh'),keyname:"refresh"});
+						
+				dcDataGrid.setRightClickMenuItems(rightClickMenuItems);
+				dcDataGrid.rightClickMenu.addEventListener(MenuEvent.ITEM_CLICK,dcRightMenuClicked);
+			}
+			
+			private function dcRightMenuClicked(event:MenuEvent):void{
+				
+				var item:Object = event.item;
+				if(item == null)
+					return;
+				
+				if(item.keyname == "refresh"){
+					onQuery();
+					return;
+				}
+				
+				if( dcDataGrid != null && dcDataGrid.selectedItem == null ){
+					Alert.show("Please select one item !");
+					return ;
+				}
+				
+				if(item.keyname == "expand"){
+					onExpandAll();
+				}else if(item.keyname == "collapse"){
+					onCollapseAll();
+				}else if(item.keyname == "new"){
+					onNew();
+				}else if(item.keyname == "del"){
+					onDel();
+				}else if(item.keyname == "edit"){
+					onUpd();
+				}
+				
+			}
+			
+			private function checkSeleted():Boolean{
+				if( dcDataGrid.selectedItem == null)
+					return false;
+				else
+					return true;
+			}
+			
+			//	4	初始化方法    end				
+			
+			//	5	事件响应方法    begin
+			
+			private function onQuery():void
+			{	
+				//	不分页查询
+				dcService.getRootDC();
+				UtilUi.pubFun4PopWaitWindow(this);
+			}	
+			
+			
+			private function faultHandler4getDCTreeRoot4UI(event:FaultEvent):void
+			{
+				UtilUi.pubFun4RemoveWaitWindow();
+				Alert.show( UtilExceptionLocale.getExceptionMessageLocaleByFaultEvent( event ), resourceManager.getString('main','alt_title_warn') );
+			}	
+			
+			private function resultHandler4getDCTreeRoot4UI(event:ResultEvent):void 
+			{
+				var dcTreeRoot:BDistributionCenter = BDistributionCenter(event.result);
+				
+				ClientEnvironment.setDCTreeRoot( dcTreeRoot );
+				
+				UtilUi.pubFun4RemoveWaitWindow();
+			}					
+			
+			
+			private function onNew():void
+			{
+				//检查项：1，是否选择的是目录
+				selectedDC = BDistributionCenter(dcDataGrid.selectedItem);
+				if( selectedDC.iscatalog == BizConst.GLOBAL_YESNO_NO )
+				{
+					var alert_title_hint:String = resourceManager.getString('mod_maindata_distributioncenter','alert_title_hint');
+					var alert_msg:String = resourceManager.getString('mod_maindata_distributioncenter','alert_msg_notcatcalog');					
+					Alert.show( alert_msg, alert_title_hint );					
+					
+					return;			 		
+				}
+				
+				// 这里的代码须如此：先准备好后再设置给 auWindow
+				if( this.prvVar4auWindow == null )
+				{
+					this.prvVar4auWindow = Com_DistributionCenter_DistributionCenter_AU(PopUpManager.createPopUp( ClientEnvironment.modWork, Com_DistributionCenter_DistributionCenter_AU, true));
+					this.prvVar4auWindow.pubFun4setParamIn4closeCallback( this, callbackFunction4auWinClose );
+				}
+				else
+				{
+					PopUpManager.addPopUp( this.prvVar4auWindow, ClientEnvironment.modWork, true );
+				}
+				
+				PopUpManager.centerPopUp(prvVar4auWindow);
+				
+				this.prvVar4auWindow.title = resourceManager.getString('mod_maindata_distributioncenter','autitle_new');
+				// 如果直接设置一个新建对象给auWindow，然后再操作其准备其内容，则可能不能触发auWindow内部的相关绑定动作
+				var newDC:BDistributionCenter = new BDistributionCenter();
+				
+				newDC.parentdcid = selectedDC.id;
+				newDC.dclayer = selectedDC.dclayer+1;
+				newDC.iscatalog = BizConst.GLOBAL_YESNO_YES; // 初始默认值"是"
+				newDC.isvalid = selectedDC.isvalid;	//	有效状态继承父节点
+				
+				prvVar4auWindow.pubFun4setParamIo4dc( newDC, UtilUi.AUWINDOW_USE_NEW );								
+			} 
+			
+			private function onUpd():void
+			{
+				selectedDC = BDistributionCenter( dcDataGrid.selectedItem );
+				// 不必检查，这个方法被调用的前提已经保证 
+				
+				if( prvVar4auWindow == null )
+				{
+					prvVar4auWindow = Com_DistributionCenter_DistributionCenter_AU(PopUpManager.createPopUp( ClientEnvironment.modWork, Com_DistributionCenter_DistributionCenter_AU, true));
+					prvVar4auWindow.pubFun4setParamIn4closeCallback( this, callbackFunction4auWinClose );	
+				}
+				else
+				{
+					PopUpManager.addPopUp( prvVar4auWindow,  ClientEnvironment.modWork, true );
+				}	
+				PopUpManager.centerPopUp(prvVar4auWindow);
+				prvVar4auWindow.title = resourceManager.getString('mod_maindata_distributioncenter','autitle_upd');				
+				// 这里的代码须如此：先准备好后再设置给 auWindow
+				// 如果直接设置一个新建对象给auWindow，然后再操作其准备其内容，则可能不能触发auWindow内部的相关绑定动作
+				var dc:BDistributionCenter = new BDistributionCenter();
+				dc.copyDeep(selectedDC);
+				prvVar4auWindow.pubFun4setParamIo4dc( dc, UtilUi.AUWINDOW_USE_UPD );							 
+				
+			} 
+			
+			private function callbackFunction4auWinClose():void
+			{
+				if( prvVar4auWindow.pubFun4getParamOut4winCloseWay() == UtilUi.WINDOW_CLOSEWAY_OK )
+				{
+					var rstDC:BDistributionCenter = prvVar4auWindow.pubFun4getParamIo4dc();
+					if( rstDC != null )
+					{
+						dcDataGrid.expandItem( selectedDC, true );	
+						if( prvVar4auWindow.pubFun4getParamIo4winUse() == UtilUi.AUWINDOW_USE_NEW )
+						{
+							rstDC.parentdcid = selectedDC.id;
+							
+							if(selectedDC.subDCs == null)
+								selectedDC.subDCs = new ArrayCollection();
+								
+							selectedDC.subDCs.addItem(rstDC);
+							
+							dcDataGrid.expandItem( selectedDC, true );						
+						}
+						else if( prvVar4auWindow.pubFun4getParamIo4winUse() == UtilUi.AUWINDOW_USE_UPD )
+						{
+							dcDataGrid.expandItem( rstDC, true );	
+						}
+						
+						//	更新整棵树结构
+						onQuery();
+					}
+				}
+				
+				prvVar4auWindow = null;														
+			}			
+			
+			
+			private function onDel():void
+			{
+				var alert_title_hint:String = resourceManager.getString('mod_maindata_distributioncenter','alert_title_hint');
+				var alert_msg:String = "";
+				
+				var selectedOrganization:BDistributionCenter = BDistributionCenter(dcDataGrid.selectedItem);	
+				
+				if( selectedOrganization.parentdcid==SysConst.NULL_NUMERICAL_FIELD)
+				{
+					//	根节点不能删除
+					alert_msg = resourceManager.getString('mod_maindata_distributioncenter','alert_msg_deleteroot');
+					Alert.show( alert_msg , alert_title_hint);
+					return;						
+				}
+				
+				alert_msg = resourceManager.getString('mod_maindata_distributioncenter','alert_msg_deleteconfirm');
+				
+				Alert.show( alert_msg, alert_title_hint, Alert.OK | Alert.CANCEL, this, deleteConfirmHandler, null, Alert.OK );
+				
+			}				
+			
+			private function deleteConfirmHandler(event:CloseEvent):void
+			{
+				if( event.detail == Alert.OK )
+				{
+					var selectedOrganization:BDistributionCenter = BDistributionCenter(dcDataGrid.selectedItem);
+					
+					UtilUi.pubFun4PopWaitWindow( this );
+					dcService.deleteDCById( selectedOrganization.id );										
+				}
+			}	
+			
+			private function faultHandler4delDC(event:FaultEvent):void
+			{
+				UtilUi.pubFun4RemoveWaitWindow();
+				Alert.show( UtilExceptionLocale.getExceptionMessageLocaleByFaultEvent( event ), resourceManager.getString('main','alt_title_warn') );
+			}	
+			
+			private function resultHandler4delDC(event:ResultEvent):void 
+			{
+				UtilUi.pubFun4RemoveWaitWindow();
+				
+				var alert_title_hint:String = resourceManager.getString('mod_maindata_distributioncenter','alert_title_hint');
+				var alert_msg:String = null;
+				
+				var rst:String = String(event.result);
+				Alert.show(rst, alert_title_hint);
+				onQuery();	
+			}			
+			
+			private function onExpandAll():void
+			{
+				//dcDataGrid.expandAll();
+				dcDataGrid.expandChildrenOf(dcDataGrid.selectedItem,true);
+			}		
+			
+			private function onCollapseAll():void
+			{
+				//dcDataGrid.collapseAll();
+				dcDataGrid.expandChildrenOf(dcDataGrid.selectedItem,false);
+			}				
+			//	5	事件响应方法    end
+			
+			//	6	本地方法    begin
+			private function enabled4BtnManage( _selectedItem:Object ):Boolean
+			{
+				if( _selectedItem == null ){
+					return false;
+				}
+				
+				if( prvVar4blFunPermission4manage == false ){
+					return false;
+				}
+				
+				return true;
+			}
+			//	6	本地方法   end	
+			
+		]]>
+	</fx:Script>	
+	<common:LabelBoundary paddingTop="5" labelText="{resourceManager.getString('menu','distributionCentre')}" />
+	<containers:AksControlBar>
+		<s:Button label="{resourceManager.getString('mod_maindata_distributioncenter','btn_query')}" icon="{CoolAssetsFile.refresh3Icon}" click="onQuery()" />
+		<s:Button label="{resourceManager.getString('mod_maindata_distributioncenter','btn_new')}" icon="{CoolAssetsFile.newIcon}" enabled="{dcDataGrid.selectedIndex>-1}"  click="onNew()"/>
+		<s:Button label="{resourceManager.getString('mod_maindata_distributioncenter','btn_upd')}" icon="{CoolAssetsFile.editIcon}" enabled="{dcDataGrid.selectedIndex>-1}"  click="onUpd()"/>
+		<s:Button label="{resourceManager.getString('mod_maindata_distributioncenter','btn_del')}" icon="{CoolAssetsFile.deleteIcon}" enabled="{dcDataGrid.selectedIndex>-1}" click="onDel()"/>
+		<mx:Spacer width="20"/>
+		<s:Button label="{resourceManager.getString('mod_maindata_distributioncenter','btn_expandall')}" icon="{CoolAssetsFile.expandallIcon}" click="onExpandAll()" />
+		<s:Button label="{resourceManager.getString('mod_maindata_distributioncenter','btn_collapseall')}" icon="{CoolAssetsFile.collapseallIcon}" click="onCollapseAll()" />					
+	</containers:AksControlBar>
+	<distributioncenter:Com_DistributionCenter_DistributionCenter_AdvancedDataGrid id="dcDataGrid" 
+																				   paramIo4dp4adgDC="{ClientEnvironment.getDCTreeRootArr()}" 
+																				   allowMultipleSelection="true" width="100%" height="100%" paramIo4ShowOtherInfo="false"/>
+
+	
+</mx:Module>

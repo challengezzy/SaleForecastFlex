@@ -1,0 +1,515 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:TitleWindow xmlns:fx="http://ns.adobe.com/mxml/2009" 
+			   xmlns:s="library://ns.adobe.com/flex/spark" 
+			   xmlns:mx="library://ns.adobe.com/flex/mx" width="800" height="600" close="onCancel()"
+			   creationComplete="creationCompleteHandler(event)" 
+			   xmlns:containers="aks.aksmx.containers.*" xmlns:organization="dmdd.dmddmx.com.organization.*" xmlns:buttons="com.cool.buttons.*" xmlns:common="dmdd.dmddmx.com.common.*">
+	<s:layout>
+		<s:VerticalLayout paddingLeft="10" paddingRight="10" paddingTop="10" paddingBottom="10"/>
+	</s:layout>
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+		<s:RemoteObject endpoint="{ClientEnvironment.endpoint}" id="srvOrganization" destination="OrganizationService">
+			<s:method name="newOrganization" result="resultHandler4saveOrganization(event)" fault="faultHandler4saveOrganization(event)">
+			</s:method>	
+			<s:method name="updOrganization" result="resultHandler4saveOrganization(event)" fault="faultHandler4saveOrganization(event)">
+			</s:method>
+		</s:RemoteObject>		
+	</fx:Declarations>
+	
+	<fx:Script>
+		<![CDATA[
+			import aks.aksas.collections.HashMap;
+			import aks.aksas.utils.UtilUi;
+			
+			import com.cool.assets.CoolAssetsFile;
+			
+			import dmdd.dmddas.common.constant.BizConst;
+			import dmdd.dmddas.common.system.ClientEnvironment;
+			import dmdd.dmddas.common.utils.UtilExceptionLocale;
+			import dmdd.dmddas.common.utils.UtilOrganization;
+			import dmdd.dmddas.dataaccess.bizobject.BDistributionCenter;
+			import dmdd.dmddas.dataaccess.bizobject.BOrganization;
+			import dmdd.dmddas.dataaccess.bizobject.BOrganizationCharacter;
+			import dmdd.dmddas.dataaccess.bizobject.BOrganizationLayer;
+			import dmdd.dmddas.dataaccess.bizobject.BOrganizationOrgCharacter;
+			import dmdd.dmddas.dataaccess.bizobject.BSysDictionaryItem;
+			import dmdd.dmddmx.com.distributioncenter.Com_DistributionCenter_DistributionCenter_Chooser;
+			
+			import mx.collections.ArrayCollection;
+			import mx.controls.Alert;
+			import mx.events.FlexEvent;
+			import mx.managers.PopUpManager;
+			import mx.rpc.events.FaultEvent;
+			import mx.rpc.events.ResultEvent;
+			import mx.utils.StringUtil;
+			//	描述		begin
+			//	描述		end
+			
+			//	0	输入参数    begin		
+			private var paramIn4closeCallback4thisObject:Object = null;
+			private var paramIn4closeCallback4function:Function = null;
+			
+			private var paramIo4winUse:int = UtilUi.AUWINDOW_USE_NEW;
+			
+			[Bindable]
+			private var paramIo4organization:BOrganization = null;							
+			//	0	输入参数    end
+			
+			//	1	输出参数    begin
+			private var paramOut4winCloseWay:int = UtilUi.WINDOW_CLOSEWAY_CANCEL;
+			
+			//	1	输出参数    end
+			
+			//	2	本地变量    begin
+			[Bindable]
+			private var prvVar4arrDictGlobalYesNo:ArrayCollection = ClientEnvironment.getSysDictionaryItems("GLOBAL", "YESNO", false);	
+			
+			private var prvVar4chooserWindow_parentOrganization:Com_Organization_Organization_Chooser = null;
+			private var prvVar4chooserWindow_organizationCharacter:Com_Organization_OrganizationCharacter_Chooser = null;
+			
+			private var prvVar4chooserWindow_Dc:Com_DistributionCenter_DistributionCenter_Chooser = null;
+			//	2	本地变量    end			
+			
+			//	3	公共方法    begin	
+			//	构造函数
+			public function pubFun4constructor( _paramIo4organization:BOrganization, _paramIo4winUse:int, _paramIn4closeCallback4thisObject:Object, _paramIn4closeCallback4function:Function ):void
+			{
+				this.pubFun4setParamIo4organization( _paramIo4organization, _paramIo4winUse );
+				this.pubFun4setParamIn4closeCallback( _paramIn4closeCallback4thisObject, _paramIn4closeCallback4function );
+			}	
+			
+			//	关闭回调函数参数													
+			public function pubFun4setParamIn4closeCallback( _thisObject:Object, _function:Function ):void
+			{
+				this.paramIn4closeCallback4thisObject = _thisObject;
+				this.paramIn4closeCallback4function = _function;	
+			}
+			//	关闭方式参数
+			public function pubFun4getParamOut4winCloseWay():int
+			{
+				return this.paramOut4winCloseWay;
+			}
+			//	关闭窗口
+			private function prvFun4close():void
+			{
+				PopUpManager.removePopUp( this );						
+				this.paramIn4closeCallback4function.call( this.paramIn4closeCallback4thisObject );				
+			}				
+			
+			//	界面用途参数
+			public function pubFun4getParamIo4winUse():int
+			{
+				return this.paramIo4winUse;
+			}			
+			
+			
+			//	处理对象参数
+			/**
+			 * _paramIo4organization:BOrganization	处理对象
+			 * _paramIo4winUse:int	处理动作
+			 */ 			
+			public function pubFun4setParamIo4organization( _paramIo4organization:BOrganization, _paramIo4winUse:int ):void
+			{
+				this.paramIo4organization = _paramIo4organization;
+				this.paramIo4winUse = _paramIo4winUse;
+				
+				this.comboBoxIsCatalog.selectedIndex = ClientEnvironment.getSysDictionaryItemIndexByValue( this.prvVar4arrDictGlobalYesNo, this.paramIo4organization.isCatalog );
+				this.comboBoxIsValid.selectedIndex = ClientEnvironment.getSysDictionaryItemIndexByValue( this.prvVar4arrDictGlobalYesNo, this.paramIo4organization.isValid );
+				
+				if( this.paramIo4organization.isCatalog == BizConst.GLOBAL_YESNO_YES )
+				{
+					this.btnAddOrganizationOrgCharacter.enabled = false;
+				}
+				else
+				{
+					this.btnAddOrganizationOrgCharacter.enabled = true;
+				}
+				
+				if( this.paramIo4winUse == UtilUi.AUWINDOW_USE_NEW )
+				{
+					this.comboBoxIsCatalog.enabled = true;
+					this.comboBoxIsValid.enabled = true;
+					this.btnParentOrganizationChooser.enabled = false;
+				}
+				else if( this.paramIo4winUse == UtilUi.AUWINDOW_USE_UPD )
+				{
+					this.comboBoxIsCatalog.enabled = false;
+					if( this.paramIo4organization.parentOrganization != null &&
+						this.paramIo4organization.parentOrganization.isValid == BizConst.GLOBAL_YESNO_NO )
+					{
+						//	父节点无效, 本节点不能改为有效
+						this.comboBoxIsValid.enabled = false;
+					}
+					else
+					{
+						this.comboBoxIsValid.enabled = true;
+					}
+					this.btnParentOrganizationChooser.enabled = true;
+				}
+			}
+			public function pubFun4getParamIo4organization():BOrganization
+			{
+				return this.paramIo4organization;
+			}				
+			//	3	公共方法    end		
+			 
+			//	4	初始化方法    begin			
+			private function creationCompleteHandler(event:FlexEvent):void
+			{
+				this.x = 100;
+				this.y = 50;
+			}						
+			//	4	初始化方法    end				
+			
+			//	5	事件响应方法    begin	
+			private function onChange4comboBoxIsCatalog():void
+			{
+				//	组织目录不能分配特征
+				//	从否变是的时候，要把organizationOrgCharacters数据清除
+				if( BSysDictionaryItem(this.comboBoxIsCatalog.selectedItem).value == BizConst.GLOBAL_YESNO_YES )
+				{
+					if( this.paramIo4organization.organizationOrgCharacters != null )
+					{
+						this.paramIo4organization.organizationOrgCharacters.removeAll();
+					}
+					this.btnAddOrganizationOrgCharacter.enabled = false;
+				}
+				else
+				{
+					this.btnAddOrganizationOrgCharacter.enabled = true;
+				}
+			}	
+			
+			private function onChooseParentOrganization():void
+			{
+				if( this.prvVar4chooserWindow_parentOrganization ==  null )
+				{
+					this.prvVar4chooserWindow_parentOrganization = Com_Organization_Organization_Chooser(PopUpManager.createPopUp(this, Com_Organization_Organization_Chooser, true));
+					this.prvVar4chooserWindow_parentOrganization.pubFun4setParamIn4closeCallback( this, callbackFunction4ChooserWinClose_parentOrganization );
+				}
+				else
+				{
+					PopUpManager.addPopUp( this.prvVar4chooserWindow_parentOrganization, this, true );
+				}	 		
+			}
+			
+			private function onChooseDC():void
+			{
+				if( prvVar4chooserWindow_Dc ==  null )
+				{
+					prvVar4chooserWindow_Dc = new Com_DistributionCenter_DistributionCenter_Chooser();
+					prvVar4chooserWindow_Dc.pubFun4setParamIn4closeCallback( this, callbackFunction4ChooserWinClose_parentDC );
+				}
+				PopUpManager.addPopUp( prvVar4chooserWindow_Dc,  ClientEnvironment.modWork, true );
+				PopUpManager.centerPopUp(prvVar4chooserWindow_Dc);
+						
+			}
+			
+			private function callbackFunction4ChooserWinClose_parentDC():void
+			{
+				var alert_title_hint:String = resourceManager.getString('alert','alert_title_hint');
+				var alert_msg:String = "";	
+				
+				if( prvVar4chooserWindow_Dc.pubFun4getParamOut4winCloseWay() == UtilUi.WINDOW_CLOSEWAY_OK )
+				{
+					var selectedDC:BDistributionCenter = prvVar4chooserWindow_Dc.pubFun4getParamOut4selectedDC();
+					if( selectedDC == null )
+					{
+						return;
+					}
+										
+					this.paramIo4organization.dcId = selectedDC.id;
+					dcNameTextInput.text = selectedDC.name;
+				}														
+			}
+			
+			private function callbackFunction4ChooserWinClose_parentOrganization():void
+			{
+				var alert_title_hint:String = resourceManager.getString('alert','alert_title_hint');
+				var alert_msg:String = "";	
+				
+				if( this.prvVar4chooserWindow_parentOrganization.pubFun4getParamOut4winCloseWay() == UtilUi.WINDOW_CLOSEWAY_OK )
+				{
+					var selectedOrganization:BOrganization = this.prvVar4chooserWindow_parentOrganization.pubFun4getParamOut4selectedOrganization();
+					if( selectedOrganization == null )
+					{
+						return;
+					}
+					if( selectedOrganization.isCatalog == BizConst.GLOBAL_YESNO_NO )
+					{
+						alert_msg =	resourceManager.getString('alert','alert_msg_parentisnotcatalog6');
+						Alert.show( alert_msg, alert_title_hint );
+						return;						
+					}
+					
+					if( selectedOrganization.id == this.paramIo4organization.id )
+					{
+						alert_msg =	resourceManager.getString('alert','alert_msg_parentisself6');
+						Alert.show( alert_msg, alert_title_hint );
+						return;		
+					}
+					
+ 					if( UtilOrganization.isAncestorOf(this.paramIo4organization, selectedOrganization) == true )
+					{
+						alert_msg =	resourceManager.getString('alert','alert_msg_parentisdescendent6');
+						Alert.show( alert_msg, alert_title_hint );
+						return;							
+					}
+					
+					var organizationLayer_new:BOrganizationLayer = ClientEnvironment.getOrganizationLayerByValue( selectedOrganization.organizationLayer.value + 1 );
+					if( organizationLayer_new == null )
+					{
+						alert_msg = resourceManager.getString('alert','alert_msg_maxlayer6');					
+						Alert.show( alert_msg, alert_title_hint );
+						return;					
+					}
+
+					this.paramIo4organization.parentOrganization = selectedOrganization;
+					this.paramIo4organization.organizationLayer = organizationLayer_new;						
+				}														
+			}		
+			
+			
+			private function onAddOrganizationOrgCharacter():void
+			{
+				if( this.prvVar4chooserWindow_organizationCharacter == null )
+				{
+					this.prvVar4chooserWindow_organizationCharacter = Com_Organization_OrganizationCharacter_Chooser(PopUpManager.createPopUp(this, Com_Organization_OrganizationCharacter_Chooser, true));
+					this.prvVar4chooserWindow_organizationCharacter.pubFun4setParamIn4closeCallback( this, this.callbackFunction4ChooserWinClose_organizationCharacter );					
+				}
+				else
+				{
+					PopUpManager.addPopUp( this.prvVar4chooserWindow_organizationCharacter, this, true );
+				}									
+			}	
+			
+			private function callbackFunction4ChooserWinClose_organizationCharacter():void
+			{
+				var alert_title_hint:String = resourceManager.getString('alert','alert_title_hint');
+				var alert_msg:String = "";	
+				
+				if( this.prvVar4chooserWindow_organizationCharacter.pubFun4getParamOut4winCloseWay() == UtilUi.WINDOW_CLOSEWAY_OK )
+				{
+					var selectedOrganizationCharacter:BOrganizationCharacter = this.prvVar4chooserWindow_organizationCharacter.pubFun4getParamOut4selectedOrganizationCharacter();
+					if( selectedOrganizationCharacter == null )
+					{
+						return;
+					}
+					if( selectedOrganizationCharacter.isCatalog == BizConst.GLOBAL_YESNO_YES )
+					{
+						alert_msg = resourceManager.getString('alert','alert_msg_productcharacterisnotdetail6');
+						Alert.show( alert_msg, alert_title_hint );
+						return;					
+					}
+					
+					if( this.paramIo4organization.organizationOrgCharacters == null )
+					{
+						this.paramIo4organization.organizationOrgCharacters = new ArrayCollection();
+					}
+					
+					var i:int;
+					for( i=0; i<this.paramIo4organization.organizationOrgCharacters.length; i=i+1 )
+					{
+						var inOrganizationOrgCharacter:BOrganizationOrgCharacter = BOrganizationOrgCharacter( this.paramIo4organization.organizationOrgCharacters.getItemAt(i) );
+						if( selectedOrganizationCharacter.id == inOrganizationOrgCharacter.organizationCharacter.id )
+						{
+							alert_msg = resourceManager.getString('alert','alert_msg_alreadyin6');
+							Alert.show( alert_msg, alert_title_hint );							
+							return;
+						}
+						else if( selectedOrganizationCharacter.type == inOrganizationOrgCharacter.organizationCharacter.type )
+						{
+							alert_msg = resourceManager.getString('alert','alert_msg_sametypealreadyin6');
+							Alert.show( alert_msg, alert_title_hint );									
+							return;
+						}
+					}					
+					
+					var newOrganizationOrgCharacter:BOrganizationOrgCharacter = new BOrganizationOrgCharacter();
+					newOrganizationOrgCharacter.organization = this.paramIo4organization;
+					newOrganizationOrgCharacter.organizationCharacter = selectedOrganizationCharacter;
+					this.paramIo4organization.organizationOrgCharacters.addItem( newOrganizationOrgCharacter );					
+				}														
+			}			
+			
+			private function onDelOrganizationOrgCharacter():void
+			{
+				this.paramIo4organization.organizationOrgCharacters.removeItemAt( this.comAdgOrganizationOrgCharacter.selectedIndex );
+			}			
+			
+			
+			private function onSave():void
+			{				
+				if( this.prvFun4prepare4save() == true )
+				{
+					UtilUi.pubFun4PopWaitWindow( this );
+					if( this.paramIo4winUse == UtilUi.AUWINDOW_USE_NEW )
+					{
+						this.srvOrganization.newOrganization( this.paramIo4organization );
+					}
+					else if( this.paramIo4winUse == UtilUi.AUWINDOW_USE_UPD )
+					{
+						this.srvOrganization.updOrganization( this.paramIo4organization );
+					}
+					else
+					{
+						Alert.show( '意外情形，请联系技术支持人员', '提示' );	
+					}
+				}
+			}			
+			
+			private function faultHandler4saveOrganization(event:FaultEvent):void
+			{
+				UtilUi.pubFun4RemoveWaitWindow();
+				Alert.show( UtilExceptionLocale.getExceptionMessageLocaleByFaultEvent( event ), resourceManager.getString('main','alt_title_warn') );
+			}	
+			
+			private function resultHandler4saveOrganization(event:ResultEvent):void 
+			{
+				this.paramIo4organization = BOrganization(event.result);	
+				UtilUi.pubFun4RemoveWaitWindow();
+				
+				this.paramOut4winCloseWay = UtilUi.WINDOW_CLOSEWAY_OK;
+				this.prvFun4close();
+			}				
+			
+			private function onCancel():void
+			{
+				this.paramOut4winCloseWay = UtilUi.WINDOW_CLOSEWAY_CANCEL;
+				this.prvFun4close();
+			}	
+			
+			//	5	事件响应方法    end
+			
+			//	6	本地方法    begin
+			private function prvFun4prepare4save():Boolean
+			{
+				this.paramIo4organization.code = StringUtil.trim(this.txtCode.text);
+				this.paramIo4organization.name = StringUtil.trim(this.txtName.text);
+				this.paramIo4organization.isCatalog = BSysDictionaryItem(this.comboBoxIsCatalog.selectedItem).value;
+				this.paramIo4organization.isValid = BSysDictionaryItem(this.comboBoxIsValid.selectedItem).value;
+				this.paramIo4organization.description = StringUtil.trim(this.txtDescription.text);
+				this.paramIo4organization.comments = StringUtil.trim(this.txtComments.text);
+				// organizationLayer parentOrganization organizationOrgCharacters 都实时处理
+				
+				var alert_title_hint:String = resourceManager.getString('alert','alert_title_hint');
+				var alert_msg:String = "";				
+				if( this.paramIo4organization.code == null || this.paramIo4organization.code == "" )
+				{
+					alert_msg = resourceManager.getString('alert','alert_msg_codeisnull');
+					Alert.show( alert_msg, alert_title_hint );
+					return false;						
+				}
+				if( this.paramIo4organization.name == null || this.paramIo4organization.name == "" )
+				{
+					alert_msg = resourceManager.getString('alert','alert_msg_nameisnull');
+					Alert.show( alert_msg, alert_title_hint );
+					return false;						
+				}		
+				
+				return true;		
+			}				
+			//	6	本地方法   end						
+		]]>
+	</fx:Script>
+	<common:LabelBoundary labelText="{resourceManager.getString('menu','organization')}" />
+	<s:VGroup width="100%" height="250">
+		<mx:Grid width="100%" height="100%">
+			<mx:GridRow width="100%" height="100%" verticalAlign="middle">
+				<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+					<s:Label text="{resourceManager.getString('note','orgCode')}"/>
+				</mx:GridItem>
+				<mx:GridItem width="100%" height="100%" verticalAlign="middle">
+					<mx:TextInput id="txtCode" maxChars="255" width="100%" text="{this.paramIo4organization.code}"/>
+				</mx:GridItem>
+				<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+				</mx:GridItem>
+				<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+					<s:Label text="{resourceManager.getString('note','orgName')}"/>
+				</mx:GridItem>
+				<mx:GridItem width="100%" height="100%" verticalAlign="middle">
+					<mx:TextInput id="txtName" maxChars="255" width="100%" text="{this.paramIo4organization.name}"/>
+				</mx:GridItem>
+			</mx:GridRow>
+			<mx:GridRow width="100%" height="100%" verticalAlign="middle">
+				<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+					<s:Label text="{resourceManager.getString('note','isCatagory')}"/>
+				</mx:GridItem>
+				<mx:GridItem width="100%" height="100%" verticalAlign="middle">
+					<s:ComboBox id="comboBoxIsCatalog" dataProvider="{this.prvVar4arrDictGlobalYesNo}" width="100%" change="onChange4comboBoxIsCatalog()">
+					</s:ComboBox>							
+				</mx:GridItem>
+				<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+				</mx:GridItem>
+				<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+					<s:Label text="{resourceManager.getString('note','isValid')}"/>
+				</mx:GridItem>
+				<mx:GridItem width="100%" height="100%" verticalAlign="middle">
+					<s:ComboBox width="100%" id="comboBoxIsValid" dataProvider="{this.prvVar4arrDictGlobalYesNo}">
+					</s:ComboBox>						
+				</mx:GridItem>
+			</mx:GridRow>
+			<mx:GridRow width="100%" height="100%" verticalAlign="middle">
+				<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+					<s:Label text="{resourceManager.getString('note','parentOrg')}"/>
+				</mx:GridItem>
+				<mx:GridItem width="100%" height="100%" verticalAlign="middle">
+					<mx:TextInput width="100%" text="{paramIo4organization.parentOrganization.toString()}" enabled="false"/>
+					<s:Button icon="{CoolAssetsFile.findIcon}" width="30" id="btnParentOrganizationChooser" click="onChooseParentOrganization()"/>															
+				</mx:GridItem>
+				<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+				</mx:GridItem>
+				<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+					<s:Label text="{resourceManager.getString('note','orgLayer')}"/>					
+				</mx:GridItem>
+				<mx:GridItem width="100%" height="100%" verticalAlign="middle">
+					<mx:TextInput width="100%" enabled="false" text="{this.paramIo4organization.organizationLayer.toString()}"/>
+				</mx:GridItem>
+			</mx:GridRow>
+			<mx:GridRow width="100%" verticalAlign="middle">
+				<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+					<s:Label text="{resourceManager.getString('note','distributeCentre')}"/>					
+				</mx:GridItem>
+				<mx:GridItem width="100%" height="100%" verticalAlign="middle">
+					<mx:TextInput width="100%" id="dcNameTextInput" text="{paramIo4organization.getDcName()}" enabled="false"/>
+					<s:Button icon="{CoolAssetsFile.findIcon}" width="30" id="btnDcChooser" click="onChooseDC()"/>
+				</mx:GridItem>
+				<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+				</mx:GridItem>
+				<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+					<s:Label text="{resourceManager.getString('note','remark')}"/>
+				</mx:GridItem>
+				<mx:GridItem width="100%" height="100%" verticalAlign="middle">
+					<mx:TextInput width="100%" id="txtComments" maxChars="255" text="{this.paramIo4organization.comments}"/>
+				</mx:GridItem>
+			</mx:GridRow>
+			<mx:GridRow width="100%" height="100%" verticalAlign="middle">
+				<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+					<s:Label text="{resourceManager.getString('note','longDesc')}"/>
+				</mx:GridItem>
+				<mx:GridItem width="100%" height="100%" verticalAlign="middle" colSpan="4">
+					<s:TextArea id="txtDescription" maxChars="512" width="100%" height="60" text="{this.paramIo4organization.description}"/>
+				</mx:GridItem>
+			</mx:GridRow>	
+										
+		</mx:Grid>			
+	</s:VGroup>
+	
+	<s:VGroup width="100%" height="100%" >
+		<common:LabelBoundary labelText="{resourceManager.getString('menu','orgChar')}" />
+		<containers:AksControlBar>
+			<buttons:ButtonAdd id="btnAddOrganizationOrgCharacter" click="onAddOrganizationOrgCharacter()"/>
+			<buttons:ButtonRemove enabled="{this.comAdgOrganizationOrgCharacter.selectedItem}" click="onDelOrganizationOrgCharacter()"/>						
+		</containers:AksControlBar>
+		<organization:Com_Organization_OrganizationOrgCharacter_AdvancedDataGrid dataProvider="{this.paramIo4organization.organizationOrgCharacters}" width="100%" height="100%" id="comAdgOrganizationOrgCharacter"/>
+	</s:VGroup>
+	<s:BorderContainer width="100%" height="25" borderColor="#E4ECF7">
+		<s:layout>
+			<s:HorizontalLayout horizontalAlign="center"/>
+		</s:layout>
+		<buttons:ButtonSave click="onSave()"/>
+		<buttons:ButtonCancel click="onCancel()"/>		
+	</s:BorderContainer>
+	
+</s:TitleWindow>

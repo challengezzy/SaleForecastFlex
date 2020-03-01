@@ -1,0 +1,27 @@
+
+
+## 期间部分	begin
+periodspan=Period
+periodbegin=From
+periodend=To
+compileperiod=CurrentPeriod
+
+fcperiodnum=Number of ForecastHorizon
+fzperiodnum=Number of OffsetHorizon
+## 期间部分	end
+
+basebizedata=Baseline
+
+alert_title_hint=Alert
+
+alert_msg_periodbegin=Please enter the starting period in correct format!
+alert_msg_periodend=Please enter the ending period in correct format!
+alert_msg_begingtend=The starting period cannot be later than the ending period!
+alert_msg_diffover=Number of Display for period has exceeded the maximum value!
+
+
+
+
+
+
+

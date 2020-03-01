@@ -1,0 +1,1670 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:BorderContainer xmlns:fx="http://ns.adobe.com/mxml/2009" 
+				   xmlns:s="library://ns.adobe.com/flex/spark" 
+				   xmlns:mx="library://ns.adobe.com/flex/mx" 
+				   width="100%"
+				   creationComplete="creationCompleteHandler(event)" 
+				   xmlns:containers="aks.aksmx.containers.*" 
+				   xmlns:proorg="dmdd.dmddmx.com.proorg.*" 
+				   xmlns:bizdata="dmdd.dmddmx.com.bizdata.*" xmlns:period="dmdd.dmddmx.com.period.*" xmlns:security="dmdd.dmddmx.com.security.*">
+	<s:layout>
+		<s:VerticalLayout paddingTop="0"/>
+	</s:layout>
+	<fx:Metadata>
+	</fx:Metadata>
+	<fx:Script>
+		<![CDATA[
+			import aks.aksas.collections.HashMap;
+			import aks.aksas.utils.UtilArrayCollection;
+			import aks.aksas.utils.UtilUi;
+			
+			import com.cool.assets.CoolAssetsFile;
+			
+			import dmdd.dmddas.common.constant.BizConst;
+			import dmdd.dmddas.common.constant.SkinConst;
+			import dmdd.dmddas.common.constant.SysConst;
+			import dmdd.dmddas.common.system.ClientEnvironment;
+			import dmdd.dmddas.common.utils.UtilLayer;
+			import dmdd.dmddas.common.utils.UtilOrganization;
+			import dmdd.dmddas.common.utils.UtilOrganizationCharacter;
+			import dmdd.dmddas.common.utils.UtilPeriod;
+			import dmdd.dmddas.common.utils.UtilProOrg;
+			import dmdd.dmddas.common.utils.UtilProduct;
+			import dmdd.dmddas.common.utils.UtilProductCharacter;
+			import dmdd.dmddas.common.utils.UtilStrKey;
+			import dmdd.dmddas.dataaccess.aidobject.ABProOrg;
+			import dmdd.dmddas.dataaccess.aidobject.ABUiRowData;
+			import dmdd.dmddas.dataaccess.aidobject.ABUiRowDataProOrg;
+			import dmdd.dmddas.dataaccess.bizobject.BBizData;
+			import dmdd.dmddas.dataaccess.bizobject.BBizDataDefItemKpi;
+			import dmdd.dmddas.dataaccess.bizobject.BOperatorUserBizData;
+			import dmdd.dmddas.dataaccess.bizobject.BOperatorUserProOrg;
+			import dmdd.dmddas.dataaccess.bizobject.BOrganization;
+			import dmdd.dmddas.dataaccess.bizobject.BOrganizationCharacter;
+			import dmdd.dmddas.dataaccess.bizobject.BOrganizationCharacterLayer;
+			import dmdd.dmddas.dataaccess.bizobject.BOrganizationLayer;
+			import dmdd.dmddas.dataaccess.bizobject.BProduct;
+			import dmdd.dmddas.dataaccess.bizobject.BProductCharacter;
+			import dmdd.dmddas.dataaccess.bizobject.BProductCharacterLayer;
+			import dmdd.dmddas.dataaccess.bizobject.BProductLayer;
+			import dmdd.dmddas.dataaccess.bizobject.BUiPopbScope;
+			import dmdd.dmddas.dataaccess.bizobject.BUiPopbScopeBizData;
+			import dmdd.dmddas.dataaccess.bizobject.BUiPopbScopeProOrg;
+			import dmdd.dmddas.dataaccess.bizobject.BUnit;
+			import dmdd.dmddas.dataaccess.bizobject.BUnitGroup;
+			import dmdd.dmddmx.com.bizdata.Com_BizData_BizData_Chooser;
+			
+			import mx.collections.ArrayCollection;
+			import mx.controls.Alert;
+			import mx.events.FlexEvent;
+			import mx.managers.PopUpManager;
+			
+			import spark.components.Application;
+			
+			
+			//	描述    begin
+			//	描述    end
+			
+			//	0	输入参数    begin	
+			public var paramIn4executeCallback4thisObject:Object = null;
+			public var paramIn4executeCallback4function:Function = null;
+			
+			public var paramIn4onChange4comUiPopbScopeFieldCallback4thisObject:Object = null;
+			public var paramIn4onChange4comUiPopbScopeFieldCallback4function:Function = null;				
+			
+			public var paramIn4checkboxCallback4thisObject:Object = null;
+			public var paramIn4checkboxCallback4function:Function = null;
+			
+			public var paramIn4set4thisObject:Object = null;
+			public var paramIn4set4function:Function = null;
+			
+			[Bindable]
+			public var paramIn4uiCode:String = null;
+			
+			[Bindable]
+			public var paramIn4executable:Boolean = true;
+			
+			//基准数据相关 begin
+			[Bindable]
+			public var paramIn4visableBaseBizData:Boolean = false;
+			[Bindable]
+			private var paramIn4arrcbBizData:ArrayCollection = new ArrayCollection();
+			//基准数据相关end.
+			
+			//	0.1	业务数据相关参数	begin
+			[Bindable]
+			public var paramIn4arrDictBizDataType:ArrayCollection = new ArrayCollection();		
+			
+			[Bindable]
+			public var paramIn4blOnlyIsManagingBizData:Boolean = false;
+			
+			public var paramIn4blAllowMultipleSelectionBizData:Boolean = true;
+			//	0.1	业务数据相关参数	end
+			
+			//	0.2	显示控制相关参数	begin
+			public var paramIn4blShowDisplayOption:Boolean = true;
+			
+			public var isDisplayProduct:Boolean = true;
+			public var isDisplayProductCharacter:Boolean = false;
+			public var isDisplayOrganization:Boolean = true;
+			public var isDisplayOrganizationCharacter:Boolean = false;
+			
+			private var paramIo4productLayer:BProductLayer = null;			
+			private var paramIo4productCharacterLayer:BProductCharacterLayer = null;
+			private var paramIo4productCharacterType:String = null;
+			
+			private var paramIo4organizationLayer:BOrganizationLayer = null;			
+			private var paramIo4organizationCharacterLayer:BOrganizationCharacterLayer = null;
+			private var paramIo4organizationCharacterType:String = null;
+			
+			private var paramIo4UiRowDataProOrgHashMap:HashMap = null;
+			//	0.2	显示控制相关参数	end
+			
+			//	0.3	期间范围相关参数	begin
+			public var paramIn4blShowPeriodSpan:Boolean = true;
+			
+			[Bindable]
+			public var paramIn4visible4forecast4periodspan:Boolean = false;
+			
+			[Bindable]
+			public var paramIn4visible4span4periodSpan:Boolean = true;
+			
+			[Bindable]
+			public var paramIn4fcPeriodNum4periodSpan:int = 0;
+			[Bindable]
+			public var paramIn4fzPeriodNum4periodSpan:int = 0;		
+			//	0.3	期间范围相关参数	end
+			
+			
+			//	0	输入参数    end
+			
+			//	1	输出参数    begin
+			/**
+			 * 存放 ABUiRowDataProOrg对象
+			 * 用来传递根据 dispalyOption 和 ProOrg 信息计算出来的 ABUiRowDataProrg 信息
+			 */
+			private var paramOut4arrUiRowDataProOrgs:ArrayCollection = new ArrayCollection();
+			
+			private var paramOut4arrProOrgs:ArrayCollection = new ArrayCollection();			
+			private var paramOut4arrBizDatas:ArrayCollection = new ArrayCollection();
+			
+			private var paramOut4unitGroup:BUnitGroup = null;
+			private var paramOut4unit:BUnit = null;
+			
+			/** 业务范围数据是否分页 */
+			private var paramOut4blPageProOrg:Boolean = false;
+			
+			private var paramOut4periodBegin:int = SysConst.PERIOD_NULL;
+			private var paramOut4periodEnd:int = SysConst.PERIOD_NULL;			
+			//	1	输出参数    end
+			
+			//	2	本地变量    begin	
+			[Bindable]
+			private var prvVar4dp4comAdgProOrg:ArrayCollection = new ArrayCollection();
+			[Bindable]
+			private var prvVar4dp4comAdgBizData:ArrayCollection = new ArrayCollection();
+			
+			
+			private var prvVar4chooserWindow_proOrg:Com_Security_ProOrg_Chooser = null;
+			private var prvVar4chooserWindow_bizData:Com_BizData_BizData_Chooser = null;
+			
+			private var prvVar4auWindow:Com_Security_UiPopbScope_AU = null;
+			
+			private var prvVar4blExpanded:Boolean = false;
+			
+			/** 快速查询条件 */
+			private var uiPopbScope:BUiPopbScope
+			private var oldUiPopbScope:BUiPopbScope; //旧快速查询条件，判断查询条件是否变化
+			
+			//	2	本地变量    end			
+			
+			//	3	公共方法    begin		
+			
+			//	业务范围部分		begin
+			public function pubFun4getDp4comAdgProOrg():ArrayCollection
+			{
+				return prvVar4dp4comAdgProOrg;
+			}
+			public function pubFun4getDp4comAdgBizData():ArrayCollection
+			{
+				return prvVar4dp4comAdgBizData;
+			}			
+			
+			public function pubFun4getParamOut4arrUiRowDataProOrgs():ArrayCollection
+			{
+				return paramOut4arrUiRowDataProOrgs;
+			}
+			
+			public function pubFun4getParamOut4arrProOrgs():ArrayCollection
+			{
+				return paramOut4arrProOrgs;
+			}
+			
+			public function pubFun4getParamOut4arrBizDatas():ArrayCollection
+			{
+				return paramOut4arrBizDatas;
+			}
+			
+			public function pubFun4getParamOut4unitGroup():BUnitGroup
+			{
+				return paramOut4unitGroup;
+			}
+			public function pubFun4getParamOut4unit():BUnit
+			{
+				return paramOut4unit;
+			}
+			//	业务范围部分		end
+			
+			
+			//	显示控制部分		begin
+			public function pubFun4setParamIo4displayOption( _isDisplayProduct:Boolean,
+															 _paramIo4productLayer:BProductLayer,
+															 _isDisplayProductCharacter:Boolean,
+															 _paramIo4productCharacterLayer:BProductCharacterLayer,
+															 _paramIo4productCharacterType:String,
+															 _isDisplayOrganization:Boolean,
+															 _paramIo4organizationLayer:BOrganizationLayer,
+															 _isDisplayOrganizationCharacter:Boolean,
+															 _paramIo4organizationCharacterLayer:BOrganizationCharacterLayer,
+															 _paramIo4organizationCharacterType:String															
+			):void
+			{				
+				isDisplayProduct = _isDisplayProduct;
+				paramIo4productLayer = _paramIo4productLayer;
+				isDisplayProductCharacter = _isDisplayProductCharacter;
+				paramIo4productCharacterLayer = _paramIo4productCharacterLayer;
+				paramIo4productCharacterType = _paramIo4productCharacterType;
+				
+				isDisplayOrganization = _isDisplayOrganization;
+				paramIo4organizationLayer = _paramIo4organizationLayer;
+				isDisplayOrganizationCharacter = _isDisplayOrganizationCharacter;
+				paramIo4organizationCharacterLayer = _paramIo4organizationCharacterLayer;
+				paramIo4organizationCharacterType = _paramIo4organizationCharacterType;
+			}
+			
+			
+			public function pubFun4getParamIo4productLayer():BProductLayer
+			{
+				return paramIo4productLayer;
+			}			
+			
+			public function pubFun4getParamIo4productCharacterLayer():BProductCharacterLayer
+			{
+				return paramIo4productCharacterLayer;	
+			}
+			public function pubFun4getParamIo4productCharacterType():String
+			{
+				return paramIo4productCharacterType;
+			}
+						
+			public function pubFun4getParamIo4organizationLayer():BOrganizationLayer
+			{
+				return paramIo4organizationLayer;
+			}			
+			
+			public function pubFun4getParamIo4organizationCharacterLayer():BOrganizationCharacterLayer
+			{
+				return paramIo4organizationCharacterLayer;	
+			}
+			public function pubFun4getParamIo4organizationCharacterType():String
+			{
+				return paramIo4organizationCharacterType;
+			}
+			
+			public function pubFun4getParamIo4UiRowDataProOrgHashMap():HashMap
+			{
+				return paramIo4UiRowDataProOrgHashMap;
+			}
+			
+			public function pubFun4getExpanded():Boolean
+			{
+				return prvVar4blExpanded;
+			}
+			
+			//	显示控制部分		end
+			
+			//	期间范围部分		begin
+			public function pubFun4getParamOut4periodBegin():int
+			{
+				return paramOut4periodBegin;
+			}						
+			public function pubFun4getParamOut4periodEnd():int
+			{
+				return paramOut4periodEnd;
+			}									
+			//	期间范围部分		end
+			
+			public function pubFun4getParamOut4blPageProOrg():Boolean
+			{
+				return paramOut4blPageProOrg;
+			}			
+			public function pubFun4checkDisplayOption():Boolean
+			{
+				// 检查显示设置    begin
+				var blDisplayProduct:Boolean = true;
+				var productLayer:BProductLayer = null;
+				var blDisplayProductCharacter:Boolean = false;
+				var productCharacterLayer:BProductCharacterLayer = null;	
+				var productCharacterType:String = null;
+				
+				var blDisplayOrganization:Boolean = true;
+				var organizationLayer:BOrganizationLayer = null;
+				var blDisplayOrganizationCharacter:Boolean = false;
+				var organizationCharacterLayer:BOrganizationCharacterLayer = null;	
+				var organizationCharacterType:String = null;
+				
+				var alert_title_hint:String = resourceManager.getString('alert','alert_title_hint');
+				var alert_msg:String = "";		
+				
+				blDisplayProduct = comProOrgDisplayOption.checkBoxProduct.selected;
+				productLayer = BProductLayer(comProOrgDisplayOption.comboBoxProductLayer.selectedItem);
+				if( blDisplayProduct == true )
+				{
+					if( productLayer == null )
+					{
+						alert_msg = resourceManager.getString('alert','alert_msg_noproductlayer16');
+						Alert.show( alert_msg, alert_title_hint);
+						return false;							
+					}
+				}
+				
+				blDisplayProductCharacter = comProOrgDisplayOption.checkBoxProductCharacter.selected;
+				productCharacterLayer = BProductCharacterLayer(comProOrgDisplayOption.comboBoxProductCharacterLayer.selectedItem);
+				productCharacterType = String(comProOrgDisplayOption.comboBoxProductCharacterType.selectedItem);
+				if( blDisplayProductCharacter == true )
+				{
+					if( productCharacterLayer == null )
+					{
+						alert_msg = resourceManager.getString('alert','alert_msg_noproductcharacterlayer16');
+						Alert.show( alert_msg, alert_title_hint);
+						return false;							
+					}
+					
+					if( productCharacterType == null || productCharacterType == "" )
+					{
+						alert_msg = resourceManager.getString('alert','alert_msg_noproductcharactertype16');
+						Alert.show( alert_msg, alert_title_hint);
+						return false;							
+					}					
+				}
+				
+				
+				blDisplayOrganization = comProOrgDisplayOption.checkBoxOrganization.selected;
+				organizationLayer = BOrganizationLayer(comProOrgDisplayOption.comboBoxOrganizationLayer.selectedItem);
+				if( blDisplayOrganization == true )
+				{
+					if( organizationLayer == null )
+					{
+						alert_msg = resourceManager.getString('alert','alert_msg_noorganizationlayer16');
+						Alert.show( alert_msg, alert_title_hint);
+						return false;							
+					}
+				}
+				
+				blDisplayOrganizationCharacter = comProOrgDisplayOption.checkBoxOrganizationCharacter.selected;
+				organizationCharacterLayer = BOrganizationCharacterLayer(comProOrgDisplayOption.comboBoxOrganizationCharacterLayer.selectedItem);
+				organizationCharacterType = String(comProOrgDisplayOption.comboBoxOrganizationCharacterType.selectedItem);
+				if( blDisplayOrganizationCharacter == true )
+				{
+					if( organizationCharacterLayer == null )
+					{
+						alert_msg = resourceManager.getString('alert','alert_msg_noorganizationcharacterlayer16');
+						Alert.show( alert_msg, alert_title_hint);
+						return false;							
+					}
+					
+					if( organizationCharacterType == null || organizationCharacterType == "" )
+					{
+						alert_msg = resourceManager.getString('alert','alert_msg_noorganizationcharactertype16');
+						Alert.show( alert_msg, alert_title_hint);
+						return false;							
+					}					
+				}
+				
+				
+				isDisplayProduct = blDisplayProduct;
+				paramIo4productLayer = productLayer;
+				isDisplayProductCharacter = blDisplayProductCharacter;
+				paramIo4productCharacterLayer = productCharacterLayer;
+				paramIo4productCharacterType = productCharacterType;
+				
+				isDisplayOrganization = blDisplayOrganization;
+				paramIo4organizationLayer = organizationLayer;
+				isDisplayOrganizationCharacter = blDisplayOrganizationCharacter;
+				paramIo4organizationCharacterLayer = organizationCharacterLayer;
+				paramIo4organizationCharacterType = organizationCharacterType;				
+				
+				return true;
+			}
+			//	3	公共方法    end		
+			
+			//	4	初始化方法    begin	
+			protected function creationCompleteHandler(event:FlexEvent):void
+			{
+				
+			}				
+			//	4	初始化方法    end				
+			
+			//	5	事件响应方法    begin
+			public function pubFun4excuteProOrg(uiRowData:ABUiRowData):void
+			{
+				if(uiRowData==null)
+				{
+					return ;
+				}
+				
+				if(pubFun4checkDisplayOption() == false)
+				{
+					return ;
+				}
+				
+				var alert_title_hint:String = resourceManager.getString('alert','alert_title_hint');
+				var alert_msg:String = "";
+				
+				
+				var prvVar4dp4comAdgProOrg:ArrayCollection = new ArrayCollection();
+				
+				prvVar4dp4comAdgProOrg= UtilProOrg.getDetailProOrgsByIds(uiRowData.detailProOrgIds,true);
+				
+				var prvVar4dp4comAdgBizData:ArrayCollection = new ArrayCollection();
+				prvVar4dp4comAdgBizData.addItem(uiRowData.bizData);
+				
+				
+				paramOut4arrProOrgs = new ArrayCollection();
+				paramOut4arrProOrgs.addAll( prvVar4dp4comAdgProOrg );
+				
+				paramOut4arrBizDatas = new ArrayCollection();
+				paramOut4arrBizDatas.addAll( prvVar4dp4comAdgBizData );
+				
+				paramOut4unitGroup = null;
+				paramOut4unit = null;
+				
+				//		输出参数ProOrgBizData部分	end
+				
+				
+				//		求解范围覆盖的明细范围并投影到显示层次		begin 				
+				var arrDetailProOrgs:ArrayCollection = UtilProOrg.getDetailProOrgs( prvVar4dp4comAdgProOrg, true );
+				
+				paramOut4arrUiRowDataProOrgs = new ArrayCollection();
+				
+				var projectProduct:BProduct = null;
+				var projectProductCharacter:BProductCharacter = null;			
+				var projectOrganization:BOrganization = null;
+				var projectOrganizationCharacter:BOrganizationCharacter = null;
+				
+				var strKey4Product:String = "";
+				var strKey4Organization:String = "";
+				
+				var hmap_detailProduct_projectProduct:HashMap = new HashMap(); // 明细产品到投影产品的映射 
+				var hmap_detailProduct_projectProductCharacter:HashMap = new HashMap(); // 明细产品到投影产品的映射				
+				var hmap_detailOrganization_projectOrganization:HashMap = new HashMap(); // 明细组织到投影组织的映射 
+				var hmap_detailOrganization_projectOrganizationCharacter:HashMap = new HashMap(); // 明细组织到投影组织的映射
+				
+				var i:int;
+				var detailProOrg:ABProOrg = null;
+				var detailProductCharacter:BProductCharacter = null;
+				var detailOrganizationCharacter:BOrganizationCharacter;
+				
+				var hmap_uiRowDataProOrgs:HashMap = new HashMap();
+				var strKey4uiRowDataProOrg:String = null;
+				var uiRowDataProOrg:ABUiRowDataProOrg = null;
+				var baseUnit:BUnit = null;
+				var nonBaseUnit:BUnit = null;
+				var num4NonBaseUnit:int = 0;
+				
+				var paramIo4UiRowDataProOrgHashMap:HashMap = new HashMap();
+				var arr4ProOrg:ArrayCollection = null;
+				
+				if( arrDetailProOrgs != null && arrDetailProOrgs.length > 0 )
+				{
+					for( i=0; i<arrDetailProOrgs.length; i=i+1 )
+					{
+						detailProOrg = ABProOrg( arrDetailProOrgs.getItemAt(i) );
+						
+						//	单位组	begin
+						if( detailProOrg.product.unitGroup == null )
+						{
+							alert_msg = resourceManager.getString('alert','alter_msg_unitgroupisnull14');
+							Alert.show( alert_msg, alert_title_hint);
+							return;							
+						}
+						if( paramOut4unitGroup == null )
+						{
+							paramOut4unitGroup = detailProOrg.product.unitGroup;
+							baseUnit = paramOut4unitGroup.getBaseUnit();
+						}
+						else if( detailProOrg.product.unitGroup.id != paramOut4unitGroup.id )
+						{
+							alert_msg = resourceManager.getString('alert','alter_msg_multiunitgroup14');
+							Alert.show( alert_msg, alert_title_hint);
+							return;									
+						}
+						if( detailProOrg.product.unit.isBase == BizConst.GLOBAL_YESNO_NO )
+						{
+							if( nonBaseUnit == null )
+							{
+								nonBaseUnit = detailProOrg.product.unit;
+								num4NonBaseUnit = 1;								
+							}
+							else
+							{
+								if( detailProOrg.product.unit.id != nonBaseUnit.id )
+								{
+									num4NonBaseUnit = 2;	//	just means multiple									
+								}
+							}
+						}
+						//	单位组	end
+						
+						//	计算投影		begin
+						strKey4Product = "" + detailProOrg.product.id;
+						strKey4Organization = "" + detailProOrg.organization.id;
+						
+						if( isDisplayProduct == true )
+						{
+							projectProduct = BProduct( hmap_detailProduct_projectProduct.getValue(strKey4Product) );
+							if( projectProduct == null )
+							{
+								projectProduct = UtilProduct.getProjectProductByLayer( detailProOrg.product, paramIo4productLayer.value );
+								if( projectProduct == null )
+								{
+									// should not happen
+									continue;
+								}							
+								hmap_detailProduct_projectProduct.put( strKey4Product, projectProduct ); 
+							}
+						}
+						else
+						{
+							// 不需要显示product
+							projectProduct = null;
+						}
+						
+						if( isDisplayProductCharacter == true )
+						{
+							projectProductCharacter = BProductCharacter( hmap_detailProduct_projectProductCharacter.getValue( strKey4Product ) );
+							if( projectProductCharacter == null )
+							{
+								detailProductCharacter = UtilProductCharacter.getDetailProductCharacter( detailProOrg.product, paramIo4productCharacterType );
+								if( detailProductCharacter != null )
+								{
+									projectProductCharacter = UtilProductCharacter.getProjectProductCharacterByLayer( detailProductCharacter, paramIo4productCharacterLayer.value);
+									if( projectProductCharacter == null )
+									{
+										// should not happen
+										continue;	
+									}
+									hmap_detailProduct_projectProductCharacter.put( strKey4Product, projectProductCharacter );
+								}
+								else
+								{
+									// 明细产品没有被指定该类型的特征，投影到一个特殊的产品特征上
+									projectProductCharacter = null;
+								}
+							}
+						}
+						else
+						{
+							// 不需要显示productCharacter
+							projectProductCharacter = null;
+						}					
+						
+						if( isDisplayOrganization == true )
+						{
+							projectOrganization = BOrganization( hmap_detailOrganization_projectOrganization.getValue(strKey4Organization) );
+							if( projectOrganization == null )
+							{
+								projectOrganization = UtilOrganization.getProjectOrganizationByLayer( detailProOrg.organization, paramIo4organizationLayer.value );
+								if( projectOrganization == null )
+								{
+									// should not happen
+									continue;
+								}							
+								hmap_detailOrganization_projectOrganization.put( strKey4Organization, projectOrganization ); 
+							}
+						}
+						else
+						{
+							// 不需要显示organization
+							projectOrganization = null;
+						}
+						
+						if( isDisplayOrganizationCharacter == true )
+						{
+							projectOrganizationCharacter = BOrganizationCharacter( hmap_detailOrganization_projectOrganizationCharacter.getValue( strKey4Organization ) );
+							if( projectOrganizationCharacter == null )
+							{
+								detailOrganizationCharacter = UtilOrganizationCharacter.getDetailOrganizationCharacter( detailProOrg.organization, paramIo4organizationCharacterType );
+								if( detailOrganizationCharacter != null )
+								{
+									projectOrganizationCharacter = UtilOrganizationCharacter.getProjectOrganizationCharacterByLayer( detailOrganizationCharacter, paramIo4organizationCharacterLayer.value);
+									if( projectOrganizationCharacter == null )
+									{
+										// should not happen
+										continue;	
+									}
+									hmap_detailOrganization_projectOrganizationCharacter.put( strKey4Organization, projectOrganizationCharacter );
+								}
+								else
+								{
+									// 明细组织没有被指定该类型的特征，投影到一个特殊的组织特征上
+									projectOrganizationCharacter = null;
+								}
+							}
+						}
+						else
+						{
+							// 不需要显示organizationCharacter
+							projectOrganizationCharacter = null;
+						}
+						//	计算投影		end							
+						
+						strKey4uiRowDataProOrg = UtilStrKey.getStrKey4PPcOOcB( projectProduct, projectProductCharacter, projectOrganization, projectOrganizationCharacter, null );
+						uiRowDataProOrg = ABUiRowDataProOrg( hmap_uiRowDataProOrgs.getValue( strKey4uiRowDataProOrg ) );
+						if( uiRowDataProOrg == null )
+						{
+							uiRowDataProOrg = new ABUiRowDataProOrg();
+							uiRowDataProOrg.product = projectProduct;
+							uiRowDataProOrg.productCharacter = projectProductCharacter;
+							uiRowDataProOrg.organization = projectOrganization;
+							uiRowDataProOrg.organizationCharacter = projectOrganizationCharacter;
+							uiRowDataProOrg.detailProOrgIds = new ArrayCollection();
+						}
+						
+						uiRowDataProOrg.detailProOrgIds.addItem( UtilProOrg.getProOrgId( detailProOrg.product, detailProOrg.organization ) );
+						
+						hmap_uiRowDataProOrgs.put( strKey4uiRowDataProOrg , uiRowDataProOrg );	
+						
+						arr4ProOrg = ArrayCollection(paramIo4UiRowDataProOrgHashMap.getValue(strKey4uiRowDataProOrg));
+						if(arr4ProOrg == null|| arr4ProOrg.length==0)
+						{
+							arr4ProOrg = new ArrayCollection();
+							arr4ProOrg.addItem(detailProOrg);
+						}
+						else
+						{
+							arr4ProOrg.addItem(detailProOrg);
+						}
+						paramIo4UiRowDataProOrgHashMap.put(strKey4uiRowDataProOrg,arr4ProOrg);
+					}
+				}
+				if( num4NonBaseUnit == 1 )
+				{
+					paramOut4unit = nonBaseUnit;
+				}
+				else
+				{
+					if(baseUnit==null)
+					{
+						alert_msg = resourceManager.getString('alert','alter_msg_nobaseunit14');
+						Alert.show( alert_msg, alert_title_hint);						
+						return ;
+					}
+					paramOut4unit = baseUnit;
+				}
+				paramOut4arrUiRowDataProOrgs = hmap_uiRowDataProOrgs.getValues();
+				
+			}
+			
+			private function onExecute():void
+			{
+				UtilUi.pubFun4PopWaitWindow( this );	//	这行代码没能显示等待框，需要修改
+				
+				var alert_title_hint:String = resourceManager.getString('alert','alert_title_hint');
+				var alert_msg:String = "";
+				if( prvVar4dp4comAdgProOrg == null || prvVar4dp4comAdgProOrg.length == 0 )
+				{
+					UtilUi.pubFun4RemoveWaitWindow();
+					
+					alert_msg = resourceManager.getString('alert','alter_msg_proorgisnull14');
+					Alert.show( alert_msg, alert_title_hint);
+					return;					
+				}
+				
+				if( prvVar4dp4comAdgBizData == null || prvVar4dp4comAdgBizData.length == 0 )
+				{
+					UtilUi.pubFun4RemoveWaitWindow();
+					
+					alert_msg = resourceManager.getString('alert','alter_msg_bizdataisnull14');
+					Alert.show( alert_msg, alert_title_hint);
+					return;					
+				}			
+				
+				//条件是否合法检查，需要重新实现
+//				if( paramIn4blShowDisplayOption == true )
+//				{
+//					if( comProOrgDisplayOption.pubFun4checkDisplayOption() == false )
+//					{
+//						UtilUi.pubFun4RemoveWaitWindow();
+//						return;
+//					}										
+//				}
+//				
+//				if( paramIn4blShowPeriodSpan == true )
+//				{
+//					if( comPeriodSpan.pubFun4checkPeriodSpan() == false )
+//					{
+//						UtilUi.pubFun4RemoveWaitWindow();
+//						return;
+//					}
+//				}
+				//		重置输出参数值	begin
+				
+				//		输出参数ProOrgBizData部分	begin
+				paramOut4arrUiRowDataProOrgs = new ArrayCollection();
+				
+				paramOut4arrProOrgs = new ArrayCollection();
+				paramOut4arrProOrgs.addAll( prvVar4dp4comAdgProOrg );
+				
+				paramOut4arrBizDatas = new ArrayCollection();
+				paramOut4arrBizDatas.addAll( prvVar4dp4comAdgBizData );
+				
+				paramOut4unitGroup = null;
+				paramOut4unit = null;
+				
+				paramOut4blPageProOrg = false;
+				//		输出参数ProOrgBizData部分	end
+				
+				//		求解范围覆盖的明细范围并投影到显示层次		begin 				
+				var arrDetailProOrgs:ArrayCollection = UtilProOrg.getDetailProOrgs( prvVar4dp4comAdgProOrg, true );
+				
+				paramOut4arrUiRowDataProOrgs = new ArrayCollection();
+				paramOut4unitGroup = null;
+				paramOut4unit = null;
+				
+				var projectProduct:BProduct = null;
+				var projectProductCharacter:BProductCharacter = null;			
+				var projectOrganization:BOrganization = null;
+				var projectOrganizationCharacter:BOrganizationCharacter = null;
+				
+				var strKey4Product:String = "";
+				var strKey4Organization:String = "";
+				
+				var hmap_detailProduct_projectProduct:HashMap = new HashMap(); // 明细产品到投影产品的映射 
+				var hmap_detailProduct_projectProductCharacter:HashMap = new HashMap(); // 明细产品到投影产品的映射				
+				var hmap_detailOrganization_projectOrganization:HashMap = new HashMap(); // 明细组织到投影组织的映射 
+				var hmap_detailOrganization_projectOrganizationCharacter:HashMap = new HashMap(); // 明细组织到投影组织的映射
+				
+				var i:int;
+				var detailProOrg:ABProOrg = null;
+				var detailProductCharacter:BProductCharacter = null;
+				var detailOrganizationCharacter:BOrganizationCharacter;
+				
+				var hmap_uiRowDataProOrgs:HashMap = new HashMap();
+				var strKey4uiRowDataProOrg:String = null;
+				var uiRowDataProOrg:ABUiRowDataProOrg = null;
+				var baseUnit:BUnit = null;
+				var nonBaseUnit:BUnit = null;
+				var num4NonBaseUnit:int = 0; //是否是基本单位
+				
+				paramIo4UiRowDataProOrgHashMap = new HashMap();
+				var arr4ProOrg:ArrayCollection = null;
+				
+				if( arrDetailProOrgs != null && arrDetailProOrgs.length > 0 )
+				{
+					for( i=0; i<arrDetailProOrgs.length; i=i+1 )
+					{
+						detailProOrg = ABProOrg( arrDetailProOrgs.getItemAt(i) );
+						
+						//	单位组	begin
+						if( detailProOrg.product.unitGroup == null )
+						{
+							//存在产品的单位级为空
+							UtilUi.pubFun4RemoveWaitWindow();
+							alert_msg = resourceManager.getString('alert','alter_msg_unitgroupisnull14');
+							Alert.show( alert_msg, alert_title_hint);
+							return;							
+						}
+						
+						if( paramOut4unitGroup == null )
+						{
+							paramOut4unitGroup = detailProOrg.product.unitGroup;
+							baseUnit = paramOut4unitGroup.getBaseUnit();
+						}else if( detailProOrg.product.unitGroup.id != paramOut4unitGroup.id )
+						{
+							//多个产品中单位组不一致
+							UtilUi.pubFun4RemoveWaitWindow();
+							alert_msg = resourceManager.getString('alert','alter_msg_multiunitgroup14');
+							Alert.show( alert_msg, alert_title_hint);
+							return;									
+						}
+						
+						if( detailProOrg.product.unit.isBase == BizConst.GLOBAL_YESNO_NO )
+						{
+							if( nonBaseUnit == null )
+							{
+								nonBaseUnit = detailProOrg.product.unit;
+								num4NonBaseUnit = 1;								
+							}else{
+								if( detailProOrg.product.unit.id != nonBaseUnit.id )
+								{
+									num4NonBaseUnit = 2;	//	just means multiple									
+								}
+							}
+						}
+						//	单位组	end
+						
+						//	计算投影		begin
+						strKey4Product = "" + detailProOrg.product.id;
+						strKey4Organization = "" + detailProOrg.organization.id;
+						
+						if( isDisplayProduct == true )
+						{
+							projectProduct = BProduct( hmap_detailProduct_projectProduct.getValue(strKey4Product) );
+							if( projectProduct == null )
+							{
+								projectProduct = UtilProduct.getProjectProductByLayer( detailProOrg.product, paramIo4productLayer.value );
+								if( projectProduct == null )
+								{
+									// should not happen
+									continue;
+								}							
+								hmap_detailProduct_projectProduct.put( strKey4Product, projectProduct ); 
+							}
+						}else{
+							// 不需要显示product
+							projectProduct = null;
+						}
+						
+						if( isDisplayProductCharacter == true )
+						{
+							projectProductCharacter = BProductCharacter( hmap_detailProduct_projectProductCharacter.getValue( strKey4Product ) );
+							if( projectProductCharacter == null )
+							{
+								detailProductCharacter = UtilProductCharacter.getDetailProductCharacter( detailProOrg.product, paramIo4productCharacterType );
+								if( detailProductCharacter != null )
+								{
+									projectProductCharacter = UtilProductCharacter.getProjectProductCharacterByLayer( detailProductCharacter, paramIo4productCharacterLayer.value);
+									if( projectProductCharacter == null )
+									{
+										// should not happen
+										continue;	
+									}
+									hmap_detailProduct_projectProductCharacter.put( strKey4Product, projectProductCharacter );
+								}else{
+									// 明细产品没有被指定该类型的特征，投影到一个特殊的产品特征上
+									projectProductCharacter = null;
+								}
+							}
+						}else{
+							// 不需要显示productCharacter
+							projectProductCharacter = null;
+						}					
+						
+						if( isDisplayOrganization == true )
+						{
+							projectOrganization = BOrganization( hmap_detailOrganization_projectOrganization.getValue(strKey4Organization) );
+							if( projectOrganization == null )
+							{
+								projectOrganization = UtilOrganization.getProjectOrganizationByLayer( detailProOrg.organization, paramIo4organizationLayer.value );
+								if( projectOrganization == null )
+								{
+									// should not happen
+									continue;
+								}							
+								hmap_detailOrganization_projectOrganization.put( strKey4Organization, projectOrganization ); 
+							}
+						}else{
+							// 不需要显示organization
+							projectOrganization = null;
+						}
+						
+						if( isDisplayOrganizationCharacter == true )
+						{
+							projectOrganizationCharacter = BOrganizationCharacter( hmap_detailOrganization_projectOrganizationCharacter.getValue( strKey4Organization ) );
+							if( projectOrganizationCharacter == null )
+							{
+								detailOrganizationCharacter = UtilOrganizationCharacter.getDetailOrganizationCharacter( detailProOrg.organization, paramIo4organizationCharacterType );
+								if( detailOrganizationCharacter != null )
+								{
+									projectOrganizationCharacter = UtilOrganizationCharacter.getProjectOrganizationCharacterByLayer( detailOrganizationCharacter, paramIo4organizationCharacterLayer.value);
+									if( projectOrganizationCharacter == null )
+									{
+										// should not happen
+										continue;	
+									}
+									hmap_detailOrganization_projectOrganizationCharacter.put( strKey4Organization, projectOrganizationCharacter );
+								}else{
+									// 明细组织没有被指定该类型的特征，投影到一个特殊的组织特征上
+									projectOrganizationCharacter = null;
+								}
+							}
+						}else{
+							// 不需要显示organizationCharacter
+							projectOrganizationCharacter = null;
+						}
+						//	计算投影		end							
+						
+						strKey4uiRowDataProOrg = UtilStrKey.getStrKey4PPcOOcB( projectProduct, projectProductCharacter, projectOrganization, projectOrganizationCharacter, null );
+						uiRowDataProOrg = ABUiRowDataProOrg( hmap_uiRowDataProOrgs.getValue( strKey4uiRowDataProOrg ) );
+						if( uiRowDataProOrg == null )
+						{
+							uiRowDataProOrg = new ABUiRowDataProOrg();
+							uiRowDataProOrg.product = projectProduct;
+							uiRowDataProOrg.productCharacter = projectProductCharacter;
+							uiRowDataProOrg.organization = projectOrganization;
+							uiRowDataProOrg.organizationCharacter = projectOrganizationCharacter;
+							uiRowDataProOrg.detailProOrgIds = new ArrayCollection();
+						}
+						
+						uiRowDataProOrg.detailProOrgIds.addItem( UtilProOrg.getProOrgId( detailProOrg.product, detailProOrg.organization ) );
+						
+						hmap_uiRowDataProOrgs.put( strKey4uiRowDataProOrg , uiRowDataProOrg );	
+						
+						arr4ProOrg = ArrayCollection(paramIo4UiRowDataProOrgHashMap.getValue(strKey4uiRowDataProOrg));
+						if(arr4ProOrg == null|| arr4ProOrg.length==0)
+						{
+							arr4ProOrg = new ArrayCollection();
+							arr4ProOrg.addItem(detailProOrg);
+						}
+						else
+						{
+							arr4ProOrg.addItem(detailProOrg);
+						}
+						paramIo4UiRowDataProOrgHashMap.put(strKey4uiRowDataProOrg,arr4ProOrg);
+					}
+				}
+				
+				if( num4NonBaseUnit == 1 )
+				{
+					paramOut4unit = nonBaseUnit;
+				}else{
+					if(baseUnit==null)
+					{
+						UtilUi.pubFun4RemoveWaitWindow();
+						alert_msg = resourceManager.getString('alert','alter_msg_nobaseunit14');
+						Alert.show( alert_msg, alert_title_hint);						
+						return ;
+					}
+					paramOut4unit = baseUnit;
+				}
+				paramOut4arrUiRowDataProOrgs = hmap_uiRowDataProOrgs.getValues();
+				
+				//求解范围覆盖的明细范围并投影到显示层次		end
+				
+				UtilUi.pubFun4RemoveWaitWindow();
+				
+				//	调用调用处的执行方法		begin
+				paramIn4executeCallback4function.call( paramIn4executeCallback4thisObject );
+				//	调用调用处的执行方法		end
+			}
+			
+			private function onAddProOrg():void
+			{
+				if( prvVar4chooserWindow_proOrg == null )
+				{
+					prvVar4chooserWindow_proOrg = new Com_Security_ProOrg_Chooser();
+					prvVar4chooserWindow_proOrg.pubFun4setParamIn4closeCallback( this, callbackFunction4ChooserWinClose_proOrg );	
+				}
+				
+				PopUpManager.addPopUp( prvVar4chooserWindow_proOrg, ClientEnvironment.modWork, true );
+				PopUpManager.centerPopUp(prvVar4chooserWindow_proOrg);
+			}	
+			
+			private function callbackFunction4ChooserWinClose_proOrg():void
+			{
+				if( prvVar4chooserWindow_proOrg.pubFun4getParamOut4winCloseWay() == UtilUi.WINDOW_CLOSEWAY_OK )
+				{
+					var arrSelectedProOrg:ArrayCollection = prvVar4chooserWindow_proOrg.pubFun4getParamOut4selectedProOrgs();
+					
+					if( arrSelectedProOrg != null && arrSelectedProOrg.length > 0 )
+					{
+						prvVar4dp4comAdgProOrg = UtilProOrg.getUnion4arrProOrg( prvVar4dp4comAdgProOrg, arrSelectedProOrg );
+					}
+				}
+				//prvVar4auWindow = null;														
+			}	
+			
+			
+			private function onDelProOrg():void
+			{
+				var arr4remove:ArrayCollection = new ArrayCollection( comAdgProOrg.selectedItems );
+				prvVar4dp4comAdgProOrg = UtilArrayCollection.removeItems( prvVar4dp4comAdgProOrg, arr4remove );					
+			}	
+			
+			
+			private function onAddBizData():void
+			{
+				if( prvVar4chooserWindow_bizData == null )
+				{
+					prvVar4chooserWindow_bizData = Com_BizData_BizData_Chooser(PopUpManager.createPopUp(ClientEnvironment.modWork, Com_BizData_BizData_Chooser, true));
+					prvVar4chooserWindow_bizData.comAdgBizData.allowMultipleSelection = paramIn4blAllowMultipleSelectionBizData;
+					prvVar4chooserWindow_bizData.pubFun4setParamIn4closeCallback( this, callbackFunction4ChooserWinClose_bizData );
+					prvVar4chooserWindow_bizData.pubFun4setParamIn4arrDictBizDataType( paramIn4arrDictBizDataType );
+					prvVar4chooserWindow_bizData.pubFun4setParamIn4blConstrainedByPermission( true );
+					prvVar4chooserWindow_bizData.pubFun4setParamIn4blOnlyIsManaging( paramIn4blOnlyIsManagingBizData );
+				}
+				else
+				{
+					PopUpManager.addPopUp( prvVar4chooserWindow_bizData, ClientEnvironment.modWork, true );
+				}
+				
+				PopUpManager.centerPopUp(prvVar4chooserWindow_bizData);
+			}	
+			
+			private function callbackFunction4ChooserWinClose_bizData():void
+			{
+				if( prvVar4chooserWindow_bizData.pubFun4getParamOut4winCloseWay() == UtilUi.WINDOW_CLOSEWAY_OK )
+				{
+					if( paramIn4blAllowMultipleSelectionBizData == false )
+					{
+						var selectedBizData:BBizData = prvVar4chooserWindow_bizData.pubFun4getParamOut4selectedBizData();
+						if( selectedBizData != null )
+						{
+							prvVar4dp4comAdgBizData = new ArrayCollection();
+							prvVar4dp4comAdgBizData.addItem( selectedBizData );
+						}
+					}
+					else
+					{
+						var arrSelectedBizData:ArrayCollection = prvVar4chooserWindow_bizData.pubFun4getParamOut4selectedBizDatas();
+						
+						if( arrSelectedBizData != null && arrSelectedBizData.length > 0 )
+						{
+							var i:int;
+							var bizData:BBizData = null;
+							
+							var hamp_bizData:HashMap = new HashMap();
+							if( prvVar4dp4comAdgBizData != null )
+							{
+								for( i=0; i<prvVar4dp4comAdgBizData.length; i=i+1 )
+								{
+									bizData = BBizData(prvVar4dp4comAdgBizData.getItemAt(i)) ;
+									hamp_bizData.put( "" + bizData.id, bizData );
+								}							
+							}
+							else
+							{
+								prvVar4dp4comAdgBizData = new ArrayCollection();
+							}
+							for( i=0; i<arrSelectedBizData.length; i=i+1 )
+							{
+								bizData = BBizData(arrSelectedBizData.getItemAt(i)) ;
+								if( hamp_bizData.getValue( "" + bizData.id ) == null )
+								{
+									prvVar4dp4comAdgBizData.addItem( bizData );
+								}
+							}
+						}						
+					}
+				}
+				//prvVar4auWindow = null;		
+				//显示基准数据，如果有必要的话
+				loadBaseBizData();
+			}	
+			
+			
+			private function onDelBizData():void
+			{
+				var arr4remove:ArrayCollection = new ArrayCollection( comAdgBizData.selectedItems );
+				prvVar4dp4comAdgBizData = UtilArrayCollection.removeItems( prvVar4dp4comAdgBizData, arr4remove );					
+			}	
+			
+			
+			
+			/**
+			 * 载入快速条件，或者切换快速查询条件时使用
+			 */ 
+			private function onChange4comUiPopbScopeField():void
+			{
+				//记录旧查询条件
+				oldUiPopbScope = uiPopbScope;
+				
+				uiPopbScope = comUiPopbScopeField.paramIo4selectedUiPopbScope;
+				
+				//如果查询条件内容为空，不处理
+				if( uiPopbScope == null)
+				{
+					return;
+				}
+				
+				var i:int;
+				//	ProOrg	begin 取交集
+				prvVar4dp4comAdgProOrg = new ArrayCollection();
+					
+				var proOrg:ABProOrg = null;
+				var uiPopbScopeProOrg:BUiPopbScopeProOrg = null;
+				for( i=0; i<uiPopbScope.uiPopbScopeProOrgs.length; i=i+1 )
+				{
+					uiPopbScopeProOrg = BUiPopbScopeProOrg( uiPopbScope.uiPopbScopeProOrgs.getItemAt(i) );
+					
+					proOrg = new ABProOrg();
+					proOrg.product = uiPopbScopeProOrg.product;
+					proOrg.organization = uiPopbScopeProOrg.organization;
+					prvVar4dp4comAdgProOrg.addItem(proOrg);	
+				}
+				
+				//	BizData	begin 取交集并判断是否可维护
+				prvVar4dp4comAdgBizData = new ArrayCollection();
+
+				var uiPopbScopeBizData:BUiPopbScopeBizData = null;
+				for( i=0; i<uiPopbScope.uiPopbScopeBizDatas.length; i=i+1 )
+				{
+					uiPopbScopeBizData = BUiPopbScopeBizData( uiPopbScope.uiPopbScopeBizDatas.getItemAt(i) );
+					
+					prvVar4dp4comAdgBizData.addItem( uiPopbScopeBizData.bizData );
+				}
+				//	BizData	end
+				
+				//	显示控制		begin
+				if( uiPopbScope.isDisplayControl == BizConst.GLOBAL_YESNO_YES )
+				{
+					isDisplayProduct = uiPopbScope.isShowProduct == BizConst.GLOBAL_YESNO_YES ?true:false;
+					isDisplayProductCharacter = uiPopbScope.isShowProductCharacter == BizConst.GLOBAL_YESNO_YES ?true :false;
+					isDisplayOrganization = uiPopbScope.isShowOrganization == BizConst.GLOBAL_YESNO_YES ?true :false;
+					isDisplayOrganizationCharacter = uiPopbScope.isShowOrganizationCharacter == BizConst.GLOBAL_YESNO_YES ?true :false;
+					
+					paramIo4productLayer = UtilLayer.getProductLayerById(uiPopbScope.productLayerId);
+					paramIo4productCharacterType = uiPopbScope.productCharacterType;
+					paramIo4productCharacterLayer = UtilLayer.getProductCharacterLayerById(uiPopbScope.productCharacterLayerId);
+					
+					paramIo4organizationLayer = UtilLayer.getOrganizationLayerById(uiPopbScope.organizationLayerId);
+					paramIo4organizationCharacterType = uiPopbScope.organizationCharacterType;
+					paramIo4organizationCharacterLayer = UtilLayer.getOrganizationCharacterLayerById(uiPopbScope.organizationCharacterLayerId);
+				}
+				
+				if( paramIn4blShowPeriodSpan == true ){
+					paramOut4periodBegin =  UtilPeriod.getPeriod(ClientEnvironment.getSysPeriod().compilePeriod, uiPopbScope.periodOffsetBegin );
+					paramOut4periodEnd = UtilPeriod.getPeriod(ClientEnvironment.getSysPeriod().compilePeriod, uiPopbScope.periodOffsetEnd );
+				}
+				
+				//回调函数
+				if( paramIn4onChange4comUiPopbScopeFieldCallback4thisObject != null && paramIn4onChange4comUiPopbScopeFieldCallback4function != null )
+				{
+					paramIn4onChange4comUiPopbScopeFieldCallback4function.call( paramIn4onChange4comUiPopbScopeFieldCallback4thisObject );	
+				}
+				
+				//基准数据显示 begin
+				loadBaseBizData();
+				//基准数据显示 emd.
+			}
+			
+			private function loadBaseBizData():void
+			{
+				//加载kpiA和B begin
+				if(paramIn4visableBaseBizData)
+				{
+					paramIn4arrcbBizData.removeAll();
+					if(prvVar4dp4comAdgBizData!=null && prvVar4dp4comAdgBizData.length>0)
+					{
+						var bizData_kpi:BBizData = prvVar4dp4comAdgBizData.getItemAt(0) as BBizData;
+						var arr4bizDataDefItems:ArrayCollection =  bizData_kpi.bizDataDefItems;
+						if(arr4bizDataDefItems!=null && arr4bizDataDefItems.length>0)
+						{
+							var bizDataDefItemKpi:BBizDataDefItemKpi = arr4bizDataDefItems.getItemAt(0) as BBizDataDefItemKpi;
+							if(bizDataDefItemKpi==null)
+								return ;
+							paramIn4arrcbBizData.addItem(bizDataDefItemKpi.aitemBizData);//a selected 0
+							paramIn4arrcbBizData.addItem(bizDataDefItemKpi.bitemBizData);//b selected 1
+							paramIn4arrcbBizData.addItem(resourceManager.getString('note','sumOfTwo'));//a+b selected 2
+						}					
+					}	
+				}
+				//加载kpiA和B end.
+			}
+			
+			private function onSave():void{
+				if(! validationSet()){ //条件不合法
+					return;
+				}
+				
+				if(uiPopbScope == null){
+					onSaveAs(); //如果没有快速查询，保存和另存为动作一样
+					return;
+				}
+				
+				uiPopbScope = setUiPopScope(uiPopbScope);
+				
+				if( prvVar4auWindow == null ){
+					prvVar4auWindow = new Com_Security_UiPopbScope_AU();
+					prvVar4auWindow.pubFun4setParamIn4closeCallback( this, callbackFunction4auWinClose );
+				}
+				
+				prvVar4auWindow.onUpdateUiPopScope(uiPopbScope);
+				
+			}
+			
+			private function onSaveAs():void
+			{
+				if(! validationSet()){ //条件不合法
+					return;
+				}
+				
+				if( prvVar4auWindow == null ){
+					prvVar4auWindow = Com_Security_UiPopbScope_AU(PopUpManager.createPopUp(this, Com_Security_UiPopbScope_AU, true));
+					prvVar4auWindow.pubFun4setParamIn4closeCallback( this, callbackFunction4auWinClose );
+				}
+				else{
+					PopUpManager.addPopUp( prvVar4auWindow, this, true );
+				}	
+				
+				var _newUiPopbScope:BUiPopbScope = new BUiPopbScope();
+				_newUiPopbScope = setUiPopScope(_newUiPopbScope);
+				
+				// 这里的代码须如此：先准备好后再设置给 auWindow
+				// 如果直接设置一个新建对象给auWindow，然后再操作其准备其内容，则可能不能触发auWindow内部的相关绑定动作					
+				prvVar4auWindow.pubFun4setParamIo4uiPopbScope( _newUiPopbScope, UtilUi.AUWINDOW_USE_NEW );								
+			}
+			
+			/** 更新uipopscope里内容 */
+			private function setUiPopScope(newUiPopbScope:BUiPopbScope):BUiPopbScope{
+				
+				newUiPopbScope.operatorUser = ClientEnvironment.getOperatorUser();
+				newUiPopbScope.uiCode = paramIn4uiCode;
+				
+				var i:int;
+				var proOrg:ABProOrg = null;
+				var uiPopbScopeProOrg:BUiPopbScopeProOrg = null;
+				//	ProOrg		begin
+				newUiPopbScope.uiPopbScopeProOrgs = new ArrayCollection();
+				for( i=0; i<prvVar4dp4comAdgProOrg.length; i=i+1 )
+				{
+					proOrg = ABProOrg(prvVar4dp4comAdgProOrg.getItemAt(i));
+					
+					uiPopbScopeProOrg = new BUiPopbScopeProOrg();
+					uiPopbScopeProOrg.product = proOrg.product;
+					uiPopbScopeProOrg.organization = proOrg.organization;
+					uiPopbScopeProOrg.uiPopbScope = newUiPopbScope;
+					newUiPopbScope.uiPopbScopeProOrgs.addItem( uiPopbScopeProOrg );
+				}
+				//	ProOrg		end
+				
+				var bizData:BBizData = null;
+				var uiPopbScopeBizData:BUiPopbScopeBizData = null;
+				//	BizData		begin
+				newUiPopbScope.uiPopbScopeBizDatas = new ArrayCollection();
+				for( i=0; i<prvVar4dp4comAdgBizData.length; i=i+1 )
+				{
+					bizData = BBizData(prvVar4dp4comAdgBizData.getItemAt(i));
+					
+					uiPopbScopeBizData = new BUiPopbScopeBizData();
+					uiPopbScopeBizData.bizData = bizData;
+					uiPopbScopeBizData.uiPopbScope = newUiPopbScope;
+					newUiPopbScope.uiPopbScopeBizDatas.addItem( uiPopbScopeBizData );
+				}				
+				//	BizData		end
+				
+				//	显示控制		begin
+				if( paramIn4blShowDisplayOption == true )
+				{
+					newUiPopbScope.isDisplayControl = BizConst.GLOBAL_YESNO_YES;
+					comProOrgDisplayOption.pubFun4checkDisplayOption();
+					if( comProOrgDisplayOption.pubFun4getParamIo4blDisplayProduct() == true )
+					{
+						newUiPopbScope.isShowProduct = BizConst.GLOBAL_YESNO_YES;
+					}
+					else
+					{
+						newUiPopbScope.isShowProduct = BizConst.GLOBAL_YESNO_NO;
+					}
+					newUiPopbScope.productLayer = comProOrgDisplayOption.pubFun4getParamIo4productLayer();
+					if( comProOrgDisplayOption.pubFun4getParamIo4blDisplayProductCharacter() == true )
+					{
+						newUiPopbScope.isShowProductCharacter = BizConst.GLOBAL_YESNO_YES;
+					}
+					else
+					{
+						newUiPopbScope.isShowProductCharacter = BizConst.GLOBAL_YESNO_NO;
+					}
+					newUiPopbScope.productCharacterLayer = comProOrgDisplayOption.pubFun4getParamIo4productCharacterLayer();
+					newUiPopbScope.productCharacterType = comProOrgDisplayOption.pubFun4getParamIo4productCharacterType();
+					
+					if( comProOrgDisplayOption.pubFun4getParamIo4blDisplayOrganization() == true )
+					{
+						newUiPopbScope.isShowOrganization = BizConst.GLOBAL_YESNO_YES;
+					}
+					else
+					{
+						newUiPopbScope.isShowOrganization = BizConst.GLOBAL_YESNO_NO;
+					}
+					newUiPopbScope.organizationLayer = comProOrgDisplayOption.pubFun4getParamIo4organizationLayer();
+					if( comProOrgDisplayOption.pubFun4getParamIo4blDisplayOrganizationCharacter() == true )
+					{
+						newUiPopbScope.isShowOrganizationCharacter = BizConst.GLOBAL_YESNO_YES;
+					}
+					else
+					{
+						newUiPopbScope.isShowOrganizationCharacter = BizConst.GLOBAL_YESNO_NO;
+					}
+					newUiPopbScope.organizationCharacterLayer = comProOrgDisplayOption.pubFun4getParamIo4organizationCharacterLayer();
+					newUiPopbScope.organizationCharacterType = comProOrgDisplayOption.pubFun4getParamIo4organizationCharacterType();					
+				}
+				else
+				{
+					newUiPopbScope.isDisplayControl = BizConst.GLOBAL_YESNO_NO;
+					
+					if( isDisplayProduct == true )
+					{
+						newUiPopbScope.isShowProduct = BizConst.GLOBAL_YESNO_YES;
+					}
+					else
+					{
+						newUiPopbScope.isShowProduct = BizConst.GLOBAL_YESNO_NO;
+					}
+					newUiPopbScope.productLayer = paramIo4productLayer;
+					if( isDisplayProductCharacter == true )
+					{
+						newUiPopbScope.isShowOrganizationCharacter = BizConst.GLOBAL_YESNO_YES;
+					}
+					else
+					{
+						newUiPopbScope.isShowOrganizationCharacter = BizConst.GLOBAL_YESNO_NO;
+					}
+					newUiPopbScope.productCharacterLayer = paramIo4productCharacterLayer;
+					newUiPopbScope.productCharacterType = paramIo4productCharacterType;
+					
+					if( isDisplayOrganization == true )
+					{
+						newUiPopbScope.isShowOrganization = BizConst.GLOBAL_YESNO_YES;
+					}
+					else
+					{
+						newUiPopbScope.isShowOrganization = BizConst.GLOBAL_YESNO_NO;
+					}
+					newUiPopbScope.organizationLayer = paramIo4organizationLayer;
+					if( isDisplayOrganizationCharacter == true )
+					{
+						newUiPopbScope.isShowOrganizationCharacter = BizConst.GLOBAL_YESNO_YES;
+					}
+					else
+					{
+						newUiPopbScope.isShowOrganizationCharacter = BizConst.GLOBAL_YESNO_NO;
+					}
+					newUiPopbScope.organizationCharacterLayer = paramIo4organizationCharacterLayer;
+					newUiPopbScope.organizationCharacterType = paramIo4organizationCharacterType;
+					
+				}
+				//	显示控制		end
+				
+				//	期间控制 		begin
+				if( paramIn4blShowPeriodSpan == true )
+				{
+					newUiPopbScope.isPeriodControl = BizConst.GLOBAL_YESNO_YES;
+					if( comPeriodSpan.paramIn4visible4span == true )
+					{
+						var periodBegin:int = comPeriodSpan.pubFun4getParamOut4periodBegin();
+						var periodEnd:int = comPeriodSpan.pubFun4getParamOut4periodEnd();
+						
+						newUiPopbScope.periodOffsetBegin =  UtilPeriod.getPeriodDifference( ClientEnvironment.getSysPeriod().compilePeriod, periodBegin );
+						newUiPopbScope.periodOffsetEnd =  UtilPeriod.getPeriodDifference( ClientEnvironment.getSysPeriod().compilePeriod, periodEnd );
+					}
+					else
+					{
+						newUiPopbScope.periodOffsetBegin = 0;
+						newUiPopbScope.periodOffsetEnd = 0;
+					}
+				}
+				else
+				{
+					newUiPopbScope.isPeriodControl = BizConst.GLOBAL_YESNO_NO;
+					
+					newUiPopbScope.periodOffsetBegin = 0;
+					newUiPopbScope.periodOffsetEnd = 0;					
+				}
+				//	期间控制 		end
+				
+				return newUiPopbScope; 
+			}
+			
+			/**
+			 * 验证条件设置的合法性
+			 * */
+			private function validationSet():Boolean{ 
+				//	检查合法性	begin
+				var alert_title_hint:String = resourceManager.getString('alert','alert_title_hint');
+				var alert_msg:String = "";
+				if( prvVar4dp4comAdgProOrg == null || prvVar4dp4comAdgProOrg.length == 0 )
+				{
+					UtilUi.pubFun4RemoveWaitWindow();
+					
+					alert_msg = resourceManager.getString('alert','alter_msg_proorgisnull14');
+					Alert.show( alert_msg, alert_title_hint);
+					return false;					
+				}
+				
+				if( prvVar4dp4comAdgBizData == null || prvVar4dp4comAdgBizData.length == 0 )
+				{
+					UtilUi.pubFun4RemoveWaitWindow();
+					
+					alert_msg = resourceManager.getString('alert','alter_msg_bizdataisnull14');
+					Alert.show( alert_msg, alert_title_hint);
+					return false;					
+				}			
+				
+				if( paramIn4blShowDisplayOption == true )
+				{
+					if( comProOrgDisplayOption.pubFun4checkDisplayOption() == false )
+					{
+						UtilUi.pubFun4RemoveWaitWindow();
+						return false;
+					}										
+				}
+				
+				if( paramIn4blShowPeriodSpan == true )
+				{
+					if( comPeriodSpan.pubFun4checkPeriodSpan() == false )
+					{
+						return false;
+					}
+				}				
+				//	检查合法性	end
+				
+				return true;
+			}
+			
+			
+			private function callbackFunction4auWinClose():void
+			{
+				if( prvVar4auWindow.pubFun4getParamOut4winCloseWay() == UtilUi.WINDOW_CLOSEWAY_OK )
+				{
+					var alert_title_hint:String = resourceManager.getString('alert','alert_title_hint');
+					var alert_msg:String = "";
+					alert_msg = resourceManager.getString('alert','alert_msg_savesucceed14');
+					Alert.show( alert_msg, alert_title_hint);
+				}
+				//prvVar4auWindow = null;														
+			}				
+			
+			private function callbackFunction4checkbox():void
+			{
+				if(paramIn4checkboxCallback4thisObject!=null)
+				{
+					paramIn4checkboxCallback4function.call( paramIn4checkboxCallback4thisObject );
+				}
+			}
+			
+			private function onSetCond():void
+			{
+				PopUpManager.addPopUp(condSetWindow,ClientEnvironment.modWork,true);
+				PopUpManager.centerPopUp(condSetWindow);
+				
+				if(comProOrgDisplayOption == null)
+					return;
+				
+				if( (oldUiPopbScope == null && uiPopbScope!=null) || ( uiPopbScope!= null && uiPopbScope.id != oldUiPopbScope.id) ){
+					
+					if(oldUiPopbScope == null){ //第一次设置条件的情况
+						oldUiPopbScope = uiPopbScope;
+					}
+					
+					//	显示控制		begin
+					if( uiPopbScope.isDisplayControl == BizConst.GLOBAL_YESNO_YES )
+					{
+						comProOrgDisplayOption.checkBoxProduct.selected = isDisplayProduct;
+						
+						//控制产品层次 begin
+						var data_ProductLayer:ArrayCollection =  ClientEnvironment.getProductLayers();					
+						var bProductLayer:BProductLayer = null;
+						var i:int = 0;
+						for(i=0;i<data_ProductLayer.length;i++)
+						{
+							bProductLayer = data_ProductLayer.getItemAt(i) as BProductLayer;
+							if(bProductLayer.id == uiPopbScope.productLayerId)
+							{
+								comProOrgDisplayOption.comboBoxProductLayer.selectedIndex=i;
+								break;
+							}	
+						}
+						//控制产品层次 end.
+						
+						comProOrgDisplayOption.checkBoxProductCharacter.selected = isDisplayProductCharacter;
+						
+						//控制显示产品特征层次 begin
+						var productCharacterLayer:BProductCharacterLayer = null;
+						var data_ProductCharacterLayer:ArrayCollection= ClientEnvironment.getProductCharacterLayers();					
+						for(i=0;i<data_ProductCharacterLayer.length;i++)
+						{
+							productCharacterLayer = data_ProductCharacterLayer.getItemAt(i) as BProductCharacterLayer;
+							if(productCharacterLayer.id == uiPopbScope.productCharacterLayerId)
+							{
+								comProOrgDisplayOption.comboBoxProductCharacterLayer.selectedIndex = i;
+								break;
+							}
+							
+						}
+						comProOrgDisplayOption.comboBoxProductCharacterType.selectedItem = uiPopbScope.productCharacterType;
+						//控制显示产品特征层次 end.
+						
+						comProOrgDisplayOption.checkBoxOrganization.selected = isDisplayOrganization;						
+						//控制组织层次 begin
+						
+						var orgLayer:BOrganizationLayer = null;
+						var data_orgLayer:ArrayCollection =  ClientEnvironment.getOrganizationLayers();
+						for(i=0;i<data_orgLayer.length;i++)
+						{
+							orgLayer= data_orgLayer.getItemAt(i) as BOrganizationLayer;
+							if(orgLayer.id == uiPopbScope.organizationLayerId)
+							{
+								comProOrgDisplayOption.comboBoxOrganizationLayer.selectedIndex = i;
+								break;
+							}
+							
+						}
+						
+						//控制组织层次 end.
+						
+						comProOrgDisplayOption.checkBoxOrganizationCharacter.selected = isDisplayOrganizationCharacter;
+						
+						//控制组织特征层次 begin
+						var orgCharacterLayer:BOrganizationCharacterLayer = null;
+						var data_orgCharacterLayer:ArrayCollection = ClientEnvironment.getOrganizationCharacterLayers();
+						for(i=0;i<data_orgCharacterLayer.length;i++)
+						{
+							orgCharacterLayer = data_orgCharacterLayer.getItemAt(i) as BOrganizationCharacterLayer;
+							if(orgCharacterLayer.id == uiPopbScope.organizationCharacterLayerId)
+							{
+								comProOrgDisplayOption.comboBoxOrganizationCharacterLayer.selectedIndex = i;
+								break;
+							}
+							
+						}
+						comProOrgDisplayOption.comboBoxOrganizationCharacterType.selectedItem = uiPopbScope.organizationCharacterType;					
+						//控制组织特征层次end.
+						
+					}
+					//	显示控制		end
+					
+					//	期间控制		begin
+					if( uiPopbScope.isPeriodControl == true )
+					{
+						comPeriodSpan.txtPeriodBegin.text = String( UtilPeriod.getPeriod(ClientEnvironment.getSysPeriod().compilePeriod, uiPopbScope.periodOffsetBegin ) );
+						comPeriodSpan.txtPeriodEnd.text = String( UtilPeriod.getPeriod(ClientEnvironment.getSysPeriod().compilePeriod, uiPopbScope.periodOffsetEnd ) );
+					}
+					
+					//	期间控制		end	
+				}
+			}
+			
+			protected function onSetCondOk(event:MouseEvent):void
+			{
+				//		输出参数显示控制相关	begin
+				if( paramIn4blShowDisplayOption == true )
+				{
+					if( comProOrgDisplayOption.pubFun4checkDisplayOption() == false )
+					{
+						UtilUi.pubFun4RemoveWaitWindow();
+						return;
+					}	
+					
+					isDisplayProduct = comProOrgDisplayOption.pubFun4getParamIo4blDisplayProduct();
+					paramIo4productLayer = comProOrgDisplayOption.pubFun4getParamIo4productLayer();			
+					isDisplayProductCharacter = comProOrgDisplayOption.pubFun4getParamIo4blDisplayProductCharacter();
+					paramIo4productCharacterLayer = comProOrgDisplayOption.pubFun4getParamIo4productCharacterLayer();
+					paramIo4productCharacterType = comProOrgDisplayOption.pubFun4getParamIo4productCharacterType();
+					
+					isDisplayOrganization = comProOrgDisplayOption.pubFun4getParamIo4blDisplayOrganization();
+					paramIo4organizationLayer = comProOrgDisplayOption.pubFun4getParamIo4organizationLayer();			
+					isDisplayOrganizationCharacter = comProOrgDisplayOption.pubFun4getParamIo4blDisplayOrganizationCharacter();
+					paramIo4organizationCharacterLayer = comProOrgDisplayOption.pubFun4getParamIo4organizationCharacterLayer();
+					paramIo4organizationCharacterType = comProOrgDisplayOption.pubFun4getParamIo4organizationCharacterType();										
+				}
+				//		输出参数显示控制相关	end		
+				
+				//		输出参数期间范围部分	begin
+				if( paramIn4blShowPeriodSpan == true )
+				{
+					if( comPeriodSpan.pubFun4checkPeriodSpan() == false )
+					{
+						UtilUi.pubFun4RemoveWaitWindow();
+						return;
+					}
+					
+					paramOut4periodBegin = comPeriodSpan.pubFun4getParamOut4periodBegin();
+					paramOut4periodEnd = comPeriodSpan.pubFun4getParamOut4periodEnd();					
+				}
+				//		输出参数期间范围部分	end
+				
+				PopUpManager.removePopUp(condSetWindow);
+								
+			}
+			
+			protected function condSetWindow_creationCompleteHandler(event:FlexEvent):void
+			{
+				//	初始化查询条件默认值
+			}
+			
+			//	5	事件响应方法    end
+			
+			//	6	本地方法    begin	
+			
+			//	6	本地方法   end				
+			
+		]]>
+	</fx:Script>
+	
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+		<s:TitleWindow title="查询条件设置" id="condSetWindow" width="820" height="610" creationComplete="condSetWindow_creationCompleteHandler(event)"
+					   close="PopUpManager.removePopUp(condSetWindow)">
+			<s:layout>
+				<s:VerticalLayout paddingTop="3" paddingBottom="13" paddingLeft="5" paddingRight="5"/>
+			</s:layout>
+			<s:HGroup width="100%" paddingLeft="10" paddingTop="5" verticalAlign="bottom" >
+				<s:Label text="选择业务范围" color="{SkinConst.LABEL_NAVAGITION_COLOR}"/>
+				<mx:HRule width="100%" /> 
+			</s:HGroup>
+			<s:BorderContainer  borderColor="#ACC6DD" width="100%" height="100%">
+				<s:layout>
+					<s:VerticalLayout gap="0"/>
+				</s:layout>
+				<containers:AksControlBar>
+					<s:Button id="btnAddProOrg" click="onAddProOrg()" label="{resourceManager.getString('button','add')}" icon="{CoolAssetsFile.addIcon}"/>
+					<s:Button id="btnDelProOrg" click="onDelProOrg()" label="{resourceManager.getString('button','remove')}" icon="{CoolAssetsFile.minus2Icon}"
+							  enabled="{new ArrayCollection(comAdgProOrg.selectedItems).length>0}"/>				
+				</containers:AksControlBar>
+				<proorg:Com_ProOrg_ProOrg_AdvancedDataGrid id="comAdgProOrg" dataProvider="{prvVar4dp4comAdgProOrg}" 
+														   allowMultipleSelection="true" width="100%" height="100%"/>
+			</s:BorderContainer>
+			<s:HGroup width="100%" paddingLeft="10" paddingTop="5" verticalAlign="bottom" >
+				<s:Label text="选择业务数据" color="{SkinConst.LABEL_NAVAGITION_COLOR}"/>
+				<mx:HRule width="100%" /> 
+			</s:HGroup>
+			<s:BorderContainer  borderColor="#ACC6DD"  width="100%" height="100%">
+				<s:layout>
+					<s:VerticalLayout gap="0"/>
+				</s:layout>
+				<containers:AksControlBar>
+					<s:Button click="onAddBizData()" label="{resourceManager.getString('button','add')}" icon="{CoolAssetsFile.addIcon}" />
+					<s:Button click="onDelBizData()" label="{resourceManager.getString('button','remove')}" icon="{CoolAssetsFile.minus2Icon}" 
+							  enabled="{new ArrayCollection(comAdgBizData.selectedItems).length>0}"/>				
+					<s:Label text="        " width="30%"/>
+					<s:Label text="{resourceManager.getString('note','weightBase')}" visible="{paramIn4visableBaseBizData}"/>
+					<s:ComboBox id="cbBaseBizData" dataProvider="{paramIn4arrcbBizData}" visible="{paramIn4visableBaseBizData}"/>
+				</containers:AksControlBar >
+				<bizdata:Com_BizData_BizData_AdvancedDataGrid id="comAdgBizData" dataProvider="{prvVar4dp4comAdgBizData}" allowMultipleSelection="true" width="100%" height="100%"/>
+			</s:BorderContainer>
+			
+			<s:HGroup width="100%" paddingLeft="10" paddingTop="5" verticalAlign="bottom" >
+				<s:Label text="显示设置" color="{SkinConst.LABEL_NAVAGITION_COLOR}"/>
+				<mx:HRule width="100%" /> 
+			</s:HGroup>
+			<proorg:Com_ProOrg_ProOrg_DisplayOption id="comProOrgDisplayOption" width="100%" 
+													paramIn4checkboxCallback4function="{callbackFunction4checkbox}" paramIn4checkboxCallback4thisObject="{this}">
+			</proorg:Com_ProOrg_ProOrg_DisplayOption>
+			<period:Com_Period_Period_Span id="comPeriodSpan" width="100%" paramIn4visible4span="{paramIn4visible4span4periodSpan}" 
+										   paramIn4visible4forecast="{paramIn4visible4forecast4periodspan}" 
+										   paramIn4fcPeriodNum="{paramIn4fcPeriodNum4periodSpan}" paramIn4fzPeriodNum="{paramIn4fzPeriodNum4periodSpan}">
+			</period:Com_Period_Period_Span>
+			
+			<s:Spacer height="10" />
+			<s:HGroup width="100%" horizontalAlign="center">
+				<s:Button id="btnCondOk" label="{resourceManager.getString('button','ok')}" click="onSetCondOk(event)" icon="{CoolAssetsFile.okIcon}" />
+				<s:Button id="btnSaveCond" label="保存" click="onSave()" icon="{CoolAssetsFile.saveIcon}" />
+				<s:Button id="btnSaveCondAs" label="另存为" click="onSaveAs()" icon="{CoolAssetsFile.save_asIcon}"/>
+			</s:HGroup>
+		</s:TitleWindow>
+	</fx:Declarations>
+	
+	<s:HGroup width="100%" verticalAlign="middle" paddingTop="0" paddingLeft="10" paddingRight="10">
+		<s:Label text="{resourceManager.getString('note','quick')}"/>
+		<security:Com_Security_UiPopbScope_Field id="comUiPopbScopeField" paramIn4uiCode="{paramIn4uiCode}" 
+							paramIn4selectChangeCallback4thisObject="{this}" paramIn4selectChangeCallback4function="{onChange4comUiPopbScopeField}">
+		</security:Com_Security_UiPopbScope_Field>
+		<s:Button label="{resourceManager.getString('button','excute')}" click="onExecute()"  visible="{paramIn4executable}" icon="{CoolAssetsFile.triangle_rightIcon}" />
+		<s:Button id="btn_set" label="高级查询" click="onSetCond()" icon="{CoolAssetsFile.designIcon}" />
+		<!-- 
+		<mx:Spacer width="10"/>  数据分页？
+		<s:CheckBox label="{resourceManager.getString('note','pageByBusScope')}" id="checkBoxPageProOrg" selected="false" visible="{false}" width="0"/>
+		-->
+	</s:HGroup>
+</s:BorderContainer>

@@ -1,0 +1,40 @@
+
+loginname=User ID
+password=Password
+password_confirm=Password Confirm
+username=User Name
+creatorname=Created By
+createdtime=Created On
+userexpirytime=User Expiry Date
+pwdexpirytime=PWD Expiry Date
+isvalid=Valid
+position=Job Title
+officeaddress=Office Address
+homeaddress=Home Address
+telno=Tel
+mobileno=Mobile
+email=Email
+commentse=Comments
+superioruser=Supervisor
+
+logintime=User ID
+logouttime=LogOff Time
+logintimes=LogOn Time
+isonline=Online
+
+
+alert_title_hint=Alert
+alert_msg_loginnameisnull=User ID is missing!
+alert_msg_usernameisnull=User name is missing!
+alert_msg_passwordisnull=Password is missing!
+alert_msg_passwordconfirmunmatch=Password is not valid!
+alert_msg_userexpirytimeisnull=Expiration date of user is missing!
+alert_msg_pwdexpirytimeisnull=Expiration date of password is missing!
+alert_msg_superioroperatoruserisnull=Supervisor is missing!
+alert_msg_superioroperatoruserisself=Supervisor is himself!
+alert_msg_superioroperatoruserisdescendent=Supervisor is subordinate user!
+
+
+
+
+

@@ -1,0 +1,758 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:TitleWindow xmlns:fx="http://ns.adobe.com/mxml/2009" 
+				   xmlns:s="library://ns.adobe.com/flex/spark" 
+				   xmlns:mx="library://ns.adobe.com/flex/mx" width="800" height="600" close="onCancel()"
+				   xmlns:containers="aks.aksmx.containers.*"
+				   creationComplete="creationCompleteHandler(event)" xmlns:report="dmdd.dmddmx.com.report.*">
+	<s:layout>
+		<s:VerticalLayout paddingLeft="5" paddingRight="5" paddingTop="0" paddingBottom="5"/>
+	</s:layout>
+
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+		<s:RemoteObject endpoint="{ClientEnvironment.endpoint}" id="srvReoprt" destination="ReportService">
+			<s:method name="newBreakDownRule" result="resultHandler4newBreakDownRule(event)" fault="faultHandler4newBreakDownRule(event)">
+			</s:method>	
+			<s:method name="updateBreakDownRule" result="resultHandler4updateBreakDownRule(event)" fault="faultHandler4updateBreakDownRule(event)">
+			</s:method>			
+		</s:RemoteObject>	
+	</fx:Declarations>
+	<fx:Metadata>
+		[ResourceBundle("com_report_breakdownrule_properties")]
+	</fx:Metadata>	
+	<fx:Script>
+		<![CDATA[
+			import aks.aksas.collections.HashMap;
+			import aks.aksas.utils.UtilArrayCollection;
+			import aks.aksas.utils.UtilUi;
+			
+			import dmdd.dmddas.common.constant.BizConst;
+			import dmdd.dmddas.common.system.ClientEnvironment;
+			import dmdd.dmddas.common.utils.UtilExceptionLocale;
+			import dmdd.dmddas.common.utils.UtilPeriod;
+			import dmdd.dmddas.dataaccess.bizobject.BBreakDownRule;
+			import dmdd.dmddas.dataaccess.bizobject.BBreakDownRuleDefItem;
+			import dmdd.dmddas.dataaccess.bizobject.BBreakDownRuleFinancialDefItem;
+			import dmdd.dmddas.dataaccess.bizobject.BSysDictionaryItem;
+			
+			import mx.collections.ArrayCollection;
+			import mx.collections.Sort;
+			import mx.collections.SortField;
+			import mx.controls.Alert;
+			import mx.core.INavigatorContent;
+			import mx.events.FlexEvent;
+			import mx.managers.PopUpManager;
+			import mx.rpc.events.FaultEvent;
+			import mx.rpc.events.ResultEvent;
+			import mx.utils.StringUtil;
+			
+			
+			//	描述		begin
+			//	描述		end
+			
+			//	0	输入参数    begin
+			[Bindable]
+			public var paramIn4showPeriods:ArrayCollection = null;
+			
+			private var paramIn4closeCallback4thisObject:Object = null;
+			private var paramIn4closeCallback4function:Function = null;	
+			//	0	输入参数    end
+			
+			//	1	输出参数    begin 
+			private var paramOut4winCloseWay:int = UtilUi.WINDOW_CLOSEWAY_CANCEL;	
+			
+			[Bindable]
+			private var paramIo4breakDownRule:BBreakDownRule = null;
+			//	1	输出参数    end 
+			
+			//	2	本地变量    begin	
+			[Bindable]
+			private var prvVar4arrDictBreakDownRuleType:ArrayCollection = ClientEnvironment.getSysDictionaryItems("BREAKDOWNRULE", "TYPE", false);
+			private var prvVar4periodbreakdown:Com_Report_BreakDownRule_DataSet;
+			private var paramIo4winUse:int = UtilUi.AUWINDOW_USE_NEW;
+			[Bindable]
+			private var prvVar4arrBreakDownDefItemHM:HashMap = new HashMap();
+			//	2	本地变量    end			
+			
+			//	3	公共方法    begin	
+			
+			public function pubFun4setParamIn4closeCallback( _thisObject:Object, _function:Function ):void
+			{
+				this.paramIn4closeCallback4thisObject = _thisObject;
+				this.paramIn4closeCallback4function = _function;	
+			}
+			//	关闭方式参数
+			public function pubFun4getParamOut4winCloseWay():int
+			{
+				return this.paramOut4winCloseWay;
+			}				
+			//	关闭窗口
+			private function prvFun4close():void
+			{
+				PopUpManager.removePopUp( this );						
+				this.paramIn4closeCallback4function.call( this.paramIn4closeCallback4thisObject );				
+			}
+			//	界面用途参数
+			public function pubFun4getParamIo4winUse():int
+			{
+				return this.paramIo4winUse;
+			}
+			
+			public function pubFun4setParamIO4breakDownRule(_paramIo4breakDownRule:BBreakDownRule,_paramIo4winUse:int):void
+			{
+				this.paramIo4breakDownRule = _paramIo4breakDownRule;
+				this.paramIo4winUse = _paramIo4winUse;
+				this.comboBoxType.selectedIndex = ClientEnvironment.getSysDictionaryItemIndexByValue( this.prvVar4arrDictBreakDownRuleType, this.paramIo4breakDownRule.type );
+				
+				if( this.paramIo4winUse == UtilUi.AUWINDOW_USE_NEW )
+				{
+					this.title = resourceManager.getString('com_report_breakdownrule_properties','autitle_new');	
+				}	
+				else if( this.paramIo4winUse == UtilUi.AUWINDOW_USE_UPD )
+				{
+					this.title = resourceManager.getString('com_report_breakdownrule_properties','autitle_edit');	
+					this.comboBoxType.enabled = false;
+				}
+				prvVar4arrBreakDownDefItemHM = new HashMap();
+				//收集已有的规则
+				var breakDownDefItem:BBreakDownRuleDefItem ;
+				if(this.paramIo4breakDownRule.breakDownRuleDefItems!=null)
+				{
+					for(var i:int=0;i<this.paramIo4breakDownRule.breakDownRuleDefItems.length;i++)
+					{
+						breakDownDefItem = BBreakDownRuleDefItem(this.paramIo4breakDownRule.breakDownRuleDefItems.getItemAt(i))
+						prvVar4arrBreakDownDefItemHM.put(breakDownDefItem.period,breakDownDefItem);
+					}
+				}
+				else if(this.paramIo4breakDownRule.type==3)
+				{
+					this.breakDownRuleFinancialDefItem.visible = true;
+					this.breakDownRuleDefItem.visible = false;					
+					
+					this.breakDownRuleFinancialDefItem.percentHeight = 100;
+					this.breakDownRuleDefItem.height = 0;
+					
+					this.btn_addrule.visible = true;
+					this.btn_delete.visible = true;
+					this.btn_setrule.visible  = false;
+					this.btn_seq.visible = true;
+					this.btn_setrule.width=0;
+				}				
+			}
+			
+			public function pubFun4getParamIO4BreakDownRule():BBreakDownRule
+			{
+				return this.paramIo4breakDownRule;
+			}
+			//	3	公共方法    end		
+			
+			//	4	初始化方法    begin			
+			protected function creationCompleteHandler(event:FlexEvent):void
+			{				
+				this.x = 100;
+				this.y = 50;					
+			}						
+			//	4	初始化方法    end				
+			
+			//	5	事件响应方法    begin		
+			private function onOk():void
+			{	
+				if(check())
+				{
+			   		 this.paramOut4winCloseWay = UtilUi.WINDOW_CLOSEWAY_OK;		
+					 if( this.paramIo4winUse == UtilUi.AUWINDOW_USE_NEW )
+					 {
+						 this.srvReoprt.newBreakDownRule(this.paramIo4breakDownRule);
+					 }	
+					 else if( this.paramIo4winUse == UtilUi.AUWINDOW_USE_UPD )
+					 {
+						 this.srvReoprt.updateBreakDownRule(this.paramIo4breakDownRule);
+					 }	 
+				}
+				
+			}	
+			
+			
+			private function resultHandler4newBreakDownRule(event:ResultEvent):void 
+			{
+				this.paramIo4breakDownRule = BBreakDownRule(event.result);
+				var alert_title_hint:String = resourceManager.getString('com_report_breakdownrule_properties','alert_title_hint');
+				var alert_msg:String  = resourceManager.getString('com_report_breakdownrule_properties','alert_msg_ok');
+				Alert.show( alert_msg, alert_title_hint);			
+				this.prvFun4close();
+			}
+			
+			
+			private function faultHandler4newBreakDownRule(event:FaultEvent):void
+			{
+				UtilUi.pubFun4RemoveWaitWindow();
+				Alert.show( UtilExceptionLocale.getExceptionMessageLocaleByFaultEvent( event ), resourceManager.getString('main','alt_title_warn') );
+			}	
+			
+			private function resultHandler4updateBreakDownRule(event:ResultEvent):void 
+			{
+				var alert_title_hint:String = resourceManager.getString('com_report_breakdownrule_properties','alert_title_hint');
+				var alert_msg:String  = resourceManager.getString('com_report_breakdownrule_properties','alert_msg_ok');
+				Alert.show( alert_msg, alert_title_hint);			
+				this.prvFun4close();
+			}
+			
+			private function faultHandler4updateBreakDownRule(event:FaultEvent):void
+			{
+				UtilUi.pubFun4RemoveWaitWindow();
+				Alert.show( UtilExceptionLocale.getExceptionMessageLocaleByFaultEvent( event ), resourceManager.getString('main','alt_title_warn') );
+			}
+			
+			
+			private function onCancel():void
+			{	
+				this.paramOut4winCloseWay = UtilUi.WINDOW_CLOSEWAY_CANCEL;
+				this.prvFun4close();
+			}	
+			
+			private function onSetRule():void
+			{
+				if(this.comboBoxType.selectedIndex<0)
+				{
+					var alert_title_hint:String = resourceManager.getString('com_report_breakdownrule_properties','alert_title_hint');
+					var alert_msg:String  = resourceManager.getString('com_report_breakdownrule_properties','alert_msg_error_choosetype');
+					Alert.show( alert_msg, alert_title_hint);
+					return ;
+				}
+				
+				var beginPeriod:int =new int(this.txtBeginPeriod.text);
+				var endPeriod:int = new int(this.txtEndPeriod.text);
+				if(checkPeriod(beginPeriod,endPeriod))
+				{
+					if(prvVar4periodbreakdown == null)
+					{
+						this.prvVar4periodbreakdown = Com_Report_BreakDownRule_DataSet(PopUpManager.createPopUp(this, Com_Report_BreakDownRule_DataSet, true));					
+						this.prvVar4periodbreakdown.pubFun4setParamIn4closeCallback( this, callbackFunction4ChooserWinClose );
+						
+					}
+					else
+					{
+						PopUpManager.addPopUp( this.prvVar4periodbreakdown, this, true );
+					}
+				}
+				else
+				{
+					return ;
+				}
+				var type:Number = BSysDictionaryItem(this.comboBoxType.selectedItem).value;
+				this.paramIo4breakDownRule.type = type;
+					
+				//设定拆分期间
+				var arr:ArrayCollection = new ArrayCollection();	
+				var diff:int = UtilPeriod.getPeriodDifference(beginPeriod,endPeriod);
+				var diff_value:int;
+				var breakDownDefItem:BBreakDownRuleDefItem ;
+				var num_week:int = 0;
+				var j:int ;
+				var period:Number;
+				for(var i:int = 0;i<=diff;i++)
+				{
+					period = UtilPeriod.getPeriod(beginPeriod,i);
+					
+					if(prvVar4arrBreakDownDefItemHM.containsKey(period))
+					{
+						breakDownDefItem = BBreakDownRuleDefItem(prvVar4arrBreakDownDefItemHM.getValue(period));
+					}
+					else
+					{
+						breakDownDefItem = new BBreakDownRuleDefItem();
+						breakDownDefItem.period = period;
+						if(this.paramIo4breakDownRule.type==BizConst.BREAKDOWNRULE_TYPE_WORK)
+						{
+							num_week = UtilPeriod.calculateNumOfPeriodByWork(String(breakDownDefItem.period));
+							var checkFirstDay:int = UtilPeriod.checkFirstDayByWork(String(breakDownDefItem.period));						
+							breakDownDefItem.firstDay = checkFirstDay;
+							breakDownDefItem.isConnected = UtilPeriod.calculateIsConnectByCalcuate(String(breakDownDefItem.period));
+							breakDownDefItem.num_week=num_week;
+							diff_value = 100/num_week;
+							if(checkFirstDay==BizConst.GLOBAL_YESNO_YES )
+							{
+								breakDownDefItem.week1=0;
+								for( j= 2;j<=6;j++)
+								{
+									if(j<=num_week+1)
+									{
+										setValue(breakDownDefItem,j,diff_value);		
+									}
+									else
+									{
+										setValue(breakDownDefItem,j,0);
+									}	
+								}								
+							}
+							else
+							{
+								for( j= 1;j<=6;j++)
+								{							
+									if(j<=num_week)
+									{
+										setValue(breakDownDefItem,j,diff_value);									
+									}
+									else
+									{
+										setValue(breakDownDefItem,j,0);
+									}
+								}
+							}
+						}
+						else if(this.paramIo4breakDownRule.type ==BizConst.BREAKDOWNRULE_TYPE_CALENDAR)
+						{						
+							num_week = UtilPeriod.calculateNumOfPeriodByCalndar(String(period));							
+							breakDownDefItem.isConnected = UtilPeriod.calculateIsConnectByCalcuate(String(period));
+							breakDownDefItem.num_week=num_week;
+							diff_value = 100/num_week;
+							for( j = 1;j<=6;j++)
+							{
+								if(j<=num_week)
+								{
+									setValue(breakDownDefItem,j,diff_value);									
+								}
+								else
+								{
+									setValue(breakDownDefItem,j,0);
+								}
+							}
+						}
+					}
+					arr.addItem(breakDownDefItem);				
+				}
+				this.prvVar4periodbreakdown.pubFun4setParamIn4BreakDown(arr,this.paramIo4breakDownRule.type);
+					
+				
+			}
+			private function callbackFunction4ChooserWinClose():void
+			{
+				if(this.prvVar4periodbreakdown.pubFun4getParamOut4winCloseWay() == UtilUi.WINDOW_CLOSEWAY_OK)
+				{
+					this.paramIo4breakDownRule.breakDownRuleDefItems = new ArrayCollection();
+					this.prvVar4arrBreakDownDefItemHM= this.prvVar4periodbreakdown.pubFun4getResult();
+					var bBreakRuleDefItem:BBreakDownRuleDefItem ;
+					for(var i:int=0;i<this.prvVar4arrBreakDownDefItemHM.getValues().length;i++)
+					{
+						bBreakRuleDefItem = BBreakDownRuleDefItem(this.prvVar4arrBreakDownDefItemHM.getValues().getItemAt(i));
+						var _bBreakRuleDefItem:BBreakDownRuleDefItem = new BBreakDownRuleDefItem();
+						_bBreakRuleDefItem.copyDeep(bBreakRuleDefItem);
+						this.paramIo4breakDownRule.addBreakDownRuleDefItem(_bBreakRuleDefItem);
+					}
+				}
+			}
+			
+			private function changeType():void
+			{
+				var type:Number = BSysDictionaryItem(this.comboBoxType.selectedItem).value;
+				
+				if(type == 1 || type ==2)
+				{
+					this.breakDownRuleFinancialDefItem.visible = false;
+					this.breakDownRuleDefItem.visible = true;
+					
+					this.breakDownRuleFinancialDefItem.height = 0;
+					this.breakDownRuleDefItem.percentHeight = 100;
+					this.btn_setrule.visible = true;
+					this.btn_delete.visible = false;
+					this.btn_addrule.visible = false;
+					this.btn_seq.visible = false;
+					this.btn_setrule.width=70;
+				}
+				else if(type==3)//财务月
+				{
+					this.breakDownRuleFinancialDefItem.visible = true;
+					this.breakDownRuleDefItem.visible = false;					
+					
+					this.breakDownRuleFinancialDefItem.percentHeight = 100;
+					this.breakDownRuleDefItem.height = 0;
+					
+					this.btn_addrule.visible = true;
+					this.btn_delete.visible = true;
+					this.btn_setrule.visible  = false;
+					this.btn_seq.visible = true;
+					this.btn_setrule.width=0;
+				}
+				
+			}
+			
+			private function onAddRule():void
+			{	
+					var _breakDownFinancialDefItem:BBreakDownRuleFinancialDefItem = new BBreakDownRuleFinancialDefItem();
+					_breakDownFinancialDefItem.breakDownRule=this.paramIo4breakDownRule;
+					this.paramIo4breakDownRule.breakDownRuleFinancialDefItems.addItem(_breakDownFinancialDefItem);
+				
+			}
+			
+			private function onDelRule():void
+			{
+				if(this.breakDownRuleFinancialDefItem.selectedIndex>-1)
+				{
+					this.paramIo4breakDownRule.breakDownRuleFinancialDefItems.removeItemAt(this.breakDownRuleFinancialDefItem.selectedIndex);
+				}
+			}
+			
+			private function onSeq():void
+			{
+				var sort:Sort = new Sort();
+				sort.fields = [new SortField("period"), new SortField("beginDate")];
+				this.paramIo4breakDownRule.breakDownRuleFinancialDefItems.sort = sort;
+				this.paramIo4breakDownRule.breakDownRuleFinancialDefItems.refresh();
+			}
+			//	5	事件响应方法    end
+			
+			//	6	本地方法    begin
+			//验证起始期间和结束期间的正确性
+			private function check():Boolean
+			{
+				var type:Number = BSysDictionaryItem(this.comboBoxType.selectedItem).value;
+				
+				if(type == 1 || type ==2)
+				{
+					return checkNormalWeek();
+				}
+				else if(type==3)
+				{
+					return checkFinacialWeek();
+				}
+				return false;
+			}
+			
+			private function checkNormalWeek():Boolean
+			{
+				var alert_title_hint:String = resourceManager.getString('com_report_breakdownrule_properties','alert_title_hint');
+				var alert_msg:String ;
+				var beginPeriod:int =new int(this.txtBeginPeriod.text);
+				var endPeriod:int = new int(this.txtEndPeriod.text);
+				if(!checkPeriod(beginPeriod,endPeriod))
+				{
+					return false;
+				}
+				//
+				var diff:int = UtilPeriod.getPeriodDifference(beginPeriod,endPeriod);
+				var period:Number;
+				for(var i:int = 0;i<=diff;i++)
+				{
+					period = UtilPeriod.getPeriod(beginPeriod,i);
+					if(!prvVar4arrBreakDownDefItemHM.containsKey(period))
+					{
+						alert_msg = resourceManager.getString('com_report_breakdownrule_properties','alert_msg_period_changed');
+						Alert.show( alert_msg, alert_title_hint);
+						return false;
+					}					
+				}
+				
+				var code:String = StringUtil.trim(txtCode.text);
+				var name:String = StringUtil.trim(txtName.text);
+				
+				if(code==null||code=="")
+				{				
+					alert_msg = resourceManager.getString('com_report_breakdownrule_properties','alert_msg_input_code');
+					Alert.show( alert_msg, alert_title_hint);
+					return false;
+				}
+				if(name==null||name=="")
+				{					
+					alert_msg = resourceManager.getString('com_report_breakdownrule_properties','alert_msg_input_name');
+					Alert.show( alert_msg, alert_title_hint);
+					return false;
+				}
+				
+				
+				this.paramIo4breakDownRule.code = code;
+				this.paramIo4breakDownRule.name=name;
+				this.paramIo4breakDownRule.comments = StringUtil.trim(txtComments.text);
+				this.paramIo4breakDownRule.description = StringUtil.trim(txtDescription.text);
+				this.paramIo4breakDownRule.beginPeriod = int(beginPeriod);
+				this.paramIo4breakDownRule.endPeriod = int(endPeriod);
+				return true;
+			}
+			
+			private function checkFinacialWeek():Boolean
+			{
+				//第1步，先判断基本数据正确性
+				var alert_title_hint:String = resourceManager.getString('com_report_breakdownrule_properties','alert_title_hint');
+				var alert_msg:String ;
+				var beginPeriod:int =new int(this.txtBeginPeriod.text);
+				var endPeriod:int = new int(this.txtEndPeriod.text);
+				if(!checkPeriod(beginPeriod,endPeriod))
+				{
+					return false;
+				}
+				var code:String = StringUtil.trim(txtCode.text);
+				var name:String = StringUtil.trim(txtName.text);
+				
+				if(code==null||code=="")
+				{				
+					alert_msg = resourceManager.getString('com_report_breakdownrule_properties','alert_msg_input_code');
+					Alert.show( alert_msg, alert_title_hint);
+					return false;
+				}
+				if(name==null||name=="")
+				{					
+					alert_msg = resourceManager.getString('com_report_breakdownrule_properties','alert_msg_input_name');
+					Alert.show( alert_msg, alert_title_hint);
+					return false;
+				}
+				//第2步，先排序
+				var sort:Sort = new Sort();
+				sort.fields = [new SortField("period"), new SortField("beginDate")];
+				this.paramIo4breakDownRule.breakDownRuleFinancialDefItems.sort = sort;
+				this.paramIo4breakDownRule.breakDownRuleFinancialDefItems.refresh();
+				
+				//第3步，判断加和,且日期是连续的，编码是唯一的
+				var length:int = this.paramIo4breakDownRule.breakDownRuleFinancialDefItems.length;
+				if(length>0)
+				{			
+					var arrAllPeriod:ArrayCollection = new ArrayCollection();//存放所有规则中出现的期间
+					var arrAllCode:ArrayCollection = new ArrayCollection();//存放周编码
+					var _unit:BBreakDownRuleFinancialDefItem = null;
+					var _nowperiod:int =0;
+					var _percent:int = 0;
+					var _nowdate:int=0;
+					for(var i:int=0;i<length;i++)
+					{
+						_unit =  BBreakDownRuleFinancialDefItem(this.paramIo4breakDownRule.breakDownRuleFinancialDefItems.getItemAt(i));
+						
+						if(arrAllCode.contains(_unit.weekCode))
+						{
+							alert_msg = resourceManager.getString('com_report_breakdownrule_properties','alert_msg_week_code_error');
+							Alert.show( alert_msg, alert_title_hint);
+							return false;
+						}
+						else
+						{
+							arrAllCode.addItem(_unit.weekCode);
+						}
+						
+						if(_unit.proportion<0 || _unit.proportion>100)
+						{
+							alert_msg = resourceManager.getString('com_report_breakdownrule_properties','alert_msg_inputnum')
+							Alert.show( alert_msg, alert_title_hint);
+							return false;
+						}
+						
+						if(_nowdate>0)
+						{
+							if(UtilPeriod.nextday(_nowdate)!=_unit.beginDate)
+							{
+								alert_msg = resourceManager.getString('com_report_breakdownrule_properties','alert_msg_period_nextdayerror');
+								Alert.show( alert_msg, alert_title_hint);
+								return false;
+							}
+							_nowdate = _unit.endDate;
+						}
+						else if(_nowdate==0)
+						{
+							_nowdate = _unit.endDate;
+						}
+							
+						if(_nowperiod !=_unit.period)
+						{
+							_nowperiod = _unit.period;
+							arrAllPeriod.addItem(_unit.period);
+							
+							//判断加和是否100
+							if(i>0)//排除第一个，因为第一个时为0，不用算加和 
+							{
+								if(_percent !=100)
+								{
+									alert_msg = resourceManager.getString('com_report_breakdownrule_properties','alert_msg_inputover100');
+									Alert.show( alert_msg, alert_title_hint);
+									return false;
+								}
+							}
+							_percent = _unit.proportion;//如果加和计算ok，则置为当前比例
+						}
+						else
+						{
+							_percent = _unit.proportion+_percent;
+						}
+						if(i==length-1)//遍历到最后一个时，也要判断加和是否为100
+						{
+							if(_percent !=100)
+							{
+								alert_msg = resourceManager.getString('com_report_breakdownrule_properties','alert_msg_inputover100');
+								Alert.show( alert_msg, alert_title_hint);
+								return false;
+							}
+						}
+					}
+					
+					//第4步，判断是否漏了期间
+					var diff:int = UtilPeriod.getPeriodDifference(beginPeriod,endPeriod);
+					if(diff!=arrAllPeriod.length-1)
+					{
+						alert_msg = resourceManager.getString('com_report_breakdownrule_properties','alert_msg_period_changed');
+						Alert.show( alert_msg, alert_title_hint);
+						return false;
+					}
+					
+					var period:Number;
+					for(var i:int = 0;i<=diff;i++)
+					{
+						period = UtilPeriod.getPeriod(beginPeriod,i);
+						if(!arrAllPeriod.contains(period))
+						{
+							alert_msg = resourceManager.getString('com_report_breakdownrule_properties','alert_msg_period_changed');
+							Alert.show( alert_msg, alert_title_hint);
+							return false;
+						}					
+					}
+				
+				}
+				
+				this.paramIo4breakDownRule.code = code;
+				this.paramIo4breakDownRule.name=name;
+				this.paramIo4breakDownRule.type=BSysDictionaryItem(this.comboBoxType.selectedItem).value;
+				this.paramIo4breakDownRule.comments = StringUtil.trim(txtComments.text);
+				this.paramIo4breakDownRule.description = StringUtil.trim(txtDescription.text);
+				this.paramIo4breakDownRule.beginPeriod = int(beginPeriod);
+				this.paramIo4breakDownRule.endPeriod = int(endPeriod);
+				return true;
+			}
+			
+			private function checkPeriod(_beginPeriod:int ,_endPeriod:int):Boolean
+			{
+				var alert_title_hint:String = resourceManager.getString('com_report_breakdownrule_properties','alert_title_hint');
+				var alert_msg:String ;
+				if(!UtilPeriod.checkPeriod(_beginPeriod) || !UtilPeriod.checkPeriod(_endPeriod))
+				{
+					alert_msg = resourceManager.getString('com_report_breakdownrule_properties','alert_msg_error_period_format');
+					Alert.show( alert_msg, alert_title_hint);
+					return false;
+				}
+				
+				var diff:int = UtilPeriod.getPeriodDifference(_beginPeriod,_endPeriod);
+				if(diff<0)
+				{
+					 alert_msg = resourceManager.getString('com_report_breakdownrule_properties','alert_msg_error_period_refer');
+					Alert.show( alert_msg, alert_title_hint);
+					return false;
+				}
+				
+				return true;
+			}
+			
+			private function setValue(breakDownDefItem:BBreakDownRuleDefItem,num:Number,value:Number):void
+			{
+				if(num==1)
+				{
+					breakDownDefItem.week1 = value;
+				}
+				else if(num==2)
+				{
+					breakDownDefItem.week2 = value;
+				}
+				else if(num==3)
+				{
+					breakDownDefItem.week3 = value;
+				}
+				else if(num==4)
+				{
+					breakDownDefItem.week4 = value;
+				}
+				else if(num==5)
+				{
+					breakDownDefItem.week5 = value;
+				}
+				else if(num==6)
+				{
+					breakDownDefItem.week6 = value;
+				}	
+						
+			}
+			//	6	本地方法   end				
+			
+		]]>
+	</fx:Script>	
+	<s:Panel width="100%" height="200" title="{resourceManager.getString('com_report_breakdownrule_properties','basic_settings')}">
+		<s:layout>
+			<s:VerticalLayout paddingLeft="5" paddingRight="5" paddingTop="10" paddingBottom="10"/>
+		</s:layout>
+		<mx:Grid width="100%" height="100%">
+			<mx:GridRow width="100%" height="100%" verticalAlign="middle">
+				<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+					<s:Label text="{resourceManager.getString('com_report_breakdownrule_properties','code')}"/>
+				</mx:GridItem>
+				<mx:GridItem width="100%" height="100%" verticalAlign="middle">
+					<mx:TextInput id="txtCode" maxChars="255" width="100%" text="{this.paramIo4breakDownRule.code}"/>
+				</mx:GridItem>
+				<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+				</mx:GridItem>
+				<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+					<s:Label text="{resourceManager.getString('com_report_breakdownrule_properties','name')}"/>
+				</mx:GridItem>
+				<mx:GridItem width="100%" height="100%" verticalAlign="middle">
+					<mx:TextInput id="txtName" maxChars="255" width="100%" text="{this.paramIo4breakDownRule.name}"/>
+				</mx:GridItem>
+			</mx:GridRow>
+			<mx:GridRow width="100%" height="100%" verticalAlign="middle">
+				<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+					<s:Label text="{resourceManager.getString('com_report_breakdownrule_properties','type')}"/>
+				</mx:GridItem>
+				<mx:GridItem width="100%" height="100%" verticalAlign="middle">
+					<s:ComboBox id="comboBoxType" dataProvider="{this.prvVar4arrDictBreakDownRuleType}" width="100%" change="changeType()">
+					</s:ComboBox>							
+				</mx:GridItem>
+				<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+				</mx:GridItem>
+				<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+					<s:Label text="{resourceManager.getString('com_report_breakdownrule_properties','description')}"/>
+				</mx:GridItem>
+				<mx:GridItem width="100%" height="100%" verticalAlign="middle">
+					<mx:TextInput id="txtDescription" maxChars="255" width="100%" text="{this.paramIo4breakDownRule.description}"/>					
+				</mx:GridItem>
+			</mx:GridRow>
+			<mx:GridRow width="100%" height="100%" verticalAlign="middle">
+				<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+					<s:Label text="{resourceManager.getString('com_report_breakdownrule_properties','beginperiod')}"/>
+				</mx:GridItem>
+				<mx:GridItem width="100%" height="100%" verticalAlign="middle">
+					<mx:TextInput id="txtBeginPeriod" maxChars="6" width="100%" text="{this.paramIo4breakDownRule.beginPeriod}"/>														
+				</mx:GridItem>
+				<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+				</mx:GridItem>
+				<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+					<s:Label text="{resourceManager.getString('com_report_breakdownrule_properties','endperiod')}"/>					
+				</mx:GridItem>
+				<mx:GridItem width="100%" height="100%" verticalAlign="middle">
+					<mx:TextInput id="txtEndPeriod" maxChars="6" width="100%" text="{this.paramIo4breakDownRule.endPeriod}"/>		
+				</mx:GridItem>
+			</mx:GridRow>	
+			<mx:GridRow width="100%" height="100%" verticalAlign="middle">
+				<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+					<s:Label text="{resourceManager.getString('com_report_breakdownrule_properties','comments')}"/>
+				</mx:GridItem>
+				<mx:GridItem width="100%" height="100%" verticalAlign="middle">
+					<mx:TextInput id="txtComments" maxChars="255" width="100%" text="{this.paramIo4breakDownRule.comments}"/>
+				</mx:GridItem>
+				
+			</mx:GridRow>				
+										
+		</mx:Grid>			
+	</s:Panel>
+	<s:Panel width="100%" height="100%" title="{resourceManager.getString('com_report_breakdownrule_properties','rule_settings')}">
+		<s:layout>
+			<s:VerticalLayout/>
+		</s:layout>
+		<containers:AksControlBar>
+			
+			<s:Button label="{resourceManager.getString('com_report_breakdownrule_properties','btn_setrule')}" id="btn_setrule"  click="onSetRule()"/>	
+			<s:Button label="{resourceManager.getString('com_report_breakdownrule_properties','btn_addrule')}" id="btn_addrule" click="onAddRule()" visible="false"/>
+			<s:Button label="{resourceManager.getString('com_report_breakdownrule_properties','btn_delrule')}" id="btn_delete" click="UtilArrayCollection.removeSelectedItems(this.paramIo4breakDownRule.breakDownRuleFinancialDefItems,this.breakDownRuleFinancialDefItem.selectedItems)" visible="false" enabled="{this.breakDownRuleFinancialDefItem.selectedItems}"/>
+			<s:Button label="{resourceManager.getString('com_report_breakdownrule_properties','btn_seq')}" id="btn_seq" click="onSeq()" visible="false"/>
+		</containers:AksControlBar>
+		<report:Com_Report_BreakDownRuleDefItem_AdvancedDataGrid id="breakDownRuleDefItem" dataProvider="{this.paramIo4breakDownRule.breakDownRuleDefItems}" width="100%" height="100%"/>
+		<report:Com_Report_BreakDownRuleFinancialDefItem_AdvancedDataGrid id="breakDownRuleFinancialDefItem" visible="false" dataProvider="{this.paramIo4breakDownRule.breakDownRuleFinancialDefItems}" allowMultipleSelection="false" width="100%" height="0" editable="true"/>
+	</s:Panel>
+		
+	
+	<s:BorderContainer width="100%" height="25" borderColor="#E4ECF7">
+		<s:layout>
+			<s:HorizontalLayout horizontalAlign="center"/>
+		</s:layout>
+		<s:Button label="{resourceManager.getString('com_report_breakdownrule_properties','btn_ok')}"  click="onOk()"/>
+		<s:Button label="{resourceManager.getString('com_report_breakdownrule_properties','btn_cancel')}" click="onCancel()"/>
+	</s:BorderContainer>
+</s:TitleWindow>

@@ -1,0 +1,199 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:BorderContainer xmlns:fx="http://ns.adobe.com/mxml/2009" 
+				   xmlns:s="library://ns.adobe.com/flex/spark" 
+				   xmlns:mx="library://ns.adobe.com/flex/mx" width="100%" height="70"
+				   creationComplete="creationCompleteHandler(event)" xmlns:buttons="com.cool.buttons.*" >
+	<s:layout>
+		<s:HorizontalLayout paddingLeft="10" paddingRight="10" verticalAlign="middle" horizontalAlign="left"/>
+	</s:layout>
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+	</fx:Declarations>
+	<fx:Metadata>
+		[ResourceBundle("com_bulletin_bulletin_querycond")]
+	</fx:Metadata>
+	<fx:Script>
+		<![CDATA[
+			import aks.aksas.utils.UtilTime;
+			import com.cool.assets.CoolAssetsFile;
+
+			import dmdd.dmddas.common.constant.BizConst;
+			import dmdd.dmddas.common.constant.SysConst;
+			import dmdd.dmddas.common.system.ClientEnvironment;
+			import dmdd.dmddas.dataaccess.bizobject.BSysDictionaryItem;
+			
+			import mx.collections.ArrayCollection;
+			import mx.events.FlexEvent;
+			import mx.utils.StringUtil;
+			//	0	输入参数    begin
+			public var paramIn4queryCallback4thisObject:Object = null;
+			public var paramIn4queryCallback4function:Function = null;			
+			//	0	输入参数    end
+			
+			//	1	输出参数    begin
+			private var paramOut4sqlRestriction:String = null;
+			private var paramOut4blPageQuery:Boolean = true;
+			
+			[Bindable]
+			public var paramIn4enabled:Boolean = true;			
+			//	1	输出参数    end
+			
+			//	2	本地变量    begin	
+			[Bindable]
+			private var prvVar4arrDictGlobalYesNo:ArrayCollection = ClientEnvironment.getSysDictionaryItems("GLOBAL", "YESNO", true);				
+			//	2	本地变量    end			
+			
+			//	3	公共方法    begin	
+			public function pubFun4getParamOut4sqlRestriction():String
+			{
+				return this.paramOut4sqlRestriction;
+			}
+			
+			public function pubFun4getParamOut4blPageQuery():Boolean
+			{
+				return this.paramOut4blPageQuery;
+			}
+			//	3	公共方法    end		
+			
+			//	4	初始化方法    begin			
+			protected function creationCompleteHandler(event:FlexEvent):void
+			{
+			}					
+			//	4	初始化方法    end				
+			
+			//	5	事件响应方法    begin
+			private function onQuery():void
+			{
+				this.paramOut4blPageQuery = this.qcondCheckBoxPageQuery.selected;
+				this.paramOut4sqlRestriction = this.prvFun4generateSqlRestriction();
+				this.paramIn4queryCallback4function.call( this.paramIn4queryCallback4thisObject );
+			}			
+			//	5	事件响应方法    end
+			
+			//	6	本地方法    begin		
+			private function prvFun4generateSqlRestriction():String
+			{
+				var sqlRestriction:String = SysConst.SQL_STR_TRUE;
+				
+				var qcondTitle:String = StringUtil.trim( this.qcondTxtTitle.text );
+				var qcondTitleLike:Boolean = this.qcondCheckBoxTitleLike.selected;
+				var qcondSummary:String = StringUtil.trim( this.qcondTxtSummary.text );
+				var qcondSummaryLike:Boolean = this.qcondCheckBoxSummaryLike.selected;
+								
+				if( qcondTitle != "" )
+				{
+					if( qcondTitleLike == true )
+					{
+						sqlRestriction = sqlRestriction + " and (title like '%" + qcondTitle + "%')";
+					}
+					else
+					{
+						sqlRestriction = sqlRestriction + " and (title = '" + qcondTitle + "')";
+					}
+				}
+				
+				if( qcondSummary != "" )
+				{
+					if( qcondSummaryLike == true )
+					{
+						sqlRestriction = sqlRestriction + " and (summary like '%" + qcondSummary + "%')";
+					}
+					else
+					{
+						sqlRestriction = sqlRestriction + " and (summary = '" + qcondSummary + "')";
+					}
+				}
+				
+				var sysDictionaryItem:BSysDictionaryItem = BSysDictionaryItem(this.qcondComboBoxIsPublish.selectedItem);
+				if( sysDictionaryItem != null && sysDictionaryItem.value != BizConst.GLOBAL_NULL_NULL )
+				{
+					sqlRestriction = sqlRestriction + " and (isPublish = " + sysDictionaryItem.value + ")";
+				}
+				
+				var dateFormatStr:String = 'YYYY-MM-DD';
+				var dateStr_yyyymmdd:String = null;
+				if( this.qcondDateFieldCreateTimeBegin.selectedDate != null )
+				{
+					dateStr_yyyymmdd = UtilTime.formatDate( this.qcondDateFieldCreateTimeBegin.selectedDate, dateFormatStr );
+					if( ClientEnvironment.getSysParamDatabase() == SysConst.DATABSE_PRODUCT_ORACLE )
+					{
+						sqlRestriction = sqlRestriction + " and (createTime >= " + UtilTime.sql4StrToDate4Oracle( dateStr_yyyymmdd ) + ") ";					
+					}										
+				}					
+				if( this.qcondDateFieldCreateTimeEnd.selectedDate != null )
+				{
+					dateStr_yyyymmdd = UtilTime.formatDate( this.qcondDateFieldCreateTimeEnd.selectedDate, dateFormatStr );
+					if( ClientEnvironment.getSysParamDatabase() == SysConst.DATABSE_PRODUCT_ORACLE )
+					{
+						sqlRestriction = sqlRestriction + " and (createTime <= " + UtilTime.sql4StrToDate4Oracle( dateStr_yyyymmdd ) + ") ";					
+					}										
+				}				
+				
+				
+				if( sqlRestriction == SysConst.SQL_STR_TRUE )
+				{
+					sqlRestriction = null;
+				}
+				
+				return sqlRestriction;
+			}
+			//	6	本地方法   end				
+
+
+
+		]]>
+	</fx:Script>
+	
+	<mx:Grid width="100%">
+		<mx:GridRow width="100%" height="100%" verticalAlign="middle">
+			<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+				<s:Label text="{resourceManager.getString('com_bulletin_bulletin_querycond','title')}"/>
+			</mx:GridItem>
+			<mx:GridItem width="100%" height="100%" verticalAlign="middle">
+				<mx:TextInput id="qcondTxtTitle" maxChars="255" width="100%"/>
+				<s:CheckBox label="{resourceManager.getString('com_bulletin_bulletin_querycond','chkbox_like')}" id="qcondCheckBoxTitleLike"/>
+			</mx:GridItem>
+			<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+			</mx:GridItem>
+			<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+				<s:Label text="{resourceManager.getString('com_bulletin_bulletin_querycond','summary')}"/>
+			</mx:GridItem>
+			<mx:GridItem width="100%" height="100%" verticalAlign="middle">
+				<mx:TextInput id="qcondTxtSummary" maxChars="255" width="100%"/>
+				<s:CheckBox label="{resourceManager.getString('com_bulletin_bulletin_querycond','chkbox_like')}" id="qcondCheckBoxSummaryLike"/>
+			</mx:GridItem>
+			<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+			</mx:GridItem>
+			<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+				<s:Label text="{resourceManager.getString('com_bulletin_bulletin_querycond','ispublish')}"/>
+			</mx:GridItem>
+			<mx:GridItem width="100%" height="100%" verticalAlign="middle">
+				<s:ComboBox id="qcondComboBoxIsPublish" dataProvider="{this.prvVar4arrDictGlobalYesNo}" width="100%"/>
+			</mx:GridItem>
+		</mx:GridRow>		
+		<mx:GridRow width="100%" height="100%" verticalAlign="middle">
+			<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+				<s:Label text="{resourceManager.getString('com_bulletin_bulletin_querycond','createtimebegin')}"/>
+			</mx:GridItem>
+			<mx:GridItem width="100%" height="100%" verticalAlign="middle">
+				<mx:DateField id="qcondDateFieldCreateTimeBegin" editable="true" formatString="YYYY-MM-DD" width="100%"/>
+			</mx:GridItem>
+			<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+			</mx:GridItem>
+			<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+				<s:Label text="{resourceManager.getString('com_bulletin_bulletin_querycond','createtimeend')}"/>
+			</mx:GridItem>
+			<mx:GridItem width="100%" height="100%" verticalAlign="middle">
+				<mx:DateField id="qcondDateFieldCreateTimeEnd" editable="true" formatString="YYYY-MM-DD" width="100%"/>
+			</mx:GridItem>
+			<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+			</mx:GridItem>
+			<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+				<s:CheckBox label="{resourceManager.getString('com_bulletin_bulletin_querycond','chkbox_pagequery')}" id="qcondCheckBoxPageQuery" selected="true"/>
+			</mx:GridItem>
+			<mx:GridItem width="100%" height="100%" verticalAlign="middle">
+				<buttons:ButtonQuery click="onQuery()" enabled="{this.paramIn4enabled}"/>
+			</mx:GridItem>				
+		</mx:GridRow>		
+	</mx:Grid>		
+</s:BorderContainer>

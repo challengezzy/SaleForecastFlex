@@ -1,0 +1,248 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:TitleWindow xmlns:fx="http://ns.adobe.com/mxml/2009" 
+			   xmlns:s="library://ns.adobe.com/flex/spark" 
+			   xmlns:mx="library://ns.adobe.com/flex/mx" width="500" height="180" close="onCancel()"
+			   creationComplete="creationCompleteHandler(event)" xmlns:bizdata="dmdd.dmddmx.com.bizdata.*">
+	<s:layout>
+		<s:VerticalLayout paddingLeft="10" paddingRight="10" paddingTop="10" paddingBottom="10"/>
+	</s:layout>
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->	
+	</fx:Declarations>
+	
+	<fx:Metadata>
+		[ResourceBundle("com_bizdata_bizdatadefitem_au")]
+	</fx:Metadata>
+	
+	<fx:Script>
+		<![CDATA[
+			import aks.aksas.utils.UtilUi;
+			
+			import dmdd.dmddas.common.constant.BizConst;
+			import dmdd.dmddas.common.system.ClientEnvironment;
+			import dmdd.dmddas.dataaccess.bizobject.BBizDataDefItemTimeHis;
+			import dmdd.dmddas.dataaccess.bizobject.BSysDictionaryItem;
+			
+			import mx.collections.ArrayCollection;
+			import mx.controls.Alert;
+			import mx.events.FlexEvent;
+			import mx.managers.PopUpManager;
+			import mx.utils.StringUtil;
+			//	描述		begin
+			//	描述		end
+			
+			//	0	输入参数    begin		
+			private var paramIn4closeCallback4thisObject:Object = null;
+			private var paramIn4closeCallback4function:Function = null;
+			
+			private var paramIo4winUse:int = UtilUi.AUWINDOW_USE_NEW;
+			
+			[Bindable]
+			private var paramIo4bizDataDefItemTimeHis:BBizDataDefItemTimeHis = null;							
+			//	0	输入参数    end
+			
+			//	1	输出参数    begin
+			private var paramOut4winCloseWay:int = UtilUi.WINDOW_CLOSEWAY_CANCEL;
+			
+			//	1	输出参数    end
+			
+			//	2	本地变量    begin
+			[Bindable]
+			private var prvVar4arrDictBizDataDefItemTimeHisFormula:ArrayCollection = ClientEnvironment.getSysDictionaryItems("BIZDATADEFITEM", "TIMEFORMULA", false);;
+			
+			[Bindable]
+			private var prvVar4arrDictBizDataType:ArrayCollection = new ArrayCollection();
+			//	2	本地变量    end			
+			
+			//	3	公共方法    begin	
+			//	构造函数
+			public function pubFun4constructor( _paramIo4bizDataDefItemTimeHis:BBizDataDefItemTimeHis, _paramIo4winUse:int, _paramIn4closeCallback4thisObject:Object, _paramIn4closeCallback4function:Function ):void
+			{
+				this.pubFun4setParamIo4bizDataDefItemTimeHis( _paramIo4bizDataDefItemTimeHis, _paramIo4winUse );
+				this.pubFun4setParamIn4closeCallback( _paramIn4closeCallback4thisObject, _paramIn4closeCallback4function );
+			}	
+			
+			//	关闭回调函数参数													
+			public function pubFun4setParamIn4closeCallback( _thisObject:Object, _function:Function ):void
+			{
+				this.paramIn4closeCallback4thisObject = _thisObject;
+				this.paramIn4closeCallback4function = _function;	
+			}
+			//	关闭方式参数
+			public function pubFun4getParamOut4winCloseWay():int
+			{
+				return this.paramOut4winCloseWay;
+			}
+			//	关闭窗口
+			private function prvFun4close():void
+			{
+				PopUpManager.removePopUp( this );						
+				this.paramIn4closeCallback4function.call( this.paramIn4closeCallback4thisObject );				
+			}				
+			
+			//	界面用途参数
+			public function pubFun4getParamIo4winUse():int
+			{
+				return this.paramIo4winUse;
+			}			
+			
+			
+			//	处理对象参数
+			/**
+			 * _paramIo4bizDataDefItemTimeHis:BBizDataDefItemTimeHis	处理对象
+			 * _paramIo4winUse:int	处理动作
+			 */ 			
+			public function pubFun4setParamIo4bizDataDefItemTimeHis( _paramIo4bizDataDefItemTimeHis:BBizDataDefItemTimeHis, _paramIo4winUse:int ):void
+			{
+				this.paramIo4bizDataDefItemTimeHis = _paramIo4bizDataDefItemTimeHis;
+				this.paramIo4winUse = _paramIo4winUse;
+				
+				this.comboBoxTimeHisFormula.selectedIndex = ClientEnvironment.getSysDictionaryItemIndexByValue( this.prvVar4arrDictBizDataDefItemTimeHisFormula, this.paramIo4bizDataDefItemTimeHis.timeFormula );
+			}
+			public function pubFun4getParamIo4bizDataDefItemTimeHis():BBizDataDefItemTimeHis
+			{
+				return this.paramIo4bizDataDefItemTimeHis;
+			}				
+			//	3	公共方法    end		
+			
+			//	4	初始化方法    begin			
+			private function creationCompleteHandler(event:FlexEvent):void
+			{
+				this.x = 100;
+				this.y = 50;
+				
+				var i:int;
+				var sysDictionaryItem:BSysDictionaryItem = null;
+				
+				this.prvVar4arrDictBizDataType = new ArrayCollection();
+				
+				var arrDictBizDataType:ArrayCollection = ClientEnvironment.getBizDataTypeArr();
+				if( arrDictBizDataType != null )
+				{
+					for( i=0; i<arrDictBizDataType.length; i=i+1 )
+					{
+						sysDictionaryItem = BSysDictionaryItem(arrDictBizDataType.getItemAt(i));
+						if( sysDictionaryItem.value == BizConst.GLOBAL_NULL_NULL ||
+							sysDictionaryItem.value == BizConst.BIZDATA_TYPE_HISTORY || 
+							sysDictionaryItem.value == BizConst.BIZDATA_TYPE_HISTORYAD ||
+							sysDictionaryItem.value == BizConst.BIZDATA_TYPE_HISTORYADR )
+						{
+							this.prvVar4arrDictBizDataType.addItem( sysDictionaryItem );
+						}
+					}
+				}
+				
+				//	期间历史类数据，不支持 上一期 这个期间类型	begin
+				for( i=0; i<this.prvVar4arrDictBizDataDefItemTimeHisFormula.length; i=i+1 )
+				{
+					sysDictionaryItem = BSysDictionaryItem(this.prvVar4arrDictBizDataDefItemTimeHisFormula.getItemAt(i));
+					if( sysDictionaryItem.value == BizConst.BIZDATADEFITEM_TIMEFORMULA_LAST1PERIOD )
+					{
+						this.prvVar4arrDictBizDataDefItemTimeHisFormula.removeItemAt(i);
+						break;
+					}
+				}				
+				//	期间历史类数据，不支持 上一期 这个期间类型	end
+			}						
+			//	4	初始化方法    end				
+			
+			//	5	事件响应方法    begin						
+			private function onOk():void
+			{				
+				if( this.prvFun4prepare4ok() == true )
+				{
+					if( this.paramIo4winUse == UtilUi.AUWINDOW_USE_NEW )
+					{
+						//	只有新建和删除,没有更新
+						//	this.paramIo4bizDataDefItemTimeHis 信息已在 prvFun4prepare4ok() 中处理
+						this.paramOut4winCloseWay = UtilUi.WINDOW_CLOSEWAY_OK;
+						this.prvFun4close();
+					}
+				}
+			}			
+			
+			private function onCancel():void
+			{
+				this.paramOut4winCloseWay = UtilUi.WINDOW_CLOSEWAY_CANCEL;
+				this.prvFun4close();
+			}	
+			
+			//	5	事件响应方法    end
+			
+			//	6	本地方法    begin
+			private function prvFun4prepare4ok():Boolean
+			{
+				//	基本信息
+				var alert_title_hint:String = resourceManager.getString('com_bizdata_bizdatadefitem_au','alert_title_hint');
+				var alert_msg:String = "";
+				if( this.comBizDataFieldItemBizData.paramIo4selectedBizData == null )
+				{
+					alert_msg = resourceManager.getString('com_bizdata_bizdatadefitem_au','alert_msg_bizdataisnull');
+					Alert.show( alert_msg, alert_title_hint );
+					return false;	
+				}	
+				
+				if( this.comboBoxTimeHisFormula.selectedItem == null )
+				{
+					alert_msg = resourceManager.getString('com_bizdata_bizdatadefitem_au','alert_msg_formulaisnull');
+					Alert.show( alert_msg, alert_title_hint );
+					return false;					
+				}
+				
+				this.paramIo4bizDataDefItemTimeHis.itemBizData = this.comBizDataFieldItemBizData.paramIo4selectedBizData;			
+				this.paramIo4bizDataDefItemTimeHis.timeFormula = BSysDictionaryItem(this.comboBoxTimeHisFormula.selectedItem).value;
+				
+				if( this.paramIo4bizDataDefItemTimeHis.timeFormula == BizConst.GLOBAL_NULL_NULL )
+				{
+					alert_msg = resourceManager.getString('com_bizdata_bizdatadefitem_au','alert_msg_formulaisnull');
+					Alert.show( alert_msg, alert_title_hint );
+					return false;					
+				}
+				
+				return true;
+			}							
+			//	6	本地方法   end						
+
+
+		]]>
+	</fx:Script>
+	<!--
+	<s:controlBarLayout>
+		<s:HorizontalLayout horizontalAlign="center">
+		</s:HorizontalLayout>
+	</s:controlBarLayout>	
+	<s:controlBarContent>
+		<s:Button label="{resourceManager.getString('com_bizdata_bizdatadefitem_au','btn_ok')}" click="onOk()"/>
+		<s:Button label="{resourceManager.getString('com_bizdata_bizdatadefitem_au','btn_cancel')}" click="onCancel()"/>		
+	</s:controlBarContent>
+-->
+	<mx:Grid width="100%">
+		<mx:GridRow width="100%" height="100%" verticalAlign="middle">
+			<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+				<s:Label text="{resourceManager.getString('com_bizdata_bizdatadefitem_au','itembizdata')}"/>
+			</mx:GridItem>
+			<mx:GridItem width="100%" height="100%" verticalAlign="middle">
+				<bizdata:Com_BizData_BizData_Field width="100%" id="comBizDataFieldItemBizData" paramIo4selectedBizData="{this.paramIo4bizDataDefItemTimeHis.itemBizData}" paramIn4arrDictBizDataType="{this.prvVar4arrDictBizDataType}">
+				</bizdata:Com_BizData_BizData_Field>
+			</mx:GridItem>
+		</mx:GridRow>	
+		<mx:GridRow width="100%" height="100%" verticalAlign="middle">
+			<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+				<s:Label text="{resourceManager.getString('com_bizdata_bizdatadefitem_au','timeformula')}"/>
+			</mx:GridItem>
+			<mx:GridItem width="100%" height="100%" verticalAlign="middle">
+				<s:ComboBox width="100%" id="comboBoxTimeHisFormula" dataProvider="{this.prvVar4arrDictBizDataDefItemTimeHisFormula}"/>
+			</mx:GridItem>
+		</mx:GridRow>		
+	</mx:Grid>
+
+	<s:BorderContainer width="100%" height="25" borderColor="#E4ECF7">
+		<s:layout>
+			<s:HorizontalLayout horizontalAlign="center"/>
+		</s:layout>
+		<s:Button label="{resourceManager.getString('com_bizdata_bizdatadefitem_au','btn_ok')}" click="onOk()"/>
+		<s:Button label="{resourceManager.getString('com_bizdata_bizdatadefitem_au','btn_cancel')}" click="onCancel()"/>		
+	</s:BorderContainer>
+
+	
+</s:TitleWindow>

@@ -1,0 +1,366 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Module xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		   xmlns:s="library://ns.adobe.com/flex/spark" 
+		   xmlns:mx="library://ns.adobe.com/flex/mx" layout="vertical" width="100%" height="100%" paddingLeft="10" paddingRight="10"
+		   creationComplete="creationCompleteHandler(event)"  
+		   xmlns:common="dmdd.dmddmx.com.common.*"
+		   xmlns:containers="aks.aksmx.containers.*" xmlns:organization="dmdd.dmddmx.com.organization.*">
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+		<s:RemoteObject endpoint="{ClientEnvironment.endpoint}" id="srvOrganization" destination="OrganizationService">		
+			<s:method name="getOrganizationCharacterTreeRoot4UI" result="resultHandler4getOrganizationCharacterTreeRoot4UI(event)" fault="faultHandler4getOrganizationCharacterTreeRoot4UI(event)">
+			</s:method>
+			<s:method name="delOrganizationCharacter" result="resultHandler4delOrganizationCharacter(event)" fault="faultHandler4delOrganizationCharacter(event)">
+			</s:method>			
+		</s:RemoteObject>		
+	</fx:Declarations>
+
+	<fx:Script>
+		<![CDATA[
+			import aks.aksas.utils.UtilUi;
+			
+			import dmdd.dmddas.common.constant.BizConst;
+			import dmdd.dmddas.common.constant.FunPermiConst;
+			import dmdd.dmddas.common.system.ClientEnvironment;
+			import dmdd.dmddas.common.utils.UtilExceptionLocale;
+			import dmdd.dmddas.common.utils.UtilOrganizationCharacter;
+			import dmdd.dmddas.dataaccess.bizobject.BOrganizationCharacter;
+			import dmdd.dmddas.dataaccess.bizobject.BOrganizationCharacterLayer;
+			import dmdd.dmddmx.com.organization.Com_Organization_OrganizationCharacter_AU;
+			import dmdd.dmddas.common.constant.SkinConst;
+			import com.cool.assets.CoolAssetsFile;
+			import mx.collections.ArrayCollection;
+			import mx.controls.Alert;
+			import mx.events.CloseEvent;
+			import mx.events.FlexEvent;
+			import mx.events.MenuEvent;
+			import mx.managers.PopUpManager;
+			import mx.rpc.events.FaultEvent;
+			import mx.rpc.events.ResultEvent;
+			
+			//	描述    begin
+			//	描述    end
+			
+			//	0	输入参数    begin						
+			//	0	输入参数    end
+			
+			//	1	输出参数    begin
+			//	1	输出参数    end
+			
+			//	2	本地变量    begin				
+			private var prvVar4auWindow:Com_Organization_OrganizationCharacter_AU = null;
+			
+			[Bindable]
+			private var prvVar4blFunPermission4manage:Boolean = true;
+			[Bindable]
+			private var prvVar4blFunPermission4query:Boolean = true;			
+			//	2	本地变量    end			
+			
+			//	3	公共方法    begin			
+			//	3	公共方法    end		
+			
+			//	4	初始化方法    begin	
+			protected function creationCompleteHandler(event:FlexEvent):void
+			{
+				this.prvVar4blFunPermission4manage = ClientEnvironment.checkIsPermission( FunPermiConst.MAINDATA_ORGANIZATIONCHARACTER_MANAGE );
+				var rightClickMenuItems:Array = [];
+				if(prvVar4blFunPermission4query){
+					rightClickMenuItems.push({label:resourceManager.getString('button','expand'),keyname:"expand"});
+					rightClickMenuItems.push({label:resourceManager.getString('button','collapse'),keyname:"collapse"});
+				}
+				
+				if(prvVar4blFunPermission4manage){
+					rightClickMenuItems.push({label:resourceManager.getString('button','new'),keyname:"new"});
+					rightClickMenuItems.push({label:resourceManager.getString('button','del'),keyname:"del"});
+					rightClickMenuItems.push({label:resourceManager.getString('button','edit'),keyname:"edit"});
+				}
+				if(prvVar4blFunPermission4query){
+					rightClickMenuItems.push({label:resourceManager.getString('button','refresh'),keyname:"refresh"});
+				}
+				
+				comAdgOrganizationCharacter.setRightClickMenuItems(rightClickMenuItems);
+				comAdgOrganizationCharacter.rightClickMenu.addEventListener(MenuEvent.ITEM_CLICK,productCharaRightMenuClicked);
+			}			
+			//	4	初始化方法    end				
+			
+			//	5	事件响应方法    begin
+			private function productCharaRightMenuClicked(event:MenuEvent):void{
+				var item:Object = event.item;
+				if(item == null)
+					return;
+				
+				if(item.keyname == "refresh"){
+					onQuery();
+					return;
+				}
+				
+				if( comAdgOrganizationCharacter != null && comAdgOrganizationCharacter.selectedItem == null ){
+					Alert.show("Please select one item !");
+					return ;
+				}
+				
+				if(item.keyname == "expand"){
+					onExpandAll();
+				}else if(item.keyname == "collapse"){
+					onCollapseAll();
+				}else if(item.keyname == "new"){
+					onNew();
+				}else if(item.keyname == "del"){
+					onDel();
+				}else if(item.keyname == "edit"){
+					onUpd();
+				}
+				
+			}
+			
+			private function onQuery():void
+			{	
+				//	不分页查询
+				UtilUi.pubFun4PopWaitWindow( this );
+				this.srvOrganization.getOrganizationCharacterTreeRoot4UI();				
+			}	
+			
+			
+			private function faultHandler4getOrganizationCharacterTreeRoot4UI(event:FaultEvent):void
+			{
+				UtilUi.pubFun4RemoveWaitWindow();
+				Alert.show( UtilExceptionLocale.getExceptionMessageLocaleByFaultEvent( event ), resourceManager.getString('main','alt_title_warn') );
+			}	
+			
+			private function resultHandler4getOrganizationCharacterTreeRoot4UI(event:ResultEvent):void 
+			{
+				var organizationCharacterTreeRoot:BOrganizationCharacter = BOrganizationCharacter(event.result);
+				
+				ClientEnvironment.setOrganizationCharacterTreeRoot( organizationCharacterTreeRoot );
+				
+				UtilUi.pubFun4RemoveWaitWindow();
+			}					
+			
+			
+			private function onNew():void
+			{
+				var selectedOrganizationCharacter:BOrganizationCharacter = BOrganizationCharacter(this.comAdgOrganizationCharacter.selectedItem);
+
+				if( selectedOrganizationCharacter.isCatalog == BizConst.GLOBAL_YESNO_NO )
+				{
+					var alert_title_hint:String = resourceManager.getString('alert','alert_title_hint');
+					var alert_msg:String = resourceManager.getString('alert','alert_msg_notcatcalog7');					
+					Alert.show( alert_msg, alert_title_hint );					
+					
+					return;			 		
+				}
+				
+				var organizationCharacterLayer4newOrganizationCharacter:BOrganizationCharacterLayer = ClientEnvironment.getOrganizationCharacterLayerByValue( selectedOrganizationCharacter.organizationCharacterLayer.value + 1 ); 
+				
+				if( organizationCharacterLayer4newOrganizationCharacter == null )
+				{
+					alert_msg = resourceManager.getString('alert','alert_msg_maxlayer7');					
+					Alert.show( alert_msg, alert_title_hint );
+					return;
+				}
+				
+				if( this.prvVar4auWindow == null )
+				{
+					this.prvVar4auWindow = Com_Organization_OrganizationCharacter_AU(PopUpManager.createPopUp(this, Com_Organization_OrganizationCharacter_AU, true));
+					this.prvVar4auWindow.pubFun4setParamIn4closeCallback( this, callbackFunction4auWinClose );
+				}
+				else
+				{
+					PopUpManager.addPopUp( this.prvVar4auWindow, this, true );
+				}	
+				
+				this.prvVar4auWindow.title = resourceManager.getString('menu','newOrgChar');
+				
+				// 这里的代码须如此：先准备好后再设置给 auWindow
+				// 如果直接设置一个新建对象给auWindow，然后再操作其准备其内容，则可能不能触发auWindow内部的相关绑定动作
+				var newOrganizationCharacter:BOrganizationCharacter = new BOrganizationCharacter();
+				
+				newOrganizationCharacter.parentOrganizationCharacter = selectedOrganizationCharacter;
+				newOrganizationCharacter.organizationCharacterLayer = organizationCharacterLayer4newOrganizationCharacter;
+				newOrganizationCharacter.type = newOrganizationCharacter.parentOrganizationCharacter.type;
+				newOrganizationCharacter.isCatalog = BizConst.GLOBAL_YESNO_YES; // 初始默认值"是"
+				
+				this.prvVar4auWindow.pubFun4setParamIo4organizationCharacter( newOrganizationCharacter, UtilUi.AUWINDOW_USE_NEW );								
+			} 
+			
+			private function onUpd():void
+			{
+				var selectedOrganizationCharacter:BOrganizationCharacter = BOrganizationCharacter( this.comAdgOrganizationCharacter.selectedItem );
+				// 不必检查，这个方法被调用的前提已经保证 
+				
+				if( this.prvVar4auWindow == null )
+				{
+					this.prvVar4auWindow = Com_Organization_OrganizationCharacter_AU(PopUpManager.createPopUp(this, Com_Organization_OrganizationCharacter_AU, true));
+					this.prvVar4auWindow.pubFun4setParamIn4closeCallback( this, callbackFunction4auWinClose );	
+				}
+				else
+				{
+					PopUpManager.addPopUp( this.prvVar4auWindow, this, true );
+				}	
+				
+				this.prvVar4auWindow.title = resourceManager.getString('menu','editOrgChar');				
+				// 这里的代码须如此：先准备好后再设置给 auWindow
+				// 如果直接设置一个新建对象给auWindow，然后再操作其准备其内容，则可能不能触发auWindow内部的相关绑定动作
+				var updOrganizationCharacter:BOrganizationCharacter = new BOrganizationCharacter();	
+				updOrganizationCharacter.copyDeep( selectedOrganizationCharacter );			
+				this.prvVar4auWindow.pubFun4setParamIo4organizationCharacter( updOrganizationCharacter, UtilUi.AUWINDOW_USE_UPD );							 
+				
+			} 
+			
+			private function callbackFunction4auWinClose():void
+			{
+				if( this.prvVar4auWindow.pubFun4getParamOut4winCloseWay() == UtilUi.WINDOW_CLOSEWAY_OK )
+				{
+					var rstOrganizationCharacter:BOrganizationCharacter = this.prvVar4auWindow.pubFun4getParamIo4organizationCharacter();
+					if( rstOrganizationCharacter != null )
+					{
+						var selectedOrganizationCharacter:BOrganizationCharacter = BOrganizationCharacter( this.comAdgOrganizationCharacter.selectedItem );
+						
+						if( this.prvVar4auWindow.pubFun4getParamIo4winUse() == UtilUi.AUWINDOW_USE_NEW )
+						{
+							rstOrganizationCharacter.parentOrganizationCharacter = selectedOrganizationCharacter;
+							if( selectedOrganizationCharacter.subOrganizationCharacters == null )
+							{
+								selectedOrganizationCharacter.subOrganizationCharacters = new ArrayCollection();
+							}
+							selectedOrganizationCharacter.subOrganizationCharacters.addItem( rstOrganizationCharacter );
+							
+							this.comAdgOrganizationCharacter.expandItem( selectedOrganizationCharacter, true );						
+						}
+						else if( this.prvVar4auWindow.pubFun4getParamIo4winUse() == UtilUi.AUWINDOW_USE_UPD )
+						{
+							var organizationCharacterTreeRoot:BOrganizationCharacter = rstOrganizationCharacter;	//	更新时,服务器返回的是整棵树结构
+							var pathOrganizationCharacters:ArrayCollection = null;
+							var i:int;
+							if( organizationCharacterTreeRoot != null )
+							{
+								ClientEnvironment.setOrganizationCharacterTreeRoot( organizationCharacterTreeRoot ); 								
+								selectedOrganizationCharacter = UtilOrganizationCharacter.getOrganizationCharacterInTreeByRecursion( selectedOrganizationCharacter, ClientEnvironment.getOrganizationCharacterTreeRoot() );
+								pathOrganizationCharacters = UtilOrganizationCharacter.getPathFromRoot( selectedOrganizationCharacter );					
+								if( pathOrganizationCharacters != null )
+								{
+									for( i=0; i<pathOrganizationCharacters.length; i=i+1 )
+									{
+										this.comAdgOrganizationCharacter.expandItem( pathOrganizationCharacters.getItemAt(i), true );
+									}	
+								}
+							}							
+						}
+					}
+				}
+				//this.prvVar4auWindow = null;														
+			}			
+			
+			
+			private function onDel():void
+			{
+				var alert_title_hint:String = resourceManager.getString('alert','alert_title_hint');
+				var alert_msg:String = "";
+				
+				var selectedOrganizationCharacter:BOrganizationCharacter = BOrganizationCharacter(this.comAdgOrganizationCharacter.selectedItem);	
+				
+				if( selectedOrganizationCharacter.organizationCharacterLayer.value == 0 )
+				{
+					//	根节点不能删除
+					alert_msg = resourceManager.getString('alert','alert_msg_deleteroot7');
+					Alert.show( alert_msg , alert_title_hint);
+					return;						
+				}
+				
+				alert_msg = resourceManager.getString('alert','alert_msg_deleteconfirm7');
+				
+				Alert.show( alert_msg, alert_title_hint, Alert.OK | Alert.CANCEL, this, deleteConfirmHandler, null, Alert.OK );
+				
+			}				
+			
+			private function deleteConfirmHandler(event:CloseEvent):void
+			{
+				if( event.detail == Alert.OK )
+				{
+					// 相关检查都已在 prvFun4getEnabled4BtnDel中执行，此处不再检查    begin
+					var selectedOrganizationCharacter:BOrganizationCharacter = BOrganizationCharacter(this.comAdgOrganizationCharacter.selectedItem);
+					// 相关检查都已在 prvFun4getEnabled4BtnDel中执行，此处不再检查    end					
+					UtilUi.pubFun4PopWaitWindow( this );
+					this.srvOrganization.delOrganizationCharacter( selectedOrganizationCharacter );										
+				}
+			}	
+			
+			private function faultHandler4delOrganizationCharacter(event:FaultEvent):void
+			{
+				UtilUi.pubFun4RemoveWaitWindow();
+				Alert.show( UtilExceptionLocale.getExceptionMessageLocaleByFaultEvent( event ), resourceManager.getString('alert','alt_title_warn') );
+			}	
+			
+			private function resultHandler4delOrganizationCharacter(event:ResultEvent):void 
+			{
+				UtilUi.pubFun4RemoveWaitWindow();
+				
+				var alert_title_hint:String = resourceManager.getString('alert','alert_title_hint');
+				var alert_msg:String = null;
+				
+				var blSucceed:Boolean = Boolean(event.result);
+				if( blSucceed == true )
+				{
+					alert_msg = resourceManager.getString('alert','alert_msg_succeed');
+					Alert.show(alert_msg, alert_title_hint);
+					var selectedOrganizationCharacter:BOrganizationCharacter = BOrganizationCharacter( this.comAdgOrganizationCharacter.selectedItem );
+					var parentOrganizationCharacter:BOrganizationCharacter = selectedOrganizationCharacter.parentOrganizationCharacter;
+					if( parentOrganizationCharacter != null  )
+					{
+						var delIndex:int = parentOrganizationCharacter.subOrganizationCharacters.getItemIndex( selectedOrganizationCharacter ); 
+						parentOrganizationCharacter.subOrganizationCharacters.removeItemAt( delIndex );					
+					}						
+				}
+				else
+				{
+					alert_msg = resourceManager.getString('alert','alert_msg_fail');
+					Alert.show(alert_msg, alert_title_hint);
+				}				
+			}			
+			
+			private function onExpandAll():void
+			{
+				this.comAdgOrganizationCharacter.expandAll();
+			}		
+			
+			private function onCollapseAll():void
+			{
+				this.comAdgOrganizationCharacter.collapseAll();
+			}				
+			//	5	事件响应方法    end
+			
+			//	6	本地方法    begin
+			private function prvFun4getEnabled4BtnManage( _selectedItem:Object ):Boolean
+			{
+				// todo
+				if( _selectedItem == null )
+				{
+					return false;
+				}
+				
+				if( this.prvVar4blFunPermission4manage == false )
+				{
+					return false;
+				}
+				
+				return true;
+			}
+			//	6	本地方法   end	
+			
+		]]>
+	</fx:Script>	
+	<common:LabelBoundary paddingTop="5" labelText="{resourceManager.getString('menu','orgChar')}" />
+
+	<containers:AksControlBar>
+		<s:Button label="{resourceManager.getString('button','refresh')}" icon="{CoolAssetsFile.refresh3Icon}"	enabled="{this.prvVar4blFunPermission4query}" click="onQuery()" />
+		<s:Button label="{resourceManager.getString('button','new')}" icon="{CoolAssetsFile.newIcon}" 	enabled="{this.prvFun4getEnabled4BtnManage(this.comAdgOrganizationCharacter.selectedItem)}" click="onNew()"/>
+		<s:Button label="{resourceManager.getString('button','edit')}"  icon="{CoolAssetsFile.editIcon}"	enabled="{this.prvFun4getEnabled4BtnManage(this.comAdgOrganizationCharacter.selectedItem)}" click="onUpd()"/>
+		<s:Button label="{resourceManager.getString('button','del')}" icon="{CoolAssetsFile.deleteIcon}" 	enabled="{this.prvFun4getEnabled4BtnManage(this.comAdgOrganizationCharacter.selectedItem)}" click="onDel()"/>
+		<mx:Spacer width="20"/>
+		<s:Button label="{resourceManager.getString('button','expandall')}" icon="{CoolAssetsFile.expandallIcon}"	enabled="{this.prvVar4blFunPermission4query}" click="onExpandAll()" />
+		<s:Button label="{resourceManager.getString('button','collapseall')}" icon="{CoolAssetsFile.collapseallIcon}"	enabled="{this.prvVar4blFunPermission4query}" click="onCollapseAll()" />					
+	</containers:AksControlBar>
+	<organization:Com_Organization_OrganizationCharacter_AdvancedDataGrid doubleClickEnabled="true" itemDoubleClick="onUpd()" paramIo4dp4adgOrganizationCharacter="{ClientEnvironment.getOrganizationCharacterTreeRootArr()}" width="100%" height="100%" id="comAdgOrganizationCharacter"/>
+
+
+</mx:Module>

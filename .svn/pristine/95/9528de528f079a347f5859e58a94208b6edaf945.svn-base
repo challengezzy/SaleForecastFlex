@@ -1,0 +1,1086 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Module xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		   xmlns:s="library://ns.adobe.com/flex/spark" 
+		   xmlns:mx="library://ns.adobe.com/flex/mx" layout="vertical" width="100%" height="100%" 
+		   creationComplete="creationCompleteHandler(event)" 
+		   xmlns:security="dmdd.dmddmx.com.security.*" xmlns:uirowdata="dmdd.dmddmx.com.uirowdata.*" 
+		   xmlns:controls="aks.aksmx.controls.*" xmlns:charts="aks.aksmx.charts.*" xmlns:containers="aks.aksmx.containers.*" xmlns:bulletin="dmdd.dmddmx.com.bulletin.*">
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+		<s:RemoteObject endpoint="{ClientEnvironment.endpoint}" id="srvBulletin" destination="BulletinService">
+			<s:method name="getBulletins" result="resultHandler4getBulletins(event)" fault="faultHandler4getBulletins(event)">
+			</s:method>									
+		</s:RemoteObject>	
+		<s:RemoteObject endpoint="{ClientEnvironment.endpoint}" id="srvUi" destination="UiService">
+			<s:method name="getUiPopbScopeBySql" result="resultHandler4getUiPopbScopes(event)" fault="faultHandler4getUiPopbScopes(event)">
+			</s:method>			
+			<s:method name="delUiPopbScope" result="resultHandler4delUiPopbScope(event)" fault="faultHandler4delUiPopbScope(event)">
+			</s:method>				
+		</s:RemoteObject>		
+		
+		<s:RemoteObject endpoint="{ClientEnvironment.endpoint}" id="srvUiRowData" destination="UiRowDataService">	
+			<s:method name="getUiRowDatas" result="resultHandler4getUiRowDatas(event)" fault="faultHandler4getUiRowDatas(event)">
+			</s:method>							  
+		</s:RemoteObject>		
+	</fx:Declarations>
+	<fx:Metadata>
+		[ResourceBundle("mod_homepage")]
+	</fx:Metadata>
+	<fx:Script>
+		<![CDATA[
+			import aks.aksas.charts.AksChartDataObject;
+			import aks.aksas.collections.HashMap;
+			import aks.aksas.utils.UtilUi;
+			
+			import dmdd.dmddas.common.constant.BizConst;
+			import dmdd.dmddas.common.constant.SysConst;
+			import dmdd.dmddas.common.constant.UIConst;
+			import dmdd.dmddas.common.system.ClientEnvironment;
+			import dmdd.dmddas.common.utils.UtilExceptionLocale;
+			import dmdd.dmddas.common.utils.UtilOrganization;
+			import dmdd.dmddas.common.utils.UtilOrganizationCharacter;
+			import dmdd.dmddas.common.utils.UtilPeriod;
+			import dmdd.dmddas.common.utils.UtilProOrg;
+			import dmdd.dmddas.common.utils.UtilProduct;
+			import dmdd.dmddas.common.utils.UtilProductCharacter;
+			import dmdd.dmddas.common.utils.UtilStrKey;
+			import dmdd.dmddas.common.utils.UtilUiRowData;
+			import dmdd.dmddas.dataaccess.aidobject.ABProOrg;
+			import dmdd.dmddas.dataaccess.aidobject.ABUiRowData;
+			import dmdd.dmddas.dataaccess.aidobject.ABUiRowDataProOrg;
+			import dmdd.dmddas.dataaccess.bizobject.BBizDataDefItemKpi;
+			import dmdd.dmddas.dataaccess.bizobject.BBulletin;
+			import dmdd.dmddas.dataaccess.bizobject.BOrganization;
+			import dmdd.dmddas.dataaccess.bizobject.BOrganizationCharacter;
+			import dmdd.dmddas.dataaccess.bizobject.BProduct;
+			import dmdd.dmddas.dataaccess.bizobject.BProductCharacter;
+			import dmdd.dmddas.dataaccess.bizobject.BSysDictionaryItem;
+			import dmdd.dmddas.dataaccess.bizobject.BUiPopbScope;
+			import dmdd.dmddas.dataaccess.bizobject.BUiPopbScopeBizData;
+			import dmdd.dmddas.dataaccess.bizobject.BUiPopbScopeProOrg;
+			import dmdd.dmddas.dataaccess.bizobject.BUnit;
+			import dmdd.dmddas.dataaccess.bizobject.BUnitGroup;
+			import dmdd.dmddmx.com.bulletin.Com_Bulletin_Bulletin_AU_View;
+			import dmdd.dmddmx.com.report.Com_Report_CustomReport_AU;
+			
+			import mx.collections.ArrayCollection;
+			import mx.controls.Alert;
+			import mx.events.CloseEvent;
+			import mx.events.FlexEvent;
+			import mx.events.IndexChangedEvent;
+			import mx.formatters.NumberFormatter;
+			import mx.managers.PopUpManager;
+			import mx.rpc.events.FaultEvent;
+			import mx.rpc.events.ResultEvent;
+			
+			
+			
+			//	描述    begin
+			//	描述    end
+			
+			//	0	输入参数    begin						
+			//	0	输入参数    end
+			
+			//	1	输出参数    begin
+			//	1	输出参数    end
+			
+			//	2	本地变量    begin
+			
+			//		权限		begin
+			[Bindable]
+			private var prvVar4blFunPermission4report:Boolean = true;			
+			//		权限		end
+			
+			//		Bulletin	begin
+			[Bindable]
+			private var prvVar4dp4comAdgBulletin:ArrayCollection = new ArrayCollection();
+			
+			private var prvVar4auWindow_viewBulletin:Com_Bulletin_Bulletin_AU_View = null;
+			//		Bulletin	end
+			
+			//		Report	begin
+			//		Report	end
+			
+			
+			//		CustomREport	begin
+			
+			private var prvVar4auWindow_customReport:Com_Report_CustomReport_AU = null;			
+			
+			[Bindable]
+			private var prvVar4dp4comAdgUiRowData:ArrayCollection = new ArrayCollection();
+			
+			private var prvVar4uiPopbScope4customReport:BUiPopbScope = null;
+			
+			[Bindable]
+			private var prvVar4unitGroup:BUnitGroup = null;
+			
+			private var prvVar4unit:BUnit = null;			
+			
+			[Bindable]
+			private var prvVar4dp4chart4scale:ArrayCollection = new ArrayCollection();
+			
+			private var prvVar4arr4displayName4chart4scale:ArrayCollection = new ArrayCollection();
+			private var prvVar4arr4yField4chart4scale:ArrayCollection = new ArrayCollection();		
+			
+			[Bindable]
+			private var prvVar4dp4chart4kpi:ArrayCollection = new ArrayCollection();
+			
+			private var prvVar4arr4displayName4chart4kpi:ArrayCollection = new ArrayCollection();
+			private var prvVar4arr4yField4chart4kpi:ArrayCollection = new ArrayCollection();							
+			//		CustomREport	end
+			
+			//	2	本地变量    end			
+			
+			//	3	公共方法    begin			
+			//	3	公共方法    end		
+			
+			//	4	初始化方法    begin	
+			protected function creationCompleteHandler(event:FlexEvent):void
+			{
+				var test:String = "test";
+			}			
+			
+			/**
+			 * mod_work会在获得用户环境变量之前就被创建，所以把初始化这部分独立出来供调用
+			 */ 
+			public function pubFun4doInitialize():void
+			{				
+				//	计算用户是否有报表权限    begin
+				this.prvVar4blFunPermission4report = ClientEnvironment.checkIsPermission(BizConst.FUNPERMISSION_REPORT_REPORT_QUERY );
+				//	计算用户是否有报表权限    end
+				
+				var sqlRestriction:String = "( id in (select bulletinid from bulletin_operatoruser where operatoruserid = "+ ClientEnvironment.getOperatorUser().id + ") ) ";
+				sqlRestriction = sqlRestriction + " and ( isPublish = " + BizConst.GLOBAL_YESNO_YES + " ) ";
+				
+				UtilUi.pubFun4PopWaitWindow( this );
+				this.srvBulletin.getBulletins( sqlRestriction, false, -1, ClientEnvironment.getSysParamPageSize() );
+			}
+
+			private function faultHandler4getBulletins(event:FaultEvent):void
+			{
+				UtilUi.pubFun4RemoveWaitWindow();
+				Alert.show( UtilExceptionLocale.getExceptionMessageLocaleByFaultEvent( event ), resourceManager.getString('main','alt_title_warn') );
+			}	
+			
+			private function resultHandler4getBulletins(event:ResultEvent):void 
+			{
+				this.prvVar4dp4comAdgBulletin = ArrayCollection(event.result);
+				UtilUi.pubFun4RemoveWaitWindow();
+				
+				if( this.prvVar4blFunPermission4report == true )
+				{
+					var sqlRestriction:String = "( operatoruserid = "+ ClientEnvironment.getOperatorUser().id + " ) ";
+					sqlRestriction = sqlRestriction + " and ( uicode = '" + UIConst.UICODE_HOMEPAGE + "' ) ";					
+					
+					UtilUi.pubFun4PopWaitWindow( this );
+					this.srvUi.getUiPopbScopeBySql( sqlRestriction);
+				}				
+			}	
+			
+			private function faultHandler4getUiPopbScopes(event:FaultEvent):void
+			{
+				UtilUi.pubFun4RemoveWaitWindow();
+				Alert.show( UtilExceptionLocale.getExceptionMessageLocaleByFaultEvent( event ), resourceManager.getString('main','alt_title_warn') );
+			}	
+			
+			private function resultHandler4getUiPopbScopes(event:ResultEvent):void 
+			{
+				UtilUi.pubFun4RemoveWaitWindow();
+				
+				this.prvVar4uiPopbScope4customReport = BUiPopbScope(event.result);
+				if( this.prvVar4uiPopbScope4customReport == null  )
+				{
+					this.btnCustomReportRefresh.enabled = false;
+					this.btnCustomReportCustom.enabled = true;
+					this.btnCustomReportDelete.enabled = false;					
+				}
+				else
+				{				
+					this.btnCustomReportRefresh.enabled = true;
+					this.btnCustomReportCustom.enabled = false;
+					this.btnCustomReportDelete.enabled = true;
+					this.onCustomReportRefresh();											
+				}
+			}			
+			
+			//	4	初始化方法    end				
+			
+			//	5	事件响应方法    begin	
+			private function onViewBulletin():void
+			{
+				var selectedBulletin:BBulletin = BBulletin(this.comAdgBulletin.selectedItem);
+				
+				if( this.prvVar4auWindow_viewBulletin == null )
+				{
+					this.prvVar4auWindow_viewBulletin = Com_Bulletin_Bulletin_AU_View(PopUpManager.createPopUp(this, Com_Bulletin_Bulletin_AU_View, true));						
+				}	
+				else
+				{
+					PopUpManager.addPopUp( this.prvVar4auWindow_viewBulletin, this, true );
+				}		
+				this.prvVar4auWindow_viewBulletin.pubFun4setParamIo4bulletin( selectedBulletin )			
+			}	
+			
+			private function onCustomReportCustom():void
+			{
+				if( this.prvVar4auWindow_customReport == null )
+				{
+					this.prvVar4auWindow_customReport = Com_Report_CustomReport_AU(PopUpManager.createPopUp(this, Com_Report_CustomReport_AU, true));
+					this.prvVar4auWindow_customReport.pubFun4setParamIn4closeCallback( this, callbackFunction4auWinClose_customReport );
+				}
+				else
+				{
+					PopUpManager.addPopUp( this.prvVar4auWindow_customReport, this, true );
+				} 
+			}
+			
+			
+			private function callbackFunction4auWinClose_customReport():void
+			{
+				if( this.prvVar4auWindow_customReport.pubFun4getParamOut4winCloseWay() == UtilUi.WINDOW_CLOSEWAY_OK )
+				{
+					var alert_title_hint:String = resourceManager.getString('mod_homepage','alert_title_hint');
+					var alert_msg:String = "";
+					
+					if( this.prvVar4auWindow_customReport.pubFun4getParamIo4uiPopbScope() != null )
+					{
+						alert_msg = resourceManager.getString('mod_homepage','alter_msg_customsucceed');
+						Alert.show( alert_msg, alert_title_hint);
+						
+						this.prvVar4uiPopbScope4customReport = this.prvVar4auWindow_customReport.pubFun4getParamIo4uiPopbScope();
+							
+						this.btnCustomReportRefresh.enabled = true;
+						this.btnCustomReportCustom.enabled = false;
+						this.btnCustomReportDelete.enabled = true;						
+					}
+				}
+				//this.prvVar4auWindow = null;														
+			}				
+			
+			private function onCustomReportDelete():void
+			{
+				var alert_title_hint:String = resourceManager.getString('mod_homepage','alert_title_hint');
+				var alert_msg_deleteconfirm:String = resourceManager.getString('mod_homepage','alert_msg_customreportdeleteconfirm');
+				Alert.show( alert_msg_deleteconfirm, alert_title_hint, Alert.OK | Alert.CANCEL, this, customReportDeleteConfirmHandler, null, Alert.OK );										
+			}
+			
+			private function customReportDeleteConfirmHandler(event:CloseEvent):void
+			{
+				if( event.detail == Alert.OK )
+				{
+					UtilUi.pubFun4PopWaitWindow( this );
+					this.srvUi.delUiPopbScope( this.prvVar4uiPopbScope4customReport );										
+				}
+				//清除单位
+				this.prvVar4unitGroup=null;
+				this.comboBoxUnit.textInput.text="";
+			}				
+			
+			private function faultHandler4delUiPopbScope(event:FaultEvent):void
+			{
+				UtilUi.pubFun4RemoveWaitWindow();
+				Alert.show( UtilExceptionLocale.getExceptionMessageLocaleByFaultEvent( event ), resourceManager.getString('main','alt_title_warn') );			
+			}
+			
+			private function resultHandler4delUiPopbScope(event:ResultEvent):void 
+			{	
+				UtilUi.pubFun4RemoveWaitWindow();
+				
+				var alert_title_hint:String = resourceManager.getString('mod_homepage','alert_title_hint');
+				var alert_msg:String = null;
+				
+				var blSucceed:Boolean = Boolean(event.result);
+				if( blSucceed == true )
+				{
+					this.prvVar4uiPopbScope4customReport = null;
+					this.prvVar4dp4comAdgUiRowData = new ArrayCollection();
+					this.prvVar4dp4chart4scale = new ArrayCollection();
+					this.prvVar4dp4chart4kpi = new ArrayCollection();
+					
+					this.btnCustomReportRefresh.enabled = false;
+					this.btnCustomReportCustom.enabled = true;				
+					this.btnCustomReportDelete.enabled = false;
+					
+					alert_msg = resourceManager.getString('mod_homepage','alter_msg_delete_succeed');
+					Alert.show(alert_msg, alert_title_hint);					
+				}
+				else
+				{
+					alert_msg = resourceManager.getString('mod_homepage','alter_msg_delete_fail');
+					Alert.show(alert_msg, alert_title_hint);
+				}												
+			}			
+			
+			private function onCustomReportRefresh():void
+			{
+				if( this.prvVar4uiPopbScope4customReport == null )
+				{
+					return;	
+				} 
+				//	计算查询条件	begin
+				UtilUi.pubFun4PopWaitWindow( this );
+				
+				var alert_title_hint:String = resourceManager.getString('mod_homepage','alert_title_hint');
+				var alert_msg:String = "";
+				
+				var i:int;
+				var uiPopbScopeProOrg:BUiPopbScopeProOrg = null;
+				var uiPopbScopeBizData:BUiPopbScopeBizData = null;
+				var proOrg:ABProOrg = null;
+				//	业务范围、业务数据、显示控制、期间控制在保存的时候确保了正确性，直接取值 	begin
+				var arrProOrgs:ArrayCollection = new ArrayCollection();
+				for( i=0; i<this.prvVar4uiPopbScope4customReport.uiPopbScopeProOrgs.length; i=i+1 )
+				{
+					uiPopbScopeProOrg = BUiPopbScopeProOrg(this.prvVar4uiPopbScope4customReport.uiPopbScopeProOrgs.getItemAt(i) );
+					
+					proOrg = new ABProOrg();
+					proOrg.product = uiPopbScopeProOrg.product;
+					proOrg.organization = uiPopbScopeProOrg.organization;
+					
+					arrProOrgs.addItem( proOrg );
+				}
+				
+				var arrBizDatas:ArrayCollection = new ArrayCollection();
+				for( i=0; i<this.prvVar4uiPopbScope4customReport.uiPopbScopeBizDatas.length; i=i+1 )
+				{
+					uiPopbScopeBizData = BUiPopbScopeBizData(this.prvVar4uiPopbScope4customReport.uiPopbScopeBizDatas.getItemAt(i) );
+					
+					arrBizDatas.addItem( uiPopbScopeBizData.bizData );
+				}				
+				
+				var periodBegin:int = UtilPeriod.getPeriod( ClientEnvironment.getSysPeriod().compilePeriod, this.prvVar4uiPopbScope4customReport.periodOffsetBegin );
+				var periodEnd:int = UtilPeriod.getPeriod( ClientEnvironment.getSysPeriod().compilePeriod, this.prvVar4uiPopbScope4customReport.periodOffsetEnd );
+				//	业务范围、业务数据、显示控制、期间控制在保存的时候确保了正确性，直接取值	end
+				
+				//		求解范围覆盖的明细范围并投影到显示层次		begin 				
+				var arrDetailProOrgs:ArrayCollection = UtilProOrg.getDetailProOrgs( arrProOrgs, true );
+				
+				var arrUiRowDataProOrgs:ArrayCollection = new ArrayCollection();
+				this.prvVar4unitGroup = null;
+				this.prvVar4unit = null;
+				
+				var projectProduct:BProduct = null;
+				var projectProductCharacter:BProductCharacter = null;			
+				var projectOrganization:BOrganization = null;
+				var projectOrganizationCharacter:BOrganizationCharacter = null;
+				
+				var strKey4Product:String = "";
+				var strKey4Organization:String = "";
+				
+				var hmap_detailProduct_projectProduct:HashMap = new HashMap(); // 明细产品到投影产品的映射 
+				var hmap_detailProduct_projectProductCharacter:HashMap = new HashMap(); // 明细产品到投影产品的映射				
+				var hmap_detailOrganization_projectOrganization:HashMap = new HashMap(); // 明细组织到投影组织的映射 
+				var hmap_detailOrganization_projectOrganizationCharacter:HashMap = new HashMap(); // 明细组织到投影组织的映射
+				
+
+				var detailProOrg:ABProOrg = null;
+				var detailProductCharacter:BProductCharacter = null;
+				var detailOrganizationCharacter:BOrganizationCharacter;
+				
+				var hmap_uiRowDataProOrgs:HashMap = new HashMap();
+				var strKey4uiRowDataProOrg:String = null;
+				var uiRowDataProOrg:ABUiRowDataProOrg = null;
+
+				var baseUnit:BUnit = null;
+				var nonBaseUnit:BUnit = null;
+				var num4NonBaseUnit:int = 0;				
+				
+				if( arrDetailProOrgs != null && arrDetailProOrgs.length > 0 )
+				{
+					for( i=0; i<arrDetailProOrgs.length; i=i+1 )
+					{
+						detailProOrg = ABProOrg( arrDetailProOrgs.getItemAt(i) );
+						
+						//	单位组	begin
+						if( detailProOrg.product.unitGroup == null )
+						{
+							UtilUi.pubFun4RemoveWaitWindow();
+							alert_msg = resourceManager.getString('mod_homepage','alter_msg_unitgroupisnull');
+							Alert.show( alert_msg, alert_title_hint);
+							return;							
+						}
+						if( this.prvVar4unitGroup == null )
+						{
+							this.prvVar4unitGroup = detailProOrg.product.unitGroup;
+							baseUnit = this.prvVar4unitGroup.getBaseUnit();
+						}
+						else if( detailProOrg.product.unitGroup.id != this.prvVar4unitGroup.id )
+						{
+							UtilUi.pubFun4RemoveWaitWindow();
+							alert_msg = resourceManager.getString('mod_homepage','alter_msg_multiunitgroup');
+							Alert.show( alert_msg, alert_title_hint);
+							return;									
+						}
+						if( detailProOrg.product.unit.isBase == BizConst.GLOBAL_YESNO_NO )
+						{
+							if( nonBaseUnit == null )
+							{
+								nonBaseUnit = detailProOrg.product.unit;
+								num4NonBaseUnit = 1;								
+							}
+							else
+							{
+								if( detailProOrg.product.unit.id != nonBaseUnit.id )
+								{
+									num4NonBaseUnit = 2;	//	just means multiple									
+								}
+							}
+						}
+						//	单位组	end
+						
+						//	计算投影		begin
+						strKey4Product = "" + detailProOrg.product.id;
+						strKey4Organization = "" + detailProOrg.organization.id;
+						
+						if( this.prvVar4uiPopbScope4customReport.isShowProduct == BizConst.GLOBAL_YESNO_YES )
+						{
+							projectProduct = BProduct( hmap_detailProduct_projectProduct.getValue(strKey4Product) );
+							if( projectProduct == null )
+							{
+								projectProduct = UtilProduct.getProjectProductByLayer( detailProOrg.product, this.prvVar4uiPopbScope4customReport.productLayer.value );
+								if( projectProduct == null )
+								{
+									// should not happen
+									continue;
+								}							
+								hmap_detailProduct_projectProduct.put( strKey4Product, projectProduct ); 
+							}
+						}
+						else
+						{
+							// 不需要显示product
+							projectProduct = null;
+						}
+						
+						if( this.prvVar4uiPopbScope4customReport.isShowProductCharacter == BizConst.GLOBAL_YESNO_YES )
+						{
+							projectProductCharacter = BProductCharacter( hmap_detailProduct_projectProductCharacter.getValue( strKey4Product ) );
+							if( projectProductCharacter == null )
+							{
+								detailProductCharacter = UtilProductCharacter.getDetailProductCharacter( detailProOrg.product, this.prvVar4uiPopbScope4customReport.productCharacterType );
+								if( detailProductCharacter != null )
+								{
+									projectProductCharacter = UtilProductCharacter.getProjectProductCharacterByLayer( detailProductCharacter, this.prvVar4uiPopbScope4customReport.productCharacterLayer.value );
+									if( projectProductCharacter == null )
+									{
+										// should not happen
+										continue;	
+									}
+									hmap_detailProduct_projectProductCharacter.put( strKey4Product, projectProductCharacter );
+								}
+								else
+								{
+									// 明细产品没有被指定该类型的特征，投影到一个特殊的产品特征上
+									projectProductCharacter = null;
+								}
+							}
+						}
+						else
+						{
+							// 不需要显示productCharacter
+							projectProductCharacter = null;
+						}					
+						
+						if( this.prvVar4uiPopbScope4customReport.isShowOrganization == BizConst.GLOBAL_YESNO_YES )
+						{
+							projectOrganization = BOrganization( hmap_detailOrganization_projectOrganization.getValue(strKey4Organization) );
+							if( projectOrganization == null )
+							{
+								projectOrganization = UtilOrganization.getProjectOrganizationByLayer( detailProOrg.organization, this.prvVar4uiPopbScope4customReport.organizationLayer.value );
+								if( projectOrganization == null )
+								{
+									// should not happen
+									continue;
+								}							
+								hmap_detailOrganization_projectOrganization.put( strKey4Organization, projectOrganization ); 
+							}
+						}
+						else
+						{
+							// 不需要显示organization
+							projectOrganization = null;
+						}
+						
+						if( this.prvVar4uiPopbScope4customReport.isShowOrganizationCharacter == BizConst.GLOBAL_YESNO_YES )
+						{
+							projectOrganizationCharacter = BOrganizationCharacter( hmap_detailOrganization_projectOrganizationCharacter.getValue( strKey4Organization ) );
+							if( projectOrganizationCharacter == null )
+							{
+								detailOrganizationCharacter = UtilOrganizationCharacter.getDetailOrganizationCharacter( detailProOrg.organization, this.prvVar4uiPopbScope4customReport.organizationCharacterType );
+								if( detailOrganizationCharacter != null )
+								{
+									projectOrganizationCharacter = UtilOrganizationCharacter.getProjectOrganizationCharacterByLayer( detailOrganizationCharacter, this.prvVar4uiPopbScope4customReport.organizationCharacterLayer.value);
+									if( projectOrganizationCharacter == null )
+									{
+										// should not happen
+										continue;	
+									}
+									hmap_detailOrganization_projectOrganizationCharacter.put( strKey4Organization, projectOrganizationCharacter );
+								}
+								else
+								{
+									// 明细组织没有被指定该类型的特征，投影到一个特殊的组织特征上
+									projectOrganizationCharacter = null;
+								}
+							}
+						}
+						else
+						{
+							// 不需要显示organizationCharacter
+							projectOrganizationCharacter = null;
+						}
+						//	计算投影		end							
+						
+						strKey4uiRowDataProOrg = UtilStrKey.getStrKey4PPcOOcB( projectProduct, projectProductCharacter, projectOrganization, projectOrganizationCharacter, null );
+						uiRowDataProOrg = ABUiRowDataProOrg( hmap_uiRowDataProOrgs.getValue( strKey4uiRowDataProOrg ) );
+						if( uiRowDataProOrg == null )
+						{
+							uiRowDataProOrg = new ABUiRowDataProOrg();
+							uiRowDataProOrg.product = projectProduct;
+							uiRowDataProOrg.productCharacter = projectProductCharacter;
+							uiRowDataProOrg.organization = projectOrganization;
+							uiRowDataProOrg.organizationCharacter = projectOrganizationCharacter;
+							uiRowDataProOrg.detailProOrgIds = new ArrayCollection();
+						}
+						
+						uiRowDataProOrg.detailProOrgIds.addItem( UtilProOrg.getProOrgId( detailProOrg.product, detailProOrg.organization ) );
+						
+						hmap_uiRowDataProOrgs.put( strKey4uiRowDataProOrg , uiRowDataProOrg );						
+					}
+				}
+				if( num4NonBaseUnit == 1 )
+				{
+					this.prvVar4unit = nonBaseUnit;
+				}
+				else
+				{
+					this.prvVar4unit = baseUnit;
+				}
+								
+				this.comboBoxUnit.selectedItem = this.prvVar4unit;
+				arrUiRowDataProOrgs = hmap_uiRowDataProOrgs.getValues();
+				//		求解范围覆盖的明细范围并投影到显示层次		end
+				
+				UtilUi.pubFun4RemoveWaitWindow();				
+				//	计算查询条件	end
+				
+				//	查询数据		begin
+				UtilUi.pubFun4PopWaitWindow( this );
+				this.prvVar4dp4comAdgUiRowData = new ArrayCollection();
+				this.prvVar4dp4chart4scale = new ArrayCollection();
+				this.prvVar4dp4chart4kpi = new ArrayCollection();
+				this.srvUiRowData.getUiRowDatas( arrUiRowDataProOrgs, periodBegin, periodEnd, arrBizDatas, ClientEnvironment.getSysPeriod() );
+				//	查询数据		end
+			}			
+			
+			
+			private function faultHandler4getUiRowDatas(event:FaultEvent):void
+			{
+				UtilUi.pubFun4RemoveWaitWindow();
+				Alert.show( UtilExceptionLocale.getExceptionMessageLocaleByFaultEvent( event ), resourceManager.getString('main','alt_title_warn') );
+			}	
+			
+			private function resultHandler4getUiRowDatas(event:ResultEvent):void 
+			{				
+				this.prvVar4dp4comAdgUiRowData = ArrayCollection(event.result);
+
+				var i:int;
+				var seledtedUnit:BUnit = null;
+				var uiRowData:ABUiRowData = null;
+				
+				var periodDiff:int;
+				var periodLoc:int;
+				var aitemValue:Number;
+				var bitemValue:Number;
+				var kpiValue:Number;
+				var kpiFormula:int;
+				
+				var numberFormatter:NumberFormatter = new NumberFormatter();
+				numberFormatter.precision = 2;				
+				
+				if( this.prvVar4dp4comAdgUiRowData != null )
+				{
+					seledtedUnit = BUnit(this.comboBoxUnit.selectedItem);		
+					
+					for( i=0; i<this.prvVar4dp4comAdgUiRowData.length; i=i+1 )
+					{
+						uiRowData = ABUiRowData(this.prvVar4dp4comAdgUiRowData.getItemAt(i));
+						
+						if( uiRowData.bizData.type != BizConst.BIZDATA_TYPE_KPI )
+						{
+							//	非Kpi数据换算后放入显示表格
+							if( seledtedUnit != null && seledtedUnit.isBase == BizConst.GLOBAL_YESNO_NO )
+							{
+								uiRowData.exchangeUnit( 1, seledtedUnit.exchangeRate );						
+							}						
+						}
+						else
+						{
+							if( uiRowData.bizData.bizDataDefItems != null && uiRowData.bizData.bizDataDefItems.length == 1 )
+							{
+								kpiFormula = BBizDataDefItemKpi(uiRowData.bizData.bizDataDefItems.getItemAt(0)).kpiFormula;
+								
+								//	kpi数据，计算真正的Kpi值
+								periodDiff = UtilPeriod.getPeriodDifference( uiRowData.periodBegin, uiRowData.periodEnd );
+								for( periodLoc = 0; periodLoc <= periodDiff; periodLoc = periodLoc + 1 )
+								{
+									aitemValue = uiRowData.pubFun4getPeriodDataValue( periodLoc );
+									bitemValue = uiRowData.pubFun4getPeriodDataValueBak( periodLoc );
+									
+									if( kpiFormula == BizConst.BIZDATADEFITEM_KPIFORMULA_RATIO )
+									{
+										if( isNaN(aitemValue) || isNaN(bitemValue) )
+										{
+											uiRowData.pubFun4setPeriodDataValue( periodLoc, NaN );
+											uiRowData.pubFun4setPeriodDataValueBak( periodLoc, NaN );
+										}
+										else if( bitemValue == 0 )
+										{
+											uiRowData.pubFun4setPeriodDataValue( periodLoc, NaN );
+											uiRowData.pubFun4setPeriodDataValueBak( periodLoc, NaN );								
+										}
+										else
+										{
+											kpiValue = aitemValue / bitemValue * 100.0;
+											kpiValue = Number( numberFormatter.format( kpiValue ) );
+											
+											uiRowData.pubFun4setPeriodDataValue( periodLoc, kpiValue );
+											uiRowData.pubFun4setPeriodDataValueBak( periodLoc, kpiValue );									
+										}										
+									}
+									else if( kpiFormula == BizConst.BIZDATADEFITEM_KPIFORMULA_INCREMENTRATIO )
+									{
+										if( isNaN(aitemValue) || isNaN(bitemValue) )
+										{
+											uiRowData.pubFun4setPeriodDataValue( periodLoc, NaN );
+											uiRowData.pubFun4setPeriodDataValueBak( periodLoc, NaN );
+										}
+										else if( bitemValue == 0 )
+										{
+											uiRowData.pubFun4setPeriodDataValue( periodLoc, NaN );
+											uiRowData.pubFun4setPeriodDataValueBak( periodLoc, NaN );								
+										}
+										else
+										{
+											kpiValue = Math.abs( aitemValue - bitemValue ) / bitemValue * 100.0;
+											kpiValue = Number( numberFormatter.format( kpiValue ) );
+											
+											uiRowData.pubFun4setPeriodDataValue( periodLoc, kpiValue );
+											uiRowData.pubFun4setPeriodDataValueBak( periodLoc, kpiValue );									
+										}											
+									}
+									else if( kpiFormula == BizConst.BIZDATADEFITEM_KPIFORMULA_INCREMENTRATIO_I )
+									{
+										if( isNaN(aitemValue) || isNaN(bitemValue) )
+										{
+											uiRowData.pubFun4setPeriodDataValue( periodLoc, NaN );
+											uiRowData.pubFun4setPeriodDataValueBak( periodLoc, NaN );
+										}
+										else if( bitemValue == 0 )
+										{
+											uiRowData.pubFun4setPeriodDataValue( periodLoc, NaN );
+											uiRowData.pubFun4setPeriodDataValueBak( periodLoc, NaN );								
+										}
+										else
+										{
+											kpiValue = (1 - Math.abs( aitemValue - bitemValue ) / bitemValue) * 100.0;
+											kpiValue = Number( numberFormatter.format( kpiValue ) );
+											
+											uiRowData.pubFun4setPeriodDataValue( periodLoc, kpiValue );
+											uiRowData.pubFun4setPeriodDataValueBak( periodLoc, kpiValue );									
+										}											
+									}
+									else if( kpiFormula == BizConst.BIZDATADEFITEM_KPIFORMULA_INCREMENTRATIO_II )
+									{
+										if( isNaN(aitemValue) )
+										{
+											aitemValue = 0;
+										}
+										if( isNaN(bitemValue) )
+										{
+											bitemValue = 0;
+										}
+										
+										if( aitemValue + bitemValue == 0 )
+										{
+											//	分母为0
+											uiRowData.pubFun4setPeriodDataValue( periodLoc, NaN );
+											uiRowData.pubFun4setPeriodDataValueBak( periodLoc, NaN );																		
+										}
+										else
+										{
+											kpiValue = 2.0 * Math.abs(aitemValue - bitemValue) / (aitemValue + bitemValue) * 100.0;
+											kpiValue = Number( numberFormatter.format( kpiValue ) );
+											
+											uiRowData.pubFun4setPeriodDataValue( periodLoc, kpiValue );
+											uiRowData.pubFun4setPeriodDataValueBak( periodLoc, kpiValue );									
+										}									
+									}
+									else if(kpiFormula == BizConst.BIZDATADEFITEM_KPIFORMULA_INCREMENTRATIO_III)
+									{
+										kpiValue = (aitemValue - bitemValue) ;
+										kpiValue = Number( numberFormatter.format( kpiValue ) );
+										
+										uiRowData.pubFun4setPeriodDataValue( periodLoc, kpiValue );
+										uiRowData.pubFun4setPeriodDataValueBak( periodLoc, kpiValue );
+									}
+									else if(kpiFormula == BizConst.BIZDATADEFITEM_KPIFORMULA_INCREMENTRATIO_IV)
+									{
+										kpiValue =  Math.abs(aitemValue - bitemValue) ;
+										kpiValue = Number( numberFormatter.format( kpiValue ) );
+										
+										uiRowData.pubFun4setPeriodDataValue( periodLoc, kpiValue );
+										uiRowData.pubFun4setPeriodDataValueBak( periodLoc, kpiValue );
+									}
+									else if(kpiFormula == BizConst.BIZDATADEFITEM_KPIFORMULA_INCREMENTRATIO_V)
+									{
+										if( isNaN(aitemValue) || isNaN(bitemValue) )
+										{
+											uiRowData.pubFun4setPeriodDataValue( periodLoc, NaN );
+											uiRowData.pubFun4setPeriodDataValueBak( periodLoc, NaN );
+										}
+										else if( bitemValue == 0 )
+										{
+											uiRowData.pubFun4setPeriodDataValue( periodLoc, NaN );
+											uiRowData.pubFun4setPeriodDataValueBak( periodLoc, NaN );								
+										}
+										else
+										{
+											kpiValue = ( aitemValue - bitemValue ) / bitemValue * 100.0;
+											kpiValue = Number( numberFormatter.format( kpiValue ) );
+											
+											uiRowData.pubFun4setPeriodDataValue( periodLoc, kpiValue );
+											uiRowData.pubFun4setPeriodDataValueBak( periodLoc, kpiValue );									
+										}
+									}
+									else if(kpiFormula == BizConst.BIZDATADEFITEM_KPIFORMULA_INCREMENTRATIO_VI)
+									{
+										if( isNaN(aitemValue) || isNaN(bitemValue) )
+										{
+											uiRowData.pubFun4setPeriodDataValue( periodLoc, NaN );
+											uiRowData.pubFun4setPeriodDataValueBak( periodLoc, NaN );
+										}
+										else if( bitemValue == 0 )
+										{
+											uiRowData.pubFun4setPeriodDataValue( periodLoc, NaN );
+											uiRowData.pubFun4setPeriodDataValueBak( periodLoc, NaN );								
+										}
+										else if(aitemValue<0 || bitemValue<0)
+										{
+											uiRowData.pubFun4setPeriodDataValue( periodLoc, 0 );
+											uiRowData.pubFun4setPeriodDataValueBak( periodLoc, 0 );	
+										}
+										else
+										{
+											if(aitemValue<bitemValue)
+											{
+												kpiValue = aitemValue / bitemValue * 100.0;
+												kpiValue = Number( numberFormatter.format( kpiValue ) );
+											}
+											else
+											{
+												kpiValue = bitemValue / aitemValue * 100.0;
+												kpiValue = Number( numberFormatter.format( kpiValue ) );
+											}
+											
+											uiRowData.pubFun4setPeriodDataValue( periodLoc, kpiValue );
+											uiRowData.pubFun4setPeriodDataValueBak( periodLoc, kpiValue );									
+										}	
+									}
+									else
+									{
+										//	out of design
+										uiRowData.pubFun4setPeriodDataValue( periodLoc, NaN );
+										uiRowData.pubFun4setPeriodDataValueBak( periodLoc, NaN );										
+									}
+									
+								}
+								
+							}
+						}
+						
+					}					
+				}
+				UtilUi.pubFun4RemoveWaitWindow();
+				
+				this.onRefreshChart();
+				
+			}				
+			
+			private function onChange4comboBoxUnit():void
+			{
+				//	单位变化	begin
+				var selectedUnit:BUnit = BUnit(this.comboBoxUnit.selectedItem)
+				var i:int;
+
+				var uiRowData:ABUiRowData = null;
+				if( selectedUnit != null && this.prvVar4unit != null && selectedUnit.id != this.prvVar4unit.id )
+				{
+					if( this.prvVar4dp4comAdgUiRowData != null )
+					{
+						for( i=0; i<this.prvVar4dp4comAdgUiRowData.length; i=i+1 )
+						{
+							uiRowData = ABUiRowData(this.prvVar4dp4comAdgUiRowData.getItemAt(i));
+							uiRowData.exchangeUnit( this.prvVar4unit.exchangeRate, selectedUnit.exchangeRate );
+						}
+					}	
+					
+					this.prvVar4unit = selectedUnit;
+				}
+				//	单位变化	end
+				
+				this.onRefreshChart();
+			}
+				
+			
+			private function onRefreshChart():void
+			{
+				var i:int;
+				var uiRowData:ABUiRowData = null;
+				
+				//	收集被勾选的 uiRowData	begin
+				var arr4checkedUiRowData4scale:ArrayCollection = new ArrayCollection();
+				var arr4checkedUiRowData4kpi:ArrayCollection = new ArrayCollection();
+				
+				if( this.prvVar4dp4comAdgUiRowData != null )
+				{
+					for( i=0; i<this.prvVar4dp4comAdgUiRowData.length; i=i+1 )
+					{
+						uiRowData = ABUiRowData(this.prvVar4dp4comAdgUiRowData.getItemAt(i));
+						if( uiRowData.bizData.type == BizConst.BIZDATA_TYPE_KPI )
+						{
+							arr4checkedUiRowData4kpi.addItem( uiRowData );
+						}
+						else
+						{
+							arr4checkedUiRowData4scale.addItem( uiRowData );
+						}
+					}
+				}
+				
+				var alert_title_hint:String = resourceManager.getString('mod_homepage','alert_title_hint');
+				var alert_msg:String = "";			
+				
+				if( arr4checkedUiRowData4scale.length > SysConst.CHART_MAX_NUM )
+				{
+					alert_msg = resourceManager.getString('mod_homepage','alert_msg_chartexceedmaxnum_scale');
+					Alert.show( alert_msg, alert_title_hint);					
+				}
+				
+				if( arr4checkedUiRowData4kpi.length > SysConst.CHART_MAX_NUM )
+				{
+					alert_msg = resourceManager.getString('mod_homepage','alert_msg_chartexceedmaxnum_kpi');
+					Alert.show( alert_msg, alert_title_hint);					
+				}				
+				//	收集被勾选的 uiRowData	begin
+				
+				//	收集displayName 和 yFieldName	begin
+				var blDispProduct:Boolean = false;
+				if( this.prvVar4uiPopbScope4customReport.isShowProduct == BizConst.GLOBAL_YESNO_YES )
+				{
+					blDispProduct = true;
+				}
+				var blDispProductCharacter:Boolean = false;
+				if( this.prvVar4uiPopbScope4customReport.isShowProductCharacter == BizConst.GLOBAL_YESNO_YES )
+				{
+					blDispProductCharacter = true;
+				}				
+				var blDispOrganization:Boolean = false;
+				if( this.prvVar4uiPopbScope4customReport.isShowOrganization == BizConst.GLOBAL_YESNO_YES )
+				{
+					blDispOrganization = true;
+				}
+				var blDispOrganizationCharacter:Boolean = false;
+				if( this.prvVar4uiPopbScope4customReport.isShowOrganizationCharacter == BizConst.GLOBAL_YESNO_YES )
+				{
+					blDispOrganizationCharacter = true;
+				}				
+				
+				var displayName:String = null;
+				var yFieldName:String = null;
+				
+				this.prvVar4arr4displayName4chart4scale = new ArrayCollection();
+				this.prvVar4arr4yField4chart4scale = new ArrayCollection();
+				for( i=0; i<arr4checkedUiRowData4scale.length; i=i+1 )
+				{
+					uiRowData = ABUiRowData( arr4checkedUiRowData4scale.getItemAt(i) );
+					
+					displayName = UtilUiRowData.getDisplayName4Chart( blDispProduct, uiRowData.product,
+						blDispProductCharacter, uiRowData.productCharacter,
+						blDispOrganization, uiRowData.organization,
+						blDispOrganizationCharacter, uiRowData.organizationCharacter,
+						true, uiRowData.bizData );
+					
+					yFieldName = AksChartDataObject.getFiledName(i);
+					
+					this.prvVar4arr4displayName4chart4scale.addItem( displayName );
+					this.prvVar4arr4yField4chart4scale.addItem( yFieldName );	
+				}	
+				
+				this.prvVar4arr4displayName4chart4kpi = new ArrayCollection();
+				this.prvVar4arr4yField4chart4kpi = new ArrayCollection();
+				for( i=0; i<arr4checkedUiRowData4kpi.length; i=i+1 )
+				{
+					uiRowData = ABUiRowData( arr4checkedUiRowData4kpi.getItemAt(i) );
+					
+					displayName = UtilUiRowData.getDisplayName4Chart( blDispProduct, uiRowData.product,
+						blDispProductCharacter, uiRowData.productCharacter,
+						blDispOrganization, uiRowData.organization,
+						blDispOrganizationCharacter, uiRowData.organizationCharacter,
+						true, uiRowData.bizData );
+					
+					yFieldName = AksChartDataObject.getFiledName(i);
+					
+					this.prvVar4arr4displayName4chart4kpi.addItem( displayName );
+					this.prvVar4arr4yField4chart4kpi.addItem( yFieldName );	
+				}					
+				//	收集displayName 和 yFieldName	begin			
+				
+				//	刷新Chart基本信息	begin
+				this.tabNav4chart_changeHandler( null );			
+				//	刷新Chart基本信息	end					
+				
+				
+				// 收集chart 数据源    begin
+				this.prvVar4dp4chart4scale = new ArrayCollection();
+				this.prvVar4dp4chart4kpi = new ArrayCollection();
+				
+				var periodBegin:int = UtilPeriod.getPeriod( ClientEnvironment.getSysPeriod().compilePeriod, this.prvVar4uiPopbScope4customReport.periodOffsetBegin );
+				var periodEnd:int = UtilPeriod.getPeriod( ClientEnvironment.getSysPeriod().compilePeriod, this.prvVar4uiPopbScope4customReport.periodOffsetEnd );
+				var periodDiff:int = UtilPeriod.getPeriodDifference( periodBegin, periodEnd );
+				if( periodDiff == SysConst.PERIOD_DIFF_NULL )
+				{
+					return;
+				}
+				
+				var periodLoc:int;
+				
+				var aksChartDataObject:AksChartDataObject = null
+				for( periodLoc=0; periodLoc<=periodDiff; periodLoc=periodLoc+1 )
+				{
+					aksChartDataObject = new AksChartDataObject();
+					aksChartDataObject.categoryFieldValue = String( UtilPeriod.getPeriod( periodBegin, periodLoc ) );
+					for( i=0; i<arr4checkedUiRowData4scale.length; i=i+1 )
+					{
+						uiRowData = ABUiRowData( arr4checkedUiRowData4scale.getItemAt(i) );
+						aksChartDataObject.setData( i, uiRowData.pubFun4getPeriodDataValue(periodLoc) );
+					}
+					this.prvVar4dp4chart4scale.addItem( aksChartDataObject );
+				}
+				
+				for( periodLoc=0; periodLoc<=periodDiff; periodLoc=periodLoc+1 )
+				{
+					aksChartDataObject = new AksChartDataObject();
+					aksChartDataObject.categoryFieldValue = String( UtilPeriod.getPeriod( periodBegin, periodLoc ) );
+					for( i=0; i<arr4checkedUiRowData4kpi.length; i=i+1 )
+					{
+						uiRowData = ABUiRowData( arr4checkedUiRowData4kpi.getItemAt(i) );
+						aksChartDataObject.setData( i, uiRowData.pubFun4getPeriodDataValue(periodLoc) );
+					}
+					this.prvVar4dp4chart4kpi.addItem( aksChartDataObject );
+				}				
+				// 收集chart 数据源    end				
+				
+			}
+			
+			protected function tabNav4chart_changeHandler(event:IndexChangedEvent):void
+			{
+				if( this.tabNav4chart.selectedChild == this.tab4aksLineChart4scale )
+				{
+					this.aksLineChart4scale.pubFun4setSeries( this.prvVar4arr4displayName4chart4scale, this.prvVar4arr4yField4chart4scale );
+				}
+				else if( this.tabNav4chart.selectedChild == this.tab4aksColumnChart4scale )
+				{
+					this.aksColunmnChart4scale.pubFun4setSeries( this.prvVar4arr4displayName4chart4scale, this.prvVar4arr4yField4chart4scale );
+				}
+				else if( this.tabNav4chart.selectedChild == this.tab4aksLineChart4kpi )
+				{
+					this.aksLineChart4kpi.pubFun4setSeries( this.prvVar4arr4displayName4chart4kpi, this.prvVar4arr4yField4chart4kpi );
+				}
+				else if( this.tabNav4chart.selectedChild == this.tab4aksColumnChart4kpi )
+				{
+					this.aksColunmnChart4kpi.pubFun4setSeries( this.prvVar4arr4displayName4chart4kpi, this.prvVar4arr4yField4chart4kpi );
+				}				
+			}			
+			//	5	事件响应方法    end
+			
+			//	6	本地方法    begin
+			private function prvFun4getEnabled4btnViewReport( _selectedItem:Object ):Boolean
+			{
+				if( this.prvVar4blFunPermission4report == false )
+				{
+					return false;
+				}
+				
+				if( _selectedItem == null )
+				{
+					return false;
+				}
+				
+				return true;
+			}
+			//	6	本地方法   end	
+			
+		]]>
+	</fx:Script>
+	
+	<mx:VDividedBox width="100%" height="100%">
+		
+		<s:Panel width="100%" height="50%" minHeight="30" title="{resourceManager.getString('mod_homepage','panelbulletin')}">
+				<s:layout>
+					<s:VerticalLayout/>
+				</s:layout>
+				<containers:AksControlBar>
+					<s:Button label="{resourceManager.getString('mod_homepage','btn_viewbulletin')}" enabled="{this.comAdgBulletin.selectedItem}" click="onViewBulletin()"/>
+				</containers:AksControlBar>
+				<bulletin:Com_Bulletin_Bulletin_AdvancedDataGrid id="comAdgBulletin" paramIn4visible4columns4detail="false" dataProvider="{this.prvVar4dp4comAdgBulletin}" width="100%" height="100%"/>
+			</s:Panel>
+			
+		<s:Panel width="100%" height="50%" minHeight="30" title="{resourceManager.getString('mod_homepage','panelreportfavourite')}">
+			<s:layout>
+				<s:VerticalLayout/>
+			</s:layout>
+			<containers:AksControlBar>
+				<s:Button label="{resourceManager.getString('mod_homepage','btn_customreport_refresh')}" click="onCustomReportRefresh()" id="btnCustomReportRefresh" enabled="false"/>
+				<s:Button label="{resourceManager.getString('mod_homepage','btn_customreport_custom')}" click="onCustomReportCustom()" id="btnCustomReportCustom" enabled="false"/>
+				<s:Button label="{resourceManager.getString('mod_homepage','btn_customreport_delete')}" click="onCustomReportDelete()" id="btnCustomReportDelete" enabled="false"/>
+				<mx:Spacer width="100"/>
+				<s:Label text="{resourceManager.getString('mod_homepage','customreport_unit')}"/>
+				<s:ComboBox id="comboBoxUnit" dataProvider="{this.prvVar4unitGroup.units}" change="onChange4comboBoxUnit()"/>
+			</containers:AksControlBar>
+			<mx:TabNavigator width="100%" height="100%" id="tabNav4chart" change="tabNav4chart_changeHandler(event)">
+				<s:NavigatorContent label="{resourceManager.getString('mod_homepage','customreport_scalelinechart')}" width="100%" height="100%" id="tab4aksLineChart4scale">
+					<s:layout>
+						<s:VerticalLayout/>
+					</s:layout>
+					<charts:AksLineChart id="aksLineChart4scale" width="100%" height="100%" paramIn4dp4lineChart="{this.prvVar4dp4chart4scale}" paramIn4visible4legend="true">
+					</charts:AksLineChart>					
+				</s:NavigatorContent>
+				<s:NavigatorContent label="{resourceManager.getString('mod_homepage','customreport_scalecolumnchart')}" width="100%" height="100%" id="tab4aksColumnChart4scale" >
+					<s:layout>
+						<s:VerticalLayout/>
+					</s:layout>
+					<charts:AksColumnChart id="aksColunmnChart4scale" width="100%" height="100%" paramIn4dp4columnChart="{this.prvVar4dp4chart4scale}" paramIn4visible4legend="false">
+					</charts:AksColumnChart>					
+				</s:NavigatorContent>
+				<s:NavigatorContent label="{resourceManager.getString('mod_homepage','customreport_kpilinechart')}" width="100%" height="100%" id="tab4aksLineChart4kpi">
+					<s:layout>
+						<s:VerticalLayout/>
+					</s:layout>
+					<charts:AksLineChart id="aksLineChart4kpi" width="100%" height="100%" paramIn4dp4lineChart="{this.prvVar4dp4chart4kpi}" paramIn4visible4legend="true">
+					</charts:AksLineChart>					
+				</s:NavigatorContent>
+				<s:NavigatorContent label="{resourceManager.getString('mod_homepage','customreport_kpicolumnchart')}" width="100%" height="100%" id="tab4aksColumnChart4kpi" >
+					<s:layout>
+						<s:VerticalLayout/>
+					</s:layout>
+					<charts:AksColumnChart id="aksColunmnChart4kpi" width="100%" height="100%" paramIn4dp4columnChart="{this.prvVar4dp4chart4kpi}" paramIn4visible4legend="false">
+					</charts:AksColumnChart>					
+				</s:NavigatorContent>				
+			</mx:TabNavigator>			
+		</s:Panel>		
+		
+	</mx:VDividedBox>
+	
+	
+</mx:Module>

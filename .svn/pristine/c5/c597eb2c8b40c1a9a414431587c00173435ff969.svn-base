@@ -1,0 +1,421 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:TitleWindow xmlns:fx="http://ns.adobe.com/mxml/2009" 
+			   xmlns:s="library://ns.adobe.com/flex/spark" 
+			   xmlns:mx="library://ns.adobe.com/flex/mx" width="800" height="550" close="onCancel()"
+			   creationComplete="creationCompleteHandler(event)" 
+			   xmlns:controls="aks.aksmx.controls.*" xmlns:containers="aks.aksmx.containers.*" 
+			   xmlns:bizdata="dmdd.dmddmx.com.bizdata.*" xmlns:common="dmdd.dmddmx.com.common.*" xmlns:buttons="com.cool.buttons.*" >
+	<s:layout>
+		<s:VerticalLayout paddingLeft="10" paddingRight="10" paddingBottom="3" paddingTop="3"/>
+	</s:layout>
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+		<s:RemoteObject endpoint="{ClientEnvironment.endpoint}" id="srvBizData" destination="BizDataService">	
+			<s:method name="getBizDatasStat" result="resultHandler4getBizDatasStat(event)" fault="faultHandler4getBizDatasStat(event)">
+			</s:method>			
+			<s:method name="getBizDatas" result="resultHandler4getBizDatas(event)" fault="faultHandler4getBizDatas(event)">
+			</s:method>
+		</s:RemoteObject>		
+	</fx:Declarations>
+	<fx:Script>
+		<![CDATA[
+			import aks.aksas.utils.UtilUi;
+			
+			import dmdd.dmddas.common.constant.BizConst;
+			import dmdd.dmddas.common.constant.SysConst;
+			import dmdd.dmddas.common.constant.UIConst;
+			import dmdd.dmddas.common.system.ClientEnvironment;
+			import dmdd.dmddas.common.utils.UtilExceptionLocale;
+			import dmdd.dmddas.dataaccess.bizobject.BBizData;
+			
+			import mx.binding.utils.BindingUtils;
+			import mx.collections.ArrayCollection;
+			import mx.controls.Alert;
+			import mx.events.FlexEvent;
+			import mx.managers.PopUpManager;
+			import mx.rpc.events.FaultEvent;
+			import mx.rpc.events.ResultEvent;
+			
+			//	描述		begin
+			//	描述		end
+			
+			//	0	输入参数    begin	
+			private var paramIn4closeCallback4thisObject:Object = null;
+			private var paramIn4closeCallback4function:Function = null;
+			
+			[Bindable]
+			private var paramIn4arrDictBizDataType:ArrayCollection = ClientEnvironment.getBizDataTypeArr(); 
+			
+			private var paramIn4blConstrainedByPermission:Boolean = true;
+			private var paramIn4blOnlyIsManaging:Boolean = false;
+			
+			[Bindable]
+			public var allowMultipleSelection:Boolean = true;
+			//	0	输入参数    end
+			
+			//	1	输出参数    begin
+			private var paramOut4selectedBizData:BBizData = null;	
+			private var paramOut4selectedBizDatas:ArrayCollection = null;
+			
+			private var paramOut4winCloseWay:int = UtilUi.WINDOW_CLOSEWAY_CANCEL;		
+			//	1	输出参数    end
+			
+			//	2	本地变量    begin				
+			[Bindable]
+			private var prvVar4dp4comAdgBizData:ArrayCollection = new ArrayCollection();
+			
+			private var prvVar4sqlRestriction:String = null;	
+			
+			
+			private var comAdgBizDataDefItemHistoryAd:Com_BizData_BizDataDefItemHistoryAd_AdvancedDataGrid = null;
+			private var comAdgBizDataDefItemHistoryAdR:Com_BizData_BizDataDefItemHistoryAdR_AdvancedDataGrid = null;
+			private var comAdgBizDataDefItemFcHand:Com_BizData_BizDataDefItemFcHand_AdvancedDataGrid = null;
+			private var comAdgBizDataDefItemFcComb:Com_BizData_BizDataDefItemFcComb_AdvancedDataGrid = null;
+			private var comAdgBizDataDefItemTimeHis:Com_BizData_BizDataDefItemTimeHis_AdvancedDataGrid = null;
+			private var comAdgBizDataDefItemTimeFc:Com_BizData_BizDataDefItemTimeFc_AdvancedDataGrid = null;
+			private var comAdgBizDataDefItemMoney:Com_BizData_BizDataDefItemMoney_AdvancedDataGrid = null;
+			private var comAdgBizDataDefItemMoneyComb:Com_BizData_BizDataDefItemMoneyComb_AdvancedDataGrid = null;
+			private var comAdgBizDataDefItemKpi:Com_BizData_BizDataDefItemKpi_AdvancedDataGrid = null;			
+			private var comAdgBizDataDefItemForecastAssessment:Com_BizData_BizDataDefItemForecastAssessment_AdvancedDataGrid = null;
+			//	2	本地变量    end			
+			
+			//	3	公共方法    begin	
+			//	关闭回调函数参数													
+			public function pubFun4setParamIn4closeCallback( _thisObject:Object, _function:Function ):void
+			{
+				this.paramIn4closeCallback4thisObject = _thisObject;
+				this.paramIn4closeCallback4function = _function;	
+			}
+			//	关闭方式参数
+			public function pubFun4getParamOut4winCloseWay():int
+			{
+				return this.paramOut4winCloseWay;
+			}				
+			//	关闭窗口
+			private function prvFun4close():void
+			{
+				PopUpManager.removePopUp( this );						
+				this.paramIn4closeCallback4function.call( this.paramIn4closeCallback4thisObject );				
+			}							
+			
+			//	输入参数设置
+			public function pubFun4setParamIn4arrDictBizDataType( _arrDictBizDataType:ArrayCollection ):void
+			{
+				this.paramIn4arrDictBizDataType = _arrDictBizDataType;
+			}
+			public function pubFun4setParamIn4blConstrainedByPermission( _blConstrainedByPermission:Boolean ):void
+			{
+				this.paramIn4blConstrainedByPermission = _blConstrainedByPermission;
+			}
+			public function pubFun4setParamIn4blOnlyIsManaging( _blOnlyIsManaging:Boolean ):void
+			{
+				this.paramIn4blOnlyIsManaging = _blOnlyIsManaging;
+			}			
+			
+			//	处理对象参数
+			public function pubFun4getParamOut4selectedBizData():BBizData
+			{
+				return this.paramOut4selectedBizData;
+			}				
+			public function pubFun4getParamOut4selectedBizDatas():ArrayCollection
+			{
+				return this.paramOut4selectedBizDatas;
+			}							
+			
+			//	3	公共方法    end		
+			
+			//	4	初始化方法    begin			
+			protected function creationCompleteHandler(event:FlexEvent):void
+			{
+				this.title = resourceManager.getString('menu','selectBusData');	
+				this.x = 100;
+				this.y = 50;
+				
+				//界面打开后自动查询 zhangzy 20131122
+				callbackFunction4query4comQCond();
+			}				
+					
+			//	4	初始化方法    end				
+			
+			//	5	事件响应方法    begin	
+			private function callbackFunction4query4comQCond():void
+			{				
+				this.prvVar4sqlRestriction = this.comQCond.pubFun4getParamOut4sqlRestriction();
+				if( this.prvVar4sqlRestriction == null || this.prvVar4sqlRestriction == "" )
+				{
+					this.prvVar4sqlRestriction = SysConst.SQL_STR_TRUE;
+				}
+				
+				if( this.paramIn4blConstrainedByPermission == true )
+				{
+					var subQueryStr4Id:String = null;
+					if( this.paramIn4blOnlyIsManaging == true )
+					{
+						subQueryStr4Id = " and ( id in (select BIZDATAID from OPERATORUSER_BIZDATA where OPERATORUSERID = " + ClientEnvironment.getOperatorUser().id + " AND ISMANAGING = " + BizConst.GLOBAL_YESNO_YES + ") )";				
+					}
+					else
+					{
+						subQueryStr4Id = " and ( id in (select BIZDATAID from OPERATORUSER_BIZDATA where OPERATORUSERID = " + ClientEnvironment.getOperatorUser().id + ") )";				
+					}
+					this.prvVar4sqlRestriction = this.prvVar4sqlRestriction + subQueryStr4Id;
+				}
+				
+				
+				var blPageQuery:Boolean = this.comQCond.pubFun4getParamOut4blPageQuery();
+								
+				if( blPageQuery == true )
+				{	
+					UtilUi.pubFun4PopWaitWindow( this );
+					this.srvBizData.getBizDatasStat( this.prvVar4sqlRestriction );	
+				}
+				else
+				{	
+					//	不分页查询
+					UtilUi.pubFun4PopWaitWindow( this );
+					this.srvBizData.getBizDatas( this.prvVar4sqlRestriction, true, -1, ClientEnvironment.getSysParamPageSize() );
+				}								
+			}			
+			
+			//	分页查询相关		begin
+			private function faultHandler4getBizDatasStat(event:FaultEvent):void
+			{
+				UtilUi.pubFun4RemoveWaitWindow();
+				Alert.show( UtilExceptionLocale.getExceptionMessageLocaleByFaultEvent( event ), resourceManager.getString('alert','alt_title_warn') );
+			}	
+			
+			private function resultHandler4getBizDatasStat(event:ResultEvent):void 
+			{
+				//	初始化数据表格控制板
+				var rstSize:Number = Number(event.result);
+				this.comAksDataGridControlBar.pubFun4setResultParams( true, rstSize, ClientEnvironment.getSysParamPageSize() );
+				
+				//	去执行第一页查询
+				this.srvBizData.getBizDatas( this.prvVar4sqlRestriction, true, 1, ClientEnvironment.getSysParamPageSize() );
+			}
+			
+			private function prvFun4pageQueryBizDatas( _pageIndex:int ):void
+			{
+				UtilUi.pubFun4PopWaitWindow( this );
+				this.srvBizData.getBizDatas( this.prvVar4sqlRestriction, true, _pageIndex, ClientEnvironment.getSysParamPageSize() );					
+			}			
+			//	分页查询相关		end
+			
+			
+			private function faultHandler4getBizDatas(event:FaultEvent):void
+			{
+				UtilUi.pubFun4RemoveWaitWindow();
+				Alert.show( UtilExceptionLocale.getExceptionMessageLocaleByFaultEvent( event ), resourceManager.getString('alert','alt_title_warn') );
+			}	
+			
+			private function resultHandler4getBizDatas(event:ResultEvent):void 
+			{
+				this.prvVar4dp4comAdgBizData = ArrayCollection(event.result);
+				
+				if( this.comQCond.pubFun4getParamOut4blPageQuery() == false )
+				{
+					//	不是分页查询，需要根据查询结果初始化数据表格控制板
+					this.comAksDataGridControlBar.pubFun4setResultParams( false, this.prvVar4dp4comAdgBizData.length, this.prvVar4dp4comAdgBizData.length );
+				}
+				
+				UtilUi.pubFun4RemoveWaitWindow();
+			}					
+			
+			
+			
+			private function onOk():void
+			{
+				this.paramOut4selectedBizData = BBizData( this.comAdgBizData.selectedItem );
+				this.paramOut4selectedBizDatas = new ArrayCollection( this.comAdgBizData.selectedItems );
+				
+				this.paramOut4winCloseWay = UtilUi.WINDOW_CLOSEWAY_OK;
+				this.prvFun4close();
+			}	
+			
+			private function onCancel():void
+			{	
+				this.paramOut4winCloseWay = UtilUi.WINDOW_CLOSEWAY_CANCEL;
+				this.prvFun4close();
+			}	
+			
+			
+			private function onChange4comAdgBizData():void
+			{
+				this.panelBizDataDefItem.removeAllElements();
+				this.prvFun4clearComAdgs4BizDataDefItem();
+				
+				if( this.comAdgBizData.selectedItem != null )
+				{ 
+					var selectedBizData:BBizData = BBizData(this.comAdgBizData.selectedItem); 
+										
+					if( selectedBizData.type == BizConst.BIZDATA_TYPE_HISTORYAD )
+					{
+						if( this.comAdgBizDataDefItemHistoryAd == null )
+						{
+							this.comAdgBizDataDefItemHistoryAd = new Com_BizData_BizDataDefItemHistoryAd_AdvancedDataGrid();
+							BindingUtils.bindProperty( this.comAdgBizDataDefItemHistoryAd, "dataProvider", this, [ "comAdgBizData", "selectedItem", "bizDataDefItems"] );
+						}	
+						
+						this.panelBizDataDefItem.addElement( this.comAdgBizDataDefItemHistoryAd );
+						this.comAdgBizDataDefItemHistoryAd.percentWidth = 100;
+						this.comAdgBizDataDefItemHistoryAd.percentHeight = 100;											
+					}				
+					else if( selectedBizData.type == BizConst.BIZDATA_TYPE_HISTORYADR )
+					{
+						if( this.comAdgBizDataDefItemHistoryAdR == null )
+						{
+							this.comAdgBizDataDefItemHistoryAdR = new Com_BizData_BizDataDefItemHistoryAdR_AdvancedDataGrid();
+							BindingUtils.bindProperty( this.comAdgBizDataDefItemHistoryAdR, "dataProvider", this, [ "comAdgBizData", "selectedItem", "bizDataDefItems"] );
+						}	
+						
+						this.panelBizDataDefItem.addElement( this.comAdgBizDataDefItemHistoryAdR );
+						this.comAdgBizDataDefItemHistoryAdR.percentWidth = 100;
+						this.comAdgBizDataDefItemHistoryAdR.percentHeight = 100;											
+					}
+					else if( selectedBizData.type == BizConst.BIZDATA_TYPE_FCHAND )
+					{
+						if( this.comAdgBizDataDefItemFcHand == null )
+						{
+							this.comAdgBizDataDefItemFcHand = new Com_BizData_BizDataDefItemFcHand_AdvancedDataGrid();
+							BindingUtils.bindProperty( this.comAdgBizDataDefItemFcHand, "dataProvider", this, [ "comAdgBizData", "selectedItem", "bizDataDefItems"] );
+						}	
+						
+						this.panelBizDataDefItem.addElement( this.comAdgBizDataDefItemFcHand );
+						this.comAdgBizDataDefItemFcHand.percentWidth = 100;
+						this.comAdgBizDataDefItemFcHand.percentHeight = 100;						
+					}
+					else if( selectedBizData.type == BizConst.BIZDATA_TYPE_FCCOMB )
+					{
+						if( this.comAdgBizDataDefItemFcComb == null )
+						{
+							this.comAdgBizDataDefItemFcComb = new Com_BizData_BizDataDefItemFcComb_AdvancedDataGrid();
+							BindingUtils.bindProperty( this.comAdgBizDataDefItemFcComb, "dataProvider", this, [ "comAdgBizData", "selectedItem", "bizDataDefItems"] );
+						}	
+						
+						this.panelBizDataDefItem.addElement( this.comAdgBizDataDefItemFcComb );
+						this.comAdgBizDataDefItemFcComb.percentWidth = 100;
+						this.comAdgBizDataDefItemFcComb.percentHeight = 100;						
+					}		
+					else if( selectedBizData.type == BizConst.BIZDATA_TYPE_TIMEHIS )
+					{
+						if( this.comAdgBizDataDefItemTimeHis == null )
+						{
+							this.comAdgBizDataDefItemTimeHis = new Com_BizData_BizDataDefItemTimeHis_AdvancedDataGrid();
+							BindingUtils.bindProperty( this.comAdgBizDataDefItemTimeHis, "dataProvider", this, [ "comAdgBizData", "selectedItem", "bizDataDefItems"] );
+						}	
+						
+						this.panelBizDataDefItem.addElement( this.comAdgBizDataDefItemTimeHis );
+						this.comAdgBizDataDefItemTimeHis.percentWidth = 100;
+						this.comAdgBizDataDefItemTimeHis.percentHeight = 100;						
+					}	
+					else if( selectedBizData.type == BizConst.BIZDATA_TYPE_TIMEFC )
+					{
+						if( this.comAdgBizDataDefItemTimeFc == null )
+						{
+							this.comAdgBizDataDefItemTimeFc = new Com_BizData_BizDataDefItemTimeFc_AdvancedDataGrid();
+							BindingUtils.bindProperty( this.comAdgBizDataDefItemTimeFc, "dataProvider", this, [ "comAdgBizData", "selectedItem", "bizDataDefItems"] );
+						}	
+						
+						this.panelBizDataDefItem.addElement( this.comAdgBizDataDefItemTimeFc );
+						this.comAdgBizDataDefItemTimeFc.percentWidth = 100;
+						this.comAdgBizDataDefItemTimeFc.percentHeight = 100;						
+					}
+					else if( selectedBizData.type == BizConst.BIZDATA_TYPE_MONEY )
+					{
+						if( this.comAdgBizDataDefItemMoney == null )
+						{
+							this.comAdgBizDataDefItemMoney = new Com_BizData_BizDataDefItemMoney_AdvancedDataGrid();
+							BindingUtils.bindProperty( this.comAdgBizDataDefItemMoney, "dataProvider", this, [ "comAdgBizData", "selectedItem", "bizDataDefItems"] );
+						}	
+						
+						this.panelBizDataDefItem.addElement( this.comAdgBizDataDefItemMoney );
+						this.comAdgBizDataDefItemMoney.percentWidth = 100;
+						this.comAdgBizDataDefItemMoney.percentHeight = 100;						
+					}	
+					else if( selectedBizData.type == BizConst.BIZDATA_TYPE_MONEYCOMB )
+					{
+						if( this.comAdgBizDataDefItemMoneyComb == null )
+						{
+							this.comAdgBizDataDefItemMoneyComb = new Com_BizData_BizDataDefItemMoneyComb_AdvancedDataGrid();
+							BindingUtils.bindProperty( this.comAdgBizDataDefItemMoneyComb, "dataProvider", this, [ "comAdgBizData", "selectedItem", "bizDataDefItems"] );
+						}	
+						
+						this.panelBizDataDefItem.addElement( this.comAdgBizDataDefItemMoneyComb );
+						this.comAdgBizDataDefItemMoneyComb.percentWidth = 100;
+						this.comAdgBizDataDefItemMoneyComb.percentHeight = 100;						
+					}					
+					else if( selectedBizData.type == BizConst.BIZDATA_TYPE_KPI )
+					{
+						if( this.comAdgBizDataDefItemKpi == null )
+						{
+							this.comAdgBizDataDefItemKpi = new Com_BizData_BizDataDefItemKpi_AdvancedDataGrid();
+							BindingUtils.bindProperty( this.comAdgBizDataDefItemKpi, "dataProvider", this, [ "comAdgBizData", "selectedItem", "bizDataDefItems"] );
+						}	
+						
+						this.panelBizDataDefItem.addElement( this.comAdgBizDataDefItemKpi );
+						this.comAdgBizDataDefItemKpi.percentWidth = 100;
+						this.comAdgBizDataDefItemKpi.percentHeight = 100;						
+					}	
+					else if( selectedBizData.type == BizConst.BIZDATA_TYPE_FORECASTASSESSMENT )
+					{
+						if( this.comAdgBizDataDefItemForecastAssessment == null )
+						{
+							this.comAdgBizDataDefItemForecastAssessment = new Com_BizData_BizDataDefItemForecastAssessment_AdvancedDataGrid();
+							BindingUtils.bindProperty( this.comAdgBizDataDefItemForecastAssessment, "dataProvider", this, [ "comAdgBizData", "selectedItem", "bizDataDefItems"] );
+						}	
+						
+						this.panelBizDataDefItem.addElement( this.comAdgBizDataDefItemForecastAssessment );
+						this.comAdgBizDataDefItemForecastAssessment.percentWidth = 100;
+						this.comAdgBizDataDefItemForecastAssessment.percentHeight = 100;			
+					}
+				}
+				
+				
+			}				
+			//	5	事件响应方法    end
+			
+			//	6	本地方法    begin
+			private function prvFun4clearComAdgs4BizDataDefItem():void
+			{
+				//	这个方法是为了选中的业务数据每次变化时，把原来的数据定义的界面元素抛弃掉，
+				//	以免各个类型的业务数据都藏在后面偷偷的运行（因为各界面的dataProvider与业务数据表中的选中记录绑定了）
+				//	我自己猜的。所以没有采用另外一个似乎更合法的“new 一次，多次使用的方法”
+				
+				this.comAdgBizDataDefItemHistoryAd = null;
+				this.comAdgBizDataDefItemHistoryAdR = null;
+				this.comAdgBizDataDefItemFcHand = null;
+				this.comAdgBizDataDefItemFcComb = null;
+				this.comAdgBizDataDefItemTimeHis = null;
+				this.comAdgBizDataDefItemTimeFc = null;
+				this.comAdgBizDataDefItemMoney = null;
+				this.comAdgBizDataDefItemMoneyComb = null;
+				this.comAdgBizDataDefItemKpi = null;				
+			}			
+			//	6	本地方法   end				
+
+
+
+		]]>
+	</fx:Script>
+	<bizdata:Com_BizData_BizData_QueryCond id="comQCond" paramIn4queryCallback4thisObject="{this}" 
+					  paramIn4queryCallback4function="{this.callbackFunction4query4comQCond}" paramIn4arrDictBizDataType="{this.paramIn4arrDictBizDataType}">
+	</bizdata:Com_BizData_BizData_QueryCond>
+	<mx:VDividedBox width="100%" height="100%">
+		<s:VGroup width="100%" height="70%" minHeight="100">
+		<common:LabelBoundary labelText="{resourceManager.getString('menu','busData')}" />
+			<controls:AksDataGridControlBar id="comAksDataGridControlBar" paramIn4callback4thisObject="{this}" 
+											paramIn4callback4queryFunction="{this.prvFun4pageQueryBizDatas}" paramIn4dataGrid="{this.comAdgBizData}">
+			</controls:AksDataGridControlBar>
+			<bizdata:Com_BizData_BizData_AdvancedDataGrid id="comAdgBizData" dataProvider="{this.prvVar4dp4comAdgBizData}" allowMultipleSelection="{allowMultipleSelection}"
+										width="100%" height="100%" change="onChange4comAdgBizData()"/>
+		</s:VGroup>
+		<s:VGroup width="100%" height="30%" minHeight="30">
+			<common:LabelBoundary labelText="{resourceManager.getString('menu','dataDefinition')}" />
+			<s:VGroup id="panelBizDataDefItem" width="100%" height="100%" />
+		</s:VGroup>
+	</mx:VDividedBox>
+	<s:HGroup width="100%" horizontalAlign="center">
+		<buttons:ButtonOk enabled="{new ArrayCollection(comAdgBizData.selectedItems).length>0}" click="onOk()"/>
+		<buttons:ButtonCancel click="onCancel()"/>
+	</s:HGroup>
+</s:TitleWindow>
+

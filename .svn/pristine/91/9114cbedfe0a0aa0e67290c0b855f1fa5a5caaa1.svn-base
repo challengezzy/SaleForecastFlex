@@ -1,0 +1,21 @@
+
+operatoruser=User Information
+permission=Permission Information
+operatoruser_funpermission=Functionalities
+operatoruser_bizdata=Key Figures
+operatoruser_proorg=Business Scope
+
+btn_addfunpermission=Add
+btn_delfunpermission=Remove
+btn_addbizdata=Add
+btn_delbizdata=Remove
+btn_addproorg=Add
+btn_delproorg=Remove
+
+btn_save=Save
+btn_cancel=Cancel
+
+
+
+
+

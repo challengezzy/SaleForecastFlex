@@ -1,0 +1,555 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Module xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		   xmlns:s="library://ns.adobe.com/flex/spark" 
+		   xmlns:mx="library://ns.adobe.com/flex/mx" layout="vertical" width="100%" height="100%" paddingLeft="10" paddingRight="10" 
+		   creationComplete="creationCompleteHandler(event)" keyDown="dataGridKeyDownHandler(event)" 
+		   xmlns:common="dmdd.dmddmx.com.common.*"
+		   xmlns:containers="aks.aksmx.containers.*" xmlns:price="dmdd.dmddmx.com.price.*" xmlns:unit="dmdd.dmddmx.com.unit.*">
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+		<s:RemoteObject endpoint="{ClientEnvironment.endpoint}" id="srvPrice" destination="PriceService">	
+			<s:method name="savePriceDatas4ImportUI" result="resultHandler4savePriceDatas4ImportUI(event)" fault="faultHandler4savePriceDatas4ImportUI(event)">
+			</s:method>							  
+		</s:RemoteObject>
+		<s:RadioButtonGroup id="rbtnGroup" />
+	</fx:Declarations>
+	<fx:Script>
+		<![CDATA[
+			import aks.aksas.utils.UtilUi;
+			
+			import com.cool.assets.CoolAssetsFile;
+			import com.cool.utils.StringUtils;
+			
+			import dmdd.dmddas.common.constant.BizConst;
+			import dmdd.dmddas.common.constant.SysConst;
+			import dmdd.dmddas.common.system.ClientEnvironment;
+			import dmdd.dmddas.common.utils.UtilExceptionLocale;
+			import dmdd.dmddas.common.utils.UtilImport;
+			import dmdd.dmddas.common.utils.UtilPeriod;
+			import dmdd.dmddas.dataaccess.aidobject.ABImPriceData;
+			import dmdd.dmddas.dataaccess.bizobject.BBizData;
+			import dmdd.dmddas.dataaccess.bizobject.BPriceData;
+			import dmdd.dmddas.dataaccess.bizobject.BSysDictionaryItem;
+			import dmdd.dmddas.dataaccess.bizobject.BUnit;
+			import dmdd.dmddas.dataaccess.bizobject.BUnitGroup;
+			
+			import mx.collections.ArrayCollection;
+			import mx.collections.IViewCursor;
+			import mx.controls.Alert;
+			import mx.controls.DataGrid;
+			import mx.controls.dataGridClasses.DataGridColumn;
+			import mx.events.CloseEvent;
+			import mx.events.FlexEvent;
+			import mx.formatters.NumberFormatter;
+			import mx.rpc.events.FaultEvent;
+			import mx.rpc.events.ResultEvent;
+			
+			
+			
+			//	描述    begin
+			//	描述    end
+			
+			//	0	输入参数    begin						
+			//	0	输入参数    end
+			
+			//	1	输出参数    begin
+			//	1	输出参数    end
+			
+			//	2	本地变量    begin	
+			[Bindable]
+			private var prvVar4dp4comAdgImPriceData:ArrayCollection = new ArrayCollection();
+			
+			private var prvVar4unit:BUnit = null;
+			
+			private var prvVar4arrFailedRecord:ArrayCollection = new ArrayCollection();
+			//	2	本地变量    end			
+			
+			//	3	公共方法    begin			
+			//	3	公共方法    end		
+			
+			//	4	初始化方法    begin	
+			protected function creationCompleteHandler(event:FlexEvent):void
+			{
+			}			
+			//	4	初始化方法    end				
+			
+			//	5	事件响应方法    begin
+			private function onChange4comboBoxUnit():void
+			{
+				var selectedUnit:BUnit = BUnit(this.comboBoxUnit.selectedItem)
+				var i:int;
+				var imPriceData:ABImPriceData = null;
+				if( selectedUnit != null && this.prvVar4unit != null && selectedUnit.id != this.prvVar4unit.id )
+				{
+					if( this.prvVar4dp4comAdgImPriceData != null )
+					{
+						for( i=0; i<this.prvVar4dp4comAdgImPriceData.length; i=i+1 )
+						{
+							imPriceData = ABImPriceData(this.prvVar4dp4comAdgImPriceData.getItemAt(i));
+							imPriceData.exchangeUnit( this.prvVar4unit.exchangeRate, selectedUnit.exchangeRate );
+						}
+					}	
+				}
+				
+				this.prvVar4unit = selectedUnit;				
+			}
+			
+			private function onClear():void
+			{
+				this.prvVar4dp4comAdgImPriceData = new ArrayCollection();
+				this.comAdgImPriceData.columnImportResult.visible = false;
+				this.btnSave.enabled = false;
+				this.btnExport.enabled = false;
+			}
+			
+			private function onSave():void
+			{
+				var alert_title_hint:String = resourceManager.getString('alert','alert_title_hint');
+				var alert_msg:String = null;  
+						
+				var unitGroup:BUnitGroup = this.comUnitGroupField.paramIo4selectedUnitGroup;
+				if( unitGroup == null )
+				{
+					alert_msg = resourceManager.getString('alert','alert_msg_nounitgroup12');
+					Alert.show( alert_msg, alert_title_hint );	
+					return;						
+				}
+				
+				var selectedUnit:BUnit = BUnit(this.comboBoxUnit.selectedItem);
+				if( selectedUnit == null )
+				{
+					alert_msg = resourceManager.getString('alert','alert_msg_nounit12');
+					Alert.show( alert_msg, alert_title_hint );	
+					return;						
+				}				
+				
+				if( this.prvVar4dp4comAdgImPriceData.length <= 0 )
+				{
+					alert_msg = resourceManager.getString('alert','alert_msg_nodatatosave12');
+					Alert.show( alert_msg, alert_title_hint );	
+					return;												
+				}
+				
+				UtilUi.pubFun4PopWaitWindow( this );
+				
+				//检查导入价格方式begin
+				var selectedPrice:int = BizConst.GLOBAL_NULL_NULL;
+				if(rbtn4standardPrice.selected == true)
+				{
+					selectedPrice = BizConst.PRICE_IMPORT_STANDARDPRICE;
+				}
+				else if(rbtn4realPrice.selected == true)
+				{
+					selectedPrice = BizConst.PRICE_IMPORT_REALPRICE;
+				}
+				else if(rbtn4bothPrice.selected == true)
+				{
+					selectedPrice = BizConst.PRICE_IMPORT_BOTHPRICE;
+				}
+				//检查导入价格方式end.
+				
+				//	传递到服务器的数据应该是以基准单位计数的	begin
+				var arrImPriceData4save:ArrayCollection = new ArrayCollection();
+				var i:int;
+				var imPriceData:ABImPriceData = null;
+				var imPriceData_new:ABImPriceData = null;
+				for( i=0; i<this.prvVar4dp4comAdgImPriceData.length; i=i+1 )
+				{
+					imPriceData = ABImPriceData(this.prvVar4dp4comAdgImPriceData.getItemAt(i));
+					imPriceData_new = new ABImPriceData();
+					imPriceData_new.copyDeep( imPriceData );
+					if( selectedUnit.isBase == BizConst.GLOBAL_YESNO_NO )
+					{
+						imPriceData_new.exchangeUnit( selectedUnit.exchangeRate, 1 );
+					}	
+					arrImPriceData4save.addItem( imPriceData_new );
+				}									
+				//	传递到服务器的数据应该是以基准单位计数的	end
+				
+				this.srvPrice.savePriceDatas4ImportUI( unitGroup, arrImPriceData4save ,selectedPrice );
+			}	
+			
+			private function faultHandler4savePriceDatas4ImportUI(event:FaultEvent):void
+			{
+				UtilUi.pubFun4RemoveWaitWindow();
+				Alert.show( UtilExceptionLocale.getExceptionMessageLocaleByFaultEvent( event ), resourceManager.getString('alert','alt_title_warn') );
+			}
+			
+			private function resultHandler4savePriceDatas4ImportUI(event:ResultEvent):void 
+			{
+
+				this.prvVar4arrFailedRecord = new ArrayCollection();
+				
+				var totalNum:int = 0; 
+				var failNum:int = 0;
+				var i:int;
+				var rstImPriceData:ABImPriceData = null;
+				totalNum = prvVar4dp4comAdgImPriceData.length;
+				
+				this.prvVar4dp4comAdgImPriceData = ArrayCollection(event.result);
+				if( this.prvVar4dp4comAdgImPriceData != null )
+				{
+					for( i=0; i<this.prvVar4dp4comAdgImPriceData.length; i=i+1 )
+					{
+						rstImPriceData = ABImPriceData(this.prvVar4dp4comAdgImPriceData.getItemAt(i));
+						if( rstImPriceData.importResult != BizConst.IMPORT_RESULT_SUCCESS )
+						{
+							rstImPriceData.importResult = UtilExceptionLocale.getExceptionMessageLocaleByCauseMessage( rstImPriceData.importResult );
+							
+							this.prvVar4arrFailedRecord.addItem( rstImPriceData );
+						}
+						rstImPriceData.exchangeUnit(1,this.prvVar4unit.exchangeRate);
+					}
+					failNum = this.prvVar4arrFailedRecord.length;
+				}
+				
+				UtilUi.pubFun4RemoveWaitWindow();
+				this.comAdgImPriceData.columnImportResult.visible = true;
+				
+				var alert_title_hint:String = resourceManager.getString('alert','alert_title_hint');
+				var alert_msg:String = null;  	
+				
+				alert_msg = resourceManager.getString('alert','alert_msg_totalnum12');
+				alert_msg = alert_msg + totalNum + "\n";
+				alert_msg = alert_msg + resourceManager.getString('alert','alert_msg_failnum12');
+				alert_msg = alert_msg + failNum + "\n";
+				
+				Alert.show( alert_msg, alert_title_hint );
+				
+				if( failNum > 0 )
+				{
+					this.btnExport.enabled = true;
+				}
+				else
+				{
+					this.btnExport.enabled = false;
+				}	
+			}		
+			private function onExport():void
+			{
+				//	只导出错误的，所以先把组件显示的内容换成错误的，处理完后再换回来	begin
+				var arrdp4comAdgImPriceData_bak:ArrayCollection = new ArrayCollection();
+				arrdp4comAdgImPriceData_bak.addAll( this.prvVar4dp4comAdgImPriceData );
+				
+				this.prvVar4dp4comAdgImPriceData.removeAll();
+				this.prvVar4dp4comAdgImPriceData.addAll( this.prvVar4arrFailedRecord );
+				
+				var TSVString:String = this.exportCSV( this.comAdgImPriceData ) ;
+				
+				this.prvVar4dp4comAdgImPriceData.removeAll();
+				this.prvVar4dp4comAdgImPriceData.addAll( arrdp4comAdgImPriceData_bak );
+				//	只导出错误的，所以先把组件显示的内容换成错误的，处理完后再换回来	end
+				
+				// Copy the TSV string to the clipboard
+				System.setClipboard(TSVString);					
+			}
+			
+			private function onPercent():void
+			{				
+				var percentValue:Number = Number(this.text_value.text);
+				if( this.checkPercentValue(percentValue) == false )
+				{
+					return;	
+				}
+				var alert_title_hint:String = resourceManager.getString('alert','alert_title_hint');
+				var alert_msg_waitforgetdata:String = resourceManager.getString('alert','alert_msg_handpercent12');
+				
+				Alert.show( alert_msg_waitforgetdata+this.text_value.text, alert_title_hint, Alert.OK | Alert.CANCEL, this, alert_msg_waitforgetdataConfirmHandler1, null, Alert.OK );
+				
+			}
+			
+			private function alert_msg_waitforgetdataConfirmHandler1(event:CloseEvent):void
+			{
+				if( event.detail == Alert.OK )
+				{
+					//	已经确认过，执行操作
+					UtilUi.pubFun4PopWaitWindow(this);
+					var priceData:BPriceData = null;
+					var percentValue:Number = Number(this.text_value.text);
+					var i:int;
+					var newImPriceData:ABImPriceData =null;
+					var price:Number =0;
+					for each(newImPriceData in this.prvVar4dp4comAdgImPriceData)
+					{
+						var periodDiff:int = UtilPeriod.getPeriodDifference( newImPriceData.periodBegin, newImPriceData.periodEnd );
+						if( periodDiff == SysConst.PERIOD_DIFF_NULL )
+						{
+							return;
+						}
+						var value_byBase:Number;
+						for( i=0; i<= periodDiff; i=i+1 )
+						{
+							price=percentValue*newImPriceData.pubFun4getPeriodDataValue(i);
+							price = Number(price.toFixed(10));
+							newImPriceData.pubFun4setPeriodDataValue( i,price);
+						}
+					}
+					UtilUi.pubFun4RemoveWaitWindow();
+				}
+			}
+			//	5	事件响应方法    end
+			
+			//	6	本地方法    begin
+			private function exportCSV(dg:DataGrid, csvSeparator:String="\t", lineSeparator:String="\n"):String
+			{
+				var data:String = "";
+				var columns:Array = dg.columns;
+				var columnCount:int = columns.length;
+				var column:DataGridColumn;
+				var header:String = "";
+				var headerGenerated:Boolean = false;
+				var dataProvider:Object = dg.dataProvider;
+				var rowCount:int = dataProvider.length;
+				var dp:Object = null;
+				
+				var cursor:IViewCursor = dataProvider.createCursor ();
+				var j:int = 0;
+				
+				//loop through rows
+				while (!cursor.afterLast)
+				{
+					var obj:Object = null;
+					obj = cursor.current;
+					
+					//loop through all columns for the row
+					for(var k:int = 0; k < columnCount; k++)
+					{
+						column = columns[k];
+						//Exclude column data which is invisible (hidden)
+						if(!column.visible)
+						{
+							continue;
+						}
+						
+						data += "\""+ column.itemToLabel(obj)+ "\"";
+						if(k < (columnCount -1))
+						{
+							data += csvSeparator;
+						}
+						//generate header of CSV, only if it's not genereted yet
+						if (!headerGenerated)
+						{
+							var columnHeadStr:String = column.headerText;
+							
+							header += "\"" + columnHeadStr.replace("\n","") + "\""; //把表头中的换行去掉
+							if (k < columnCount - 1)
+							{
+								header += csvSeparator;
+							}
+						}
+						
+						
+					}
+					
+					headerGenerated = true;
+					if (j < (rowCount - 1))
+					{
+						data += lineSeparator;
+					}
+					j++;
+					cursor.moveNext ();
+				}
+				
+				//set references to null:
+				dataProvider = null;
+				columns = null;
+				column = null;
+				
+				return (header + "\r\n" + data);
+			} 
+			
+			
+			
+			private function dataGridKeyDownHandler( event:KeyboardEvent ):void   
+			{     
+				if (event.ctrlKey && this.comAdgImPriceData.getChildByName("clipboardProxy") == null )     
+				{       
+					// Add an invisible TextField object to the DataGrid       
+					var textFieldClipboard:TextField = new TextField();       
+					textFieldClipboard.name = "clipboardProxy";       
+					this.comAdgImPriceData.addChild(textFieldClipboard);       
+					textFieldClipboard.visible = false;       
+					textFieldClipboard.type = TextFieldType.INPUT;       
+					textFieldClipboard.multiline = true;       
+					// Populate the TextField with selected data in TSV format       
+					// textField.text = getTextFromItems(dataGrid.selectedItems);       
+					// textField.setSelection(0, textField.text.length - 1);       
+					// Listen for textInput event       
+					textFieldClipboard.addEventListener(TextEvent.TEXT_INPUT, clipboardProxyPasteHandler);    
+					// Set player-level focus to the TextField       
+					systemManager.stage.focus = textFieldClipboard;     
+				}   
+			}
+			
+			private function clipboardProxyPasteHandler(event:TextEvent):void   
+			{     
+				// Extract values from TSV format and populate the DataGrid
+				if( this.comAdgImPriceData.columnImportResult.visible == true )
+				{
+					this.comAdgImPriceData.columnImportResult.visible = false;
+				}
+				
+				this.prvVar4dp4comAdgImPriceData = new ArrayCollection();
+				this.getImPriceDatasFromText( event.text );  
+				this.btnSave.enabled = true;
+				
+				// 一定要在这里把 textField移除，不然会报 Flash.events.event 到 indexChang eEvent 的类型转换错误
+				// 移去 textField
+				var textFieldClipboard:TextField = TextField(this.comAdgImPriceData.getChildByName("clipboardProxy"));       
+				if ( textFieldClipboard != null )
+				{         
+					this.comAdgImPriceData.removeChild(textFieldClipboard);
+				}   								
+			}   
+			
+			private function getImPriceDatasFromText(text:String):void   
+			{     
+				var alert_title_hint:String = resourceManager.getString('alert','alert_title_hint');
+				var alert_msg:String = null;  
+				
+				var rstArrayImPriceData:Array = new Array();
+				var rows:Array = text.split("\n");
+				if( rows == null )
+				{
+					alert_msg = resourceManager.getString('alert','alert_msg_nopricedata12');
+					Alert.show( alert_msg, alert_title_hint );	
+					return;	
+				}     
+				if (!rows[rows.length - 1])
+				{       
+					rows.pop();
+				}     
+				
+				if( rows.length <= 1 )
+				{
+					alert_msg = resourceManager.getString('alert','alert_msg_nopricedata12');
+					Alert.show( alert_msg, alert_title_hint );						
+					return;
+				}
+				
+				var rwHeader:String = rows[0];
+				var fieldsHeader:Array = rwHeader.split( "\t" );
+				if(!(fieldsHeader[fieldsHeader.length-1]))
+				{
+					fieldsHeader.pop();
+				} 				
+				if( fieldsHeader.length <= 2 )
+				{
+					alert_msg = resourceManager.getString('alert','alert_msg_nopricedatacolumen12');
+					Alert.show( alert_msg, alert_title_hint );						
+					return;					
+				}
+				
+				var colIdx:int;
+				var periodBegin:int = UtilPeriod.parse( fieldsHeader[2] );
+				var period:int = SysConst.PERIOD_NULL;
+				if( periodBegin == SysConst.PERIOD_NULL )
+				{
+					alert_msg = resourceManager.getString('alert','alert_msg_errorpricedatacolumnheader12');
+					Alert.show( alert_msg, alert_title_hint );
+					return;																	
+				}
+				for( colIdx = 3; colIdx < fieldsHeader.length; colIdx=colIdx+1 )
+				{
+					period = UtilPeriod.parse( fieldsHeader[ colIdx ] );
+					if( period == SysConst.PERIOD_NULL )
+					{
+						alert_msg = resourceManager.getString('alert','alert_msg_errorpricedatacolumnheader12');
+						Alert.show( alert_msg, alert_title_hint );
+						return;												
+					}
+					if( UtilPeriod.getPeriodDifference( periodBegin, period ) != (colIdx - 2) )
+					{
+						alert_msg = resourceManager.getString('alert','alert_msg_pricedatacolumnheaderperiodnotsucceed12');
+						Alert.show( alert_msg, alert_title_hint );
+						return;																		
+					}
+				}
+				var periodEnd:int = period;
+				if( periodEnd == SysConst.PERIOD_NULL )
+				{
+					periodEnd = periodBegin;	
+				}
+				
+				var periodDiff:int = UtilPeriod.getPeriodDifference(periodBegin, periodEnd);
+				if( periodDiff >= SysConst.PERIODNUM_MAX_NUM )
+				{
+					alert_msg = resourceManager.getString('alert','alter_msg_perioddiffover12');
+					Alert.show( alert_msg, alert_title_hint );
+					return;																							
+				}
+				
+				this.comAdgImPriceData.pubFun4setParamIo4periodBeginEnd( periodBegin, periodEnd, true );
+				
+				var row:String = null;
+				var rowIdx:int;
+				var fields:Array = null;
+				var periodIdx:int;
+				var periodNum:int;
+				
+				var newImPriceData:ABImPriceData = null;
+				for( rowIdx=1; rowIdx<rows.length; rowIdx=rowIdx+1 )
+				{
+					newImPriceData = new ABImPriceData();
+					newImPriceData.periodBegin = periodBegin;
+					newImPriceData.periodEnd = periodEnd;
+					newImPriceData.importResult = null;
+					
+					fields = UtilImport.splitDataByTab( rows[rowIdx].toString() );
+					if( fields.length <= 2 )
+					{
+						continue;
+					}
+					newImPriceData.productCode = fields[0];
+					newImPriceData.organizationCode = fields[1];
+					
+					periodNum = Math.min( periodDiff+1, fields.length-2 );
+					for( periodIdx=0; periodIdx < periodNum; periodIdx=periodIdx+1 )
+					{
+						newImPriceData.pubFun4setPeriodDataValue( periodIdx, Number( fields[2+periodIdx] ) );	
+					}
+					
+					this.prvVar4dp4comAdgImPriceData.addItem( newImPriceData );
+				}
+			}   	
+			
+			private function checkPercentValue( _percentValue:Number ):Boolean
+			{
+				var alert_title_hint:String = resourceManager.getString('alert','alert_title_hint');	
+				var alert_msg:String = resourceManager.getString('alert','alert_msg_inputerr12');				
+				
+				if( isNaN(_percentValue) )
+				{
+					Alert.show(alert_msg, alert_title_hint);
+					return false;							
+				}
+				return true;
+			}
+			//	6	本地方法   end	
+			
+		]]>
+	</fx:Script>
+	<common:LabelBoundary paddingTop="5" labelText="{resourceManager.getString('menu','priceData')}" />
+	<containers:AksControlBar>
+		<s:Label text="{resourceManager.getString('note','unitGroup')}"/>
+		<unit:Com_Unit_UnitGroup_Field id="comUnitGroupField" width="150">
+		</unit:Com_Unit_UnitGroup_Field>
+		<mx:Spacer width="20"/>
+		<s:Label text="{resourceManager.getString('note','unit')}"/>
+		<s:ComboBox id="comboBoxUnit" dataProvider="{this.comUnitGroupField.paramIo4selectedUnitGroup.units}" selectedIndex="0" change="onChange4comboBoxUnit()"/>
+		<mx:Spacer width="50"/>
+		<s:RadioButton id="rbtn4standardPrice" selected="true" label="{resourceManager.getString('note','standardPrice')}" 	groupName="rbtnGroup"/>
+		<s:RadioButton id="rbtn4realPrice" 	   selected="false" label="{resourceManager.getString('note','actualPrice')}" 		groupName="rbtnGroup"/>			
+		<s:RadioButton id="rbtn4bothPrice" 	   selected="false" label="{resourceManager.getString('note','twoPrice')}" 		groupName="rbtnGroup"/>														
+		<mx:Spacer width="50"/>
+		<s:Button label="{resourceManager.getString('button','save')}"  icon="{CoolAssetsFile.saveIcon}" click="onSave()" id="btnSave" enabled="false"/> 
+		<s:Button label="{resourceManager.getString('button','clear')}" icon="{CoolAssetsFile.clearIcon}" click="onClear()"/>
+		<s:Button label="{resourceManager.getString('button','expLogFailed')}" icon="{CoolAssetsFile.doctableIcon}" click="onExport()" id="btnExport" enabled="false"/>
+	</containers:AksControlBar>
+	<containers:AksControlBar>
+		<s:Button label="{resourceManager.getString('button','multiply')}" click="onPercent()" />
+		<s:TextInput id="text_value" />
+	</containers:AksControlBar>
+	<price:Com_Price_ImPriceData_AdvancedDataGrid id="comAdgImPriceData" dataProvider="{this.prvVar4dp4comAdgImPriceData}" width="100%" height="100%"/>
+	
+</mx:Module>

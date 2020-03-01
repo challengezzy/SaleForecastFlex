@@ -1,0 +1,765 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Module xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		   xmlns:s="library://ns.adobe.com/flex/spark" 
+		   xmlns:mx="library://ns.adobe.com/flex/mx" layout="vertical" width="100%" height="100%"
+		   paddingBottom="5" paddingTop="5" paddingLeft="10" paddingRight="10"
+		   creationComplete="creationCompleteHandler(event)"  xmlns:security="dmdd.dmddmx.com.security.*"
+		   xmlns:containers="aks.aksmx.containers.*" xmlns:organization="dmdd.dmddmx.com.organization.*" xmlns:common="dmdd.dmddmx.com.common.*" xmlns:buttons="com.cool.buttons.*">
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+		<s:RemoteObject endpoint="{ClientEnvironment.endpoint}" id="srvOrganization" destination="OrganizationService">	
+			<s:method name="importOrganization" result="resultHandler4importOrganization(event)" fault="faultHandler4importOrganization(event)">
+			</s:method>		
+			<s:method name="importOrganizationCharacter" result="resultHandler4importOrganizationCharacter(event)" fault="faultHandler4importOrganizationCharacter(event)">
+			</s:method>	
+			<s:method name="importOrganizationOrgCharacter" result="resultHandler4importOrganizationOrgCharacter(event)" fault="faultHandler4importOrganizationOrgCharacter(event)">
+			</s:method>	
+		</s:RemoteObject>	
+		<s:RemoteObject endpoint="{ClientEnvironment.endpoint}" id="ifc" destination="InterfaceService">	
+			<s:method name="getInterFaceValues4Organization" result="resultHandler4getInterFaceValues4Organization(event)" fault="faultHandler4getInterFaceValues4Organization(event)">
+			</s:method>							  
+		</s:RemoteObject>
+	</fx:Declarations>
+	<fx:Metadata>
+		[ResourceBundle("mod_security_interface_organization")]
+	</fx:Metadata>	
+	
+	<fx:Script>
+		<![CDATA[
+			import aks.aksas.utils.UtilArrayCollection;
+			import aks.aksas.utils.UtilUi;
+			
+			import dmdd.dmddas.common.constant.BizConst;
+			import dmdd.dmddas.common.system.ClientEnvironment;
+			import dmdd.dmddas.common.utils.UtilExceptionLocale;
+			import dmdd.dmddas.dataaccess.aidobject.ABImOrganization;
+			import dmdd.dmddas.dataaccess.aidobject.ABImOrganizationCharacter;
+			import dmdd.dmddas.dataaccess.aidobject.ABImOrganizationOrgCharacter;
+			import dmdd.dmddas.dataaccess.bizobject.BOrganization;
+			import dmdd.dmddas.dataaccess.bizobject.BOrganizationCharacter;
+			import dmdd.dmddas.dataaccess.bizobject.BOrganizationOrgCharacter;
+			
+			import mx.collections.ArrayCollection;
+			import mx.collections.IViewCursor;
+			import mx.controls.Alert;
+			import mx.controls.DataGrid;
+			import mx.controls.dataGridClasses.DataGridColumn;
+			import mx.events.CloseEvent;
+			import mx.events.FlexEvent;
+			import mx.rpc.events.FaultEvent;
+			import mx.rpc.events.ResultEvent;
+			
+			//	描述    begin
+			//	描述    end
+			
+			//	0	输入参数    begin						
+			//	0	输入参数    end
+			
+			//	1	输出参数    begin
+			//	1	输出参数    end
+			
+			//	2	本地变量    begin	
+			[Bindable]
+			private var prvVar4dp4comAdgImOrganization:ArrayCollection = new ArrayCollection();	
+			[Bindable]
+			private var prvVar4dp4comAdgImOrganizationCharacter:ArrayCollection = new ArrayCollection();
+			[Bindable]
+			private var prvVar4dp4comAdgImOrganizationOrgCharacter:ArrayCollection = new ArrayCollection();	
+			[Bindable]
+			private var prvVar4dp4comAdgImOrganizationWarning:ArrayCollection = new ArrayCollection();
+			
+			private var prvVar4arrFailedRecord:ArrayCollection = new ArrayCollection();
+			//	2	本地变量    end			
+			
+			//	3	公共方法    begin			
+			//	3	公共方法    end		
+			
+			//	4	初始化方法    begin	
+			protected function creationCompleteHandler(event:FlexEvent):void
+			{
+
+			}			
+			//	4	初始化方法    end				
+			
+			//	5	事件响应方法    begin
+			//-------------------------interface data egin ---------------------//	
+			private function onLoad():void
+			{
+				
+				var date:String = text_date.text;
+				var alert_title_hint:String = resourceManager.getString('alert','alert_title_hint');
+				var alert_msg:String="";
+				if(date=="")
+				{
+					
+					alert_msg  = resourceManager.getString('alert','alert_msg_inputdate12');
+					Alert.show( alert_msg, alert_title_hint );	
+					return;											
+				}
+				else
+				{
+					if(date.length!=8)
+					{
+						alert_msg  = resourceManager.getString('alert','alert_msg_inputdate_err12');
+						Alert.show( alert_msg, alert_title_hint );	
+						return;
+					}					
+					var ma:RegExp = new RegExp("^[0-9]+$");
+					if(!ma.test(date))
+					{
+						alert_msg  = resourceManager.getString('alert','alert_msg_inputdate_err12');
+						Alert.show( alert_msg, alert_title_hint );	
+						return;
+					}
+				}
+				
+				if(text_region.text == "")
+				{
+					alert_msg  = resourceManager.getString('alert','alert_msg_inputdate_noregion12');
+					Alert.show( alert_msg, alert_title_hint );	
+					return;
+				}
+				
+				var alert_msg_waitforgetdata:String = resourceManager.getString('alert','alert_msg_waitforgetdata12');
+				
+				Alert.show( alert_msg_waitforgetdata, alert_title_hint, Alert.OK | Alert.CANCEL, this, alert_msg_waitforgetdataConfirmHandler, null, Alert.OK );
+				
+			}
+			private function alert_msg_waitforgetdataConfirmHandler(event:CloseEvent):void
+			{
+				if( event.detail == Alert.OK )
+				{
+					//	已经确认过，执行操作
+					UtilUi.pubFun4PopWaitWindow(this);
+					ifc.getInterFaceValues4Organization("ZSD0004",text_date.text,text_region.text);
+				}
+			}
+			
+			private function faultHandler4getInterFaceValues4Organization(event:FaultEvent):void
+			{
+				UtilUi.pubFun4RemoveWaitWindow();
+				Alert.show( UtilExceptionLocale.getExceptionMessageLocaleByFaultEvent( event ), resourceManager.getString('main','alt_title_warn') );
+			}
+			
+			private function resultHandler4getInterFaceValues4Organization(event:ResultEvent):void 
+			{	
+				var result:Object = event.result;
+				UtilUi.pubFun4RemoveWaitWindow();
+				//第一步，装载组织
+				prvVar4dp4comAdgImOrganization = new ArrayCollection();
+				var newImOrganization:ABImOrganization = null;
+				var arr4organizations:ArrayCollection = result.ORGANIATION as ArrayCollection;
+				for each(var organization:BOrganization in arr4organizations)
+				{
+					newImOrganization = new ABImOrganization();
+					newImOrganization.importResult = null;
+					
+					//	上级组织编码
+					if(organization.parentOrganization!=null)
+					newImOrganization.parentCode = organization.parentOrganization.code;
+					
+					//	层次值
+					newImOrganization.layerValue = "4";
+					
+					//	编码
+					newImOrganization.code = organization.code;
+					
+					//	名称
+					newImOrganization.name =organization.name;
+					
+					//	是否目录（0否1是）
+					newImOrganization.isCatalog = "0";
+					
+					//	是否有效（0否1是）
+					newImOrganization.isValid = "1";
+					
+					//	描述
+					newImOrganization.description = "";
+					
+					//	备注
+					newImOrganization.comments = "从接口读取";
+					
+					
+					this.prvVar4dp4comAdgImOrganization.addItem( newImOrganization );
+				}
+				//第二部装载组织特征
+				var newImOrganizationCharacter:ABImOrganizationCharacter = null;
+				prvVar4dp4comAdgImOrganizationCharacter = new ArrayCollection();
+				var arr4organizationcharacters:ArrayCollection = result.ORGANIATIONCHARACTER as ArrayCollection;
+				for each(var organizationCharacter:BOrganizationCharacter in arr4organizationcharacters)
+				{
+					newImOrganizationCharacter = new ABImOrganizationCharacter();
+					newImOrganizationCharacter.importResult = null;
+					
+					//	上级组织特征编码
+					if(organizationCharacter.parentOrganizationCharacter!=null)
+					newImOrganizationCharacter.parentCode = organizationCharacter.parentOrganizationCharacter.code;
+					
+					//	层次值
+					newImOrganizationCharacter.layerValue = "4";
+					
+					//	编码
+					newImOrganizationCharacter.code = organizationCharacter.code;
+					
+					//	名称
+					newImOrganizationCharacter.name = organizationCharacter.name;
+					
+					//	类型
+					newImOrganizationCharacter.type = organizationCharacter.type;
+					
+					//	是否目录（0否1是）
+					newImOrganizationCharacter.isCatalog = "0";
+					
+					//	描述
+					newImOrganizationCharacter.description = "";
+					
+					//	备注
+					newImOrganizationCharacter.comments = "从接口读取";
+					
+					
+					this.prvVar4dp4comAdgImOrganizationCharacter.addItem( newImOrganizationCharacter );
+				}	
+				
+				//第三步，装载组织和特征关系
+				var newImOrganizationOrgCharacter:ABImOrganizationOrgCharacter = null;
+				prvVar4dp4comAdgImOrganizationOrgCharacter= new ArrayCollection;
+				var arr4organizationorgcharacters:ArrayCollection = result.ORGANIATIONORGCHARACTER as ArrayCollection;
+				for each(var hmobj:Object in arr4organizationorgcharacters)
+				{
+					newImOrganizationOrgCharacter = new ABImOrganizationOrgCharacter();
+					newImOrganizationOrgCharacter.importResult = null;
+					
+					//	明细组织编码
+					newImOrganizationOrgCharacter.detailOrganizationCode = hmobj.ORGANIATIONCODE;
+					
+					//	明细组织特征编码
+					newImOrganizationOrgCharacter.detailOrganizationCharacterCode = hmobj.ORGANIATIONCODECHARACTERCODE;
+					
+					
+					this.prvVar4dp4comAdgImOrganizationOrgCharacter.addItem( newImOrganizationOrgCharacter );
+				}
+				
+				//第四步，告警信息
+				
+				prvVar4dp4comAdgImOrganizationWarning =  new ArrayCollection();
+				arr4organizationorgcharacters = result.ORGANIATIONWARNING as ArrayCollection;
+				for each(var _hmobj:Object in arr4organizationorgcharacters)
+				{
+					newImOrganizationOrgCharacter = new ABImOrganizationOrgCharacter();
+					
+					//	明细组织编码
+					newImOrganizationOrgCharacter.detailOrganizationCode = _hmobj.ORGCODE;
+					
+					//	明细组织特征编码
+					newImOrganizationOrgCharacter.detailOrganizationCharacterCode = _hmobj.REASON;
+					
+					
+					this.prvVar4dp4comAdgImOrganizationWarning.addItem( newImOrganizationOrgCharacter );
+				}
+			}
+			
+			//-------------------------interface data end ---------------------//	
+			//-------------------------organization data egin ---------------------//	
+			private function onOrganizationClear():void
+			{
+				this.prvVar4dp4comAdgImOrganization = new ArrayCollection();
+				this.comAdgImOrganization.columnImportResult.visible = false;
+
+			}
+			
+			private function onOrganizationSave():void
+			{
+				var alert_title_hint:String = resourceManager.getString('alert','alert_title_hint');
+				var alert_msg:String = null;  
+				
+				if( this.prvVar4dp4comAdgImOrganization.length <= 0 )
+				{
+					alert_msg = resourceManager.getString('alert','alert_msg_nodatatosave12');
+					Alert.show( alert_msg, alert_title_hint );	
+					return;												
+				}
+				
+
+				
+				UtilUi.pubFun4PopWaitWindow( this );
+				
+				this.srvOrganization.importOrganization( this.prvVar4dp4comAdgImOrganization );
+			}	
+			
+			private function faultHandler4importOrganization(event:FaultEvent):void
+			{
+				UtilUi.pubFun4RemoveWaitWindow();
+				Alert.show( UtilExceptionLocale.getExceptionMessageLocaleByFaultEvent( event ), resourceManager.getString('alert','alt_title_warn') );
+			}
+			
+			private function resultHandler4importOrganization(event:ResultEvent):void 
+			{
+				this.prvVar4dp4comAdgImOrganization = ArrayCollection(event.result);
+				
+				this.prvVar4arrFailedRecord = new ArrayCollection();
+				
+				var totalNum:int = 0; 
+				var failNum:int = 0;
+				var i:int;
+				var rstImOrganization:ABImOrganization = null;
+				if( this.prvVar4dp4comAdgImOrganization != null )
+				{
+					totalNum = this.prvVar4dp4comAdgImOrganization.length;
+					for( i=0; i<this.prvVar4dp4comAdgImOrganization.length; i=i+1 )
+					{
+						rstImOrganization = ABImOrganization(this.prvVar4dp4comAdgImOrganization.getItemAt(i));
+						if( rstImOrganization.importResult != BizConst.IMPORT_RESULT_SUCCESS )
+						{
+							rstImOrganization.importResult = UtilExceptionLocale.getExceptionMessageLocaleByCauseMessage( rstImOrganization.importResult );
+							
+							this.prvVar4arrFailedRecord.addItem( rstImOrganization );
+						}
+					}
+					
+					failNum = this.prvVar4arrFailedRecord.length;
+				}
+				
+				UtilUi.pubFun4RemoveWaitWindow();
+				this.comAdgImOrganization.columnImportResult.visible = true;
+				
+				var alert_title_hint:String = resourceManager.getString('alert','alert_title_hint');
+				var alert_msg:String = null;  	
+				
+				alert_msg = resourceManager.getString('alert','alert_msg_totalnum12');
+				alert_msg = alert_msg + totalNum + "\n";
+				alert_msg = alert_msg + resourceManager.getString('alert','alert_msg_failnum12');
+				alert_msg = alert_msg + failNum + "\n";
+				
+				Alert.show( alert_msg, alert_title_hint );		
+				
+				if( failNum > 0 )
+				{
+					this.btnOrganizationExport.enabled = true;
+				}
+				else
+				{
+					this.btnOrganizationExport.enabled = false;
+				}
+			}		
+			
+			private function onOrganizationExport():void
+			{
+				var TSVString:String = "";
+				
+				// Run through each field to create the column headers row
+				TSVString += this.comAdgImOrganization.columnParentCode.headerText + "\t";
+				TSVString += this.comAdgImOrganization.columnLayerValue.headerText + "\t";
+				
+				TSVString += this.comAdgImOrganization.columnCode.headerText + "\t";
+				TSVString += this.comAdgImOrganization.columnName.headerText + "\t";
+				TSVString += this.comAdgImOrganization.columnIsCatalog.headerText + "\t";
+				TSVString += this.comAdgImOrganization.columnIsValid.headerText + "\t";
+				TSVString += this.comAdgImOrganization.columnDescription.headerText + "\t";
+				TSVString += this.comAdgImOrganization.columnComments.headerText + "\t";
+				
+				TSVString += this.comAdgImOrganization.columnImportResult.headerText + "\n";
+				
+				
+				var i:int;
+				var failImOrganization:ABImOrganization = null;
+				if( this.prvVar4arrFailedRecord != null )
+				{
+					for( i=0; i<this.prvVar4arrFailedRecord.length; i=i+1 )
+					{
+						failImOrganization = ABImOrganization( this.prvVar4arrFailedRecord.getItemAt( i ) );
+						
+						TSVString += failImOrganization.parentCode + "\t";
+						TSVString += failImOrganization.layerValue + "\t";
+						
+						TSVString += failImOrganization.code + "\t";
+						TSVString += failImOrganization.name + "\t";
+						TSVString += failImOrganization.isCatalog + "\t";
+						TSVString += failImOrganization.isValid + "\t";
+						TSVString += failImOrganization.description + "\t";						
+						TSVString += failImOrganization.comments + "\t";
+						
+						TSVString += failImOrganization.importResult + "\n";          			           				
+					}	
+				}	
+				// Copy the TSV string to the clipboard
+				System.setClipboard(TSVString);					
+			}		
+			//-------------------------organization data end ---------------------//	
+			
+			//-------------------------organizationcharacter data begin ---------------------//	
+			private function onOrganizationCharacterClear():void
+			{
+				this.prvVar4dp4comAdgImOrganizationCharacter = new ArrayCollection();
+				this.comAdgImOrganizationCharacter.columnImportResult.visible = false;
+			}
+			
+			private function onOrganizationCharacterSave():void
+			{
+				var alert_title_hint:String = resourceManager.getString('alert','alert_title_hint');
+				var alert_msg:String = null;  
+				
+				if( this.prvVar4dp4comAdgImOrganizationCharacter.length <= 0 )
+				{
+					alert_msg = resourceManager.getString('alert','alert_msg_nodatatosave12');
+					Alert.show( alert_msg, alert_title_hint );	
+					return;												
+				}
+				
+				UtilUi.pubFun4PopWaitWindow( this );
+				
+				this.srvOrganization.importOrganizationCharacter( this.prvVar4dp4comAdgImOrganizationCharacter );
+			}	
+			
+			private function faultHandler4importOrganizationCharacter(event:FaultEvent):void
+			{
+				UtilUi.pubFun4RemoveWaitWindow();
+				Alert.show( UtilExceptionLocale.getExceptionMessageLocaleByFaultEvent( event ), resourceManager.getString('alert','alt_title_warn') );
+			}
+			
+			private function resultHandler4importOrganizationCharacter(event:ResultEvent):void 
+			{
+				this.prvVar4dp4comAdgImOrganizationCharacter = ArrayCollection(event.result);
+				
+				this.prvVar4arrFailedRecord = new ArrayCollection();
+				
+				var totalNum:int = 0; 
+				var failNum:int = 0;
+				var i:int;
+				var rstImOrganizationCharacter:ABImOrganizationCharacter = null;
+				if( this.prvVar4dp4comAdgImOrganizationCharacter != null )
+				{
+					totalNum = this.prvVar4dp4comAdgImOrganizationCharacter.length;
+					for( i=0; i<this.prvVar4dp4comAdgImOrganizationCharacter.length; i=i+1 )
+					{
+						rstImOrganizationCharacter = ABImOrganizationCharacter(this.prvVar4dp4comAdgImOrganizationCharacter.getItemAt(i));
+						if( rstImOrganizationCharacter.importResult != BizConst.IMPORT_RESULT_SUCCESS )
+						{
+							rstImOrganizationCharacter.importResult = UtilExceptionLocale.getExceptionMessageLocaleByCauseMessage( rstImOrganizationCharacter.importResult );
+							
+							this.prvVar4arrFailedRecord.addItem( rstImOrganizationCharacter );
+						}
+					}
+					
+					failNum = this.prvVar4arrFailedRecord.length;
+				}
+				
+				UtilUi.pubFun4RemoveWaitWindow();
+				this.comAdgImOrganizationCharacter.columnImportResult.visible = true;
+				
+				var alert_title_hint:String = resourceManager.getString('alert','alert_title_hint');
+				var alert_msg:String = null;  	
+				
+				alert_msg = resourceManager.getString('alert','alert_msg_totalnum12');
+				alert_msg = alert_msg + totalNum + "\n";
+				alert_msg = alert_msg + resourceManager.getString('alert','alert_msg_failnum12');
+				alert_msg = alert_msg + failNum + "\n";
+				
+				Alert.show( alert_msg, alert_title_hint );	
+				
+				if( failNum > 0 )
+				{
+					this.btnOrganizationCharacterExport.enabled = true;
+				}
+				else
+				{
+					this.btnOrganizationCharacterExport.enabled = false;
+				}				
+			}		
+			
+			
+			private function onOrganizationCharacterExport():void
+			{
+				var TSVString:String = "";
+				
+				// Run through each field to create the column headers row
+				TSVString += this.comAdgImOrganizationCharacter.columnParentCode.headerText + "\t";
+				TSVString += this.comAdgImOrganizationCharacter.columnLayerValue.headerText + "\t";
+				
+				TSVString += this.comAdgImOrganizationCharacter.columnCode.headerText + "\t";
+				TSVString += this.comAdgImOrganizationCharacter.columnName.headerText + "\t";
+				TSVString += this.comAdgImOrganizationCharacter.columnType.headerText + "\t";
+				TSVString += this.comAdgImOrganizationCharacter.columnIsCatalog.headerText + "\t";
+				TSVString += this.comAdgImOrganizationCharacter.columnDescription.headerText + "\t";
+				TSVString += this.comAdgImOrganizationCharacter.columnComments.headerText + "\t";
+				
+				TSVString += this.comAdgImOrganizationCharacter.columnImportResult.headerText + "\n";
+				
+				
+				var i:int;
+				var failImOrganizationCharacter:ABImOrganizationCharacter = null;
+				if( this.prvVar4arrFailedRecord != null )
+				{
+					for( i=0; i<this.prvVar4arrFailedRecord.length; i=i+1 )
+					{
+						failImOrganizationCharacter = ABImOrganizationCharacter( this.prvVar4arrFailedRecord.getItemAt( i ) );
+						
+						TSVString += failImOrganizationCharacter.parentCode + "\t";
+						TSVString += failImOrganizationCharacter.layerValue + "\t";
+						
+						TSVString += failImOrganizationCharacter.code + "\t";
+						TSVString += failImOrganizationCharacter.name + "\t";
+						TSVString += failImOrganizationCharacter.type + "\t";
+						TSVString += failImOrganizationCharacter.isCatalog + "\t";
+						TSVString += failImOrganizationCharacter.description + "\t";						
+						TSVString += failImOrganizationCharacter.comments + "\t";
+						
+						TSVString += failImOrganizationCharacter.importResult + "\n";          			           				
+					}	
+				}	
+				// Copy the TSV string to the clipboard
+				System.setClipboard(TSVString);					
+			}			
+			
+			//-------------------------organizationcharacter data end ---------------------//	
+			
+			
+			//-------------------------organizationorgcharacter data begin ---------------------//	
+			private function onOrganizationOrgCharacterClear():void
+			{
+				this.prvVar4dp4comAdgImOrganizationOrgCharacter = new ArrayCollection();
+				this.comAdgImOrganizationOrgCharacter.columnImportResult.visible = false;
+
+			}
+			
+			private function onOrganizationOrgCharacterSave():void
+			{
+				var alert_title_hint:String = resourceManager.getString('alert','alert_title_hint');
+				var alert_msg:String = null;  
+				
+				if( this.prvVar4dp4comAdgImOrganizationOrgCharacter.length <= 0 )
+				{
+					alert_msg = resourceManager.getString('alert','alert_msg_nodatatosave12');
+					Alert.show( alert_msg, alert_title_hint );	
+					return;												
+				}
+				
+				UtilUi.pubFun4PopWaitWindow( this );
+				
+				this.srvOrganization.importOrganizationOrgCharacter( this.prvVar4dp4comAdgImOrganizationOrgCharacter );
+			}	
+			
+			private function faultHandler4importOrganizationOrgCharacter(event:FaultEvent):void
+			{
+				UtilUi.pubFun4RemoveWaitWindow();
+				Alert.show( UtilExceptionLocale.getExceptionMessageLocaleByFaultEvent( event ), resourceManager.getString('alert','alt_title_warn') );
+			}
+			
+			private function resultHandler4importOrganizationOrgCharacter(event:ResultEvent):void 
+			{
+				this.prvVar4dp4comAdgImOrganizationOrgCharacter = ArrayCollection(event.result);
+				
+				var totalNum:int = 0; 
+				var failNum:int = 0;
+				var i:int;
+				var rstImOrganizationOrgCharacter:ABImOrganizationOrgCharacter = null;
+				if( this.prvVar4dp4comAdgImOrganizationOrgCharacter != null )
+				{
+					totalNum = this.prvVar4dp4comAdgImOrganizationOrgCharacter.length;
+					for( i=0; i<this.prvVar4dp4comAdgImOrganizationOrgCharacter.length; i=i+1 )
+					{
+						rstImOrganizationOrgCharacter = ABImOrganizationOrgCharacter(this.prvVar4dp4comAdgImOrganizationOrgCharacter.getItemAt(i));
+						if( rstImOrganizationOrgCharacter.importResult != BizConst.IMPORT_RESULT_SUCCESS )
+						{
+							rstImOrganizationOrgCharacter.importResult = UtilExceptionLocale.getExceptionMessageLocaleByCauseMessage( rstImOrganizationOrgCharacter.importResult );
+							
+							this.prvVar4arrFailedRecord.addItem( rstImOrganizationOrgCharacter ); 
+						}
+					}
+					
+					failNum = this.prvVar4arrFailedRecord.length;
+				}
+				
+				UtilUi.pubFun4RemoveWaitWindow();
+				this.comAdgImOrganizationOrgCharacter.columnImportResult.visible = true;
+				
+				var alert_title_hint:String = resourceManager.getString('alert','alert_title_hint');
+				var alert_msg:String = null;  	
+				
+				alert_msg = resourceManager.getString('alert','alert_msg_totalnum12');
+				alert_msg = alert_msg + totalNum + "\n";
+				alert_msg = alert_msg + resourceManager.getString('alert','alert_msg_failnum12');
+				alert_msg = alert_msg + failNum + "\n";
+				
+				Alert.show( alert_msg, alert_title_hint );
+				
+				if( failNum > 0 )
+				{
+					this.btnOrganizationOrgCharacterExport.enabled = true;
+				}
+				else
+				{
+					this.btnOrganizationOrgCharacterExport.enabled = false;
+				}				
+				
+			}		
+			
+			private function onOrganizationOrgCharacterExport():void
+			{
+				var TSVString:String = "";
+				
+				// Run through each field to create the column headers row
+				TSVString += this.comAdgImOrganizationOrgCharacter.columnDetailOrganizationCode.headerText + "\t";
+				TSVString += this.comAdgImOrganizationOrgCharacter.columnDetailOrganizationCharacterCode.headerText + "\t";
+				
+				TSVString += this.comAdgImOrganizationOrgCharacter.columnImportResult.headerText + "\n";
+				
+				
+				var i:int;
+				var failImOrganizationOrgCharacter:ABImOrganizationOrgCharacter = null;
+				if( this.prvVar4arrFailedRecord != null )
+				{
+					for( i=0; i<this.prvVar4arrFailedRecord.length; i=i+1 )
+					{
+						failImOrganizationOrgCharacter = ABImOrganizationOrgCharacter( this.prvVar4arrFailedRecord.getItemAt( i ) );
+						
+						TSVString += failImOrganizationOrgCharacter.detailOrganizationCode + "\t";
+						TSVString += failImOrganizationOrgCharacter.detailOrganizationCharacterCode + "\t";
+						
+						TSVString += failImOrganizationOrgCharacter.importResult + "\n";          			           				
+					}	
+				}	
+				// Copy the TSV string to the clipboard
+				System.setClipboard(TSVString);					
+			}					
+			//-------------------------organizationorgcharacter data end ---------------------//	
+			
+			private function onOrganizationWarningExport():void
+			{
+				var TSVString:String = this.exportCSV( this.comAdgImOrganizationwarning ) ;
+				// Copy the TSV string to the clipboard
+				System.setClipboard(TSVString);
+			}
+			//	5	事件响应方法    end
+			
+			//	6	本地方法    begin
+			private function exportCSV(dg:DataGrid, csvSeparator:String="\t", lineSeparator:String="\n"):String
+			{
+				var data:String = "";
+				var columns:Array = dg.columns;
+				var columnCount:int = columns.length;
+				var column:DataGridColumn;
+				var header:String = "";
+				var headerGenerated:Boolean = false;
+				var dataProvider:Object = dg.dataProvider;
+				var rowCount:int = dataProvider.length;
+				var dp:Object = null;
+				
+				var cursor:IViewCursor = dataProvider.createCursor ();
+				var j:int = 0;
+				
+				//loop through rows
+				while (!cursor.afterLast)
+				{
+					var obj:Object = null;
+					obj = cursor.current;
+					
+					//loop through all columns for the row
+					for(var k:int = 0; k < columnCount; k++)
+					{
+						column = columns[k];
+						//Exclude column data which is invisible (hidden)
+						if(!column.visible)
+						{
+							continue;
+						}
+						
+						data += "\""+ column.itemToLabel(obj)+ "\"";
+						if(k < (columnCount -1))
+						{
+							data += csvSeparator;
+						}
+						//generate header of CSV, only if it's not genereted yet
+						if (!headerGenerated)
+						{
+							header += "\"" + column.headerText + "\"";
+							if (k < columnCount - 1)
+							{
+								header += csvSeparator;
+							}
+						}
+						
+						
+					}
+					
+					headerGenerated = true;
+					if (j < (rowCount - 1))
+					{
+						data += lineSeparator;
+					}
+					j++;
+					cursor.moveNext ();
+				}
+				
+				//set references to null:
+				dataProvider = null;
+				columns = null;
+				column = null;
+				
+				return (header + "\r\n" + data);
+			} 
+			//	6	本地方法   end				
+		]]>
+	</fx:Script>	
+	
+	<s:VGroup width="100%" height="100%">
+		<common:LabelBoundary labelText="{resourceManager.getString('menu','organization')}" />
+		<containers:AksControlBar>
+			<s:Label  text="{resourceManager.getString('note','readPeriodFormat_YYYYMMDD')}" />
+			<s:TextInput id="text_date" maxChars="8" />
+			<mx:Spacer width="30" />
+			<s:Label  text="{resourceManager.getString('note','accessGroup')}" />
+			<s:TextInput id="text_region"  />
+			<mx:Spacer width="30"/>
+			<s:Button label="{resourceManager.getString('button','loadData')}" click="onLoad()" id="btnLoad"/> 			
+		</containers:AksControlBar>
+		
+		<mx:TabNavigator width="100%" height="100%" id="tabNav4chart">
+			<s:NavigatorContent label="{resourceManager.getString('menu','organization')}" width="100%" height="100%" id="tab4Organization">
+				<s:layout>
+					<s:VerticalLayout/>
+				</s:layout>
+				<containers:AksControlBar>
+					<buttons:ButtonSave click="onOrganizationSave()" id="btnOrganizationSave"/> 
+					<buttons:ButtonClear click="onOrganizationClear()"/>
+					<buttons:ButtonRemove click="UtilArrayCollection.removeSelectedItems(this.prvVar4dp4comAdgImOrganization,this.comAdgImOrganization.selectedItems)"/>
+					<buttons:ButtonExpErrorRecord click="onOrganizationExport()" id="btnOrganizationExport"/>
+				</containers:AksControlBar>
+				<organization:Com_Organization_ImOrganization_AdvancedDataGrid id="comAdgImOrganization" dataProvider="{this.prvVar4dp4comAdgImOrganization}" width="100%" height="100%" editable="true" allowMultipleSelection="true"/>
+			</s:NavigatorContent>
+			<s:NavigatorContent label="{resourceManager.getString('menu','orgChar')}" width="100%" height="100%" id="tab4organizationcharacter" >
+				<s:layout>
+					<s:VerticalLayout/>
+				</s:layout>
+				<containers:AksControlBar>
+					<buttons:ButtonSave click="onOrganizationCharacterSave()" id="btnOrganizationCharacterSave"/> 
+					<buttons:ButtonClear click="onOrganizationCharacterClear()"/>
+					<buttons:ButtonRemove click="UtilArrayCollection.removeSelectedItems(this.prvVar4dp4comAdgImOrganizationCharacter,this.comAdgImOrganizationCharacter.selectedItems)"/>
+					<buttons:ButtonExpErrorRecord click="onOrganizationCharacterExport()" id="btnOrganizationCharacterExport"/>
+				</containers:AksControlBar>
+				<organization:Com_Organization_ImOrganizationCharacter_AdvancedDataGrid id="comAdgImOrganizationCharacter" dataProvider="{this.prvVar4dp4comAdgImOrganizationCharacter}" width="100%" height="100%" editable="true" allowMultipleSelection="true"/>
+			</s:NavigatorContent>
+			<s:NavigatorContent label="{resourceManager.getString('menu','orgNorgChar')}" width="100%" height="100%" id="tab4organizationorgcharacter" >
+				<s:layout>
+					<s:VerticalLayout/>
+				</s:layout>
+				<containers:AksControlBar>
+					<buttons:ButtonSave click="onOrganizationOrgCharacterSave()" id="btnOrganizationOrgCharacterSave"/> 
+					<buttons:ButtonClear click="onOrganizationOrgCharacterClear()"/>
+					<buttons:ButtonRemove click="UtilArrayCollection.removeSelectedItems(this.prvVar4dp4comAdgImOrganizationOrgCharacter,this.comAdgImOrganizationOrgCharacter.selectedItems)"/>
+					<buttons:ButtonExpErrorRecord click="onOrganizationOrgCharacterExport()" id="btnOrganizationOrgCharacterExport"/>
+				</containers:AksControlBar>
+				<organization:Com_Organization_ImOrganizationOrgCharacter_AdvancedDataGrid id="comAdgImOrganizationOrgCharacter" dataProvider="{this.prvVar4dp4comAdgImOrganizationOrgCharacter}" width="100%" height="100%" editable="true" allowMultipleSelection="true"/>
+			</s:NavigatorContent>
+			<s:NavigatorContent label="{resourceManager.getString('menu','dataExcept')}" width="100%" height="100%" >
+				<s:layout>
+					<s:VerticalLayout/>
+				</s:layout>
+				<containers:AksControlBar>
+					<buttons:ButtonExpErrorRecord click="onOrganizationWarningExport()"/>
+				</containers:AksControlBar>
+				<security:Com_Security_Interface_OrganizationWarn_AdvancedDataGrid id="comAdgImOrganizationwarning" dataProvider="{this.prvVar4dp4comAdgImOrganizationWarning}" width="100%" height="100%"/>
+			</s:NavigatorContent>
+		</mx:TabNavigator>			
+	</s:VGroup>
+	
+</mx:Module>

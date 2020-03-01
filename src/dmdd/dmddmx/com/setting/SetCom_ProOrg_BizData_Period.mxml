@@ -1,0 +1,747 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:TitleWindow xmlns:fx="http://ns.adobe.com/mxml/2009" 
+				   xmlns:s="library://ns.adobe.com/flex/spark" 
+				   xmlns:mx="library://ns.adobe.com/flex/mx" 
+				   height="600" width="800"
+				   close="PopUpManager.removePopUp(this)"
+				   creationComplete="creationCompleteHandler(event)" 
+				   xmlns:containers="aks.aksmx.containers.*"
+				   xmlns:proorg="dmdd.dmddmx.com.proorg.*" 
+				   xmlns:bizdata="dmdd.dmddmx.com.bizdata.*" 
+				   xmlns:period="dmdd.dmddmx.com.period.*" xmlns:buttons="com.cool.buttons.*">
+	
+	<s:layout>
+		<s:VerticalLayout paddingTop="3" paddingBottom="5" paddingLeft="5" paddingRight="5"/>
+	</s:layout>
+	
+	<fx:Script>
+		<![CDATA[
+			import aks.aksas.collections.HashMap;
+			import aks.aksas.utils.UtilArrayCollection;
+			import aks.aksas.utils.UtilUi;
+			
+			import com.cool.assets.CoolAssetsFile;
+			import com.cool.utils.AlertUtil;
+			
+			import dmdd.dmddas.common.constant.BizConst;
+			import dmdd.dmddas.common.constant.SkinConst;
+			import dmdd.dmddas.common.constant.SysConst;
+			import dmdd.dmddas.common.system.ClientEnvironment;
+			import dmdd.dmddas.common.utils.UtilLayer;
+			import dmdd.dmddas.common.utils.UtilOrganization;
+			import dmdd.dmddas.common.utils.UtilOrganizationCharacter;
+			import dmdd.dmddas.common.utils.UtilPeriod;
+			import dmdd.dmddas.common.utils.UtilProOrg;
+			import dmdd.dmddas.common.utils.UtilProduct;
+			import dmdd.dmddas.common.utils.UtilProductCharacter;
+			import dmdd.dmddas.common.utils.UtilStrKey;
+			import dmdd.dmddas.common.utils.UtilUiPopbScope;
+			import dmdd.dmddas.common.vo.UiCondVo;
+			import dmdd.dmddas.dataaccess.aidobject.ABProOrg;
+			import dmdd.dmddas.dataaccess.aidobject.ABUiRowData;
+			import dmdd.dmddas.dataaccess.aidobject.ABUiRowDataProOrg;
+			import dmdd.dmddas.dataaccess.bizobject.BBizData;
+			import dmdd.dmddas.dataaccess.bizobject.BBizDataDefItemKpi;
+			import dmdd.dmddas.dataaccess.bizobject.BOperatorUserBizData;
+			import dmdd.dmddas.dataaccess.bizobject.BOperatorUserProOrg;
+			import dmdd.dmddas.dataaccess.bizobject.BOrganization;
+			import dmdd.dmddas.dataaccess.bizobject.BOrganizationCharacter;
+			import dmdd.dmddas.dataaccess.bizobject.BOrganizationCharacterLayer;
+			import dmdd.dmddas.dataaccess.bizobject.BOrganizationLayer;
+			import dmdd.dmddas.dataaccess.bizobject.BProduct;
+			import dmdd.dmddas.dataaccess.bizobject.BProductCharacter;
+			import dmdd.dmddas.dataaccess.bizobject.BProductCharacterLayer;
+			import dmdd.dmddas.dataaccess.bizobject.BProductLayer;
+			import dmdd.dmddas.dataaccess.bizobject.BUiPopbScope;
+			import dmdd.dmddas.dataaccess.bizobject.BUiPopbScopeBizData;
+			import dmdd.dmddas.dataaccess.bizobject.BUiPopbScopeProOrg;
+			import dmdd.dmddas.dataaccess.bizobject.BUnit;
+			import dmdd.dmddas.dataaccess.bizobject.BUnitGroup;
+			import dmdd.dmddmx.com.bizdata.Com_BizData_BizData_Chooser;
+			import dmdd.dmddmx.com.security.Com_Security_ProOrg_Chooser;
+			import dmdd.dmddmx.com.security.Com_Security_UiPopbScope_AU;
+			
+			import mx.collections.ArrayCollection;
+			import mx.events.FlexEvent;
+			import mx.managers.PopUpManager;
+			
+			import spark.effects.easing.EaseInOutBase;
+			
+			//	描述    begin
+			//	描述    end
+			
+			//	0	输入参数    begin	
+			//基准数据相关 begin
+			[Bindable]
+			public var visiableBaseBizData:Boolean = false;
+			[Bindable]
+			private var arrcbBizData:ArrayCollection = new ArrayCollection();
+			//基准数据相关end.
+			
+			public var setOkCallbackFun:Function = null;
+			
+			//	0.1	业务数据相关参数	begin
+			[Bindable]
+			public var arrDictBizDataType:ArrayCollection = new ArrayCollection();		
+			
+			[Bindable]
+			public var blOnlyIsManagingBizData:Boolean = false;
+			
+			public var blAllowMultipleSelectionBizData:Boolean = true;
+			//	0.1	业务数据相关参数	end
+			
+			//	0.2	显示控制相关参数	begin
+			public var showDisplayOption:Boolean = true;
+			
+			//	0.2	显示控制相关参数	end
+			
+			//	0.3	期间范围相关参数	begin
+			[Bindable]
+			public var visible4forecast4periodspan:Boolean = false;
+			
+			[Bindable]
+			public var visible4span4periodSpan:Boolean = true;
+			
+			[Bindable]
+			public var fcPeriodNum4periodSpan:int = 0;
+			[Bindable]
+			public var fzPeriodNum4periodSpan:int = 0;
+			
+			[Bindable]
+			public var editModel:Boolean = true; //是否是编辑模式
+			//	0.3	期间范围相关参数	end
+			
+			//	0	输入参数    end
+			
+			//	1	输出参数    begin
+			
+			/** 业务范围数据是否分页 */
+			private var blPageProOrg:Boolean = false;
+			
+			//	1	输出参数    end
+			
+			//	2	本地变量    begin
+			//界面元素是否创建完成
+			private var isCreateCompleted:Boolean = false;
+			
+			[Bindable]
+			private var dp4comAdgProOrg:ArrayCollection = new ArrayCollection();
+			[Bindable]
+			private var dp4comAdgBizData:ArrayCollection = new ArrayCollection();
+			
+			
+			private var chooserWindow_proOrg:Com_Security_ProOrg_Chooser = null;
+			private var chooserWindow_bizData:Com_BizData_BizData_Chooser = null;
+			
+			private var uiScopeAuWindow:Com_Security_UiPopbScope_AU = null;
+			
+			public var uicode:String = "UICODE";//快速查询条件类型
+			/** 快速查询条件 */
+			private var uiPopbScope:BUiPopbScope;
+			private var condVo:UiCondVo;
+			//	2	本地变量    end			
+			
+			//	3	公共方法    begin
+			public function setUiPopbScope(_uipopbScope:BUiPopbScope):void{
+				this.uiPopbScope = _uipopbScope;
+			}
+			
+			public function getUiPopbScope():BUiPopbScope{
+				return this.uiPopbScope;
+			}
+			
+			public function getblPageProOrg():Boolean
+			{
+				return blPageProOrg;
+			}
+			//	3	公共方法    end		
+			
+			//	4	初始化方法    begin	
+			protected function creationCompleteHandler(event:FlexEvent):void
+			{
+				title = resourceManager.getString('menu','condDetail');
+				if( showDisplayOption == false ){
+					this.removeElement( comDispOptProOrg );	
+				}
+				
+//				if( visible4span4periodSpan == false ){
+//					this.removeElement( comPeriodSpan );
+//				}
+				
+				if(editModel == false){
+					currentState = "viewState";
+				}
+				
+				isCreateCompleted = true;
+				updateUIControl();
+				
+				loadBaseBizData();
+			}				
+			//	4	初始化方法    end				
+			
+			//	5	事件响应方法    begin
+			
+			private function onAddProOrg():void
+			{
+				if( chooserWindow_proOrg == null )
+				{
+					chooserWindow_proOrg = new Com_Security_ProOrg_Chooser();
+					chooserWindow_proOrg.pubFun4setParamIn4closeCallback( this, callbackFunction4ChooserWinClose_proOrg );	
+				}
+				
+				PopUpManager.addPopUp( chooserWindow_proOrg, ClientEnvironment.modWork, true );
+				PopUpManager.centerPopUp(chooserWindow_proOrg);
+			}	
+			
+			private function callbackFunction4ChooserWinClose_proOrg():void
+			{
+				if( chooserWindow_proOrg.pubFun4getParamOut4winCloseWay() == UtilUi.WINDOW_CLOSEWAY_OK ){
+					var arrSelectedProOrg:ArrayCollection = chooserWindow_proOrg.pubFun4getParamOut4selectedProOrgs();
+					
+					if( arrSelectedProOrg != null && arrSelectedProOrg.length > 0 ){
+						dp4comAdgProOrg = UtilProOrg.getUnion4arrProOrg( dp4comAdgProOrg, arrSelectedProOrg );
+					}
+				}
+			}	
+			
+			
+			private function onDelProOrg():void
+			{
+				var arr4remove:ArrayCollection = new ArrayCollection( comAdgProOrg.selectedItems );
+				dp4comAdgProOrg = UtilArrayCollection.removeItems( dp4comAdgProOrg, arr4remove );					
+			}	
+			
+			private function onAddBizData():void
+			{
+				if( chooserWindow_bizData == null )
+				{
+					chooserWindow_bizData = Com_BizData_BizData_Chooser(PopUpManager.createPopUp(ClientEnvironment.modWork, Com_BizData_BizData_Chooser, true));
+					chooserWindow_bizData.comAdgBizData.allowMultipleSelection = blAllowMultipleSelectionBizData;
+					chooserWindow_bizData.pubFun4setParamIn4closeCallback( this, callbackFunction4ChooserWinClose_bizData );
+					chooserWindow_bizData.pubFun4setParamIn4arrDictBizDataType( arrDictBizDataType );
+					chooserWindow_bizData.pubFun4setParamIn4blConstrainedByPermission( true );
+					chooserWindow_bizData.pubFun4setParamIn4blOnlyIsManaging( blOnlyIsManagingBizData );
+				}else{
+					PopUpManager.addPopUp( chooserWindow_bizData, ClientEnvironment.modWork, true );
+				}
+				
+				PopUpManager.centerPopUp(chooserWindow_bizData);
+			}	
+			
+			private function callbackFunction4ChooserWinClose_bizData():void
+			{
+				if( chooserWindow_bizData.pubFun4getParamOut4winCloseWay() == UtilUi.WINDOW_CLOSEWAY_OK )
+				{
+					if( blAllowMultipleSelectionBizData == false )
+					{
+						var selectedBizData:BBizData = chooserWindow_bizData.pubFun4getParamOut4selectedBizData();
+						if( selectedBizData != null ){
+							dp4comAdgBizData = new ArrayCollection();
+							dp4comAdgBizData.addItem( selectedBizData );
+						}
+					}else{
+						var arrSelectedBizData:ArrayCollection = chooserWindow_bizData.pubFun4getParamOut4selectedBizDatas();
+						
+						if( arrSelectedBizData != null && arrSelectedBizData.length > 0 ){
+							var i:int;
+							var bizData:BBizData = null;
+							
+							var hamp_bizData:HashMap = new HashMap();
+							if( dp4comAdgBizData != null ){
+								for( i=0; i<dp4comAdgBizData.length; i=i+1 )
+								{
+									bizData = BBizData(dp4comAdgBizData.getItemAt(i)) ;
+									hamp_bizData.put( "" + bizData.id, bizData );
+								}							
+							}else{
+								dp4comAdgBizData = new ArrayCollection();
+							}
+							for( i=0; i<arrSelectedBizData.length; i=i+1 ){
+								bizData = BBizData(arrSelectedBizData.getItemAt(i)) ;
+								if( hamp_bizData.getValue( "" + bizData.id ) == null ){
+									dp4comAdgBizData.addItem( bizData );
+								}
+							}
+						}					
+					}
+				}
+				//显示基准数据，如果有必要的话
+				loadBaseBizData();
+			}
+			
+			private function loadBaseBizData():void
+			{
+				//加载kpiA和B begin
+				if(visiableBaseBizData){
+					arrcbBizData.removeAll();
+					if(dp4comAdgBizData!=null && dp4comAdgBizData.length>0)
+					{
+						var bizData_kpi:BBizData = dp4comAdgBizData.getItemAt(0) as BBizData;
+						var arr4bizDataDefItems:ArrayCollection =  bizData_kpi.bizDataDefItems;
+						if(arr4bizDataDefItems!=null && arr4bizDataDefItems.length>0)
+						{
+							var bizDataDefItemKpi:BBizDataDefItemKpi = arr4bizDataDefItems.getItemAt(0) as BBizDataDefItemKpi;
+							if(bizDataDefItemKpi==null)
+								return ;
+							arrcbBizData.addItem(bizDataDefItemKpi.aitemBizData);//a selected 0
+							arrcbBizData.addItem(bizDataDefItemKpi.bitemBizData);//b selected 1
+							arrcbBizData.addItem(resourceManager.getString('note','sumOfTwo'));//a+b selected 2
+							
+							cbBaseBizData.selectedIndex = 0;
+						}					
+					}	
+				}
+			}
+			
+			private function onDelBizData():void
+			{
+				var arr4remove:ArrayCollection = new ArrayCollection( comAdgBizData.selectedItems );
+				dp4comAdgBizData = UtilArrayCollection.removeItems( dp4comAdgBizData, arr4remove );					
+			}	
+			
+			/** 根据快速查询条件更新界面展示 */
+			public function updateUIControl():void
+			{
+				//如果查询条件内容为空，不处理
+				if( uiPopbScope == null || isCreateCompleted == false){
+					return;
+				}
+				
+				var i:int;
+				//	ProOrg	begin 取交集
+				dp4comAdgProOrg = new ArrayCollection();
+					
+				var proOrg:ABProOrg = null;
+				var uiPopbScopeProOrg:BUiPopbScopeProOrg = null;
+				for( i=0; i<uiPopbScope.uiPopbScopeProOrgs.length; i=i+1 )
+				{
+					uiPopbScopeProOrg = BUiPopbScopeProOrg( uiPopbScope.uiPopbScopeProOrgs.getItemAt(i) );
+					
+					proOrg = new ABProOrg();
+					proOrg.product = uiPopbScopeProOrg.product;
+					proOrg.organization = uiPopbScopeProOrg.organization;
+					dp4comAdgProOrg.addItem(proOrg);	
+				}
+				
+				//	BizData	begin 取交集并判断是否可维护
+				dp4comAdgBizData = new ArrayCollection();
+
+				var uiPopbScopeBizData:BUiPopbScopeBizData = null;
+				for( i=0; i<uiPopbScope.uiPopbScopeBizDatas.length; i=i+1 )
+				{
+					uiPopbScopeBizData = BUiPopbScopeBizData( uiPopbScope.uiPopbScopeBizDatas.getItemAt(i) );
+					
+					dp4comAdgBizData.addItem( uiPopbScopeBizData.bizData );
+				}
+				//	BizData	end
+				
+				
+				//	显示控制		begin
+				if( uiPopbScope.isDisplayControl == BizConst.GLOBAL_YESNO_YES )
+				{
+					comDispOptProOrg.checkBoxProduct.selected = uiPopbScope.isShowProduct==BizConst.GLOBAL_YESNO_YES ?true:false;
+					if(uiPopbScope.isShowProduct==BizConst.GLOBAL_YESNO_YES){
+						
+						//控制产品层次 begin
+						var data_ProductLayer:ArrayCollection =  ClientEnvironment.getProductLayers();					
+						var bProductLayer:BProductLayer = null;
+						i =0;
+						for(i=0;i<data_ProductLayer.length;i++)
+						{
+							bProductLayer = data_ProductLayer.getItemAt(i) as BProductLayer;
+							if(bProductLayer.id == uiPopbScope.productLayerId)
+							{
+								comDispOptProOrg.comboBoxProductLayer.selectedIndex=i;
+								break;
+							}	
+						}
+						//控制产品层次 end.
+					}
+					
+					comDispOptProOrg.checkBoxProductCharacter.selected = uiPopbScope.isShowProductCharacter==BizConst.GLOBAL_YESNO_YES ?true:false;
+					if(uiPopbScope.isShowProductCharacter==BizConst.GLOBAL_YESNO_YES ){
+						//控制显示产品特征层次 begin
+						var productCharacterLayer:BProductCharacterLayer = null;
+						var data_ProductCharacterLayer:ArrayCollection= ClientEnvironment.getProductCharacterLayers();					
+						for(i=0;i<data_ProductCharacterLayer.length;i++)
+						{
+							productCharacterLayer = data_ProductCharacterLayer.getItemAt(i) as BProductCharacterLayer;
+							if(productCharacterLayer.id == uiPopbScope.productCharacterLayerId)
+							{
+								comDispOptProOrg.comboBoxProductCharacterLayer.selectedIndex = i;
+								break;
+							}
+							
+						}
+						comDispOptProOrg.comboBoxProductCharacterType.selectedItem = uiPopbScope.productCharacterType;
+						//控制显示产品特征层次 end.
+					}
+					
+					comDispOptProOrg.checkBoxOrganization.selected = uiPopbScope.isShowOrganization==BizConst.GLOBAL_YESNO_YES ?true:false;						
+					if(uiPopbScope.isShowOrganization==BizConst.GLOBAL_YESNO_YES){
+						//控制组织层次 begin
+						
+						var orgLayer:BOrganizationLayer = null;
+						var data_orgLayer:ArrayCollection =  ClientEnvironment.getOrganizationLayers();
+						for(i=0;i<data_orgLayer.length;i++)
+						{
+							orgLayer= data_orgLayer.getItemAt(i) as BOrganizationLayer;
+							if(orgLayer.id == uiPopbScope.organizationLayerId)
+							{
+								comDispOptProOrg.comboBoxOrganizationLayer.selectedIndex = i;
+								break;
+							}
+							
+						}
+					
+						//控制组织层次 end.
+					}
+					
+					comDispOptProOrg.checkBoxOrganizationCharacter.selected =  uiPopbScope.isShowOrganizationCharacter==BizConst.GLOBAL_YESNO_YES ?true:false;
+					if(uiPopbScope.isShowOrganizationCharacter==BizConst.GLOBAL_YESNO_YES) {
+						
+						//控制组织特征层次 begin
+						var orgCharacterLayer:BOrganizationCharacterLayer = null;
+						var data_orgCharacterLayer:ArrayCollection = ClientEnvironment.getOrganizationCharacterLayers();
+						for(i=0;i<data_orgCharacterLayer.length;i++)
+						{
+							orgCharacterLayer = data_orgCharacterLayer.getItemAt(i) as BOrganizationCharacterLayer;
+							if(orgCharacterLayer.id == uiPopbScope.organizationCharacterLayerId)
+							{
+								comDispOptProOrg.comboBoxOrganizationCharacterLayer.selectedIndex = i;
+								break;
+							}
+							
+						}
+						comDispOptProOrg.comboBoxOrganizationCharacterType.selectedItem = uiPopbScope.organizationCharacterType;					
+						//控制组织特征层次end.
+					}
+					
+				}
+				//	显示控制		end
+				
+				//	期间控制		begin
+				if( uiPopbScope.isPeriodControl == true )
+				{
+					comPeriodSpan.txtPeriodBegin.text = String( UtilPeriod.getPeriod(ClientEnvironment.getSysPeriod().compilePeriod, uiPopbScope.periodOffsetBegin ) );
+					comPeriodSpan.txtPeriodEnd.text = String( UtilPeriod.getPeriod(ClientEnvironment.getSysPeriod().compilePeriod, uiPopbScope.periodOffsetEnd ) );
+				}
+				
+				//基准数据显示 begin
+				loadBaseBizData();
+				//基准数据显示 emd.
+			}
+			
+			/** 更新最终查询结果 */
+			private function updateCondVoByUi():void
+			{
+				if( validationUiControlSet() == true){
+					updateUiPopScopeContent();
+				
+					condVo = UtilUiPopbScope.getUiScopeCondVo(uiPopbScope,this);
+				}
+			}
+			
+			/** 根据界面的选择内容更新uipopscope里内容 */
+			private function updateUiPopScopeContent():void{
+				if( uiPopbScope == null){
+					uiPopbScope = new BUiPopbScope();
+				}
+				
+				uiPopbScope.operatorUser = ClientEnvironment.getOperatorUser();
+				uiPopbScope.uiCode = uicode; //快速条件类型
+				
+				var i:int;
+				var proOrg:ABProOrg = null;
+				var uiPopbScopeProOrg:BUiPopbScopeProOrg = null;
+				//	ProOrg	begin
+				uiPopbScope.uiPopbScopeProOrgs = new ArrayCollection();
+				for( i=0; i<dp4comAdgProOrg.length; i=i+1 )
+				{
+					proOrg = ABProOrg(dp4comAdgProOrg.getItemAt(i));
+					
+					uiPopbScopeProOrg = new BUiPopbScopeProOrg();
+					uiPopbScopeProOrg.product = proOrg.product;
+					uiPopbScopeProOrg.organization = proOrg.organization;
+					uiPopbScopeProOrg.uiPopbScope = uiPopbScope;
+					uiPopbScope.uiPopbScopeProOrgs.addItem( uiPopbScopeProOrg );
+				}
+				//	ProOrg	end
+				
+				var bizData:BBizData = null;
+				var uiPopbScopeBizData:BUiPopbScopeBizData = null;
+				//	BizData		begin
+				uiPopbScope.uiPopbScopeBizDatas = new ArrayCollection();
+				for( i=0; i<dp4comAdgBizData.length; i=i+1 )
+				{
+					bizData = BBizData(dp4comAdgBizData.getItemAt(i));
+					
+					uiPopbScopeBizData = new BUiPopbScopeBizData();
+					uiPopbScopeBizData.bizData = bizData;
+					uiPopbScopeBizData.uiPopbScope = uiPopbScope;
+					uiPopbScope.uiPopbScopeBizDatas.addItem( uiPopbScopeBizData );
+				}				
+				//	BizData		end
+				
+				//	显示控制		begin
+				if( showDisplayOption == true )
+				{
+					uiPopbScope.isDisplayControl = BizConst.GLOBAL_YESNO_YES;
+					
+					if( comDispOptProOrg.pubFun4getParamIo4blDisplayProduct() == true )
+					{
+						uiPopbScope.isShowProduct = BizConst.GLOBAL_YESNO_YES;
+					}else{
+						uiPopbScope.isShowProduct = BizConst.GLOBAL_YESNO_NO;
+					}
+					uiPopbScope.productLayer = comDispOptProOrg.pubFun4getParamIo4productLayer();
+					if( comDispOptProOrg.pubFun4getParamIo4blDisplayProductCharacter() == true )
+					{
+						uiPopbScope.isShowProductCharacter = BizConst.GLOBAL_YESNO_YES;
+					}else{
+						uiPopbScope.isShowProductCharacter = BizConst.GLOBAL_YESNO_NO;
+					}
+					uiPopbScope.productCharacterLayer = comDispOptProOrg.pubFun4getParamIo4productCharacterLayer();
+					uiPopbScope.productCharacterType = comDispOptProOrg.pubFun4getParamIo4productCharacterType();
+					
+					if( comDispOptProOrg.pubFun4getParamIo4blDisplayOrganization() == true )
+					{
+						uiPopbScope.isShowOrganization = BizConst.GLOBAL_YESNO_YES;
+					}else{
+						uiPopbScope.isShowOrganization = BizConst.GLOBAL_YESNO_NO;
+					}
+					uiPopbScope.organizationLayer = comDispOptProOrg.pubFun4getParamIo4organizationLayer();
+					if( comDispOptProOrg.pubFun4getParamIo4blDisplayOrganizationCharacter() == true )
+					{
+						uiPopbScope.isShowOrganizationCharacter = BizConst.GLOBAL_YESNO_YES;
+					}
+					else
+					{
+						uiPopbScope.isShowOrganizationCharacter = BizConst.GLOBAL_YESNO_NO;
+					}
+					uiPopbScope.organizationCharacterLayer = comDispOptProOrg.pubFun4getParamIo4organizationCharacterLayer();
+					uiPopbScope.organizationCharacterType = comDispOptProOrg.pubFun4getParamIo4organizationCharacterType();	
+					
+					//更新层次ID
+					uiPopbScope.productLayerId = uiPopbScope.productLayer.id;
+					uiPopbScope.productCharacterLayerId = uiPopbScope.productCharacterLayer.id;
+					uiPopbScope.organizationLayerId = uiPopbScope.organizationLayer.id;
+					uiPopbScope.organizationCharacterLayerId = uiPopbScope.organizationCharacterLayer.id;
+					
+				}else{
+					uiPopbScope.isDisplayControl = BizConst.GLOBAL_YESNO_NO;
+				}
+				//	显示控制		end
+				
+				//	期间控制 		begin
+				if( visible4span4periodSpan == true )
+				{
+					uiPopbScope.isPeriodControl = BizConst.GLOBAL_YESNO_YES;
+					if( comPeriodSpan.paramIn4visible4span == true )
+					{
+						var periodBegin:int = comPeriodSpan.pubFun4getParamOut4periodBegin();
+						var periodEnd:int = comPeriodSpan.pubFun4getParamOut4periodEnd();
+						
+						uiPopbScope.periodOffsetBegin =  UtilPeriod.getPeriodDifference( ClientEnvironment.getSysPeriod().compilePeriod, periodBegin );
+						uiPopbScope.periodOffsetEnd =  UtilPeriod.getPeriodDifference( ClientEnvironment.getSysPeriod().compilePeriod, periodEnd );
+					}else{
+						uiPopbScope.periodOffsetBegin = 0;
+						uiPopbScope.periodOffsetEnd = 0;
+					}
+				}
+				else
+				{
+					uiPopbScope.isPeriodControl = BizConst.GLOBAL_YESNO_NO;
+					uiPopbScope.periodOffsetBegin = 0;
+					uiPopbScope.periodOffsetEnd = 0;					
+				}
+				//	期间控制 		end
+				
+				//产品特征和组织特征展示
+				uiPopbScope.proCharTypes = proCharList.selectedItems as ArrayCollection;
+				uiPopbScope.orgCharTypes = orgCharList.selectedItems as ArrayCollection;
+				
+			}
+			
+			/**
+			 * 验证条件设置的合法性
+			 * */
+			private function validationUiControlSet():Boolean{ 
+				//	检查合法性	begin
+				var alert_msg:String = "";
+				if( dp4comAdgProOrg == null || dp4comAdgProOrg.length == 0 )
+				{
+					UtilUi.pubFun4RemoveWaitWindow();
+					
+					alert_msg = resourceManager.getString('alert','alert_msg_proorgisnull14');
+					AlertUtil.show(alert_msg);
+					return false;					
+				}
+				
+				if( dp4comAdgBizData == null || dp4comAdgBizData.length == 0 )
+				{
+					UtilUi.pubFun4RemoveWaitWindow();
+					
+					alert_msg = resourceManager.getString('alert','alert_msg_bizdataisnull14');
+					AlertUtil.show(alert_msg);
+					return false;					
+				}			
+				
+				if( showDisplayOption == true )
+				{
+					if( comDispOptProOrg.pubFun4checkDisplayOption() == false )
+					{
+						UtilUi.pubFun4RemoveWaitWindow();
+						return false;
+					}										
+				}
+				
+				if( visible4span4periodSpan == true )
+				{
+					if( comPeriodSpan.pubFun4checkPeriodSpan() == false )
+					{
+						return false;
+					}
+				}				
+				//	检查合法性	end
+				
+				return true;
+			}
+			
+			
+			private function callbackFunction4auWinClose():void
+			{
+				if( uiScopeAuWindow.pubFun4getParamOut4winCloseWay() == UtilUi.WINDOW_CLOSEWAY_OK )
+				{
+					var alert_msg:String = "";
+					alert_msg = resourceManager.getString('alert','alert_msg_savesucceed14');
+					AlertUtil.show(alert_msg);
+				}
+			}				
+			
+			private function onSave():void{
+				
+				if(uiPopbScope == null || uiPopbScope.code == null || uiPopbScope.code == ""){
+					//执行过一次查询后，uiPopbScope已经新建了，不为空
+					
+					onSaveAs(); //如果没有快速查询，保存和另存为动作一样
+					return;
+				}
+				
+				UtilUi.pubFun4PopWaitWindow( this );
+				if( validationUiControlSet() == false){ //条件不合法
+					return;
+				}
+				
+				updateUiPopScopeContent();
+				
+				if( uiScopeAuWindow == null ){
+					uiScopeAuWindow = new Com_Security_UiPopbScope_AU();
+					uiScopeAuWindow.pubFun4setParamIn4closeCallback( this, callbackFunction4auWinClose );
+				}
+				
+				uiScopeAuWindow.onUpdateUiPopScope(uiPopbScope);
+				
+			}
+			
+			private function onSaveAs():void
+			{
+				if( validationUiControlSet() == false){ //条件不合法
+					return;
+				}
+				
+				updateUiPopScopeContent();
+				
+				if( uiScopeAuWindow == null ){
+					uiScopeAuWindow = Com_Security_UiPopbScope_AU(PopUpManager.createPopUp(ClientEnvironment.modWork, Com_Security_UiPopbScope_AU, true));
+					uiScopeAuWindow.pubFun4setParamIn4closeCallback( this, callbackFunction4auWinClose );
+				}
+				else{
+					PopUpManager.addPopUp( uiScopeAuWindow, this, true );
+				}	
+				
+				// 如果直接设置一个新建对象给auWindow，然后再操作其准备其内容，则可能不能触发auWindow内部的相关绑定动作					
+				uiScopeAuWindow.pubFun4setParamIo4uiPopbScope( uiPopbScope, UtilUi.AUWINDOW_USE_NEW );								
+			}
+			
+			private function onSetCondOk():void{
+				if( validationUiControlSet() == true){
+					updateUiPopScopeContent();
+					
+					PopUpManager.removePopUp(this);
+				
+					if(setOkCallbackFun != null){
+						setOkCallbackFun();
+					}
+				}
+				
+			}
+			//	5	事件响应方法    end
+			
+			//	6	本地方法    begin	
+			
+			//	6	本地方法   end				
+			
+		]]>
+	</fx:Script>
+	<s:states>
+		<s:State name="editState" />
+		<s:State name="viewState" />
+	</s:states>
+	<s:HGroup width="100%" paddingLeft="10" paddingTop="5" verticalAlign="bottom" >
+		<s:Label text="{resourceManager.getString('menu','selectBusScope')}" color="{SkinConst.LABEL_NAVAGITION_COLOR}"/>
+		<mx:HRule width="100%" /> 
+	</s:HGroup>
+	<s:VGroup gap="0" width="100%" height="100%">
+		<containers:AksControlBar excludeFrom="viewState">
+			<buttons:ButtonAdd click="onAddProOrg()"/>
+			<buttons:ButtonRemove click="onDelProOrg()" enabled="{new ArrayCollection(comAdgProOrg.selectedItems).length>0}"/>				
+		</containers:AksControlBar>
+		<proorg:Com_ProOrg_ProOrg_AdvancedDataGrid id="comAdgProOrg" width="100%" height="100%" horizontalScrollPolicy="off"
+												   dataProvider="{dp4comAdgProOrg}" allowMultipleSelection="true" />
+	</s:VGroup>
+	
+	<s:HGroup width="100%" paddingLeft="10" paddingTop="5" verticalAlign="bottom" >
+		<s:Label text="{resourceManager.getString('menu','selectBusData')}" color="{SkinConst.LABEL_NAVAGITION_COLOR}"/>
+		<mx:HRule width="100%" />
+	</s:HGroup>
+	<s:VGroup gap="0" width="100%">
+		<containers:AksControlBar excludeFrom="viewState">
+			<buttons:ButtonAdd click="onAddBizData()"  />
+			<buttons:ButtonRemove click="onDelBizData()" enabled="{new ArrayCollection(comAdgBizData.selectedItems).length>0}"/>				
+			<s:Label text="        " width="30%"/>
+			<s:Label text="{resourceManager.getString('note','weightBase')}" visible="{visiableBaseBizData}"/>
+			<s:ComboBox id="cbBaseBizData" dataProvider="{arrcbBizData}" visible="{visiableBaseBizData}"/>
+		</containers:AksControlBar >
+		<bizdata:Com_BizData_BizData_AdvancedDataGrid id="comAdgBizData" width="100%" height="120" horizontalScrollPolicy="off"
+													  dataProvider="{dp4comAdgBizData}" allowMultipleSelection="true" />
+	</s:VGroup>
+	
+	<s:HGroup width="100%" paddingLeft="10" paddingTop="5" verticalAlign="bottom" >
+		<s:Label text="{resourceManager.getString('label','displayControl')}" color="{SkinConst.LABEL_NAVAGITION_COLOR}"/>
+		<mx:HRule width="100%" /> 
+	</s:HGroup>
+	<proorg:Com_ProOrg_ProOrg_DisplayOption id="comDispOptProOrg" width="100%" editModel="{editModel}">
+	</proorg:Com_ProOrg_ProOrg_DisplayOption>
+	<period:Com_Period_Period_Span id="comPeriodSpan" width="100%" editModel="{editModel}"
+								   paramIn4visible4span="{visible4span4periodSpan}" paramIn4visible4forecast="{visible4forecast4periodspan}" 
+								   paramIn4fcPeriodNum="{fcPeriodNum4periodSpan}" paramIn4fzPeriodNum="{fzPeriodNum4periodSpan}">
+	</period:Com_Period_Period_Span>
+	<s:HGroup width="100%" height="0" verticalAlign="top">
+		<s:Label text="{resourceManager.getString('label','proChar')}" />
+		<s:List id="proCharList" allowMultipleSelection="true" dataProvider="{ClientEnvironment.getProductCharacterTypes()}" width="100%" height="100%" >
+		</s:List>
+		<s:Spacer width="10" />
+		<s:Label text="{resourceManager.getString('label','orgChar')}" />
+		<s:List id="orgCharList" allowMultipleSelection="true" dataProvider="{ClientEnvironment.getOrganizationCharacterTypes()}" width="100%" height="100%" >
+		</s:List>
+	</s:HGroup>
+	
+	<s:Spacer height="5" />
+	<s:HGroup width="100%" horizontalAlign="center">
+		<buttons:ButtonOk click="onSetCondOk()" excludeFrom="viewState"/>
+		<buttons:ButtonCancel click="PopUpManager.removePopUp(this);" />
+		<buttons:ButtonSave click="onSave()" excludeFrom="viewState"/>
+		<buttons:ButtonSaveas click="onSaveAs()" excludeFrom="viewState" />
+	</s:HGroup>
+</s:TitleWindow>

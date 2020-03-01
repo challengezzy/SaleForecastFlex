@@ -1,0 +1,671 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:TitleWindow xmlns:fx="http://ns.adobe.com/mxml/2009" 
+			   xmlns:s="library://ns.adobe.com/flex/spark" 
+			   xmlns:mx="library://ns.adobe.com/flex/mx" width="900" height="580" close="onCancel()" 
+			   creationComplete="creationCompleteHandler(event)"
+			   xmlns:containers="aks.aksmx.containers.*" xmlns:forecast="dmdd.dmddmx.com.forecast.*" xmlns:common="dmdd.dmddmx.com.common.*" xmlns:buttons="com.cool.buttons.*">
+	<s:layout>
+		<s:VerticalLayout paddingLeft="10" paddingRight="10"/>
+	</s:layout>
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+		<s:RemoteObject endpoint="{ClientEnvironment.endpoint}" id="srvForecast" destination="ForecastService">
+			<s:method name="newForecastInst" result="resultHandler4saveForecastInst(event)" fault="faultHandler4saveForecastInst(event)">
+			</s:method>	
+			<s:method name="updForecastInst" result="resultHandler4saveForecastInst(event)" fault="faultHandler4saveForecastInst(event)">
+			</s:method>
+		</s:RemoteObject>		
+	</fx:Declarations>
+	
+	<fx:Script>
+		<![CDATA[
+			import aks.aksas.collections.HashMap;
+			import aks.aksas.utils.UtilArrayCollection;
+			import aks.aksas.utils.UtilUi;
+			
+			import com.cool.assets.CoolAssetsFile;
+			import com.cool.utils.AlertUtil;
+			
+			import dmdd.dmddas.common.constant.BizConst;
+			import dmdd.dmddas.common.constant.SysConst;
+			import dmdd.dmddas.common.system.ClientEnvironment;
+			import dmdd.dmddas.common.utils.UtilExceptionLocale;
+			import dmdd.dmddas.common.utils.UtilForecastInst;
+			import dmdd.dmddas.common.utils.UtilOrganization;
+			import dmdd.dmddas.common.utils.UtilProOrg;
+			import dmdd.dmddas.common.utils.UtilProduct;
+			import dmdd.dmddas.dataaccess.aidobject.ABProOrg;
+			import dmdd.dmddas.dataaccess.bizobject.BForecastInst;
+			import dmdd.dmddas.dataaccess.bizobject.BForecastInstNextProOrg;
+			import dmdd.dmddas.dataaccess.bizobject.BForecastInstProOrg;
+			import dmdd.dmddas.dataaccess.bizobject.BForecastModelM;
+			import dmdd.dmddas.dataaccess.bizobject.BOrganization;
+			import dmdd.dmddas.dataaccess.bizobject.BOrganizationLayer;
+			import dmdd.dmddas.dataaccess.bizobject.BProduct;
+			import dmdd.dmddas.dataaccess.bizobject.BProductLayer;
+			import dmdd.dmddas.dataaccess.bizobject.BSysDictionaryItem;
+			import dmdd.dmddas.dataaccess.utils.UtilFactoryForecastModelM;
+			import dmdd.dmddmx.com.proorg.Com_ProOrg_ProOrg_Chooser;
+			import dmdd.dmddmx.com.proorg.Com_ProOrg_ProOrg_Filter_AU;
+			
+			import mx.collections.ArrayCollection;
+			import mx.collections.IList;
+			import mx.events.FlexEvent;
+			import mx.managers.PopUpManager;
+			import mx.rpc.events.FaultEvent;
+			import mx.rpc.events.ResultEvent;
+			//	描述		begin
+			//	描述		end
+			
+			//	0	输入参数    begin
+			
+			[Bindable]
+			public var forecastInsEditable:Boolean = true;
+			
+			private var paramIn4closeCallback4thisObject:Object = null;
+			private var paramIn4closeCallback4function:Function = null;
+
+			private var paramIo4winUse:int = UtilUi.AUWINDOW_USE_NEW;
+			
+			[Bindable]
+			private var paramIo4forecastInst:BForecastInst = null;							
+			//	0	输入参数    end
+			
+			//	1	输出参数    begin
+			private var paramOut4winCloseWay:int = UtilUi.WINDOW_CLOSEWAY_CANCEL;
+			
+			//	1	输出参数    end
+			
+			//	2	本地变量    begin
+			[Bindable]
+			private var prvVar4editable4currPeriod:Boolean = true;
+			
+			private var prvVar4chooserWindow_proOrg:Com_ProOrg_ProOrg_Chooser = null;
+			private var prvVar4target4proOrg:int = 0;	//	0 ProOrg 1 NextProOrg
+			
+			private var prvVar4chooserWindow_forecastModelM:Com_Forecast_ForecastModelM_SimulatorChooser = null;
+			
+			private var prvVar4filterWindow_proOrg:Com_ProOrg_ProOrg_Filter_AU = null;
+			//	2	本地变量    end			
+			
+			//	3	公共方法    begin	
+			//	构造函数
+			public function pubFun4constructor( _paramIo4forecastInst:BForecastInst, _paramIo4winUse:int, _paramIn4closeCallback4thisObject:Object, _paramIn4closeCallback4function:Function ):void
+			{
+				pubFun4setParamIo4forecastInst( _paramIo4forecastInst, _paramIo4winUse );
+				pubFun4setParamIn4closeCallback( _paramIn4closeCallback4thisObject, _paramIn4closeCallback4function );
+			}	
+			
+			//	关闭回调函数参数													
+			public function pubFun4setParamIn4closeCallback( _thisObject:Object, _function:Function ):void
+			{
+				paramIn4closeCallback4thisObject = _thisObject;
+				paramIn4closeCallback4function = _function;	
+			}
+			//	关闭方式参数
+			public function pubFun4getParamOut4winCloseWay():int
+			{
+				return paramOut4winCloseWay;
+			}
+			//	关闭窗口
+			private function prvFun4close():void
+			{
+				PopUpManager.removePopUp( this );						
+				paramIn4closeCallback4function.call( paramIn4closeCallback4thisObject );				
+			}				
+			
+			//	界面用途参数
+			public function pubFun4getParamIo4winUse():int
+			{
+				return paramIo4winUse;
+			}			
+			
+			//	处理对象参数
+			/**
+			 * _paramIo4forecastInst:BForecastInst	处理对象
+			 * _paramIo4winUse:int	处理动作
+			 */ 
+			public function pubFun4setParamIo4forecastInst( _paramIo4forecastInst:BForecastInst, _paramIo4winUse:int ):void
+			{
+				paramIo4forecastInst = _paramIo4forecastInst;
+				paramIo4winUse = _paramIo4winUse;
+				if( paramIo4winUse == UtilUi.AUWINDOW_USE_NEW )
+				{				
+					//	新建 : 当前期可以编辑
+					prvVar4editable4currPeriod = true;
+					
+				}
+				else if( paramIo4winUse == UtilUi.AUWINDOW_USE_UPD )
+				{
+					if( paramIo4forecastInst.isRunned == BizConst.GLOBAL_YESNO_NO )
+					{
+						//	没有运行过, 当前期参数可以编辑
+						prvVar4editable4currPeriod = true;
+					}
+					else
+					{
+						prvVar4editable4currPeriod = false;
+					}
+				}
+				//modify zhangzy20150516为了调试模型方便,当前期间允许编辑
+				prvVar4editable4currPeriod = true;
+				
+				comForecastInstProperties.comboBoxFcPeriodNum.enabled = prvVar4editable4currPeriod;
+				comForecastInstProperties.comboBoxFzPeriodNum.enabled = prvVar4editable4currPeriod;
+				comForecastInstProperties.comboBoxIsValid.enabled = prvVar4editable4currPeriod;
+				comForecastInstProperties.comBizDataFieldFinalFcBizData.paramIn4enabled4btnOpenChooser = prvVar4editable4currPeriod;
+				comForecastInstProperties.comBizDataFieldFinalFcBizData.paramIn4enabled4btnClear = prvVar4editable4currPeriod;
+				btn_copylastproorg.enabled=true;//编辑时不可复制上一期
+			}
+			public function pubFun4getParamIo4forecastInst():BForecastInst
+			{
+				return paramIo4forecastInst;
+			}				
+			//	3	公共方法    end		
+			
+			//	4	初始化方法    begin			
+			private function creationCompleteHandler(event:FlexEvent):void
+			{
+				x = 100;
+				y = 50;
+				
+				comAdgForecastInstProOrg.pasteFunction = handleTextPaste;
+			}						
+			//	4	初始化方法    end				
+
+			//	5	事件响应方法    begin		
+			private function onAddProOrg( _target:int ):void
+			{
+				prvVar4target4proOrg = _target;
+				
+				if( prvVar4chooserWindow_proOrg == null )
+				{
+					prvVar4chooserWindow_proOrg = Com_ProOrg_ProOrg_Chooser(PopUpManager.createPopUp(this, Com_ProOrg_ProOrg_Chooser, true));
+					prvVar4chooserWindow_proOrg.comAdgProOrg.allowMultipleSelection = true;
+					prvVar4chooserWindow_proOrg.pubFun4setParamIn4closeCallback( this, callbackFunction4ChooserWinClose_proOrg );	
+				}
+				else
+				{
+					PopUpManager.addPopUp( prvVar4chooserWindow_proOrg, this, true );
+				}									
+			}	
+			
+			private function callbackFunction4ChooserWinClose_proOrg():void
+			{
+				if( prvVar4chooserWindow_proOrg.pubFun4getParamOut4winCloseWay() == UtilUi.WINDOW_CLOSEWAY_OK )
+				{
+					var arrSelectedProOrg:ArrayCollection = prvVar4chooserWindow_proOrg.pubFun4getParamOut4selectedProOrgs();
+					
+					if( arrSelectedProOrg != null && arrSelectedProOrg.length > 0 )
+					{
+						if( prvVar4target4proOrg == 0 )
+						{
+							// 向本期预测范围中加入；混合原有预测范围与后来选择的范围数据
+							UtilForecastInst.addProOrgsToForecastInstProOrg( paramIo4forecastInst, arrSelectedProOrg);						
+						}
+						else if( prvVar4target4proOrg == 1 )
+						{
+							// 向下期预测范围中加入；混合原有预测范围与后来选择的范围数据
+							UtilForecastInst.addProOrgsToForecastInstNextProOrg( paramIo4forecastInst, arrSelectedProOrg);						
+						}						
+					}
+				}
+				//prvVar4auWindow = null;														
+			}			
+			
+			private function onDelProOrg( _target:int ):void
+			{
+				if( _target == 0 )
+				{
+					paramIo4forecastInst.forecastInstProOrgs = UtilArrayCollection.removeItems( paramIo4forecastInst.forecastInstProOrgs,new ArrayCollection(comAdgForecastInstProOrg.selectedItems ));	
+					//paramIo4forecastInst.forecastInstProOrgs.removeItemAt( comAdgForecastInstProOrg.selectedIndex );
+				}
+				else if( _target == 1 )
+				{
+					paramIo4forecastInst.forecastInstNextProOrgs = UtilArrayCollection.removeItems(paramIo4forecastInst.forecastInstNextProOrgs,new ArrayCollection(comAdgForecastInstNextProOrg.selectedItems ));	
+					//paramIo4forecastInst.forecastInstNextProOrgs.removeItemAt( comAdgForecastInstNextProOrg.selectedIndex );
+				}
+			}	
+			
+			private function onDelFilter( _target:int ):void
+			{
+				prvVar4target4proOrg = _target;
+				
+				if( prvVar4filterWindow_proOrg == null )
+				{
+					prvVar4filterWindow_proOrg = Com_ProOrg_ProOrg_Filter_AU(PopUpManager.createPopUp(this, Com_ProOrg_ProOrg_Filter_AU, true));
+					prvVar4filterWindow_proOrg.pubFun4setParamIn4closeCallback( this, callbackFunction4FilterWinClose_proOrg );	
+				}
+				else
+				{
+					PopUpManager.addPopUp( prvVar4filterWindow_proOrg, this, true );
+				}	
+				
+			}
+			
+			private function callbackFunction4FilterWinClose_proOrg():void
+			{
+				var proName:String = prvVar4filterWindow_proOrg.pubFun4getProName().toUpperCase();;
+				var orgName:String = prvVar4filterWindow_proOrg.pubFun4getOrgName().toUpperCase();;
+				if(proName=="" && orgName=="")
+				{
+					return ;
+				}
+				
+				var i:int = 0;
+				var selectSize:int=0;
+				var selectedIndices:Array=new Array();
+				var proorg:ABProOrg = null;
+				var arr4proorg:ArrayCollection =null;
+				var j:int=0;
+				if( prvVar4target4proOrg == 0 )
+				{
+					comAdgForecastInstNextProOrg.selectedIndices=selectedIndices;//清除以前的选择记录记录
+					var originForecastInstProOrg:BForecastInstProOrg = null;
+
+					arr4proorg = paramIo4forecastInst.forecastInstProOrgs;
+					for(i=0;i<arr4proorg.length;i++)
+					{
+						originForecastInstProOrg = BForecastInstProOrg(arr4proorg.getItemAt(i));
+						proorg = new ABProOrg(); 
+						proorg.product = originForecastInstProOrg.product;
+						proorg.organization = originForecastInstProOrg.organization;
+						if(UtilProOrg.checkKey4ProOrg(proName,"",orgName,"",false,false,proorg))
+						{
+							IList(arr4proorg).addItemAt(originForecastInstProOrg,0);
+							selectSize=selectSize+1;
+							IList(arr4proorg).removeItemAt(i+1);
+						}
+					}
+					
+					//将前面selectSize个Item设置成已选
+					for(j=0;j<selectSize;j++)
+					{
+						selectedIndices.push(j);
+					}
+					comAdgForecastInstProOrg.selectedIndices=selectedIndices;					
+				}
+				else if( prvVar4target4proOrg == 1 )
+				{
+					comAdgForecastInstNextProOrg.selectedIndices=selectedIndices;//清除以前的选择记录记录
+					var originForecastInstNextProOrg:BForecastInstNextProOrg = null;
+					arr4proorg= paramIo4forecastInst.forecastInstNextProOrgs;
+					for(i=0;i<arr4proorg.length;i++)
+					{
+						originForecastInstNextProOrg = BForecastInstNextProOrg(arr4proorg.getItemAt(i));
+						proorg = new ABProOrg(); 
+						proorg.product = originForecastInstNextProOrg.product;
+						proorg.organization = originForecastInstNextProOrg.organization;
+						if(UtilProOrg.checkKey4ProOrg(proName,"",orgName,"",false,false,proorg))
+						{
+							IList(arr4proorg).addItemAt(originForecastInstNextProOrg,0);
+							selectSize=selectSize+1;
+							IList(arr4proorg).removeItemAt(i+1);
+						}
+					}
+					
+					//将前面selectSize个Item设置成已选
+					for(j=0;j<selectSize;j++)
+					{
+						selectedIndices.push(j);
+					}
+					comAdgForecastInstNextProOrg.selectedIndices=selectedIndices;						
+				}	
+	
+			}
+			
+			private function onCopyLastProOrg():void
+			{
+				var arrCopyForecastInst:ArrayCollection = new ArrayCollection();
+				paramIo4forecastInst.forecastInstNextProOrgs.removeAll();
+				for each(var bForecastInstProOrg:BForecastInstProOrg in paramIo4forecastInst.forecastInstProOrgs)
+				{
+					var forecastInstNextProOrg:BForecastInstNextProOrg = new BForecastInstNextProOrg();
+					forecastInstNextProOrg.product=bForecastInstProOrg.product;
+					forecastInstNextProOrg.organization=bForecastInstProOrg.organization;
+					forecastInstNextProOrg.forecastInst=paramIo4forecastInst;
+					paramIo4forecastInst.forecastInstNextProOrgs.addItem(forecastInstNextProOrg);
+				}	
+			}
+			
+			private function onAddForecastModelM():void
+			{
+				if( prvVar4chooserWindow_forecastModelM == null )
+				{
+					prvVar4chooserWindow_forecastModelM = Com_Forecast_ForecastModelM_SimulatorChooser(PopUpManager.createPopUp(ClientEnvironment.modWork, Com_Forecast_ForecastModelM_SimulatorChooser, true));
+					prvVar4chooserWindow_forecastModelM.pubFun4setParamIn4closeCallback( this, callbackFunction4ChooserWinClose_forecastModelM );
+				}
+				else
+				{
+					PopUpManager.addPopUp( prvVar4chooserWindow_forecastModelM, ClientEnvironment.modWork, true );
+				}				
+				PopUpManager.centerPopUp(prvVar4chooserWindow_forecastModelM);
+				
+				var arrProOrg:ArrayCollection = new ArrayCollection();
+				var i:int;
+				var forecastInstProOrg:BForecastInstProOrg = null;
+				var proOrg:ABProOrg = null;
+				if( paramIo4forecastInst != null && paramIo4forecastInst.forecastInstProOrgs != null )
+				{
+					for( i=0; i<paramIo4forecastInst.forecastInstProOrgs.length; i=i+1 )
+					{
+						forecastInstProOrg = BForecastInstProOrg( paramIo4forecastInst.forecastInstProOrgs.getItemAt(i) );
+						proOrg = new ABProOrg();
+						proOrg.product = forecastInstProOrg.product;
+						proOrg.organization = forecastInstProOrg.organization;
+						arrProOrg.addItem( proOrg );
+					}
+				}
+				
+				var runProductLayer:BProductLayer = BProductLayer(comForecastInstProperties.comboBoxRunProductLayer.selectedItem);
+				var runOrganizationLayer:BOrganizationLayer = BOrganizationLayer(comForecastInstProperties.comboBoxRunOrganizationLayer.selectedItem);
+				var fcPeriodNum:int = BSysDictionaryItem(comForecastInstProperties.comboBoxFcPeriodNum.selectedItem).value;
+				
+				var currentMappingModel:BForecastModelM = null;
+				if( paramIo4forecastInst.mappingFcModel != null )
+				{
+					currentMappingModel = UtilFactoryForecastModelM.getNewInstance( paramIo4forecastInst.mappingFcModel );
+					currentMappingModel.copyDeep( paramIo4forecastInst.mappingFcModel );					
+				}
+				
+				prvVar4chooserWindow_forecastModelM.pubFun4setParamIn4simulate( arrProOrg, runProductLayer, runOrganizationLayer, fcPeriodNum, currentMappingModel );
+				// PopUpManager.centerPopUp( chooserWindow4ForecastModelM );	
+			}
+			
+			private function callbackFunction4ChooserWinClose_forecastModelM():void
+			{
+				if( prvVar4chooserWindow_forecastModelM.pubFun4getParamOut4winCloseWay() == UtilUi.WINDOW_CLOSEWAY_OK )
+				{
+					var selectedForecastModelM:BForecastModelM = prvVar4chooserWindow_forecastModelM.pubFun4getParamOut4selectedForecastModelM();
+					if( selectedForecastModelM != null )
+					{
+						if( prvVar4chooserWindow_forecastModelM.comForecastModelMProperties.pubFun4prepare4save() == false )
+						{
+							// 确认当前选择项的参数是正确的
+							return;
+						}
+						
+						if( selectedForecastModelM.source == BizConst.GLOBAL_DATASOURCE_SYSTEMDEFINE )
+						{
+							// 选中模型是模型模板的话，新建，服务器保存的时候注意删除原有的，更新为新建的
+							var newForecastModelM:BForecastModelM = UtilFactoryForecastModelM.getNewInstance(selectedForecastModelM);
+							newForecastModelM.copyDeep( selectedForecastModelM );
+							newForecastModelM.source = BizConst.GLOBAL_DATASOURCE_USERDEFINE;
+							newForecastModelM.id = SysConst.NULL_NUMERICAL_FIELD;
+							newForecastModelM.version = SysConst.NULL_NUMERICAL_FIELD;		
+							
+							paramIo4forecastInst.mappingFcModel = newForecastModelM;			
+						}
+						else
+						{
+							// 选中的是原来的模型的copy, copy回来
+							paramIo4forecastInst.mappingFcModel = UtilFactoryForecastModelM.getNewInstance( selectedForecastModelM );
+							paramIo4forecastInst.mappingFcModel.copyDeep( selectedForecastModelM );
+						}						
+					}
+				}
+			}
+			
+			private function onDelForecastModelM():void
+			{
+				paramIo4forecastInst.mappingFcModel = null;
+			}				
+			
+			
+			private function onSave():void
+			{				
+				if( prvFun4prepare4save() == true )
+				{
+					UtilUi.pubFun4PopWaitWindow( this );
+					if( paramIo4winUse == UtilUi.AUWINDOW_USE_NEW )
+					{
+						srvForecast.newForecastInst( paramIo4forecastInst );
+					}
+					else if( paramIo4winUse == UtilUi.AUWINDOW_USE_UPD )
+					{
+						srvForecast.updForecastInst( paramIo4forecastInst );
+					}
+					else
+					{
+						AlertUtil.show( '意外情形，请联系技术支持人员');	
+					}
+				}
+			}			
+			
+			private function faultHandler4saveForecastInst(event:FaultEvent):void
+			{
+				UtilUi.pubFun4RemoveWaitWindow();
+				AlertUtil.show( UtilExceptionLocale.getExceptionMessageLocaleByFaultEvent( event ),AlertUtil.MESSAGE_ERROR );
+			}	
+			
+			private function resultHandler4saveForecastInst(event:ResultEvent):void 
+			{
+				paramIo4forecastInst = BForecastInst(event.result);	
+				UtilUi.pubFun4RemoveWaitWindow();
+				
+				paramOut4winCloseWay = UtilUi.WINDOW_CLOSEWAY_OK;
+				prvFun4close();
+			}				
+			
+			private function onCancel():void
+			{
+				paramOut4winCloseWay = UtilUi.WINDOW_CLOSEWAY_CANCEL;
+				prvFun4close();
+			}	
+			
+			//	5	事件响应方法    end
+			
+			//	6	本地方法    begin
+			private function prvFun4prepare4save():Boolean
+			{
+				//	基本信息
+				if( comForecastInstProperties.pubFun4prepare4save() == false )
+				{
+					return false;	
+				}
+				
+				//	模型信息
+				if( comForecastModelMProperties != null )
+				{
+					if( paramIo4forecastInst.mappingFcModel != null && comForecastModelMProperties.pubFun4prepare4save() == false )
+					{
+						return false;
+					}
+				}
+						
+				var alert_msg:String = "";
+								
+				//	业务范围, 已实时处理
+				if( paramIo4forecastInst.forecastInstProOrgs == null || paramIo4forecastInst.forecastInstProOrgs.length <=0 )
+				{
+					alert_msg = resourceManager.getString('alert','alert_msg_proorgisnull10');
+					AlertUtil.show( alert_msg);
+					return false;					
+				}
+				if( paramIo4forecastInst.forecastInstNextProOrgs == null || paramIo4forecastInst.forecastInstNextProOrgs.length <= 0 )
+				{
+					alert_msg = resourceManager.getString('alert','alert_msg_nextproorgisnull10');
+					AlertUtil.show( alert_msg);
+					return false;					
+				}				
+				
+				return true;
+			}						
+			
+			private function prvFun4getEnabled4btnDelProOrg( _selectedItems:Array ):Boolean
+			{
+				if( prvVar4editable4currPeriod == false )
+				{
+					return false;
+				}
+				
+				if( _selectedItems == null || _selectedItems.length<1)
+				{
+					return false;
+				}
+				
+				return true;
+			}
+			
+			
+			private function handleTextPaste( event:TextEvent ):void
+			{
+				if( prvVar4editable4currPeriod == false){
+					
+					AlertUtil.show("当期预测业务范围不能更改！");
+					return;
+				}
+				
+				var str:String = event.text;
+				fromText(str);	
+			}
+			
+			private function fromText(text:String):void   
+			{     
+				var rows:Array = text.split("\n");
+				if( rows == null )
+				{
+					return;	
+				}     
+				if (!rows[rows.length - 1])
+				{       
+					rows.pop();
+				}     
+				
+				if( rows.length <= 1 )
+				{							
+					return;
+				}
+				
+				
+				var rwHeader:String = rows[0];
+				var fieldsHeader:Array = rwHeader.split( "\t" );
+				if(!(fieldsHeader[fieldsHeader.length-1]))
+				{
+					fieldsHeader.pop();
+				} 				
+				if( fieldsHeader.length < 3 )
+				{							
+					return;					
+				}
+								
+				var rowIdx:int;				
+				var row:String = null;
+				var fields:Array = null;				
+				var arr4proorgs:ArrayCollection = new ArrayCollection();
+				var num_suc:int = 0;
+				var num_fail:int = 0;
+				for( rowIdx=1; rowIdx<rows.length; rowIdx=rowIdx+1 )
+				{
+					
+					row = rows[rowIdx];
+					fields = row.split("\t");
+					
+					//	产品编码
+					var productcode:String = fields[0];
+					
+					//	产品名称
+					var productname:String = fields[1];
+					
+					//	组织编码
+					var orgcode:String = fields[2];	
+					
+					//	组织名称
+					var orgname:String = fields[3];
+					if(orgname.indexOf("\r")>-1)
+						orgname = orgname.substring(0,orgname.indexOf("\r"));
+					
+					var bproduct:BProduct = UtilProduct.getBProductByCode(ClientEnvironment.getProductTreeRoot(),productcode);
+					var borg:BOrganization = UtilOrganization.getBOrganziationByCode(ClientEnvironment.getOrganizationTreeRoot(),orgcode);
+					if(bproduct==null|| bproduct.id ==SysConst.NULL_NUMERICAL_FIELD || borg==null || borg.id == SysConst.NULL_NUMERICAL_FIELD)
+					{
+						num_fail++;
+						continue;
+					}
+					else
+					{
+						var abproorg:ABProOrg = new ABProOrg;
+						abproorg.organization=borg;
+						abproorg.product=bproduct;
+						arr4proorgs.addItem(abproorg);
+						num_suc++;
+					}
+					
+				}
+				UtilForecastInst.addProOrgsToForecastInstProOrg( paramIo4forecastInst, arr4proorgs);	
+				AlertUtil.show("成功:"+num_suc+" 失败:"+num_fail);
+				// 一定要在这里把 textField移除，不然会报 Flash.events.event 到 indexChang eEvent 的类型转换错误
+				// 移去 textField
+				var textFieldClipboard:TextField = TextField(comAdgForecastInstProOrg.getChildByName("clipboardProxy"));       
+				if ( textFieldClipboard != null )
+				{         
+					comAdgForecastInstProOrg.removeChild(textFieldClipboard);
+				}   		
+				
+		}
+			//	6	本地方法   end						
+
+		]]>
+	</fx:Script>
+	
+	<common:LabelBoundary labelText="{resourceManager.getString('menu','detailInfo')}" />
+	<mx:TabNavigator width="100%" height="100%">
+		<s:NavigatorContent label="{resourceManager.getString('menu','generalInfo')}" width="100%" height="100%">
+			<s:layout>
+				<s:VerticalLayout/>
+			</s:layout>
+			<forecast:Com_Forecast_ForecastInst_Properties id="comForecastInstProperties" width="100%" height="100%" paramIn4editable="{forecastInsEditable}" 
+														   paramIo4forecastInst="{paramIo4forecastInst}"/>
+		</s:NavigatorContent>
+		<s:NavigatorContent label="{resourceManager.getString('menu','forecastScope')}" width="100%" height="100%" creationPolicy="all">
+			<s:layout>
+				<s:HorizontalLayout/>
+			</s:layout>
+			<s:VGroup width="50%" height="100%">
+				<common:LabelBoundary width="100%" labelText="{resourceManager.getString('menu','currentForecastScope')}" />
+				<s:HGroup visible="{forecastInsEditable}" paddingLeft="3" >
+					<s:Button label="{resourceManager.getString('button','add')}" click="onAddProOrg(0)" enabled="{prvVar4editable4currPeriod}"/>
+					<s:Button label="{resourceManager.getString('button','remove')}" click="onDelProOrg(0)" 
+							  enabled="{prvFun4getEnabled4btnDelProOrg( comAdgForecastInstProOrg.selectedItems )}"/>
+					<s:Button label="{resourceManager.getString('button','removeFilter')}" click="onDelFilter(0)" enabled="{prvVar4editable4currPeriod}"/>
+				</s:HGroup>					
+				<forecast:Com_Forecast_ForecastInstProOrg_AdvancedDataGrid id="comAdgForecastInstProOrg" width="100%" height="100%"
+							 dataProvider="{paramIo4forecastInst.forecastInstProOrgs}"  allowMultipleSelection="true"  />
+			</s:VGroup>
+			<s:VGroup width="50%" height="100%">
+				<common:LabelBoundary width="100%" labelText="{resourceManager.getString('menu','nextForecastScope')}" />
+				<s:HGroup visible="{forecastInsEditable}" paddingLeft="3" >
+					<s:Button label="{resourceManager.getString('button','add')}" click="onAddProOrg(1)"/>
+					<s:Button label="{resourceManager.getString('button','remove')}" click="onDelProOrg(1)" 
+							  enabled="{new ArrayCollection(comAdgForecastInstNextProOrg.selectedItems).length>0}"/>
+					<s:Button label="{resourceManager.getString('button','removeFilter')}" click="onDelFilter(1)"/>
+					<s:Button label="{resourceManager.getString('button','copyLastPeriod')}" click="onCopyLastProOrg()" id="btn_copylastproorg"/>
+				</s:HGroup>
+				<forecast:Com_Forecast_ForecastInstNextProOrg_AdvancedDataGrid id="comAdgForecastInstNextProOrg" width="100%" height="100%"
+							  dataProvider="{paramIo4forecastInst.forecastInstNextProOrgs}"  allowMultipleSelection="true"/>
+			</s:VGroup>
+		</s:NavigatorContent>		
+		
+		<s:NavigatorContent label="{resourceManager.getString('menu','forecastModel')}" width="100%" height="100%">
+			<s:layout>
+				<s:VerticalLayout/>
+			</s:layout>
+			<s:HGroup paddingLeft="10" paddingRight="10" width="100%" visible="{forecastInsEditable}" >
+				<s:Button label="{resourceManager.getString('button','selectModel')}" click="onAddForecastModelM()" icon="{CoolAssetsFile.designIcon}"/>
+				<s:Button label="{resourceManager.getString('button','deselectModel')}" click="onDelForecastModelM()" 
+						  enabled="{paramIo4forecastInst.mappingFcModel}" icon="{CoolAssetsFile.clearIcon}"/>
+			</s:HGroup>		
+			<forecast:Com_Forecast_ForecastModelM_Properties id="comForecastModelMProperties" paramIn4blShowBaseInfo="true" 
+						  paramIn4editable="{forecastInsEditable}" paramIo4forecastModelM="{paramIo4forecastInst.mappingFcModel}" width="100%" height="100%"/>
+			
+		</s:NavigatorContent>
+	</mx:TabNavigator>
+	<s:BorderContainer width="100%" height="25" borderColor="#E4ECF7">
+		<s:layout>
+			<s:HorizontalLayout horizontalAlign="center"/>
+		</s:layout>
+		<buttons:ButtonSave click="onSave()" enabled="{forecastInsEditable}" />
+		<buttons:ButtonCancel click="onCancel()" />
+	</s:BorderContainer>
+
+</s:TitleWindow>

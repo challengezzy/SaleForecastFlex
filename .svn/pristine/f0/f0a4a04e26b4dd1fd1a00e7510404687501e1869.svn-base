@@ -1,0 +1,456 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Module xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		   xmlns:s="library://ns.adobe.com/flex/spark" 
+		   xmlns:mx="library://ns.adobe.com/flex/mx" layout="vertical" width="100%" height="100%" paddingLeft="10" paddingRight="10"
+		   creationComplete="creationCompleteHandler(event)"
+		   xmlns:common="dmdd.dmddmx.com.common.*"
+		   xmlns:containers="aks.aksmx.containers.*" 
+		   xmlns:bizdata="dmdd.dmddmx.com.bizdata.*" xmlns:unit="dmdd.dmddmx.com.unit.*" xmlns:forecast="dmdd.dmddmx.com.forecast.*">
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+		<s:RemoteObject endpoint="{ClientEnvironment.endpoint}" id="srvForecastHand" destination="ForecastHandleService" requestTimeout="-1">	
+			<s:method name="saveFocastDatas4ImportUI" result="resultHandler4saveFocastDatas4ImportUI(event)" fault="faultHandler4saveFocastDatas4ImportUI(event)">
+			</s:method>						  
+		</s:RemoteObject>			
+	</fx:Declarations>
+	<fx:Script>
+		<![CDATA[
+			import aks.aksas.utils.UtilUi;
+			
+			import com.cool.assets.CoolAssetsFile;
+			import com.cool.utils.AlertUtil;
+			import com.cool.utils.DataListExportUtil;
+			
+			import dmdd.dmddas.common.constant.BizConst;
+			import dmdd.dmddas.common.constant.SysConst;
+			import dmdd.dmddas.common.system.ClientEnvironment;
+			import dmdd.dmddas.common.utils.UtilExceptionLocale;
+			import dmdd.dmddas.common.utils.UtilPeriod;
+			import dmdd.dmddas.dataaccess.aidobject.ABImForecastData;
+			import dmdd.dmddas.dataaccess.aidobject.ABImForecastData;
+			import dmdd.dmddas.dataaccess.bizobject.BBizData;
+			import dmdd.dmddas.dataaccess.bizobject.BSysDictionaryItem;
+			import dmdd.dmddas.dataaccess.bizobject.BUnit;
+			import dmdd.dmddas.dataaccess.bizobject.BUnitGroup;
+			
+			import mx.collections.ArrayCollection;
+			import mx.collections.IViewCursor;
+			import mx.controls.Alert;
+			import mx.controls.DataGrid;
+			import mx.controls.dataGridClasses.DataGridColumn;
+			import mx.events.FlexEvent;
+			import mx.rpc.events.FaultEvent;
+			import mx.rpc.events.ResultEvent;
+			
+			
+			
+			//	描述    begin
+			//	描述    end
+			
+			//	0	输入参数    begin						
+			//	0	输入参数    end
+			
+			//	1	输出参数    begin
+			//	1	输出参数    end
+			
+			//	2	本地变量    begin	
+			[Bindable]
+			private var dp4comAdgImForecastData:ArrayCollection = new ArrayCollection();
+			[Bindable]
+			private var arrDictBizDataType:ArrayCollection = new ArrayCollection();		
+			
+			private var unit:BUnit = null;
+			
+			private var arrFailedRecord:ArrayCollection = new ArrayCollection();
+			
+			private var arrOkButFailedRecord:ArrayCollection = new ArrayCollection();
+			//	2	本地变量    end			
+			
+			//	3	公共方法    begin			
+			//	3	公共方法    end		
+			
+			//	4	初始化方法    begin	
+			protected function creationCompleteHandler(event:FlexEvent):void
+			{
+				//	初始化界面参数	begin
+				arrDictBizDataType = new ArrayCollection();
+				
+				var arrSysBizDataType:ArrayCollection = ClientEnvironment.getBizDataTypeArr();
+				var i:int;
+				var sysDictionaryItem:BSysDictionaryItem = null;
+				for( i=0; i<arrSysBizDataType.length; i=i+1 )
+				{
+					sysDictionaryItem = BSysDictionaryItem(arrSysBizDataType.getItemAt(i));
+					if( sysDictionaryItem.value == BizConst.BIZDATA_TYPE_FCHAND )
+					{
+						arrDictBizDataType.addItem( sysDictionaryItem );
+					}
+				}
+				
+				comAdgImForecastData.pasteFunction = handleTextPaste;
+				
+				//	初始化界面参数	end				
+			}			
+			//	4	初始化方法    end				
+			
+			//	5	事件响应方法    begin
+			private function onChange4comboBoxUnit():void
+			{
+				var selectedUnit:BUnit = BUnit(comboBoxUnit.selectedItem)
+				var i:int;
+				var imHistoryData:ABImForecastData = null;
+				if( selectedUnit != null && unit != null && selectedUnit.id != unit.id )
+				{
+					if( dp4comAdgImForecastData != null )
+					{
+						for( i=0; i<dp4comAdgImForecastData.length; i=i+1 )
+						{
+							imHistoryData = ABImForecastData(dp4comAdgImForecastData.getItemAt(i));
+							imHistoryData.exchangeUnit( unit.exchangeRate, selectedUnit.exchangeRate );
+						}
+					}	
+				}
+					
+				unit = selectedUnit;				
+			}
+			
+			private function onClear():void
+			{
+				dp4comAdgImForecastData = new ArrayCollection();
+				comAdgImForecastData.columnImportResult.visible = false;
+				comAdgImForecastData.columnWarnInfo.visible=false;
+				btnSave.enabled = false;
+				btnExport.enabled = false;
+				btnExportWarnInfo.enabled = false;
+			}
+			
+			private function onSave():void
+			{
+				var alert_msg:String = null;  
+				
+				var bizData:BBizData = comBizDataField.paramIo4selectedBizData;
+				if( bizData == null )
+				{
+					alert_msg = resourceManager.getString('alert','alert_msg_nobizdata12');
+					AlertUtil.show(alert_msg,AlertUtil.MESSAGE_WARN);	
+					return;
+				}
+				
+				var unitGroup:BUnitGroup = comUnitGroupField.paramIo4selectedUnitGroup;
+				if( unitGroup == null )
+				{
+					alert_msg = resourceManager.getString('alert','alert_msg_nounitgroup12');
+					AlertUtil.show(alert_msg,AlertUtil.MESSAGE_WARN);	
+					return;						
+				}
+				
+				var selectedUnit:BUnit = BUnit(comboBoxUnit.selectedItem);
+				if( selectedUnit == null )
+				{
+					alert_msg = resourceManager.getString('alert','alert_msg_nounit12');
+					AlertUtil.show(alert_msg,AlertUtil.MESSAGE_WARN);	
+					return;						
+				}				
+				
+				if( dp4comAdgImForecastData.length <= 0 )
+				{
+					alert_msg = resourceManager.getString('alert','alert_msg_nodatatosave12');
+					AlertUtil.show(alert_msg,AlertUtil.MESSAGE_WARN);	
+					return;												
+				}
+				
+				UtilUi.pubFun4PopWaitWindow( this );
+				
+				//	传递到服务器的数据应该是以基准单位计数的	begin
+				var arrImForecastData4save:ArrayCollection = new ArrayCollection();
+				var i:int;
+				var imHistoryData:ABImForecastData = null;
+				var imHistoryData_new:ABImForecastData = null;
+				for( i=0; i<dp4comAdgImForecastData.length; i=i+1 )
+				{
+					imHistoryData = ABImForecastData(dp4comAdgImForecastData.getItemAt(i));
+					imHistoryData_new = new ABImForecastData();
+					imHistoryData_new.copyDeep( imHistoryData );
+					if( selectedUnit.isBase == BizConst.GLOBAL_YESNO_NO )
+					{
+						imHistoryData_new.exchangeUnit( selectedUnit.exchangeRate, 1 );
+					}	
+					arrImForecastData4save.addItem( imHistoryData_new );
+					
+				}
+				//	传递到服务器的数据应该是以基准单位计数的	end
+				
+				srvForecastHand.saveFocastDatas4ImportUI( bizData, unitGroup, arrImForecastData4save );
+			}	
+			
+			private function faultHandler4saveFocastDatas4ImportUI(event:FaultEvent):void
+			{
+				UtilUi.pubFun4RemoveWaitWindow();
+				Alert.show( UtilExceptionLocale.getExceptionMessageLocaleByFaultEvent( event ), resourceManager.getString('alert','alt_title_warn') );
+			}
+			
+			private function resultHandler4saveFocastDatas4ImportUI(event:ResultEvent):void 
+			{
+				dp4comAdgImForecastData = ArrayCollection(event.result);
+				
+				arrFailedRecord = new ArrayCollection();
+				arrOkButFailedRecord = new ArrayCollection();
+				var totalNum:int = 0; 
+				var failNum:int = 0;
+				var i:int;
+				var rstImHistoryData:ABImForecastData = null;
+				if( dp4comAdgImForecastData != null )
+				{
+					totalNum = dp4comAdgImForecastData.length;
+					for( i=0; i<dp4comAdgImForecastData.length; i=i+1 )
+					{
+						rstImHistoryData = ABImForecastData(dp4comAdgImForecastData.getItemAt(i));
+						if( rstImHistoryData.importResult != BizConst.IMPORT_RESULT_SUCCESS )
+						{
+							rstImHistoryData.importResult = UtilExceptionLocale.getExceptionMessageLocaleByCauseMessage( rstImHistoryData.importResult );
+							rstImHistoryData.warnInfo =UtilExceptionLocale.getExceptionMessageLocaleByCauseMessage( rstImHistoryData.warnInfo ); 
+							arrFailedRecord.addItem( rstImHistoryData );
+						}
+						else
+						{
+							if(rstImHistoryData.warnInfo!="")
+							{
+								rstImHistoryData.warnInfo =UtilExceptionLocale.getExceptionMessageLocaleByCauseMessage( rstImHistoryData.warnInfo );
+								arrOkButFailedRecord.addItem(rstImHistoryData);
+							}							
+						}
+					}
+					failNum = arrFailedRecord.length;
+				}
+				
+				UtilUi.pubFun4RemoveWaitWindow();
+				comAdgImForecastData.columnImportResult.visible = true;
+				comAdgImForecastData.columnWarnInfo.visible=true;
+				
+				var alert_title_hint:String = resourceManager.getString('alert','alert_title_hint');
+				var alert_msg:String = null;  	
+				
+				alert_msg = resourceManager.getString('alert','alert_msg_totalnum12');
+				alert_msg = alert_msg + totalNum + "\n";
+				alert_msg = alert_msg + resourceManager.getString('alert','alert_msg_failnum12');
+				alert_msg = alert_msg + failNum + "\n";
+				
+				Alert.show( alert_msg, alert_title_hint );
+				
+				if( failNum > 0 )
+				{
+					btnExport.enabled = true;					
+				}
+				else
+				{
+					btnExport.enabled = false;					
+				}		
+				
+				if(arrOkButFailedRecord.length>0)
+				{
+					btnExportWarnInfo.enabled = true;
+				}
+				else
+				{
+					btnExportWarnInfo.enabled = false;
+				}
+			}		
+			private function onExport():void
+			{
+				//	只导出错误的，所以先把组件显示的内容换成错误的，处理完后再换回来	begin
+				var arrdp4comAdgImForecastData_bak:ArrayCollection = new ArrayCollection();
+				arrdp4comAdgImForecastData_bak.addAll( dp4comAdgImForecastData );
+				
+				dp4comAdgImForecastData.removeAll();
+				dp4comAdgImForecastData.addAll( arrFailedRecord );
+				//dp4comAdgImForecastData.addAll(arrOkButFailedRecord);
+				
+				var TSVString:String = DataListExportUtil.generateCsvData(comAdgImForecastData,0);
+				
+				dp4comAdgImForecastData.removeAll();
+				dp4comAdgImForecastData.addAll( arrdp4comAdgImForecastData_bak );
+				//只导出错误的，所以先把组件显示的内容换成错误的，处理完后再换回来end
+						
+				// Copy the TSV string to the clipboard
+				System.setClipboard(TSVString);					
+			}
+			
+			private function onExportWarnInfo():void
+			{
+				//	只导出错误的，所以先把组件显示的内容换成错误的，处理完后再换回来	begin
+				var arrdp4comAdgImForecastData_bak:ArrayCollection = new ArrayCollection();
+				arrdp4comAdgImForecastData_bak.addAll( dp4comAdgImForecastData );
+				
+				dp4comAdgImForecastData.removeAll();
+				//dp4comAdgImForecastData.addAll( arrFailedRecord );
+				dp4comAdgImForecastData.addAll(arrOkButFailedRecord);
+				
+				var TSVString:String = DataListExportUtil.generateCsvData(comAdgImForecastData,0);
+				
+				dp4comAdgImForecastData.removeAll();
+				dp4comAdgImForecastData.addAll( arrdp4comAdgImForecastData_bak );
+				//	只导出错误的，所以先把组件显示的内容换成错误的，处理完后再换回来	end
+				
+				// Copy the TSV string to the clipboard
+				System.setClipboard(TSVString);
+			}
+			
+			//	5	事件响应方法    end
+			
+			//	6	本地方法    begin
+			
+			private function handleTextPaste(event:TextEvent):void   
+			{     
+				// Extract values from TSV format and populate the DataGrid
+				if( comAdgImForecastData.columnImportResult.visible == true )
+				{
+					comAdgImForecastData.columnImportResult.visible = false;
+				}
+				
+				dp4comAdgImForecastData = new ArrayCollection();
+				getImForecastDatasFromText( event.text );  
+				btnSave.enabled = true;
+			}   
+			
+			private function getImForecastDatasFromText(text:String):void   
+			{     
+ 				var alert_msg:String = null;  
+				
+				var rstArrayImHistoryData:Array = new Array();
+				var rows:Array = text.split("\n");
+				if( rows == null )
+				{
+					alert_msg = resourceManager.getString('alert','alert_msg_noorganization12');
+					AlertUtil.show(alert_msg,AlertUtil.MESSAGE_WARN);
+					
+					return;	
+				}     
+				if (!rows[rows.length - 1])
+				{       
+					rows.pop();
+				}     
+				
+				if( rows.length <= 1 )
+				{
+					alert_msg = resourceManager.getString('alert','alert_msg_nohistorydata12');
+					AlertUtil.show(alert_msg,AlertUtil.MESSAGE_WARN);
+					return;
+				}
+				
+				var rwHeader:String = rows[0];
+				var fieldsHeader:Array = rwHeader.split( "\t" );
+				if(!(fieldsHeader[fieldsHeader.length-1]))
+				{
+					fieldsHeader.pop();
+				} 				
+				if( fieldsHeader.length <= 2 )
+				{
+					alert_msg = resourceManager.getString('alert','alert_msg_nohistorydatacolumen12');
+					AlertUtil.show(alert_msg,AlertUtil.MESSAGE_WARN);
+					return;					
+				}
+				
+				var colIdx:int;
+				var periodBegin:int = UtilPeriod.parse( fieldsHeader[2] );
+				var period:int = SysConst.PERIOD_NULL;
+				if( periodBegin == SysConst.PERIOD_NULL )
+				{
+					alert_msg = resourceManager.getString('alert','alert_msg_errorhistorydatacolumnheader12');
+					AlertUtil.show(alert_msg,AlertUtil.MESSAGE_WARN);
+					return;																	
+				}
+				for( colIdx = 3; colIdx < fieldsHeader.length; colIdx=colIdx+1 )
+				{
+					period = UtilPeriod.parse( fieldsHeader[ colIdx ] );
+					if( period == SysConst.PERIOD_NULL )
+					{
+						alert_msg = resourceManager.getString('alert','alert_msg_errorhistorydatacolumnheader12');
+						AlertUtil.show(alert_msg,AlertUtil.MESSAGE_WARN);
+						return;												
+					}
+					if( UtilPeriod.getPeriodDifference( periodBegin, period ) != (colIdx - 2) )
+					{
+						alert_msg = resourceManager.getString('alert','alert_msg_historydatacolumnheaderperiodnotsucceed12');
+						AlertUtil.show(alert_msg,AlertUtil.MESSAGE_WARN);
+						return;																		
+					}
+				}
+				var periodEnd:int = period;
+				if( periodEnd == SysConst.PERIOD_NULL )
+				{
+					periodEnd = periodBegin;	
+				}
+				if( UtilPeriod.getPeriodDifference(periodEnd, ClientEnvironment.getSysPeriod().historyOpenPeriod) < 0 )
+				{
+					alert_msg = resourceManager.getString('alert','alert_msg_periodendgtopen12');
+					AlertUtil.show(alert_msg,AlertUtil.MESSAGE_WARN);
+					return;																							
+				}
+				
+				var periodDiff:int = UtilPeriod.getPeriodDifference(periodBegin, periodEnd);
+				if( periodDiff >= SysConst.PERIODNUM_MAX_NUM )
+				{
+					alert_msg = resourceManager.getString('alert','alter_msg_perioddiffover12');
+					AlertUtil.show(alert_msg,AlertUtil.MESSAGE_WARN);
+					return;																							
+				}
+				
+				comAdgImForecastData.pubFun4setParamIo4periodBeginEnd( periodBegin, periodEnd, true );
+				
+				var row:String = null;
+				var rowIdx:int;
+				var fields:Array = null;
+				var periodIdx:int;
+				var periodNum:int;
+				
+				var newImHistoryData:ABImForecastData = null;
+				for( rowIdx=1; rowIdx<rows.length; rowIdx=rowIdx+1 )
+				{
+					newImHistoryData = new ABImForecastData();
+					newImHistoryData.periodBegin = periodBegin;
+					newImHistoryData.periodEnd = periodEnd;
+					newImHistoryData.importResult = null;
+					
+					row = rows[rowIdx];
+					fields = row.split("\t");
+					if( fields.length <= 2 )
+					{
+						continue;
+					}
+					newImHistoryData.productCode = fields[0];
+					newImHistoryData.organizationCode = fields[1];
+					
+					periodNum = Math.min( periodDiff+1, fields.length-2 );
+					for( periodIdx=0; periodIdx < periodNum; periodIdx=periodIdx+1 )
+					{
+						newImHistoryData.pubFun4setPeriodDataValue( periodIdx, Number( fields[2+periodIdx] ) );	
+					}
+					
+					dp4comAdgImForecastData.addItem( newImHistoryData );
+				}
+			}   			
+			//	6	本地方法   end	
+			
+		]]>
+	</fx:Script>
+	<common:LabelBoundary paddingTop="5" labelText="{resourceManager.getString('menu','forecastDataImport')}" />
+	<containers:AksControlBar>
+		<s:Label text="{resourceManager.getString('note','busData')}"/>
+		<bizdata:Com_BizData_BizData_Field id="comBizDataField" paramIn4arrDictBizDataType="{arrDictBizDataType}" paramIn4blConstrainedByPermission="true" paramIn4blOnlyIsManaging="true" width="100%">
+		</bizdata:Com_BizData_BizData_Field>
+		<mx:Spacer width="20"/>
+		<s:Label text="{resourceManager.getString('note','unitGroup')}"/>
+		<unit:Com_Unit_UnitGroup_Field id="comUnitGroupField" width="100%">
+		</unit:Com_Unit_UnitGroup_Field>
+		<mx:Spacer width="20"/>
+		<s:Label text="{resourceManager.getString('note','unit')}"/>
+		<s:ComboBox id="comboBoxUnit" dataProvider="{comUnitGroupField.paramIo4selectedUnitGroup.units}" selectedIndex="0" change="onChange4comboBoxUnit()"/>
+		<mx:Spacer width="50"/>
+		<s:Button label="{resourceManager.getString('button','save')}" icon="{CoolAssetsFile.saveIcon}" click="onSave()" id="btnSave" enabled="false"/> 
+		<s:Button label="{resourceManager.getString('button','clear')}" icon="{CoolAssetsFile.clearIcon}" click="onClear()"/>
+		<s:Button label="{resourceManager.getString('button','expLogFailed')}" icon="{CoolAssetsFile.doctableIcon}" click="onExport()" id="btnExport" enabled="false"/>
+		<s:Button label="{resourceManager.getString('button','alarmRecExp')}" icon="{CoolAssetsFile.warnIcon}" click="onExportWarnInfo()" id="btnExportWarnInfo" enabled="false"/>
+	</containers:AksControlBar>
+	<forecast:Com_Forecast_ImForecastData_DataGrid id="comAdgImForecastData" width="100%" height="100%" dataProvider="{dp4comAdgImForecastData}" />
+
+</mx:Module>

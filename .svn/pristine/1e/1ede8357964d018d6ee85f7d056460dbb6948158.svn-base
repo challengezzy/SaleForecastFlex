@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Module xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		   xmlns:s="library://ns.adobe.com/flex/spark" 
+		   xmlns:mx="library://ns.adobe.com/flex/mx" layout="vertical" width="100%" height="100%"
+		   creationComplete="creationCompleteHandler(event)">
+	<fx:Metadata>
+		[ResourceBundle("mod_maindata_distributioncenter")]
+	</fx:Metadata>
+	<fx:Script>
+		<![CDATA[
+			import dmdd.dmddas.common.constant.BizConst;
+			import dmdd.dmddas.common.system.ClientEnvironment;
+			
+			import mx.events.FlexEvent;
+			
+			//	描述    begin
+			//	描述    end
+			
+			//	0	输入参数    begin						
+			//	0	输入参数    end
+			
+			//	1	输出参数    begin
+			//	1	输出参数    end
+			
+			//	2	本地变量    begin			
+			//	2	本地变量    end			
+			
+			//	3	公共方法    begin			
+			//	3	公共方法    end		
+			
+			//	4	初始化方法    begin	
+			
+			protected function creationCompleteHandler(event:FlexEvent):void
+			{
+				
+				viewStack.removeAllElements();
+				//功能权限控制
+				if(	ClientEnvironment.checkIsPermission(BizConst.FUNPERMISSION_MAINDATA_DISTRIBUTIONCENTER)  )
+				{
+					//viewStack.addElement( modloader_dcmanager );					
+				}
+				
+				viewStack.addElement( modloader_dcmanager );
+				viewStack.addElement( modloader_dcimport );
+				
+			}
+			//	4	初始化方法    end	
+			
+			//	5	事件响应方法    begin
+			//	5	事件响应方法    end
+			
+			//	6	本地方法    begin
+			//	6	本地方法   end	
+			
+		]]>
+	</fx:Script>
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	
+	<mx:TabBar dataProvider="{viewStack}"/> 
+	<mx:ViewStack id="viewStack" 
+				  borderStyle="solid" width="100%" height="100%"> 
+		
+		<mx:ModuleLoader id="modloader_dcmanager" applicationDomain="{ApplicationDomain.currentDomain}" 
+						 label="{resourceManager.getString('mod_maindata_distributioncenter','dcmanager')}" width="100%" height="100%" 
+						 url="dmdd/dmddmx/mod/maindata/distributioncenter/Mod_Maindata_DC_DCManager.swf">
+		</mx:ModuleLoader>
+		<mx:ModuleLoader id="modloader_dcimport" applicationDomain="{ApplicationDomain.currentDomain}" 
+						 label="{resourceManager.getString('mod_maindata_distributioncenter','dcimport')}" width="100%" height="100%" 
+						 url="dmdd/dmddmx/mod/maindata/distributioncenter/Mod_Maindata_DC_DCImport.swf">
+		</mx:ModuleLoader>
+	</mx:ViewStack>
+</mx:Module>

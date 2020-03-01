@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:BorderContainer xmlns:fx="http://ns.adobe.com/mxml/2009" 
+				   xmlns:s="library://ns.adobe.com/flex/spark" 
+				   xmlns:mx="library://ns.adobe.com/flex/mx" width="100%" height="30"
+				   creationComplete="creationCompleteHandler(event)" >
+	<s:layout>
+		<s:HorizontalLayout paddingLeft="10" paddingRight="10" verticalAlign="middle"/>
+	</s:layout>
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+		<s:RadioButtonGroup id="rbtnGroup" itemClick="rbtnGroup_itemClickHandler(event)"/>
+	</fx:Declarations>
+
+	<fx:Script>
+		<![CDATA[
+			import dmdd.dmddas.common.system.ClientEnvironment;
+			import dmdd.dmddas.dataaccess.bizobject.BUnit;
+			import dmdd.dmddas.dataaccess.bizobject.BUnitGroup;
+			
+			import mx.collections.ArrayCollection;
+			import mx.events.FlexEvent;
+			import mx.events.ItemClickEvent;
+
+			//	描述		begin
+			//	描述		end
+			
+			//	0	输入参数    begin	
+			public var paramIn4change4Callback4thisObject:Object = null;
+			public var paramIn4changeCallback4function:Function = null;			
+			
+			[Bindable]
+			public var paramIn4unitGroup:Number = -1;
+			//	0	输入参数    end
+			
+			//	1	输出参数    begin		
+			[Bindable]
+			public var paramOut4rbtnStandardPriceSelected:Boolean = false;
+			[Bindable]
+			public var paramOut4rbtnRealPriceSelected:Boolean = true;			
+			//	1	输出参数    end
+			
+			//	2	本地变量    begin
+			[Bindable]
+			private var prv4arrUnits:ArrayCollection = new ArrayCollection();
+			//	2	本地变量    end			
+			
+			//	3	公共方法    begin		
+			public function pub4setUnit(unitId:Number):void
+			{
+				prv4arrUnits = ClientEnvironment.getUnitGroup(unitId).units;
+				var unit:BUnit =null;
+				for(var i:int=0;i<prv4arrUnits.length;i++)
+				{
+					unit = BUnit(prv4arrUnits.getItemAt(i));
+					if(unit.id == unitId)
+					{	
+						this.comboBoxUnit.selectedIndex = i; 
+						this.comboBoxUnit.selectedItem = unit;
+						break;
+					}
+				}
+			}
+			
+			public function pub4getUnitExchange(unitId:Number):int
+			{
+				var unit:BUnit =null;
+				for(var i:int=0;i<prv4arrUnits.length;i++)
+				{
+					unit = BUnit(prv4arrUnits.getItemAt(i));
+					if(unit.id == unitId)
+						return unit.exchangeRate;
+				}
+				return 1;
+			}
+			//	3	公共方法    end		
+			
+			//	4	初始化方法    begin			
+			protected function creationCompleteHandler(event:FlexEvent):void
+			{
+			}				
+			//	4	初始化方法    end				
+			
+			//	5	事件响应方法    begin
+			private function onChange4comboBoxUnit():void
+			{
+				this.paramIn4changeCallback4function.call( this.paramIn4change4Callback4thisObject );
+			}	
+			
+			protected function rbtnGroup_itemClickHandler(event:ItemClickEvent):void
+			{
+				this.paramOut4rbtnStandardPriceSelected = this.rbtn4standardPrice.selected;				
+				this.paramOut4rbtnRealPriceSelected = this.rbtn4realPrice.selected;
+			}			
+			//	5	事件响应方法    end
+			
+			//	6	本地方法    begin
+			//	6	本地方法   end
+
+
+
+		]]>
+	</fx:Script>
+	<s:Label text="{resourceManager.getString('note','unit')}"/>
+	<s:ComboBox id="comboBoxUnit" dataProvider="{this.prv4arrUnits}" change="onChange4comboBoxUnit()"/>
+	<mx:Spacer width="50"/>
+		<s:RadioButton id="rbtn4standardPrice" selected="false" label="{resourceManager.getString('note','standardPrice')}" 	groupName="rbtnGroup"/>
+		<s:RadioButton id="rbtn4realPrice" 	   selected="true" label="{resourceManager.getString('note','actualPrice')}" 		groupName="rbtnGroup"/>														
+	<mx:Spacer width="50"/>
+	<s:CheckBox id="checkBoxProductCode" selected="true" label="{resourceManager.getString('note','proCode')}"/>
+	<s:CheckBox id="checkBoxProductName" selected="true" label="{resourceManager.getString('note','proName')}"/>
+	<mx:Spacer width="20"/>
+	<s:CheckBox id="checkBoxOrganizationCode" selected="true" label="{resourceManager.getString('note','orgCode')}"/>
+	<s:CheckBox id="checkBoxOrganizationName" selected="true" label="{resourceManager.getString('note','orgName')}"/>
+</s:BorderContainer>

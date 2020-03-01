@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="utf-8"?>
+<components:SuperTitleWindow xmlns:fx="http://ns.adobe.com/mxml/2009" 
+			   xmlns:s="library://ns.adobe.com/flex/spark" 
+			   xmlns:mx="library://ns.adobe.com/flex/mx"
+			   title="{resourceManager.getString('menu','dataChart')}"
+			   close="PopUpManager.removePopUp(this);"
+			   creationComplete="creationCompleteHandler(event)" enableResize="true"
+			   width="1100" height="360" xmlns:charts="aks.aksmx.charts.*" xmlns:components="com.cool.components.*">
+	<fx:Script>
+		<![CDATA[
+			
+			import mx.collections.ArrayCollection;
+			import mx.events.FlexEvent;
+			import mx.events.IndexChangedEvent;
+			import mx.managers.PopUpManager;
+			
+			public var arr4checkedUiRowData4scale:ArrayCollection ; //ABUiRowData 数组
+			
+			/** 数量值数组 */
+			[Bindable]
+			public var dp4chart4scale:ArrayCollection = new ArrayCollection();
+			
+			/** 系列 名称 */
+			public var arr4displayName4chart4scale:ArrayCollection = new ArrayCollection();
+			
+			/** 系列值取值字段 */
+			public var arr4yField4chart4scale:ArrayCollection = new ArrayCollection();
+			
+			[Bindable]
+			public var arrEditPeriods:ArrayCollection = new ArrayCollection();//记录可以编辑期间
+			
+			[Bindable]
+			public var callbackLineAdjustObject:Object = null;
+			/** 在linechart的情况下，调整数据的回调函数*/
+			[Bindable]
+			public var callbackLineAdjustfunction:Function = null; 
+			
+			[Bindable]
+			public var arr4editableLines:ArrayCollection = new ArrayCollection();
+			
+			[Bindable]
+			public var dp4chart4kpi:ArrayCollection = new ArrayCollection();
+			
+			public var arr4displayName4chart4kpi:ArrayCollection = new ArrayCollection();
+			public var arr4yField4chart4kpi:ArrayCollection = new ArrayCollection();
+			
+			public function refreshTabStatus():void{
+				if(arr4displayName4chart4scale == null || arr4displayName4chart4scale.length < 1){
+					tab4aksLineChart4scale.enabled = false;
+					tab4aksColumnChart4scale.enabled = false;
+					tabNav4chart.selectedIndex = 2;
+				}else{
+					tabNav4chart.selectedIndex = 0;
+					tab4aksLineChart4scale.enabled = true;
+					tab4aksColumnChart4scale.enabled = true;
+					
+					aksLineChart4scale.paramIn4dp4lineChart = dp4chart4scale;
+					aksColunmnChart4scale.paramIn4dp4columnChart = dp4chart4scale;
+					
+					aksLineChart4scale.validateNow();
+					aksColunmnChart4scale.validateNow()
+				}
+				
+				if(arr4displayName4chart4kpi == null || arr4displayName4chart4kpi.length < 1){
+					tab4aksLineChart4kpi.enabled = false;
+					tab4aksColumnChart4kpi.enabled = false;
+				}else{
+					tab4aksLineChart4kpi.enabled = true;
+					tab4aksColumnChart4kpi.enabled = true;
+					
+					aksLineChart4kpi.paramIn4dp4lineChart = dp4chart4kpi;
+					aksColunmnChart4kpi.paramIn4dp4columnChart = dp4chart4kpi;
+					
+					aksLineChart4kpi.validateNow();
+					aksColunmnChart4kpi.validateNow();
+				}
+				
+				tabNav4chart_changeHandler(null);
+				
+			}
+			
+			protected function creationCompleteHandler(event:FlexEvent):void
+			{
+				tabNav4chart_changeHandler(null);
+				
+			}
+			
+			protected function tabNav4chart_changeHandler(event:IndexChangedEvent):void
+			{
+				if( tabNav4chart.selectedChild == tab4aksLineChart4scale )
+				{
+					aksLineChart4scale.pubFun4setSeries( arr4displayName4chart4scale, arr4yField4chart4scale );
+				}
+				else if( tabNav4chart.selectedChild == tab4aksColumnChart4scale )
+				{
+					aksColunmnChart4scale.pubFun4setSeries( arr4displayName4chart4scale, arr4yField4chart4scale );
+				}
+				else if( tabNav4chart.selectedChild == tab4aksLineChart4kpi )
+				{
+					aksLineChart4kpi.pubFun4setSeries( arr4displayName4chart4kpi, arr4yField4chart4kpi );
+				}
+				else if( tabNav4chart.selectedChild == tab4aksColumnChart4kpi )
+				{
+					aksColunmnChart4kpi.pubFun4setSeries( arr4displayName4chart4kpi, arr4yField4chart4kpi );
+				}
+			}
+			
+		]]>
+	</fx:Script>
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	
+	<s:VGroup width="100%" height="100%" paddingBottom="3" paddingTop="5" paddingLeft="10" paddingRight="10">
+		<mx:TabNavigator width="100%" height="100%" id="tabNav4chart" change="tabNav4chart_changeHandler(event)" creationPolicy="all">
+			<s:NavigatorContent id="tab4aksLineChart4scale" label="{resourceManager.getString('menu','lineChart')}"  width="100%" height="100%" >
+				<s:layout>
+					<s:VerticalLayout/>
+				</s:layout>
+				<charts:AksLineChart id="aksLineChart4scale" width="100%" height="100%" chartHeight="200" 
+									 paramIn4dp4lineChart="{dp4chart4scale}" paramIn4visible4legend="true" 
+									 paramIn4arr4EditableLinesNumber="{arr4editableLines}" 
+									 paramIn4executeCallback4function="{callbackLineAdjustfunction}" 
+									 paramIn4executeCallback4thisObject="{callbackLineAdjustObject}"
+									 paramIn4arr4Editables="{arrEditPeriods}">
+				</charts:AksLineChart>	
+			</s:NavigatorContent>
+			<s:NavigatorContent label="{resourceManager.getString('menu','barChart')}" width="100%" height="100%" id="tab4aksColumnChart4scale" >
+				<s:layout>
+					<s:VerticalLayout/>
+				</s:layout>
+				<charts:AksColumnChart id="aksColunmnChart4scale" width="100%" height="100%"  chartHeight="200"
+									   paramIn4dp4columnChart="{dp4chart4scale}" paramIn4visible4legend="false">
+				</charts:AksColumnChart>					
+			</s:NavigatorContent>
+			<s:NavigatorContent label="{resourceManager.getString('menu','kpiLineChart')}" width="100%" height="100%" id="tab4aksLineChart4kpi">
+				<s:layout>
+					<s:VerticalLayout/>
+				</s:layout>
+				<charts:AksLineChart id="aksLineChart4kpi" width="100%" height="100%"  chartHeight="200"
+									 paramIn4dp4lineChart="{dp4chart4kpi}" paramIn4visible4legend="false">
+				</charts:AksLineChart>					
+			</s:NavigatorContent>
+			<s:NavigatorContent label="{resourceManager.getString('menu','kpiBarChart')}" width="100%" height="100%" id="tab4aksColumnChart4kpi" >
+				<s:layout>
+					<s:VerticalLayout/>
+				</s:layout>
+				<charts:AksColumnChart id="aksColunmnChart4kpi" width="100%" height="100%"  chartHeight="200"
+									   paramIn4dp4columnChart="{dp4chart4kpi}" paramIn4visible4legend="false">
+				</charts:AksColumnChart>					
+			</s:NavigatorContent>
+		</mx:TabNavigator>
+	</s:VGroup>
+</components:SuperTitleWindow>

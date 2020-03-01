@@ -1,0 +1,207 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:BorderContainer xmlns:fx="http://ns.adobe.com/mxml/2009" 
+				   xmlns:s="library://ns.adobe.com/flex/spark" 
+				   xmlns:mx="library://ns.adobe.com/flex/mx" width="100%" height="26"
+				   creationComplete="creationCompleteHandler(event)" borderColor="#ACC6DD">
+	<s:layout>
+		<s:HorizontalLayout paddingLeft="10" paddingRight="10" verticalAlign="middle" paddingBottom="0" paddingTop="0"/>
+	</s:layout>
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+	</fx:Declarations>
+	<fx:Metadata>
+		[ResourceBundle("aks")]
+	</fx:Metadata>
+	<fx:Script>
+		<![CDATA[
+			import aks.aksas.controls.AksOptions;
+			
+			import com.cool.assets.CoolAssetsFile;
+			
+			import mx.controls.AdvancedDataGrid;
+			import mx.controls.DataGrid;
+			import mx.events.FlexEvent;
+			import mx.managers.PopUpManager;
+			//	描述		begin
+			//	描述		end
+			
+			//	0	输入参数    begin			
+			[Bindable]
+			public var paramIn4enabled4BtnSetColumns:Boolean = true;
+			
+			public var paramIn4callback4thisObject:Object = null;
+			public var paramIn4callback4queryFunction:Function = null;
+			public var paramIn4callback4showzeroFunction:Function = null;
+			
+			public var paramIn4dataGrid:Object = null;
+			
+			private var paramIn4blPageQuery:Boolean = false;
+			[Bindable]
+			private var paramIn4resultSize:Number = 0;	//	结果集size			
+			[Bindable]
+			private var paramIn4pageSize:Number = AksOptions.getPageSize();	//	页size
+			[Bindable]
+			public var paramin4ShowZero:Boolean = false;
+			//	0	输入参数    end
+			
+			//	1	输出参数    begin	
+			[Bindable]
+			private var paramOut4pageIndex:int = 0;			
+			//	1	输出参数    end
+			
+			//	2	本地变量    begin
+			[Bindable]
+			private var prvVar4pageNum:int = 0;			
+			//	2	本地变量    end			
+			
+			//	3	公共方法    begin						
+			/**
+			 * 1.在调用处决定执行分页查询，则在取得结果集大小后， 调用本方法来初始化组件，执行一次，每次分页查询后不必再调用。
+			 * 2.在调用出决定执行非分也查询，则在取得查询结果后，用结果集大小作为第二、三参数调用本方法。
+			 * 
+			 */
+			public function pubFun4setResultParams( _paramIn4blPageQuery:Boolean, _paramIn4resultSize:Number, _paramIn4pageSize:Number ):void
+			{
+				this.paramIn4blPageQuery = _paramIn4blPageQuery;
+				this.paramIn4resultSize = _paramIn4resultSize;
+				this.paramIn4pageSize = _paramIn4pageSize;
+				
+				
+				if( this.paramIn4pageSize <= 0 || this.paramIn4resultSize < 0 )
+				{
+					//	无效参数
+					this.prvVar4pageNum = 0;
+					this.paramOut4pageIndex = 0;
+					
+					return;
+				}
+				
+				if( _paramIn4resultSize/_paramIn4pageSize - Math.floor(_paramIn4resultSize/_paramIn4pageSize) > 0 )
+				{
+					this.prvVar4pageNum = Math.floor(_paramIn4resultSize/_paramIn4pageSize) + 1;
+				}
+				else
+				{
+					this.prvVar4pageNum = _paramIn4resultSize/_paramIn4pageSize;
+				}
+									
+				this.paramOut4pageIndex = 1;					
+				
+				this.prvFun4setBtns();
+			}
+			
+			public function pubFun4geParamOut4pageIndex():int
+			{
+				return this.paramOut4pageIndex;
+			}
+
+			//	3	公共方法    end		
+			
+			//	4	初始化方法    begin			
+			protected function creationCompleteHandler(event:FlexEvent):void
+			{
+			}				
+			//	4	初始化方法    end				
+			
+			//	5	事件响应方法    begin	
+			private function onPrePage():void
+			{
+				if( this.paramOut4pageIndex > 1 )
+				{
+					this.paramOut4pageIndex = this.paramOut4pageIndex - 1;
+				}
+				this.prvFun4setBtns();
+				
+				this.paramIn4callback4queryFunction.call( this.paramIn4callback4thisObject, this.paramOut4pageIndex );
+				this.showzero.selected = false;
+			}
+			
+			private function onNextPage():void
+			{
+				if(prvVar4pageNum <= paramOut4pageIndex){
+					//当前已经是最后一页
+					return;
+				}
+				
+				this.paramOut4pageIndex = this.paramOut4pageIndex + 1;
+				this.prvFun4setBtns();
+				
+				this.paramIn4callback4queryFunction.call( this.paramIn4callback4thisObject, this.paramOut4pageIndex );
+				this.showzero.selected = false;
+			}		
+			
+			private function onRefresh():void
+			{				
+				this.prvFun4setBtns();
+				this.paramIn4callback4queryFunction.call( this.paramIn4callback4thisObject, this.paramOut4pageIndex );
+			}				
+
+			private function onSetColumns():void
+			{
+				var aksWindowSetColumns:AksWindowSetColumns = AksWindowSetColumns(PopUpManager.createPopUp(this, AksWindowSetColumns, true));
+				aksWindowSetColumns.pubFun4setParamIn4dataGrid( this.paramIn4dataGrid );
+			}
+			
+			private function onShowZero():void
+			{
+				if(this.paramIn4callback4showzeroFunction!=null)
+				{
+					this.paramIn4callback4showzeroFunction.call(this.paramIn4callback4thisObject, this.showzero.selected);
+				}
+			}
+			//	5	事件响应方法    end
+			
+			//	6	本地方法    begin
+			private function prvFun4setBtns():void
+			{
+				currentState = "pageableState";
+				if( this.paramOut4pageIndex > 1 )
+				{
+					this.btnPrePage.enabled = true;
+				}
+					
+				if( this.paramIn4resultSize > this.paramIn4pageSize*this.paramOut4pageIndex )
+				{
+					this.btnNextPage.enabled = true;
+				}
+					
+				this.btnRefresh.enabled = true;
+			}
+			//	6	本地方法   end
+
+		]]>
+	</fx:Script>
+	<s:states>
+		<s:State name="default"/>
+		<s:State name="pageableState"/>
+	</s:states>
+		
+	<mx:Spacer width="100%"/>
+	<mx:HBox id="pageBox" includeIn="pageableState">
+		<mx:LinkButton click="onPrePage()" id="btnPrePage" icon="{CoolAssetsFile.triangle_leftIcon}" width="22"
+					   toolTip="{resourceManager.getString('aks','btn_prepage')}"/>
+		<mx:LinkButton click="onNextPage()" id="btnNextPage" icon="{CoolAssetsFile.triangle_rightIcon}" width="22"
+					   toolTip="{resourceManager.getString('aks','btn_nextpage')}"/>
+	</mx:HBox>
+	<mx:LinkButton click="onRefresh()" 	id="btnRefresh" icon="{CoolAssetsFile.refresh3Icon}" enabled="false" width="22"
+				   toolTip="{resourceManager.getString('aks','btn_refresh')}"/>
+	<mx:HBox horizontalGap="0">
+		<mx:Spacer width="5"/>
+		<s:Label text="{this.paramOut4pageIndex}"/>
+		<s:Label text="/"/>
+		<s:Label text="{this.prvVar4pageNum}"/>
+		<mx:Spacer width="2"/>
+		<s:Label text="{resourceManager.getString('aks','page')}"/>
+		
+		<mx:Spacer width="5"/>
+		<s:Label text="{resourceManager.getString('aks','recordnum')}"/>
+		<s:Label text="{this.paramIn4resultSize}"/>
+		<mx:Spacer width="5"/>
+	</mx:HBox>
+	<mx:Spacer width="5"/>
+	<mx:LinkButton click="onSetColumns()"  icon="{CoolAssetsFile.optsetIcon}" width="25"
+				   toolTip="{resourceManager.getString('aks','btn_setcolumns')}"
+				   visible="{this.paramIn4enabled4BtnSetColumns}"/>
+	<mx:Spacer width="10"/>
+	<s:CheckBox label="{resourceManager.getString('aks','notshowzero')}" id="showzero" selected="false" change="onShowZero()" visible="{this.paramin4ShowZero}"/>
+</s:BorderContainer>

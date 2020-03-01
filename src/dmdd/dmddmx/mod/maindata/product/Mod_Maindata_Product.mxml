@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Module xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		   xmlns:s="library://ns.adobe.com/flex/spark" 
+		   xmlns:mx="library://ns.adobe.com/flex/mx" layout="vertical" width="100%" height="100%"
+		   creationComplete="creationCompleteHandler(event)">
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+	</fx:Declarations>
+	
+	<fx:Script>
+		<![CDATA[
+			import dmdd.dmddas.common.constant.BizConst;
+			import dmdd.dmddas.common.system.ClientEnvironment;
+			
+			import mx.events.FlexEvent;
+			//	描述    begin
+			//	描述    end
+			
+			//	0	输入参数    begin						
+			//	0	输入参数    end
+			
+			//	1	输出参数    begin
+			//	1	输出参数    end
+			
+			//	2	本地变量    begin			
+			//	2	本地变量    end			
+			
+			//	3	公共方法    begin			
+			//	3	公共方法    end		
+			
+			//	4	初始化方法    begin	
+			protected function creationCompleteHandler(event:FlexEvent):void
+			{
+				this.viewStack.removeAllElements();
+				
+				if(	ClientEnvironment.checkIsPermission(BizConst.FUNPERMISSION_MAINDATA_PRODUCT_PRODUCT_QUERY) ||
+					ClientEnvironment.checkIsPermission(BizConst.FUNPERMISSION_MAINDATA_PRODUCT_PRODUCT_MANAGE) 
+				)
+				{
+					this.viewStack.addElement( this.modloader_maindata_product_product );					
+				}
+				
+				if(	ClientEnvironment.checkIsPermission(BizConst.FUNPERMISSION_MAINDATA_PRODUCT_PRODUCTCHARACTER_QUERY) ||
+					ClientEnvironment.checkIsPermission(BizConst.FUNPERMISSION_MAINDATA_PRODUCT_PRODUCTCHARACTER_MANAGE)  
+				)
+				{
+					this.viewStack.addElement( this.modloader_maindata_product_productcharacter );					
+				}				
+				
+				if(	ClientEnvironment.checkIsPermission(BizConst.FUNPERMISSION_MAINDATA_PRODUCT_PRODUCTLAYER_QUERY) ||
+					ClientEnvironment.checkIsPermission(BizConst.FUNPERMISSION_MAINDATA_PRODUCT_PRODUCTLAYER_MANAGE) 
+				)
+				{
+					this.viewStack.addElement( this.modloader_maindata_product_productlayer );					
+				}	
+				
+				if(	ClientEnvironment.checkIsPermission(BizConst.FUNPERMISSION_MAINDATA_PRODUCT_PRODUCTCHARACTERLAYER_QUERY) ||
+					ClientEnvironment.checkIsPermission(BizConst.FUNPERMISSION_MAINDATA_PRODUCT_PRODUCTCHARACTERLAYER_MANAGE) 
+				)
+				{
+					this.viewStack.addElement( this.modloader_maindata_product_productcharacterlayer );					
+				}	
+				
+				
+				if(	ClientEnvironment.checkIsPermission(BizConst.FUNPERMISSION_MAINDATA_PRODUCT_PRODUCT_IMPORT) ) 
+				{
+					this.viewStack.addElement( this.modloader_maindata_product_product_import );					
+				}	
+				
+				if(	ClientEnvironment.checkIsPermission(BizConst.FUNPERMISSION_MAINDATA_PRODUCT_PRODUCTCHARACTER_IMPORT) ) 
+				{
+					this.viewStack.addElement( this.modloader_maindata_product_productcharacter_import );					
+				}	
+				
+				if(	ClientEnvironment.checkIsPermission(BizConst.FUNPERMISSION_MAINDATA_PRODUCT_PRODUCTPROCHARACTER_IMPORT) ) 
+				{
+					this.viewStack.addElement( this.modloader_maindata_product_productprocharacter_import );					
+				}					
+			}			
+			//	4	初始化方法    end				
+			
+			//	5	事件响应方法    begin
+			//	5	事件响应方法    end
+			
+			//	6	本地方法    begin
+			//	6	本地方法   end			
+			
+		]]>
+	</fx:Script>
+	
+	<mx:TabBar dataProvider="{viewStack}"/> 
+	<mx:ViewStack id="viewStack" 
+				  borderStyle="solid" width="100%" height="100%"> 
+		
+		<mx:ModuleLoader id="modloader_maindata_product_product" applicationDomain="{ApplicationDomain.currentDomain}" 
+						 label="{resourceManager.getString('menu','proMaintain')}" width="100%" height="100%" 
+						 url="dmdd/dmddmx/mod/maindata/product/Mod_Maindata_Product_Product.swf">
+		</mx:ModuleLoader>
+		<mx:ModuleLoader id="modloader_maindata_product_productcharacter" applicationDomain="{ApplicationDomain.currentDomain}" 
+						 label="{resourceManager.getString('menu','proCharMaintain')}" width="100%" height="100%" 
+						 url="dmdd/dmddmx/mod/maindata/product/Mod_Maindata_Product_ProductCharacter.swf">
+		</mx:ModuleLoader>
+		<mx:ModuleLoader id="modloader_maindata_product_productlayer" applicationDomain="{ApplicationDomain.currentDomain}" 
+						 label="{resourceManager.getString('menu','proLayerMaintain')}" width="100%" height="100%" 
+						 url="dmdd/dmddmx/mod/maindata/product/Mod_Maindata_Product_ProductLayer.swf">
+		</mx:ModuleLoader>
+		<mx:ModuleLoader id="modloader_maindata_product_productcharacterlayer" applicationDomain="{ApplicationDomain.currentDomain}" 
+						 label="{resourceManager.getString('menu','proCharLayerMaintain')}" width="100%" height="100%" 
+						 
+						 url="dmdd/dmddmx/mod/maindata/product/Mod_Maindata_Product_ProductCharacterLayer.swf">
+		</mx:ModuleLoader>
+		
+		<mx:ModuleLoader id="modloader_maindata_product_product_import" applicationDomain="{ApplicationDomain.currentDomain}" 
+						 label="{resourceManager.getString('menu','proImp')}" width="100%" height="100%" 
+						 url="dmdd/dmddmx/mod/maindata/product/Mod_Maindata_Product_Product_Import.swf">
+		</mx:ModuleLoader>
+		<mx:ModuleLoader id="modloader_maindata_product_productcharacter_import" applicationDomain="{ApplicationDomain.currentDomain}" 
+						 label="{resourceManager.getString('menu','proCharImp')}" width="100%" height="100%" 
+						 url="dmdd/dmddmx/mod/maindata/product/Mod_Maindata_Product_ProductCharacter_Import.swf">
+		</mx:ModuleLoader>
+		<mx:ModuleLoader id="modloader_maindata_product_productprocharacter_import" applicationDomain="{ApplicationDomain.currentDomain}" 
+						 label="{resourceManager.getString('menu','proNproCharImp')}" width="100%" height="100%" 
+						 url="dmdd/dmddmx/mod/maindata/product/Mod_Maindata_Product_ProductProCharacter_Import.swf">
+		</mx:ModuleLoader>
+		
+		
+	</mx:ViewStack> 	
+</mx:Module>

@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Module xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		   xmlns:s="library://ns.adobe.com/flex/spark" 
+		   xmlns:mx="library://ns.adobe.com/flex/mx" layout="vertical" width="100%" height="100%"
+		   creationComplete="creationCompleteHandler(event)">
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+	</fx:Declarations>
+	
+	<fx:Script>
+		<![CDATA[
+			import dmdd.dmddas.common.constant.BizConst;
+			import dmdd.dmddas.common.system.ClientEnvironment;
+			
+			import mx.events.FlexEvent;
+			//	描述    begin
+			//	描述    end
+			
+			//	0	输入参数    begin						
+			//	0	输入参数    end
+			
+			//	1	输出参数    begin
+			//	1	输出参数    end
+			
+			//	2	本地变量    begin			
+			//	2	本地变量    end			
+			
+			//	3	公共方法    begin			
+			//	3	公共方法    end		
+			
+			//	4	初始化方法    begin	
+			protected function creationCompleteHandler(event:FlexEvent):void
+			{
+				this.viewStack.removeAllElements();
+				
+				if(	ClientEnvironment.checkIsPermission(BizConst.FUNPERMISSION_MAINDATA_ORGANIZATION_ORGANIZATION_QUERY) ||
+					ClientEnvironment.checkIsPermission(BizConst.FUNPERMISSION_MAINDATA_ORGANIZATION_ORGANIZATION_MANAGE) 
+				)
+				{
+					this.viewStack.addElement( this.modloader_maindata_organization_organization );					
+				}
+				
+				if(	ClientEnvironment.checkIsPermission(BizConst.FUNPERMISSION_MAINDATA_ORGANIZATION_ORGANIZATIONCHARACTER_QUERY) ||
+					ClientEnvironment.checkIsPermission(BizConst.FUNPERMISSION_MAINDATA_ORGANIZATION_ORGANIZATIONCHARACTER_MANAGE)  
+				)
+				{
+					this.viewStack.addElement( this.modloader_maindata_organization_organizationcharacter );					
+				}				
+				
+				if(	ClientEnvironment.checkIsPermission(BizConst.FUNPERMISSION_MAINDATA_ORGANIZATION_ORGANIZATIONLAYER_QUERY) ||
+					ClientEnvironment.checkIsPermission(BizConst.FUNPERMISSION_MAINDATA_ORGANIZATION_ORGANIZATIONLAYER_MANAGE) 
+				)
+				{
+					this.viewStack.addElement( this.modloader_maindata_organization_organizationlayer );					
+				}	
+				
+				if(	ClientEnvironment.checkIsPermission(BizConst.FUNPERMISSION_MAINDATA_ORGANIZATION_ORGANIZATIONCHARACTERLAYER_QUERY) ||
+					ClientEnvironment.checkIsPermission(BizConst.FUNPERMISSION_MAINDATA_ORGANIZATION_ORGANIZATIONCHARACTERLAYER_MANAGE) 
+				)
+				{
+					this.viewStack.addElement( this.modloader_maindata_organization_organizationcharacterlayer );					
+				}	
+				
+				
+				if(	ClientEnvironment.checkIsPermission(BizConst.FUNPERMISSION_MAINDATA_ORGANIZATION_ORGANIZATION_IMPORT) ) 
+				{
+					this.viewStack.addElement( this.modloader_maindata_organization_organization_import );					
+				}	
+				
+				if(	ClientEnvironment.checkIsPermission(BizConst.FUNPERMISSION_MAINDATA_ORGANIZATION_ORGANIZATIONCHARACTER_IMPORT) ) 
+				{
+					this.viewStack.addElement( this.modloader_maindata_organization_organizationcharacter_import );					
+				}	
+				
+				if(	ClientEnvironment.checkIsPermission(BizConst.FUNPERMISSION_MAINDATA_ORGANIZATION_ORGANIZATIONORGCHARACTER_IMPORT) ) 
+				{
+					this.viewStack.addElement( this.modloader_maindata_organization_organizationorgcharacter_import );					
+				}					
+			}			
+			//	4	初始化方法    end				
+			
+			//	5	事件响应方法    begin
+			//	5	事件响应方法    end
+			
+			//	6	本地方法    begin
+			//	6	本地方法   end			
+			
+		]]>
+	</fx:Script>
+		
+	<mx:TabBar dataProvider="{viewStack}"/> 
+	<mx:ViewStack id="viewStack" 
+				  borderStyle="solid" width="100%" height="100%"> 
+		
+		<mx:ModuleLoader id="modloader_maindata_organization_organization" applicationDomain="{ApplicationDomain.currentDomain}" 
+						 label="{resourceManager.getString('menu','orgMaintain')}" width="100%" height="100%" 
+						 url="dmdd/dmddmx/mod/maindata/organization/Mod_Maindata_Organization_Organization.swf">
+		</mx:ModuleLoader>
+		<mx:ModuleLoader id="modloader_maindata_organization_organizationcharacter" applicationDomain="{ApplicationDomain.currentDomain}" 
+						 label="{resourceManager.getString('menu','orgCharMaintain')}" width="100%" height="100%"
+						 url="dmdd/dmddmx/mod/maindata/organization/Mod_Maindata_Organization_OrganizationCharacter.swf">
+		</mx:ModuleLoader>
+		<mx:ModuleLoader id="modloader_maindata_organization_organizationlayer" applicationDomain="{ApplicationDomain.currentDomain}" 
+						 label="{resourceManager.getString('menu','orgLayerMaintain')}" width="100%" height="100%" 
+						 url="dmdd/dmddmx/mod/maindata/organization/Mod_Maindata_Organization_OrganizationLayer.swf">
+		</mx:ModuleLoader>
+		<mx:ModuleLoader id="modloader_maindata_organization_organizationcharacterlayer" applicationDomain="{ApplicationDomain.currentDomain}" 
+						 label="{resourceManager.getString('menu','orgCharLayerMaintain')}" width="100%" height="100%" 
+						 url="dmdd/dmddmx/mod/maindata/organization/Mod_Maindata_Organization_OrganizationCharacterLayer.swf">
+		</mx:ModuleLoader>
+		
+		<mx:ModuleLoader id="modloader_maindata_organization_organization_import" applicationDomain="{ApplicationDomain.currentDomain}" 
+						 label="{resourceManager.getString('menu','orgImp')}" width="100%" height="100%" 
+						 url="dmdd/dmddmx/mod/maindata/organization/Mod_Maindata_Organization_Organization_Import.swf">
+		</mx:ModuleLoader>
+		<mx:ModuleLoader id="modloader_maindata_organization_organizationcharacter_import" applicationDomain="{ApplicationDomain.currentDomain}" 
+						 label="{resourceManager.getString('menu','orgCharImp')}" width="100%" height="100%"
+						 url="dmdd/dmddmx/mod/maindata/organization/Mod_Maindata_Organization_OrganizationCharacter_Import.swf">
+		</mx:ModuleLoader>
+		<mx:ModuleLoader id="modloader_maindata_organization_organizationorgcharacter_import" applicationDomain="{ApplicationDomain.currentDomain}" 
+						 label="{resourceManager.getString('menu','orgNorgCharImp')}" width="100%" height="100%" 
+						 url="dmdd/dmddmx/mod/maindata/organization/Mod_Maindata_Organization_OrganizationOrgCharacter_Import.swf">
+		</mx:ModuleLoader>		
+		
+	</mx:ViewStack> 
+</mx:Module>

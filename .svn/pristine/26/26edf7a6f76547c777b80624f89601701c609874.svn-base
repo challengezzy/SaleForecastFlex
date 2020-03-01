@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Module xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		   xmlns:s="library://ns.adobe.com/flex/spark" 
+		   xmlns:mx="library://ns.adobe.com/flex/mx" layout="horizontal" width="100%" height="100%"
+		   creationComplete="creationCompleteHandler(event)">
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+	</fx:Declarations>
+	<fx:Metadata>
+		[ResourceBundle("mod_history")]
+	</fx:Metadata>
+	<fx:Script>
+		<![CDATA[
+			import dmdd.dmddas.common.constant.BizConst;
+			import dmdd.dmddas.common.system.ClientEnvironment;
+			
+			import mx.events.FlexEvent;
+			//	描述    begin
+			//	描述    end
+			
+			//	0	输入参数    begin						
+			//	0	输入参数    end
+			
+			//	1	输出参数    begin
+			//	1	输出参数    end
+			
+			//	2	本地变量    begin			
+			//	2	本地变量    end			
+			
+			//	3	公共方法    begin			
+			//	3	公共方法    end		
+			
+			//	4	初始化方法    begin	
+			protected function creationCompleteHandler(event:FlexEvent):void
+			{
+				this.viewStack.removeAllElements();
+				
+				if( ClientEnvironment.checkIsPermission(BizConst.FUNPERMISSION_HISTORY_HISTORYDATA_QUERY) )
+				{
+					this.viewStack.addElement( this.modloader_history_historydata_query );					
+				}	
+				
+				if( ClientEnvironment.checkIsPermission(BizConst.FUNPERMISSION_HISTORY_HISTORYDATA_ADJUST) )
+				{
+					this.viewStack.addElement( this.modloader_history_historydata_adjust );					
+				}	
+				
+				if( ClientEnvironment.checkIsPermission(BizConst.FUNPERMISSION_HISTORY_HISTORYDATA_IMPORT) )
+				{
+					this.viewStack.addElement( this.modloader_history_historydata_import );					
+				}	
+				if(ClientEnvironment.checkIsPermission(BizConst.FUNPERMISSION_HISTORY_HISTORYADRDATA_IMPORT))
+				{
+					this.viewStack.addElement(this.modloader_history_historydataadr_import);
+				}
+				
+				//	2010.12.11 by liuzhen 数据框架中去掉历史数据录入功能		begin
+//				if( ClientEnvironment.checkIsPermission(BizConst.FUNPERMISSION_HISTORY_HISTORYDATA_INPUT) )
+//				{
+//					this.viewStack.addElement( this.modloader_history_historydata_input );					
+//				}	
+				//	2010.12.11 by liuzhen 数据框架中去掉历史数据录入功能		end
+				
+				if( ClientEnvironment.checkIsPermission(BizConst.FUNPERMISSION_HISTORY_HISTORYADJUSTLOG_QUERY) )
+				{
+					this.viewStack.addElement( this.modloader_history_historyadjustlog_query );					
+				}	
+								
+			}			
+			//	4	初始化方法    end				
+			
+			//	5	事件响应方法    begin
+			//	5	事件响应方法    end
+			
+			//	6	本地方法    begin
+			//	6	本地方法   end					
+		]]>
+	</fx:Script>
+	
+	<mx:TabBar dataProvider="{viewStack}" direction="vertical" width="150"/> 
+	
+	<mx:ViewStack id="viewStack" 
+				  borderStyle="solid" width="100%" height="100%"> 
+		
+		<mx:ModuleLoader url="dmdd/dmddmx/mod/history/Mod_History_HistoryData_Query.swf" applicationDomain="{ApplicationDomain.currentDomain}"
+						 id="modloader_history_historydata_query" label="{resourceManager.getString('menu','historyQuery')}" width="100%" height="100%">
+		</mx:ModuleLoader>		
+		<mx:ModuleLoader url="dmdd/dmddmx/mod/history/Mod_History_HistoryData_Adjust.swf" applicationDomain="{ApplicationDomain.currentDomain}"
+						 id="modloader_history_historydata_adjust" label="{resourceManager.getString('menu','historyClean')}" width="100%" height="100%">
+		</mx:ModuleLoader>	
+		<mx:ModuleLoader url="dmdd/dmddmx/mod/history/Mod_History_HistoryData_Import.swf" applicationDomain="{ApplicationDomain.currentDomain}" 
+						 id="modloader_history_historydata_import" label="{resourceManager.getString('menu','historyImp')}" width="100%" height="100%">
+		</mx:ModuleLoader>	
+		<mx:ModuleLoader url="dmdd/dmddmx/mod/history/Mod_History_HistoryDataADR_Import.swf" applicationDomain="{ApplicationDomain.currentDomain}" 
+						 id="modloader_history_historydataadr_import" label="{resourceManager.getString('menu','cleanedHistoryImp')}" width="100%" height="100%">
+		</mx:ModuleLoader>		
+		<!-- 2010.12.11 by liuzhen 数据框架中去掉历史数据录入功能
+		<mx:ModuleLoader url="dmdd/dmddmx/mod/history/Mod_History_HistoryData_Input.swf" applicationDomain="{ApplicationDomain.currentDomain}" 
+			id="modloader_history_historydata_input" label="{resourceManager.getString('mod_history','historydata_input')}" width="100%" height="100%">
+		</mx:ModuleLoader>
+		-->
+		<mx:ModuleLoader url="dmdd/dmddmx/mod/history/Mod_History_HistoryAdjustLog_Query.swf" applicationDomain="{ApplicationDomain.currentDomain}" 
+						 id="modloader_history_historyadjustlog_query" label="{resourceManager.getString('menu','historyLogQuery')}" width="100%" height="100%">
+		</mx:ModuleLoader>		
+		
+	</mx:ViewStack>	
+	
+</mx:Module>

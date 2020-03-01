@@ -1,0 +1,2021 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:TitleWindow xmlns:fx="http://ns.adobe.com/mxml/2009" 
+			   xmlns:s="library://ns.adobe.com/flex/spark" 
+			   xmlns:mx="library://ns.adobe.com/flex/mx" width="800" height="510" close="onCancel()"
+			   creationComplete="creationCompleteHandler(event)" 
+			   xmlns:containers="aks.aksmx.containers.*" xmlns:buttons="com.cool.buttons.*" xmlns:common="dmdd.dmddmx.com.common.*">
+	<s:layout>
+		<s:VerticalLayout paddingLeft="10" paddingRight="10" paddingTop="10" paddingBottom="10"/>
+	</s:layout>
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+		<s:RemoteObject endpoint="{ClientEnvironment.endpoint}" id="srvBizData" destination="BizDataService">
+			<s:method name="newBizData" result="resultHandler4saveBizData(event)" fault="faultHandler4saveBizData(event)">
+			</s:method>	
+			<s:method name="updBizData" result="resultHandler4saveBizData(event)" fault="faultHandler4saveBizData(event)">
+			</s:method>
+		</s:RemoteObject>		
+	</fx:Declarations>
+	
+	
+	<fx:Script>
+		<![CDATA[
+			import aks.aksas.utils.UtilUi;
+			
+			import dmdd.dmddas.common.constant.BizConst;
+			import dmdd.dmddas.common.constant.SysConst;
+			import dmdd.dmddas.common.constant.UIConst;
+			import dmdd.dmddas.common.system.ClientEnvironment;
+			import dmdd.dmddas.common.utils.UtilExceptionLocale;
+			import dmdd.dmddas.common.utils.UtilPeriod;
+			import dmdd.dmddas.dataaccess.bizobject.BBizData;
+			import dmdd.dmddas.dataaccess.bizobject.BBizDataDefItemAddFc;
+			import dmdd.dmddas.dataaccess.bizobject.BBizDataDefItemAddHis;
+			import dmdd.dmddas.dataaccess.bizobject.BBizDataDefItemAvgHis;
+			import dmdd.dmddas.dataaccess.bizobject.BBizDataDefItemFcComb;
+			import dmdd.dmddas.dataaccess.bizobject.BBizDataDefItemFcHand;
+			import dmdd.dmddas.dataaccess.bizobject.BBizDataDefItemForecastAssessment;
+			import dmdd.dmddas.dataaccess.bizobject.BBizDataDefItemHistoryAdR;
+			import dmdd.dmddas.dataaccess.bizobject.BBizDataDefItemKpi;
+			import dmdd.dmddas.dataaccess.bizobject.BBizDataDefItemMoney;
+			import dmdd.dmddas.dataaccess.bizobject.BBizDataDefItemMoneyComb;
+			import dmdd.dmddas.dataaccess.bizobject.BBizDataDefItemPeriodVersion;
+			import dmdd.dmddas.dataaccess.bizobject.BBizDataDefItemTimeFc;
+			import dmdd.dmddas.dataaccess.bizobject.BBizDataDefItemTimeHis;
+			import dmdd.dmddas.dataaccess.bizobject.BSysDictionaryItem;
+			
+			import mx.binding.utils.BindingUtils;
+			import mx.collections.ArrayCollection;
+			import mx.controls.Alert;
+			import mx.events.FlexEvent;
+			import mx.events.ListEvent;
+			import mx.managers.PopUpManager;
+			import mx.rpc.events.FaultEvent;
+			import mx.rpc.events.ResultEvent;
+			import mx.utils.StringUtil;
+			//	描述		begin
+			//	描述		end
+			
+			//	0	输入参数    begin		
+			private var paramIn4closeCallback4thisObject:Object = null;
+			private var paramIn4closeCallback4function:Function = null;
+			
+			private var paramIo4winUse:int = UtilUi.AUWINDOW_USE_NEW;
+			
+			/**
+			 * paramIo4bizData需要被各种定义面板动态绑定,不得不置成public
+			 * 请不要直接对这个值赋值,请使用 set 方法 
+			 */  
+			[Bindable]
+			public var paramIo4bizData:BBizData = null;								
+			//	0	输入参数    end
+			
+			//	1	输出参数    begin
+			private var paramOut4winCloseWay:int = UtilUi.WINDOW_CLOSEWAY_CANCEL;
+			
+			//	1	输出参数    end
+			
+			//	2	本地变量    begin
+			[Bindable]
+			private var prvVar4enabled4BtnAddBizDataDefItem:Boolean = true;
+			[Bindable]
+			private var prvVar4enabled4BtnDelBizDataDefItem:Boolean = false;			
+			
+			[Bindable]
+			private var prvVar4arrDictGlobalYesNo:ArrayCollection = ClientEnvironment.getSysDictionaryItems("GLOBAL", "YESNO", false);
+			
+			private var prvVar4chooserWindow_ItemBizData4bizDataDefItemHistoryAdR:Com_BizData_BizData_Chooser = null;
+			private var prvVar4chooserWindow_ItemBizData4bizDataDefItemFcHand:Com_BizData_BizData_Chooser = null;
+			private var prvVar4chooserWindow_ItemBizData4bizDataDefItemFcComb:Com_BizData_BizData_Chooser = null;
+			private var prvVar4chooserWindow_ItemBizData4bizDataDefItemMoneyComb:Com_BizData_BizData_Chooser = null;
+			private var prvVar4chooserWindow_ItemBizData4bizDataDefItemForecastAssessment:Com_BizData_BizData_Chooser = null;
+			private var prvVar4chooserWindow_ItemBizData4bizDataDefItemAvgHis:Com_BizData_BizData_Chooser = null;
+			private var prvVar4chooserWindow_ItemBizData4bizDataDefItemAddHis:Com_BizData_BizData_Chooser = null;
+			private var prvVar4chooserWindow_ItemBizData4bizDataDefItemAddFc:Com_BizData_BizData_Chooser = null;
+			private var chooserWindow_ItemBizData4bizDataDefItemPeriodVersion:Com_BizData_BizData_Chooser = null;
+			
+			private var prvVar4auWindow_bizDataDefItemTimeHis:Com_BizData_BizDataDefItemTimeHis_AU = null;
+			private var prvVar4auWindow_bizDataDefItemTimeFc:Com_BizData_BizDataDefItemTimeFc_AU = null;
+			private var prvVar4auWindow_bizDataDefItemMoney:Com_BizData_BizDataDefItemMoney_AU = null;
+			private var prvVar4auWindow_bizDataDefItemKpi:Com_BizData_BizDataDefItemKpi_AU = null;
+			
+			private var comAdgBizDataDefItemHistoryAd:Com_BizData_BizDataDefItemHistoryAd_AdvancedDataGrid = null;
+			private var comAdgBizDataDefItemHistoryAdR:Com_BizData_BizDataDefItemHistoryAdR_AdvancedDataGrid = null;
+			private var comAdgBizDataDefItemFcHand:Com_BizData_BizDataDefItemFcHand_AdvancedDataGrid = null;
+			private var comAdgBizDataDefItemFcComb:Com_BizData_BizDataDefItemFcComb_AdvancedDataGrid = null;
+			private var comAdgBizDataDefItemTimeHis:Com_BizData_BizDataDefItemTimeHis_AdvancedDataGrid = null;
+			private var comAdgBizDataDefItemTimeFc:Com_BizData_BizDataDefItemTimeFc_AdvancedDataGrid = null;
+			private var comAdgBizDataDefItemMoney:Com_BizData_BizDataDefItemMoney_AdvancedDataGrid = null;
+			private var comAdgBizDataDefItemMoneyComb:Com_BizData_BizDataDefItemMoneyComb_AdvancedDataGrid = null;
+			private var comAdgBizDataDefItemKpi:Com_BizData_BizDataDefItemKpi_AdvancedDataGrid = null;
+			private var comAdgBizDataDefItemForecastAssessment:Com_BizData_BizDataDefItemForecastAssessment_AdvancedDataGrid = null;
+			
+			private var comAdgBizDataDefItemAvgHis:Com_BizData_BizDataDefItemAvgHis_AdvancedDataGrid = null;
+			private var comAdgBizDataDefItemAddHis:Com_BizData_BizDataDefItem_AdvancedDataGrid = null;
+			private var comAdgBizDataDefItemAddFc:Com_BizData_BizDataDefItem_AdvancedDataGrid = null;
+			
+			private var comAdgBizDataDefItemPeriodVersion:Com_BizData_BizDataDefItemPeriodVersion_ADG = null;
+			//	2	本地变量    end			
+			
+			//	3	公共方法    begin	
+			//	构造函数
+			public function pubFun4constructor( _paramIo4bizData:BBizData, _paramIo4winUse:int, _paramIn4closeCallback4thisObject:Object, _paramIn4closeCallback4function:Function ):void
+			{
+				this.pubFun4setParamIo4bizData( _paramIo4bizData, _paramIo4winUse );
+				this.pubFun4setParamIn4closeCallback( _paramIn4closeCallback4thisObject, _paramIn4closeCallback4function );
+			}	
+			
+			//	关闭回调函数参数													
+			public function pubFun4setParamIn4closeCallback( _thisObject:Object, _function:Function ):void
+			{
+				this.paramIn4closeCallback4thisObject = _thisObject;
+				this.paramIn4closeCallback4function = _function;	
+			}
+			//	关闭方式参数
+			public function pubFun4getParamOut4winCloseWay():int
+			{
+				return this.paramOut4winCloseWay;
+			}
+			//	关闭窗口
+			private function prvFun4close():void
+			{
+				PopUpManager.removePopUp( this );						
+				this.paramIn4closeCallback4function.call( this.paramIn4closeCallback4thisObject );				
+			}				
+			
+			//	界面用途参数
+			public function pubFun4getParamIo4winUse():int
+			{
+				return this.paramIo4winUse;
+			}			
+			
+			
+			//	处理对象参数
+			/**
+			 * _paramIo4bizData:BBizData	处理对象
+			 * _paramIo4winUse:int	处理动作
+			 */ 			
+			public function pubFun4setParamIo4bizData( _paramIo4bizData:BBizData, _paramIo4winUse:int ):void
+			{
+				this.paramIo4bizData = _paramIo4bizData;
+				this.paramIo4winUse = _paramIo4winUse;
+				
+				//20170529 加折合业务数据的需要，折合数据和原始数据是通过编码进行关联的
+				if( this.paramIo4winUse == UtilUi.AUWINDOW_USE_NEW )
+				{
+					txtCode.editable = true;
+				}
+				else if( this.paramIo4winUse == UtilUi.AUWINDOW_USE_UPD )
+				{
+					txtCode.editable = false;
+				}
+				
+				this.comboBoxIsValid.selectedIndex = ClientEnvironment.getSysDictionaryItemIndexByValue( this.prvVar4arrDictGlobalYesNo, this.paramIo4bizData.isValid );
+				
+				if( this.paramIo4bizData.source == BizConst.GLOBAL_DATASOURCE_SYSTEMDEFINE )
+				{
+					//	系统预定义
+					this.txtCode.enabled = false;
+					this.comboBoxIsValid.enabled = false;
+				}
+				else
+				{
+					//	用户定义	
+					this.txtCode.enabled = true;
+					this.comboBoxIsValid.enabled = true;					
+				}
+				
+				//折算初始化
+				var isSuitSupport:int = _paramIo4bizData.isSuitSupport;
+				if (isSuitSupport == BizConst.SUIT_SUPPORT_TWO) {
+					cbSuitSupport.selected = true;
+				} else {
+					cbSuitSupport.selected = false;
+				}
+				
+				//	定义面板初始化	begin
+				this.panelBizDataDefItem.removeAllElements();
+				this.prvFun4clearComAdgs4BizDataDefItem();
+
+				if( this.paramIo4bizData.type == BizConst.BIZDATA_TYPE_HISTORYAD )
+				{
+					if( this.comAdgBizDataDefItemHistoryAd == null )
+					{
+						this.comAdgBizDataDefItemHistoryAd = new Com_BizData_BizDataDefItemHistoryAd_AdvancedDataGrid();
+						BindingUtils.bindProperty( this.comAdgBizDataDefItemHistoryAd, "dataProvider", this, [ "paramIo4bizData", "bizDataDefItems"] );
+						//this.comAdgBizDataDefItemHistoryAd.addEventListener(ListEvent.CHANGE, this.onChange4comAdgBizDataDefItemHistoryAd);
+					}	
+					
+					//this.panelBizDataDefItem.addElement( this.aksControlBarDefItem );
+					
+					this.panelBizDataDefItem.addElement( this.comAdgBizDataDefItemHistoryAd );
+					this.comAdgBizDataDefItemHistoryAd.percentWidth = 100;
+					this.comAdgBizDataDefItemHistoryAd.percentHeight = 100;
+					this.comAdgBizDataDefItemHistoryAd.editable = "true";				
+					
+					//this.onChange4comAdgBizDataDefItem( null );
+				}				
+				else if( this.paramIo4bizData.type == BizConst.BIZDATA_TYPE_HISTORYADR )
+				{
+					if( this.comAdgBizDataDefItemHistoryAdR == null )
+					{
+						this.comAdgBizDataDefItemHistoryAdR = new Com_BizData_BizDataDefItemHistoryAdR_AdvancedDataGrid();
+						BindingUtils.bindProperty( this.comAdgBizDataDefItemHistoryAdR, "dataProvider", this, [ "paramIo4bizData", "bizDataDefItems"] );
+						this.comAdgBizDataDefItemHistoryAdR.addEventListener(ListEvent.CHANGE, this.onChange4comAdgBizDataDefItem);
+					}	
+						
+					this.panelBizDataDefItem.addElement( this.aksControlBarDefItem );
+					
+					this.panelBizDataDefItem.addElement( this.comAdgBizDataDefItemHistoryAdR );
+					this.comAdgBizDataDefItemHistoryAdR.percentWidth = 100;
+					this.comAdgBizDataDefItemHistoryAdR.percentHeight = 100;
+					this.comAdgBizDataDefItemHistoryAdR.editable = "true";	
+					
+					this.onChange4comAdgBizDataDefItem( null );					
+				}
+				else if( this.paramIo4bizData.type == BizConst.BIZDATA_TYPE_FCHAND )
+				{
+					if( this.comAdgBizDataDefItemFcHand == null )
+					{
+						this.comAdgBizDataDefItemFcHand = new Com_BizData_BizDataDefItemFcHand_AdvancedDataGrid();
+						BindingUtils.bindProperty( this.comAdgBizDataDefItemFcHand, "dataProvider", this, [ "paramIo4bizData", "bizDataDefItems"] );
+						this.comAdgBizDataDefItemFcHand.addEventListener(ListEvent.CHANGE, this.onChange4comAdgBizDataDefItem);
+					}	
+					
+					this.panelBizDataDefItem.addElement( this.aksControlBarDefItem );
+					
+					this.panelBizDataDefItem.addElement( this.comAdgBizDataDefItemFcHand );
+					this.comAdgBizDataDefItemFcHand.percentWidth = 100;
+					this.comAdgBizDataDefItemFcHand.percentHeight = 100;
+					this.comAdgBizDataDefItemFcHand.editable = "true";	
+					
+					this.onChange4comAdgBizDataDefItem( null );					
+				}
+				else if( this.paramIo4bizData.type == BizConst.BIZDATA_TYPE_FCCOMB )
+				{
+					if( this.comAdgBizDataDefItemFcComb == null )
+					{
+						this.comAdgBizDataDefItemFcComb = new Com_BizData_BizDataDefItemFcComb_AdvancedDataGrid();
+						BindingUtils.bindProperty( this.comAdgBizDataDefItemFcComb, "dataProvider", this, [ "paramIo4bizData", "bizDataDefItems"] );
+						this.comAdgBizDataDefItemFcComb.addEventListener(ListEvent.CHANGE, this.onChange4comAdgBizDataDefItem);
+					}	
+					
+					this.panelBizDataDefItem.addElement( this.aksControlBarDefItem );
+					
+					this.panelBizDataDefItem.addElement( this.comAdgBizDataDefItemFcComb );
+					this.comAdgBizDataDefItemFcComb.percentWidth = 100;
+					this.comAdgBizDataDefItemFcComb.percentHeight = 100;
+					this.comAdgBizDataDefItemFcComb.editable = "true";	
+					
+					this.onChange4comAdgBizDataDefItem( null );					
+				}		
+				else if( this.paramIo4bizData.type == BizConst.BIZDATA_TYPE_TIMEHIS )
+				{
+					if( this.comAdgBizDataDefItemTimeHis == null )
+					{
+						this.comAdgBizDataDefItemTimeHis = new Com_BizData_BizDataDefItemTimeHis_AdvancedDataGrid();
+						BindingUtils.bindProperty( this.comAdgBizDataDefItemTimeHis, "dataProvider", this, [ "paramIo4bizData", "bizDataDefItems"] );
+						this.comAdgBizDataDefItemTimeHis.addEventListener(ListEvent.CHANGE, this.onChange4comAdgBizDataDefItem);
+					}	
+					
+					this.panelBizDataDefItem.addElement( this.aksControlBarDefItem );
+					
+					this.panelBizDataDefItem.addElement( this.comAdgBizDataDefItemTimeHis );
+					this.comAdgBizDataDefItemTimeHis.percentWidth = 100;
+					this.comAdgBizDataDefItemTimeHis.percentHeight = 100;
+					this.comAdgBizDataDefItemTimeHis.editable = "true";				
+					
+					this.onChange4comAdgBizDataDefItem( null );					
+				}	
+				else if( this.paramIo4bizData.type == BizConst.BIZDATA_TYPE_TIMEFC )
+				{
+					if( this.comAdgBizDataDefItemTimeFc == null )
+					{
+						this.comAdgBizDataDefItemTimeFc = new Com_BizData_BizDataDefItemTimeFc_AdvancedDataGrid();
+						BindingUtils.bindProperty( this.comAdgBizDataDefItemTimeFc, "dataProvider", this, [ "paramIo4bizData", "bizDataDefItems"] );
+						this.comAdgBizDataDefItemTimeFc.addEventListener(ListEvent.CHANGE, this.onChange4comAdgBizDataDefItem);
+					}	
+					
+					this.panelBizDataDefItem.addElement( this.aksControlBarDefItem );
+					
+					this.panelBizDataDefItem.addElement( this.comAdgBizDataDefItemTimeFc );
+					this.comAdgBizDataDefItemTimeFc.percentWidth = 100;
+					this.comAdgBizDataDefItemTimeFc.percentHeight = 100;
+					this.comAdgBizDataDefItemTimeFc.editable = "true";	
+					
+					this.onChange4comAdgBizDataDefItem( null );					
+				}
+				else if( this.paramIo4bizData.type == BizConst.BIZDATA_TYPE_MONEY )
+				{
+					if( this.comAdgBizDataDefItemMoney == null )
+					{
+						this.comAdgBizDataDefItemMoney = new Com_BizData_BizDataDefItemMoney_AdvancedDataGrid();
+						BindingUtils.bindProperty( this.comAdgBizDataDefItemMoney, "dataProvider", this, [ "paramIo4bizData", "bizDataDefItems"] );
+						this.comAdgBizDataDefItemMoney.addEventListener(ListEvent.CHANGE, this.onChange4comAdgBizDataDefItem);
+					}	
+					
+					this.panelBizDataDefItem.addElement( this.aksControlBarDefItem );
+					
+					this.panelBizDataDefItem.addElement( this.comAdgBizDataDefItemMoney );
+					this.comAdgBizDataDefItemMoney.percentWidth = 100;
+					this.comAdgBizDataDefItemMoney.percentHeight = 100;
+					this.comAdgBizDataDefItemMoney.editable = "true";	
+					
+					this.onChange4comAdgBizDataDefItem( null );					
+				}		
+				else if( this.paramIo4bizData.type == BizConst.BIZDATA_TYPE_MONEYCOMB )
+				{
+					if( this.comAdgBizDataDefItemMoneyComb == null )
+					{
+						this.comAdgBizDataDefItemMoneyComb = new Com_BizData_BizDataDefItemMoneyComb_AdvancedDataGrid();
+						BindingUtils.bindProperty( this.comAdgBizDataDefItemMoneyComb, "dataProvider", this, [ "paramIo4bizData", "bizDataDefItems"] );
+						this.comAdgBizDataDefItemMoneyComb.addEventListener(ListEvent.CHANGE, this.onChange4comAdgBizDataDefItem);
+					}	
+					
+					this.panelBizDataDefItem.addElement( this.aksControlBarDefItem );
+					
+					this.panelBizDataDefItem.addElement( this.comAdgBizDataDefItemMoneyComb );
+					this.comAdgBizDataDefItemMoneyComb.percentWidth = 100;
+					this.comAdgBizDataDefItemMoneyComb.percentHeight = 100;
+					this.comAdgBizDataDefItemMoneyComb.editable = "true";	
+					
+					this.onChange4comAdgBizDataDefItem( null );					
+				}				
+				
+				else if( this.paramIo4bizData.type == BizConst.BIZDATA_TYPE_KPI )
+				{
+					if( this.comAdgBizDataDefItemKpi == null )
+					{
+						this.comAdgBizDataDefItemKpi = new Com_BizData_BizDataDefItemKpi_AdvancedDataGrid();
+						BindingUtils.bindProperty( this.comAdgBizDataDefItemKpi, "dataProvider", this, [ "paramIo4bizData", "bizDataDefItems"] );
+						this.comAdgBizDataDefItemKpi.addEventListener(ListEvent.CHANGE, this.onChange4comAdgBizDataDefItem);
+					}	
+					
+					this.panelBizDataDefItem.addElement( this.aksControlBarDefItem );
+					
+					this.panelBizDataDefItem.addElement( this.comAdgBizDataDefItemKpi );
+					this.comAdgBizDataDefItemKpi.percentWidth = 100;
+					this.comAdgBizDataDefItemKpi.percentHeight = 100;
+					this.comAdgBizDataDefItemKpi.editable = "true";	
+					
+					this.onChange4comAdgBizDataDefItem( null );					
+				}
+				else if(this.paramIo4bizData.type == BizConst.BIZDATA_TYPE_FORECASTASSESSMENT)
+				{
+					if( this.comAdgBizDataDefItemForecastAssessment == null)
+					{
+						this.comAdgBizDataDefItemForecastAssessment = new Com_BizData_BizDataDefItemForecastAssessment_AdvancedDataGrid();
+						BindingUtils.bindProperty( this.comAdgBizDataDefItemForecastAssessment, "dataProvider", this, [ "paramIo4bizData", "bizDataDefItems"] );
+						this.comAdgBizDataDefItemForecastAssessment.addEventListener(ListEvent.CHANGE,this.onChange4comAdgBizDataDefItem);
+					}
+					this.panelBizDataDefItem.addElement( this.aksControlBarDefItem);
+					this.panelBizDataDefItem.addElement( this.comAdgBizDataDefItemForecastAssessment);
+					this.comAdgBizDataDefItemForecastAssessment.percentWidth = 100;
+					this.comAdgBizDataDefItemForecastAssessment.percentHeight = 100;
+					this.comAdgBizDataDefItemForecastAssessment.editable = "true";	
+					this.onChange4comAdgBizDataDefItem(null);
+				}
+				//历史平均
+				else if( this.paramIo4bizData.type == BizConst.BIZDATA_TYPE_AVGHIS )
+				{
+					if( this.comAdgBizDataDefItemAvgHis == null )
+					{
+						this.comAdgBizDataDefItemAvgHis = new Com_BizData_BizDataDefItemAvgHis_AdvancedDataGrid();
+						BindingUtils.bindProperty( this.comAdgBizDataDefItemAvgHis, "dataProvider", this, [ "paramIo4bizData", "bizDataDefItems"] );
+						this.comAdgBizDataDefItemAvgHis.addEventListener(ListEvent.CHANGE, this.onChange4comAdgBizDataDefItem);
+					}	
+					
+					this.panelBizDataDefItem.addElement( this.aksControlBarDefItem );
+					
+					this.panelBizDataDefItem.addElement( this.comAdgBizDataDefItemAvgHis );
+					this.comAdgBizDataDefItemAvgHis.percentWidth = 100;
+					this.comAdgBizDataDefItemAvgHis.percentHeight = 100;
+					this.comAdgBizDataDefItemAvgHis.editable = "true";				
+					
+					this.onChange4comAdgBizDataDefItem( null );					
+				}
+				//期间历史累计
+				else if( this.paramIo4bizData.type == BizConst.BIZDATA_TYPE_ADDHIS )
+				{
+					if( this.comAdgBizDataDefItemAddHis == null )
+					{
+						this.comAdgBizDataDefItemAddHis = new Com_BizData_BizDataDefItem_AdvancedDataGrid();
+						BindingUtils.bindProperty( this.comAdgBizDataDefItemAddHis, "dataProvider", this, [ "paramIo4bizData", "bizDataDefItems"] );
+						this.comAdgBizDataDefItemAddHis.addEventListener(ListEvent.CHANGE, this.onChange4comAdgBizDataDefItem);
+					}	
+					
+					this.panelBizDataDefItem.addElement( this.aksControlBarDefItem );
+					
+					this.panelBizDataDefItem.addElement( this.comAdgBizDataDefItemAddHis );
+					this.comAdgBizDataDefItemAddHis.percentWidth = 100;
+					this.comAdgBizDataDefItemAddHis.percentHeight = 100;
+					this.comAdgBizDataDefItemAddHis.editable = "true";				
+					
+					this.onChange4comAdgBizDataDefItem( null );					
+				}
+				//期间预测累积
+				else if( this.paramIo4bizData.type == BizConst.BIZDATA_TYPE_ADDFC )
+				{
+					if( this.comAdgBizDataDefItemAddFc == null )
+					{
+						this.comAdgBizDataDefItemAddFc = new Com_BizData_BizDataDefItem_AdvancedDataGrid();
+						BindingUtils.bindProperty( this.comAdgBizDataDefItemAddFc, "dataProvider", this, [ "paramIo4bizData", "bizDataDefItems"] );
+						this.comAdgBizDataDefItemAddFc.addEventListener(ListEvent.CHANGE, this.onChange4comAdgBizDataDefItem);
+					}	
+					
+					this.panelBizDataDefItem.addElement( this.aksControlBarDefItem );
+					
+					this.panelBizDataDefItem.addElement( this.comAdgBizDataDefItemAddFc );
+					this.comAdgBizDataDefItemAddFc.percentWidth = 100;
+					this.comAdgBizDataDefItemAddFc.percentHeight = 100;
+					this.comAdgBizDataDefItemAddFc.editable = "true";				
+					
+					this.onChange4comAdgBizDataDefItem( null );					
+				}
+				//M-N版本预测
+				else if( this.paramIo4bizData.type == BizConst.BIZDATA_TYPE_PERIODVERSION)
+				{
+					if( this.comAdgBizDataDefItemPeriodVersion == null )
+					{
+						this.comAdgBizDataDefItemPeriodVersion = new Com_BizData_BizDataDefItemPeriodVersion_ADG();
+						BindingUtils.bindProperty( this.comAdgBizDataDefItemPeriodVersion, "dataProvider", this, [ "paramIo4bizData", "bizDataDefItems"] );
+						this.comAdgBizDataDefItemPeriodVersion.addEventListener(ListEvent.CHANGE, this.onChange4comAdgBizDataDefItem);
+					}	
+					
+					this.panelBizDataDefItem.addElement( this.aksControlBarDefItem );
+					
+					this.panelBizDataDefItem.addElement( this.comAdgBizDataDefItemPeriodVersion );
+					this.comAdgBizDataDefItemPeriodVersion.percentWidth = 100;
+					this.comAdgBizDataDefItemPeriodVersion.percentHeight = 100;
+					this.comAdgBizDataDefItemPeriodVersion.editable = "true";			
+					
+					this.onChange4comAdgBizDataDefItem( null );					
+				}
+				
+				//	定义面板初始化	end
+			}
+			public function pubFun4getParamIo4bizData():BBizData
+			{
+				return this.paramIo4bizData;
+			}				
+			//	3	公共方法    end		
+			
+			//	4	初始化方法    begin			
+			private function creationCompleteHandler(event:FlexEvent):void
+			{
+				this.x = 100;
+				this.y = 50;
+				
+				//20170529 加折合业务数据的需要，折合数据和原始数据是通过编码进行关联的
+				if( this.paramIo4winUse == UtilUi.AUWINDOW_USE_NEW )
+				{
+					txtCode.editable = true;
+				}
+				else if( this.paramIo4winUse == UtilUi.AUWINDOW_USE_UPD )
+				{
+					txtCode.editable = false;
+				}
+				
+			}						
+			//	4	初始化方法    end				
+			
+			//	5	事件响应方法    begin	
+			private function onSave():void
+			{				
+				if( this.prvFun4prepare4save() == true )
+				{
+					UtilUi.pubFun4PopWaitWindow( this );
+					if( this.paramIo4winUse == UtilUi.AUWINDOW_USE_NEW )
+					{
+						this.srvBizData.newBizData( this.paramIo4bizData );
+					}
+					else if( this.paramIo4winUse == UtilUi.AUWINDOW_USE_UPD )
+					{
+						this.srvBizData.updBizData( this.paramIo4bizData );
+					}
+					else
+					{
+						Alert.show( '意外情形，请联系技术支持人员', '提示' );	
+					}
+				}
+			}			
+			
+			private function faultHandler4saveBizData(event:FaultEvent):void
+			{
+				UtilUi.pubFun4RemoveWaitWindow();
+				Alert.show( UtilExceptionLocale.getExceptionMessageLocaleByFaultEvent( event ), resourceManager.getString('alert','alt_title_warn') );
+			}	
+			
+			private function resultHandler4saveBizData(event:ResultEvent):void 
+			{
+				this.paramIo4bizData = BBizData(event.result);	
+				UtilUi.pubFun4RemoveWaitWindow();
+				
+				this.paramOut4winCloseWay = UtilUi.WINDOW_CLOSEWAY_OK;
+				this.prvFun4close();
+			}				
+			
+			private function onCancel():void
+			{
+				this.paramOut4winCloseWay = UtilUi.WINDOW_CLOSEWAY_CANCEL;
+				this.prvFun4close();
+			}	
+			
+			
+			
+			private function onChange4comAdgBizDataDefItem( event:ListEvent ):void
+			{
+				//	用BindingUtils.bindProperty 方法的时候，源chain上的对象必须都是公有的，不然获取不到 
+				//	由于btnDelBizDataDefItem的绑定源不能是私有对象，而我又不愿意把comAdgBizDataDefItemXXX 作成public，所以，通过这个方法来处理btnDelBizDataDefItem的enable状态
+				if( this.paramIo4bizData.type == BizConst.BIZDATA_TYPE_HISTORYADR )
+				{
+					if( this.comAdgBizDataDefItemHistoryAdR.selectedItem != null )
+					{
+						this.prvVar4enabled4BtnDelBizDataDefItem = true;	
+					}
+					else 
+					{
+						this.prvVar4enabled4BtnDelBizDataDefItem = false;
+					}
+					
+					if( this.paramIo4bizData.bizDataDefItems != null && this.paramIo4bizData.bizDataDefItems.length == 1 )
+					{
+						this.prvVar4enabled4BtnAddBizDataDefItem = false;	
+					}
+					else
+					{
+						this.prvVar4enabled4BtnAddBizDataDefItem = true;	
+					}
+				}
+				else if( this.paramIo4bizData.type == BizConst.BIZDATA_TYPE_FCHAND )
+				{
+					if( this.comAdgBizDataDefItemFcHand.selectedItem != null )
+					{
+						this.prvVar4enabled4BtnDelBizDataDefItem = true;	
+					}
+					else 
+					{
+						this.prvVar4enabled4BtnDelBizDataDefItem = false;
+					}
+					if( this.paramIo4bizData.bizDataDefItems != null && this.paramIo4bizData.bizDataDefItems.length == 1 )
+					{
+						this.prvVar4enabled4BtnAddBizDataDefItem = false;	
+					}
+					else
+					{
+						this.prvVar4enabled4BtnAddBizDataDefItem = true;	
+					}					
+				}	
+				else if( this.paramIo4bizData.type == BizConst.BIZDATA_TYPE_FCCOMB )
+				{
+					if( this.comAdgBizDataDefItemFcComb.selectedItem != null )
+					{
+						this.prvVar4enabled4BtnDelBizDataDefItem = true;	
+					}
+					else 
+					{
+						this.prvVar4enabled4BtnDelBizDataDefItem = false;
+					}
+
+					this.prvVar4enabled4BtnAddBizDataDefItem = true;						
+				}	
+				else if( this.paramIo4bizData.type == BizConst.BIZDATA_TYPE_TIMEHIS )
+				{
+					if( this.comAdgBizDataDefItemTimeHis.selectedItem != null )
+					{
+						this.prvVar4enabled4BtnDelBizDataDefItem = true;	
+					}
+					else 
+					{
+						this.prvVar4enabled4BtnDelBizDataDefItem = false;
+					}									
+					if( this.paramIo4bizData.bizDataDefItems != null && this.paramIo4bizData.bizDataDefItems.length == 1 )
+					{
+						this.prvVar4enabled4BtnAddBizDataDefItem = false;	
+					}
+					else
+					{
+						this.prvVar4enabled4BtnAddBizDataDefItem = true;	
+					}					
+				}
+				else if( this.paramIo4bizData.type == BizConst.BIZDATA_TYPE_TIMEFC )
+				{
+					if( this.comAdgBizDataDefItemTimeFc.selectedItem != null )
+					{
+						this.prvVar4enabled4BtnDelBizDataDefItem = true;	
+					}
+					else 
+					{
+						this.prvVar4enabled4BtnDelBizDataDefItem = false;
+					}
+					if( this.paramIo4bizData.bizDataDefItems != null && this.paramIo4bizData.bizDataDefItems.length == 1 )
+					{
+						this.prvVar4enabled4BtnAddBizDataDefItem = false;	
+					}
+					else
+					{
+						this.prvVar4enabled4BtnAddBizDataDefItem = true;	
+					}					
+				}
+				else if( this.paramIo4bizData.type == BizConst.BIZDATA_TYPE_MONEY )
+				{
+					if( this.comAdgBizDataDefItemMoney.selectedItem != null )
+					{
+						this.prvVar4enabled4BtnDelBizDataDefItem = true;	
+					}
+					else 
+					{
+						this.prvVar4enabled4BtnDelBizDataDefItem = false;
+					}
+					if( this.paramIo4bizData.bizDataDefItems != null && this.paramIo4bizData.bizDataDefItems.length == 1 )
+					{
+						this.prvVar4enabled4BtnAddBizDataDefItem = false;	
+					}
+					else
+					{
+						this.prvVar4enabled4BtnAddBizDataDefItem = true;	
+					}					
+				}
+				else if( this.paramIo4bizData.type == BizConst.BIZDATA_TYPE_MONEYCOMB )
+				{
+					if( this.comAdgBizDataDefItemMoneyComb.selectedItem != null )
+					{
+						this.prvVar4enabled4BtnDelBizDataDefItem = true;	
+					}
+					else 
+					{
+						this.prvVar4enabled4BtnDelBizDataDefItem = false;
+					}
+					
+					this.prvVar4enabled4BtnAddBizDataDefItem = true;						
+				}					
+				else if( this.paramIo4bizData.type == BizConst.BIZDATA_TYPE_KPI )
+				{
+					if( this.comAdgBizDataDefItemKpi.selectedItem != null )
+					{
+						this.prvVar4enabled4BtnDelBizDataDefItem = true;	
+					}
+					else 
+					{
+						this.prvVar4enabled4BtnDelBizDataDefItem = false;
+					}
+					if( this.paramIo4bizData.bizDataDefItems != null && this.paramIo4bizData.bizDataDefItems.length == 1 )
+					{
+						this.prvVar4enabled4BtnAddBizDataDefItem = false;	
+					}
+					else
+					{
+						this.prvVar4enabled4BtnAddBizDataDefItem = true;	
+					}					
+				}
+				else if( this.paramIo4bizData.type == BizConst.BIZDATA_TYPE_FORECASTASSESSMENT )
+				{
+					if( this.comAdgBizDataDefItemForecastAssessment.selectedItem != null )
+					{
+						this.prvVar4enabled4BtnDelBizDataDefItem = true;	
+					}
+					else 
+					{
+						this.prvVar4enabled4BtnDelBizDataDefItem = false;
+					}
+					
+					this.prvVar4enabled4BtnAddBizDataDefItem = true;						
+				}
+				//历史平均
+				else if( this.paramIo4bizData.type == BizConst.BIZDATA_TYPE_AVGHIS )
+				{
+					if( this.comAdgBizDataDefItemAvgHis.selectedItem != null )
+					{
+						this.prvVar4enabled4BtnDelBizDataDefItem = true;	
+					}
+					else 
+					{
+						this.prvVar4enabled4BtnDelBizDataDefItem = false;
+					}									
+					if( this.paramIo4bizData.bizDataDefItems != null && this.paramIo4bizData.bizDataDefItems.length == 1 )
+					{
+						this.prvVar4enabled4BtnAddBizDataDefItem = false;	
+					}
+					else
+					{
+						this.prvVar4enabled4BtnAddBizDataDefItem = true;	
+					}					
+				}
+				//期间历史累积
+				else if( this.paramIo4bizData.type == BizConst.BIZDATA_TYPE_ADDHIS )
+				{
+					if( this.comAdgBizDataDefItemAddHis.selectedItem != null )
+					{
+						this.prvVar4enabled4BtnDelBizDataDefItem = true;	
+					}
+					else 
+					{
+						this.prvVar4enabled4BtnDelBizDataDefItem = false;
+					}									
+					if( this.paramIo4bizData.bizDataDefItems != null && this.paramIo4bizData.bizDataDefItems.length == 1 )
+					{
+						this.prvVar4enabled4BtnAddBizDataDefItem = false;	
+					}
+					else
+					{
+						this.prvVar4enabled4BtnAddBizDataDefItem = true;	
+					}					
+				}
+				//期间预测累积
+				else if( this.paramIo4bizData.type == BizConst.BIZDATA_TYPE_ADDFC )
+				{
+					if( this.comAdgBizDataDefItemAddFc.selectedItem != null )
+					{
+						this.prvVar4enabled4BtnDelBizDataDefItem = true;	
+					}
+					else 
+					{
+						this.prvVar4enabled4BtnDelBizDataDefItem = false;
+					}									
+					if( this.paramIo4bizData.bizDataDefItems != null && this.paramIo4bizData.bizDataDefItems.length == 1 )
+					{
+						this.prvVar4enabled4BtnAddBizDataDefItem = false;	
+					}
+					else
+					{
+						this.prvVar4enabled4BtnAddBizDataDefItem = true;	
+					}					
+				}
+				//M-N版本预测
+				else if( this.paramIo4bizData.type == BizConst.BIZDATA_TYPE_PERIODVERSION )
+				{
+					if( this.comAdgBizDataDefItemPeriodVersion.selectedItem != null )
+					{
+						this.prvVar4enabled4BtnDelBizDataDefItem = true;	
+					}
+					else 
+					{
+						this.prvVar4enabled4BtnDelBizDataDefItem = false;
+					}									
+					if( this.paramIo4bizData.bizDataDefItems != null && this.paramIo4bizData.bizDataDefItems.length == 1 )
+					{
+						this.prvVar4enabled4BtnAddBizDataDefItem = false;	
+					}
+					else
+					{
+						this.prvVar4enabled4BtnAddBizDataDefItem = true;	
+					}					
+				}
+			}
+			
+			private function onAddBizDataDefItem():void
+			{
+				if( this.paramIo4bizData.type == BizConst.BIZDATA_TYPE_HISTORYADR )
+				{
+					this.onAddBizDataDefItemHistoryAdR();
+				}
+				else if( this.paramIo4bizData.type == BizConst.BIZDATA_TYPE_FCHAND )
+				{
+					this.onAddBizDataDefItemFcHand();
+				}	
+				else if( this.paramIo4bizData.type == BizConst.BIZDATA_TYPE_FCCOMB )
+				{
+					this.onAddBizDataDefItemFcComb();
+				}	
+				else if( this.paramIo4bizData.type == BizConst.BIZDATA_TYPE_TIMEHIS )
+				{
+					this.onAddBizDataDefItemTimeHis();
+				}
+				else if( this.paramIo4bizData.type == BizConst.BIZDATA_TYPE_TIMEFC )
+				{
+					this.onAddBizDataDefItemTimeFc();
+				}
+				else if( this.paramIo4bizData.type == BizConst.BIZDATA_TYPE_MONEY )
+				{
+					this.onAddBizDataDefItemMoney();
+				}				
+				else if( this.paramIo4bizData.type == BizConst.BIZDATA_TYPE_MONEYCOMB )
+				{
+					this.onAddBizDataDefItemMoneyComb();
+				}				
+				else if( this.paramIo4bizData.type == BizConst.BIZDATA_TYPE_KPI )
+				{
+					this.onAddBizDataDefItemKpi();
+				}	
+				else if( this.paramIo4bizData.type == BizConst.BIZDATA_TYPE_FORECASTASSESSMENT)
+				{
+					this.onAddBizDataDefItemForecastAssessment();
+				}
+				//历史平均
+				else if( this.paramIo4bizData.type == BizConst.BIZDATA_TYPE_AVGHIS )
+				{
+					this.onAddBizDataDefItemAvgHis();
+				}
+				else if( this.paramIo4bizData.type == BizConst.BIZDATA_TYPE_ADDHIS )
+				{
+					this.onAddBizDataDefItemAddHis();
+				}
+				else if( this.paramIo4bizData.type == BizConst.BIZDATA_TYPE_ADDFC )
+				{
+					this.onAddBizDataDefItemAddFc();
+				}//m-n版本预测
+				else if( this.paramIo4bizData.type == BizConst.BIZDATA_TYPE_PERIODVERSION )
+				{
+					this.onAddBizDataDefItemPeriodVersion();
+				}
+			}
+			
+			
+			private function onDelBizDataDefItem():void
+			{
+				if( this.paramIo4bizData.type == BizConst.BIZDATA_TYPE_HISTORYADR )
+				{
+					this.onDelBizDataDefItemHistoryAdR();
+				}
+				else if( this.paramIo4bizData.type == BizConst.BIZDATA_TYPE_FCHAND )
+				{
+					this.onDelBizDataDefItemFcHand();
+				}	
+				else if( this.paramIo4bizData.type == BizConst.BIZDATA_TYPE_FCCOMB )
+				{
+					this.onDelBizDataDefItemFcComb();
+				}	
+				else if( this.paramIo4bizData.type == BizConst.BIZDATA_TYPE_TIMEHIS )
+				{
+					this.onDelBizDataDefItemTimeHis();
+				}
+				else if( this.paramIo4bizData.type == BizConst.BIZDATA_TYPE_TIMEFC )
+				{
+					this.onDelBizDataDefItemTimeFc();
+				}
+				else if( this.paramIo4bizData.type == BizConst.BIZDATA_TYPE_MONEY )
+				{
+					this.onDelBizDataDefItemMoney();
+				}		
+				else if( this.paramIo4bizData.type == BizConst.BIZDATA_TYPE_MONEYCOMB )
+				{
+					this.onDelBizDataDefItemMoneyComb();
+				}				
+				else if( this.paramIo4bizData.type == BizConst.BIZDATA_TYPE_KPI )
+				{
+					this.onDelBizDataDefItemKpi();
+				}
+				else if( this.paramIo4bizData.type == BizConst.BIZDATA_TYPE_FORECASTASSESSMENT)
+				{
+					this.onDelBizDataDefItemForecastAssessment();
+				}
+				//历史平均
+				else if( this.paramIo4bizData.type == BizConst.BIZDATA_TYPE_AVGHIS )
+				{
+					this.onDelBizDataDefItemAvgHis();
+				}
+				else if( this.paramIo4bizData.type == BizConst.BIZDATA_TYPE_ADDHIS )
+				{
+					this.onDelBizDataDefItemAddHis();
+				}
+				else if( this.paramIo4bizData.type == BizConst.BIZDATA_TYPE_ADDFC )
+				{
+					this.onDelBizDataDefItemAddFc();
+				}
+				//m-n版本预测
+				else if( this.paramIo4bizData.type == BizConst.BIZDATA_TYPE_PERIODVERSION )
+				{
+					this.onDelBizDataDefItemPeriodVersion();
+				}
+				
+			}
+			
+
+			private function onAddBizDataDefItemHistoryAdR():void
+			{	
+				if( this.prvVar4chooserWindow_ItemBizData4bizDataDefItemHistoryAdR == null )
+				{
+					this.prvVar4chooserWindow_ItemBizData4bizDataDefItemHistoryAdR = Com_BizData_BizData_Chooser(PopUpManager.createPopUp(this, Com_BizData_BizData_Chooser, true));
+					this.prvVar4chooserWindow_ItemBizData4bizDataDefItemHistoryAdR.pubFun4setParamIn4closeCallback( this, this.callbackFunction4chooserWinClose_ItemBizData4bizDataDefItemHistoryAdR );
+					
+					var arrDictBizDataType:ArrayCollection = new ArrayCollection();
+					var arrDictBizDataType_all:ArrayCollection = ClientEnvironment.getBizDataTypeArr();
+					if( arrDictBizDataType_all != null )
+					{
+						var i:int;
+						var sysDictionaryItem:BSysDictionaryItem = null;
+						for( i=0; i<arrDictBizDataType_all.length; i=i+1 )
+						{
+							sysDictionaryItem = BSysDictionaryItem(arrDictBizDataType_all.getItemAt(i));
+							if( sysDictionaryItem.value == BizConst.BIZDATA_TYPE_HISTORYAD )
+							{
+								arrDictBizDataType.addItem( sysDictionaryItem );
+							}
+						}
+					}
+					
+					this.prvVar4chooserWindow_ItemBizData4bizDataDefItemHistoryAdR.pubFun4setParamIn4arrDictBizDataType( arrDictBizDataType );
+					this.prvVar4chooserWindow_ItemBizData4bizDataDefItemHistoryAdR.pubFun4setParamIn4blConstrainedByPermission( true );
+					this.prvVar4chooserWindow_ItemBizData4bizDataDefItemHistoryAdR.pubFun4setParamIn4blOnlyIsManaging( false );	
+				}
+				else
+				{
+					PopUpManager.addPopUp( this.prvVar4chooserWindow_ItemBizData4bizDataDefItemHistoryAdR, this, true );
+				}
+			}
+			
+			private function callbackFunction4chooserWinClose_ItemBizData4bizDataDefItemHistoryAdR():void
+			{
+				if( this.prvVar4chooserWindow_ItemBizData4bizDataDefItemHistoryAdR.pubFun4getParamOut4winCloseWay() == UtilUi.WINDOW_CLOSEWAY_OK )
+				{
+					var selectedBizData:BBizData = this.prvVar4chooserWindow_ItemBizData4bizDataDefItemHistoryAdR.pubFun4getParamOut4selectedBizData();
+					if( selectedBizData != null )
+					{					
+						var newBizDataDefItemHistoryAdR:BBizDataDefItemHistoryAdR = new BBizDataDefItemHistoryAdR();
+						newBizDataDefItemHistoryAdR.indicator = BizConst.BIZDATADEFITEM_INDICATOR_HISTORYADR;
+						newBizDataDefItemHistoryAdR.bizData = this.paramIo4bizData;
+						newBizDataDefItemHistoryAdR.historyAdBizData = selectedBizData;		
+						if( this.paramIo4bizData.bizDataDefItems == null )
+						{
+							this.paramIo4bizData.bizDataDefItems = new ArrayCollection();
+						}
+						this.paramIo4bizData.bizDataDefItems.addItem( newBizDataDefItemHistoryAdR );
+						this.onChange4comAdgBizDataDefItem( null );							 				
+					}
+				}				
+			}
+			
+			private function onDelBizDataDefItemHistoryAdR():void
+			{
+				this.paramIo4bizData.bizDataDefItems.removeItemAt( this.comAdgBizDataDefItemHistoryAdR.selectedIndex );
+				this.onChange4comAdgBizDataDefItem( null );
+			}		
+			
+			
+			private function onAddBizDataDefItemFcHand():void
+			{	
+				if( this.prvVar4chooserWindow_ItemBizData4bizDataDefItemFcHand == null )
+				{
+					this.prvVar4chooserWindow_ItemBizData4bizDataDefItemFcHand = Com_BizData_BizData_Chooser(PopUpManager.createPopUp(this, Com_BizData_BizData_Chooser, true));
+					this.prvVar4chooserWindow_ItemBizData4bizDataDefItemFcHand.pubFun4setParamIn4closeCallback( this, this.callbackFunction4chooserWinClose_ItemBizData4bizDataDefItemFcHand );
+					
+					var arrDictBizDataType:ArrayCollection = new ArrayCollection();
+					var arrDictBizDataType_all:ArrayCollection = ClientEnvironment.getBizDataTypeArr();
+					if( arrDictBizDataType_all != null )
+					{
+						var i:int;
+						var sysDictionaryItem:BSysDictionaryItem = null;
+						for( i=0; i<arrDictBizDataType_all.length; i=i+1 )
+						{
+							sysDictionaryItem = BSysDictionaryItem(arrDictBizDataType_all.getItemAt(i));
+							if( sysDictionaryItem.value == BizConst.BIZDATA_TYPE_FCMODEL )
+							{
+								arrDictBizDataType.addItem( sysDictionaryItem );
+							}
+						}
+					}
+					
+					this.prvVar4chooserWindow_ItemBizData4bizDataDefItemFcHand.pubFun4setParamIn4arrDictBizDataType( arrDictBizDataType );
+					this.prvVar4chooserWindow_ItemBizData4bizDataDefItemFcHand.pubFun4setParamIn4blConstrainedByPermission( true );
+					this.prvVar4chooserWindow_ItemBizData4bizDataDefItemFcHand.pubFun4setParamIn4blOnlyIsManaging( false );	
+				}
+				else
+				{
+					PopUpManager.addPopUp( this.prvVar4chooserWindow_ItemBizData4bizDataDefItemFcHand, this, true );
+				}
+			}
+			
+			private function callbackFunction4chooserWinClose_ItemBizData4bizDataDefItemFcHand():void
+			{
+				if( this.prvVar4chooserWindow_ItemBizData4bizDataDefItemFcHand.pubFun4getParamOut4winCloseWay() == UtilUi.WINDOW_CLOSEWAY_OK )
+				{
+					var selectedBizData:BBizData = this.prvVar4chooserWindow_ItemBizData4bizDataDefItemFcHand.pubFun4getParamOut4selectedBizData();
+					if( selectedBizData != null )
+					{					
+						var newBizDataDefItemFcHand:BBizDataDefItemFcHand = new BBizDataDefItemFcHand();
+						newBizDataDefItemFcHand.indicator = BizConst.BIZDATADEFITEM_INDICATOR_FCHAND;
+						newBizDataDefItemFcHand.bizData = this.paramIo4bizData;
+						newBizDataDefItemFcHand.itemBizData = selectedBizData;
+						newBizDataDefItemFcHand.coefficient = 1.0;
+						if( this.paramIo4bizData.bizDataDefItems == null )
+						{
+							this.paramIo4bizData.bizDataDefItems = new ArrayCollection();
+						}
+						this.paramIo4bizData.bizDataDefItems.addItem( newBizDataDefItemFcHand );
+						this.onChange4comAdgBizDataDefItem( null );							 				
+					}
+				}				
+			}
+			
+			private function callbackFunction4chooserWinClose_ItemBizData4bizDataDefItemAvgHis():void
+			{
+				if( this.prvVar4chooserWindow_ItemBizData4bizDataDefItemAvgHis.pubFun4getParamOut4winCloseWay() == UtilUi.WINDOW_CLOSEWAY_OK )
+				{
+					var selectedBizData:BBizData = this.prvVar4chooserWindow_ItemBizData4bizDataDefItemAvgHis.pubFun4getParamOut4selectedBizData();
+					if( selectedBizData != null )
+					{					
+						var newBizDataDefItemAvgHis:BBizDataDefItemAvgHis = new BBizDataDefItemAvgHis();
+						newBizDataDefItemAvgHis.indicator = BizConst.BIZDATADEFITEM_INDICATOR_AVGHIS;
+						newBizDataDefItemAvgHis.bizData = this.paramIo4bizData;
+						newBizDataDefItemAvgHis.itemBizData = selectedBizData;
+						newBizDataDefItemAvgHis.periodNum = 3;
+						if( this.paramIo4bizData.bizDataDefItems == null )
+						{
+							this.paramIo4bizData.bizDataDefItems = new ArrayCollection();
+						}
+						this.paramIo4bizData.bizDataDefItems.addItem( newBizDataDefItemAvgHis );
+						this.onChange4comAdgBizDataDefItem( null );							 				
+					}
+				}				
+			}
+			
+			private function callbackFunction4chooserWinClose_ItemBizData4bizDataDefItemAddHis():void
+			{
+				if( this.prvVar4chooserWindow_ItemBizData4bizDataDefItemAddHis.pubFun4getParamOut4winCloseWay() == UtilUi.WINDOW_CLOSEWAY_OK )
+				{
+					var selectedBizData:BBizData = this.prvVar4chooserWindow_ItemBizData4bizDataDefItemAddHis.pubFun4getParamOut4selectedBizData();
+					if( selectedBizData != null )
+					{					
+						var newBizDataDefItemAddHis:BBizDataDefItemAddHis = new BBizDataDefItemAddHis();
+						newBizDataDefItemAddHis.indicator = BizConst.BIZDATADEFITEM_INDICATOR_ADDHIS;
+						newBizDataDefItemAddHis.bizData = this.paramIo4bizData;
+						newBizDataDefItemAddHis.itemBizData = selectedBizData;
+						if( this.paramIo4bizData.bizDataDefItems == null )
+						{
+							this.paramIo4bizData.bizDataDefItems = new ArrayCollection();
+						}
+						this.paramIo4bizData.bizDataDefItems.addItem( newBizDataDefItemAddHis );
+						this.onChange4comAdgBizDataDefItem( null );							 				
+					}
+				}				
+			}
+			
+			private function callbackFunction4chooserWinClose_ItemBizData4bizDataDefItemAddFc():void
+			{
+				if( this.prvVar4chooserWindow_ItemBizData4bizDataDefItemAddFc.pubFun4getParamOut4winCloseWay() == UtilUi.WINDOW_CLOSEWAY_OK )
+				{
+					var selectedBizData:BBizData = this.prvVar4chooserWindow_ItemBizData4bizDataDefItemAddFc.pubFun4getParamOut4selectedBizData();
+					if( selectedBizData != null )
+					{					
+						var newBizDataDefItemAddFc:BBizDataDefItemAddFc = new BBizDataDefItemAddFc();
+						newBizDataDefItemAddFc.indicator = BizConst.BIZDATADEFITEM_INDICATOR_ADDFC;
+						newBizDataDefItemAddFc.bizData = this.paramIo4bizData;
+						newBizDataDefItemAddFc.itemBizData = selectedBizData;
+						if( this.paramIo4bizData.bizDataDefItems == null )
+						{
+							this.paramIo4bizData.bizDataDefItems = new ArrayCollection();
+						}
+						this.paramIo4bizData.bizDataDefItems.addItem( newBizDataDefItemAddFc );
+						this.onChange4comAdgBizDataDefItem( null );							 				
+					}
+				}				
+			}
+			
+			private function callbackFunction4chooserWinClose_ItemBizData4bizDataDefItemPeriodVersion():void
+			{
+				if( this.chooserWindow_ItemBizData4bizDataDefItemPeriodVersion.pubFun4getParamOut4winCloseWay() == UtilUi.WINDOW_CLOSEWAY_OK )
+				{
+					var selectedBizData:BBizData = chooserWindow_ItemBizData4bizDataDefItemPeriodVersion.pubFun4getParamOut4selectedBizData();
+					if( selectedBizData != null )
+					{					
+						var newBizDataDefItemPeriodVersion:BBizDataDefItemPeriodVersion = new BBizDataDefItemPeriodVersion();
+						newBizDataDefItemPeriodVersion.indicator = BizConst.BIZDATADEFITEM_INDICATOR_PERIODVERSION;
+						newBizDataDefItemPeriodVersion.bizData = this.paramIo4bizData;
+						newBizDataDefItemPeriodVersion.itemBizData = selectedBizData;
+						newBizDataDefItemPeriodVersion.periodInterval = 3;
+						if( this.paramIo4bizData.bizDataDefItems == null )
+						{
+							this.paramIo4bizData.bizDataDefItems = new ArrayCollection();
+						}
+						this.paramIo4bizData.bizDataDefItems.addItem( newBizDataDefItemPeriodVersion );
+						this.onChange4comAdgBizDataDefItem( null );							 				
+					}
+				}				
+			}
+			
+			private function onDelBizDataDefItemFcHand():void
+			{
+				this.paramIo4bizData.bizDataDefItems.removeItemAt( this.comAdgBizDataDefItemFcHand.selectedIndex );
+				this.onChange4comAdgBizDataDefItem( null );
+			}					
+			
+			
+			private function onAddBizDataDefItemFcComb():void
+			{	
+				if( this.prvVar4chooserWindow_ItemBizData4bizDataDefItemFcComb == null )
+				{
+					this.prvVar4chooserWindow_ItemBizData4bizDataDefItemFcComb = Com_BizData_BizData_Chooser(PopUpManager.createPopUp(this, Com_BizData_BizData_Chooser, true));
+					this.prvVar4chooserWindow_ItemBizData4bizDataDefItemFcComb.pubFun4setParamIn4closeCallback( this, this.callbackFunction4chooserWinClose_ItemBizData4bizDataDefItemFcComb );
+					
+					var arrDictBizDataType:ArrayCollection = new ArrayCollection();
+					var arrDictBizDataType_all:ArrayCollection = ClientEnvironment.getBizDataTypeArr();
+					if( arrDictBizDataType_all != null )
+					{
+						var i:int;
+						var sysDictionaryItem:BSysDictionaryItem = null;
+						for( i=0; i<arrDictBizDataType_all.length; i=i+1 )
+						{
+							sysDictionaryItem = BSysDictionaryItem(arrDictBizDataType_all.getItemAt(i));
+							//	modified by liuzhen, 2011.07.01	begin
+							/*
+							if( sysDictionaryItem.value == BizConst.GLOBAL_NULL_NULL ||
+								sysDictionaryItem.value == BizConst.BIZDATA_TYPE_FCMODEL ||
+								sysDictionaryItem.value == BizConst.BIZDATA_TYPE_FCHAND )
+							*/
+							if( sysDictionaryItem.value == BizConst.GLOBAL_NULL_NULL ||
+								sysDictionaryItem.value == BizConst.BIZDATA_TYPE_FCMODEL ||
+								sysDictionaryItem.value == BizConst.BIZDATA_TYPE_FCHAND ||
+								sysDictionaryItem.value == BizConst.BIZDATA_TYPE_FORECASTASSESSMENT || //20170611 增加版本预测
+								sysDictionaryItem.value == BizConst.BIZDATA_TYPE_TIMEFC )							
+							//	modified by liuzhen, 2011.07.01	end
+							{
+								arrDictBizDataType.addItem( sysDictionaryItem );
+							}
+						}
+					}
+					
+					this.prvVar4chooserWindow_ItemBizData4bizDataDefItemFcComb.pubFun4setParamIn4arrDictBizDataType( arrDictBizDataType );
+					this.prvVar4chooserWindow_ItemBizData4bizDataDefItemFcComb.pubFun4setParamIn4blConstrainedByPermission( true );
+					this.prvVar4chooserWindow_ItemBizData4bizDataDefItemFcComb.pubFun4setParamIn4blOnlyIsManaging( false );	
+				}
+				else
+				{
+					PopUpManager.addPopUp( this.prvVar4chooserWindow_ItemBizData4bizDataDefItemFcComb, this, true );
+				}
+			}
+			
+			private function callbackFunction4chooserWinClose_ItemBizData4bizDataDefItemFcComb():void
+			{
+				var alert_title_hint:String = resourceManager.getString('alert','alert_title_hint');
+				var alert_msg:String = "";
+				
+				var i:int;
+				var bizDataDefItemFcComb:BBizDataDefItemFcComb = null; 
+				if( this.prvVar4chooserWindow_ItemBizData4bizDataDefItemFcComb.pubFun4getParamOut4winCloseWay() == UtilUi.WINDOW_CLOSEWAY_OK )
+				{
+					var selectedBizData:BBizData = this.prvVar4chooserWindow_ItemBizData4bizDataDefItemFcComb.pubFun4getParamOut4selectedBizData();
+					if( selectedBizData != null )
+					{					
+						//	added by liuzhen, 2011.07.01 begin
+						//	选择的业务数据是期间类业务数据时，只能是 上一期 类的
+						if( selectedBizData.type == BizConst.BIZDATA_TYPE_TIMEFC )
+						{
+							if( BBizDataDefItemTimeFc(selectedBizData.bizDataDefItems.getItemAt(0)).timeFormula != BizConst.BIZDATADEFITEM_TIMEFORMULA_LAST1PERIOD )
+							{
+								alert_msg = resourceManager.getString('alert','alert_msg_fccpmb_last1period8');
+								Alert.show(  alert_msg, alert_title_hint );	
+								return;								
+							}
+						}
+						
+						//	added by liuzhen, 2011.07.01 end
+						
+						//	定义项的业务数据不能重复	begin
+						if( this.paramIo4bizData.bizDataDefItems == null )
+						{
+							this.paramIo4bizData.bizDataDefItems = new ArrayCollection();
+						}
+
+						for( i=0; i<this.paramIo4bizData.bizDataDefItems.length; i=i+1 )
+						{
+							bizDataDefItemFcComb = BBizDataDefItemFcComb( this.paramIo4bizData.bizDataDefItems.getItemAt(i) );
+							if( bizDataDefItemFcComb.itemBizData.id == selectedBizData.id)
+							{
+								alert_msg = resourceManager.getString('alert','alert_msg_bizdatadefitem_bizdata_in8');
+								Alert.show(  alert_msg, alert_title_hint );	
+								return;
+							}
+						}
+						//	定义项的业务数据不能重复	end
+						var newBizDataDefItemFcComb:BBizDataDefItemFcComb = new BBizDataDefItemFcComb();
+						newBizDataDefItemFcComb.indicator = BizConst.BIZDATADEFITEM_INDICATOR_FCCOMB;
+						newBizDataDefItemFcComb.bizData = this.paramIo4bizData;
+						newBizDataDefItemFcComb.itemBizData = selectedBizData;
+						newBizDataDefItemFcComb.coefficient = 1.0;
+
+						this.paramIo4bizData.bizDataDefItems.addItem( newBizDataDefItemFcComb );
+						this.onChange4comAdgBizDataDefItem( null );							 				
+					}
+				}				
+			}
+			
+			private function onDelBizDataDefItemFcComb():void
+			{
+				this.paramIo4bizData.bizDataDefItems.removeItemAt( this.comAdgBizDataDefItemFcComb.selectedIndex );
+				this.onChange4comAdgBizDataDefItem( null );
+			}		
+			
+			
+			private function onAddBizDataDefItemTimeHis():void
+			{	
+				if( this.prvVar4auWindow_bizDataDefItemTimeHis == null )
+				{
+					this.prvVar4auWindow_bizDataDefItemTimeHis = Com_BizData_BizDataDefItemTimeHis_AU(PopUpManager.createPopUp(this, Com_BizData_BizDataDefItemTimeHis_AU, true));
+					this.prvVar4auWindow_bizDataDefItemTimeHis.pubFun4setParamIn4closeCallback( this, this.callbackFunction4auWinClose_bizDataDefItemTimeHis );					
+				}
+				else
+				{
+					PopUpManager.addPopUp( this.prvVar4auWindow_bizDataDefItemTimeHis, this, true );
+				}
+				
+				this.prvVar4auWindow_bizDataDefItemTimeHis.title=resourceManager.getString('alert','autitle_newdefitem8');
+				
+				// 这里的代码须如此：先准备好后再设置给 auWindow
+				// 如果直接设置一个新建对象给auWindow，然后再操作其准备其内容，则可能不能触发auWindow内部的相关绑定动作					
+				var newBizDataDefItemTimeHis:BBizDataDefItemTimeHis = new BBizDataDefItemTimeHis();
+				newBizDataDefItemTimeHis.indicator = BizConst.BIZDATADEFITEM_INDICATOR_TIMEHIS;
+				newBizDataDefItemTimeHis.bizData = this.paramIo4bizData;
+				newBizDataDefItemTimeHis.itemBizData = null;
+				newBizDataDefItemTimeHis.timeFormula = BizConst.BIZDATADEFITEM_TIMEFORMULA_COUNTERPARTOFLAST1YEAR;				
+				
+				this.prvVar4auWindow_bizDataDefItemTimeHis.pubFun4setParamIo4bizDataDefItemTimeHis( newBizDataDefItemTimeHis, UtilUi.AUWINDOW_USE_NEW ); 				
+			}
+			
+			private function onAddBizDataDefItemAvgHis():void
+			{	
+				if( this.prvVar4chooserWindow_ItemBizData4bizDataDefItemAvgHis == null )
+				{
+					this.prvVar4chooserWindow_ItemBizData4bizDataDefItemAvgHis = Com_BizData_BizData_Chooser(PopUpManager.createPopUp(this, Com_BizData_BizData_Chooser, true));
+					this.prvVar4chooserWindow_ItemBizData4bizDataDefItemAvgHis.pubFun4setParamIn4closeCallback( this, this.callbackFunction4chooserWinClose_ItemBizData4bizDataDefItemAvgHis );
+					
+					var arrDictBizDataType:ArrayCollection = new ArrayCollection();
+					var arrDictBizDataType_all:ArrayCollection = ClientEnvironment.getBizDataTypeArr();
+					if( arrDictBizDataType_all != null )
+					{
+						var i:int;
+						var sysDictionaryItem:BSysDictionaryItem = null;
+						for( i=0; i<arrDictBizDataType_all.length; i=i+1 )
+						{
+							sysDictionaryItem = BSysDictionaryItem(arrDictBizDataType_all.getItemAt(i));
+							if( sysDictionaryItem.value == BizConst.BIZDATA_TYPE_HISTORY
+								|| sysDictionaryItem.value == BizConst.BIZDATA_TYPE_HISTORYAD )
+							{
+								arrDictBizDataType.addItem( sysDictionaryItem );
+							}
+						}
+					}
+					
+					this.prvVar4chooserWindow_ItemBizData4bizDataDefItemAvgHis.pubFun4setParamIn4arrDictBizDataType( arrDictBizDataType );
+					this.prvVar4chooserWindow_ItemBizData4bizDataDefItemAvgHis.pubFun4setParamIn4blConstrainedByPermission( true );
+					this.prvVar4chooserWindow_ItemBizData4bizDataDefItemAvgHis.pubFun4setParamIn4blOnlyIsManaging( false );	
+				}
+				else
+				{
+					PopUpManager.addPopUp( this.prvVar4chooserWindow_ItemBizData4bizDataDefItemAvgHis, this, true );
+				} 				
+			}
+			
+			private function onAddBizDataDefItemAddHis():void
+			{	
+				if( this.prvVar4chooserWindow_ItemBizData4bizDataDefItemAddHis == null )
+				{
+					this.prvVar4chooserWindow_ItemBizData4bizDataDefItemAddHis = Com_BizData_BizData_Chooser(PopUpManager.createPopUp(this, Com_BizData_BizData_Chooser, true));
+					this.prvVar4chooserWindow_ItemBizData4bizDataDefItemAddHis.pubFun4setParamIn4closeCallback( this, this.callbackFunction4chooserWinClose_ItemBizData4bizDataDefItemAddHis );
+					
+					var arrDictBizDataType:ArrayCollection = new ArrayCollection();
+					var arrDictBizDataType_all:ArrayCollection = ClientEnvironment.getBizDataTypeArr();
+					if( arrDictBizDataType_all != null )
+					{
+						var i:int;
+						var sysDictionaryItem:BSysDictionaryItem = null;
+						for( i=0; i<arrDictBizDataType_all.length; i=i+1 )
+						{
+							sysDictionaryItem = BSysDictionaryItem(arrDictBizDataType_all.getItemAt(i));
+							if( sysDictionaryItem.value == BizConst.BIZDATA_TYPE_HISTORY
+								|| sysDictionaryItem.value == BizConst.BIZDATA_TYPE_HISTORYAD )
+							{
+								arrDictBizDataType.addItem( sysDictionaryItem );
+							}
+						}
+					}
+					
+					this.prvVar4chooserWindow_ItemBizData4bizDataDefItemAddHis.pubFun4setParamIn4arrDictBizDataType( arrDictBizDataType );
+					this.prvVar4chooserWindow_ItemBizData4bizDataDefItemAddHis.pubFun4setParamIn4blConstrainedByPermission( true );
+					this.prvVar4chooserWindow_ItemBizData4bizDataDefItemAddHis.pubFun4setParamIn4blOnlyIsManaging( false );	
+				}
+				else
+				{
+					PopUpManager.addPopUp( this.prvVar4chooserWindow_ItemBizData4bizDataDefItemAddHis, this, true );
+				} 				
+			}
+			
+			private function onAddBizDataDefItemAddFc():void
+			{	
+				if( this.prvVar4chooserWindow_ItemBizData4bizDataDefItemAddFc == null )
+				{
+					this.prvVar4chooserWindow_ItemBizData4bizDataDefItemAddFc = Com_BizData_BizData_Chooser(PopUpManager.createPopUp(this, Com_BizData_BizData_Chooser, true));
+					this.prvVar4chooserWindow_ItemBizData4bizDataDefItemAddFc.pubFun4setParamIn4closeCallback( this, this.callbackFunction4chooserWinClose_ItemBizData4bizDataDefItemAddFc );
+					
+					var arrDictBizDataType:ArrayCollection = new ArrayCollection();
+					var arrDictBizDataType_all:ArrayCollection = ClientEnvironment.getBizDataTypeArr();
+					if( arrDictBizDataType_all != null )
+					{
+						var i:int;
+						var sysDictionaryItem:BSysDictionaryItem = null;
+						for( i=0; i<arrDictBizDataType_all.length; i=i+1 )
+						{
+							sysDictionaryItem = BSysDictionaryItem(arrDictBizDataType_all.getItemAt(i));
+							if( sysDictionaryItem.value == BizConst.BIZDATA_TYPE_FCMODEL || 
+								sysDictionaryItem.value == BizConst.BIZDATA_TYPE_FCHAND ||
+								sysDictionaryItem.value == BizConst.BIZDATA_TYPE_FCFINAL )
+							{
+								arrDictBizDataType.addItem( sysDictionaryItem );
+							}
+						}
+					}
+					
+					this.prvVar4chooserWindow_ItemBizData4bizDataDefItemAddFc.pubFun4setParamIn4arrDictBizDataType( arrDictBizDataType );
+					this.prvVar4chooserWindow_ItemBizData4bizDataDefItemAddFc.pubFun4setParamIn4blConstrainedByPermission( true );
+					this.prvVar4chooserWindow_ItemBizData4bizDataDefItemAddFc.pubFun4setParamIn4blOnlyIsManaging( false );	
+				}
+				else
+				{
+					PopUpManager.addPopUp( this.prvVar4chooserWindow_ItemBizData4bizDataDefItemAddFc, this, true );
+				} 				
+			}
+			
+			private function onAddBizDataDefItemPeriodVersion():void
+			{	
+				if( chooserWindow_ItemBizData4bizDataDefItemPeriodVersion == null )
+				{
+					chooserWindow_ItemBizData4bizDataDefItemPeriodVersion = Com_BizData_BizData_Chooser(PopUpManager.createPopUp(this, Com_BizData_BizData_Chooser, true));
+					chooserWindow_ItemBizData4bizDataDefItemPeriodVersion.pubFun4setParamIn4closeCallback( this, 
+									callbackFunction4chooserWinClose_ItemBizData4bizDataDefItemPeriodVersion );
+					
+					var arrDictBizDataType:ArrayCollection = new ArrayCollection();
+					var arrDictBizDataType_all:ArrayCollection = ClientEnvironment.getBizDataTypeArr();
+					if( arrDictBizDataType_all != null )
+					{
+						var i:int;
+						var sysDictionaryItem:BSysDictionaryItem = null;
+						for( i=0; i<arrDictBizDataType_all.length; i=i+1 )
+						{
+							sysDictionaryItem = BSysDictionaryItem(arrDictBizDataType_all.getItemAt(i));
+							if( sysDictionaryItem.value == BizConst.BIZDATA_TYPE_FCHAND
+								|| sysDictionaryItem.value == BizConst.BIZDATA_TYPE_FCCOMB
+								|| sysDictionaryItem.value == BizConst.BIZDATA_TYPE_FCMODEL
+								|| sysDictionaryItem.value == BizConst.BIZDATA_TYPE_FCFINAL )
+							{
+								arrDictBizDataType.addItem( sysDictionaryItem );
+							}
+						}
+					}
+					
+					chooserWindow_ItemBizData4bizDataDefItemPeriodVersion.pubFun4setParamIn4arrDictBizDataType( arrDictBizDataType );
+					chooserWindow_ItemBizData4bizDataDefItemPeriodVersion.pubFun4setParamIn4blConstrainedByPermission( true );
+					chooserWindow_ItemBizData4bizDataDefItemPeriodVersion.pubFun4setParamIn4blOnlyIsManaging( false );	
+				}
+				else
+				{
+					PopUpManager.addPopUp( chooserWindow_ItemBizData4bizDataDefItemPeriodVersion, this, true );
+				} 				
+			}
+			
+			private function callbackFunction4auWinClose_bizDataDefItemTimeHis():void
+			{
+				if( this.prvVar4auWindow_bizDataDefItemTimeHis.pubFun4getParamOut4winCloseWay() == UtilUi.WINDOW_CLOSEWAY_OK )
+				{
+					var rstBizDataDefItemTimeHis:BBizDataDefItemTimeHis = this.prvVar4auWindow_bizDataDefItemTimeHis.pubFun4getParamIo4bizDataDefItemTimeHis();
+					if( rstBizDataDefItemTimeHis != null )
+					{
+						if( this.prvVar4auWindow_bizDataDefItemTimeHis.pubFun4getParamIo4winUse() == UtilUi.AUWINDOW_USE_NEW )
+						{
+							if( this.paramIo4bizData.bizDataDefItems == null )
+							{
+								this.paramIo4bizData.bizDataDefItems = new ArrayCollection();
+							}
+							this.paramIo4bizData.bizDataDefItems.addItem( rstBizDataDefItemTimeHis );
+							this.onChange4comAdgBizDataDefItem( null );
+						}
+					}
+				}				
+			}
+			
+			private function onDelBizDataDefItemTimeHis():void
+			{
+				this.paramIo4bizData.bizDataDefItems.removeItemAt( this.comAdgBizDataDefItemTimeHis.selectedIndex );
+				this.onChange4comAdgBizDataDefItem( null );
+			}
+			
+			private function onDelBizDataDefItemAvgHis():void
+			{
+				this.paramIo4bizData.bizDataDefItems.removeItemAt( this.comAdgBizDataDefItemAvgHis.selectedIndex );
+				this.onChange4comAdgBizDataDefItem( null );
+			}
+			
+			private function onDelBizDataDefItemPeriodVersion():void
+			{
+				this.paramIo4bizData.bizDataDefItems.removeItemAt( this.comAdgBizDataDefItemPeriodVersion.selectedIndex );
+				this.onChange4comAdgBizDataDefItem( null );
+			}
+			
+			private function onDelBizDataDefItemAddHis():void
+			{
+				this.paramIo4bizData.bizDataDefItems.removeItemAt( this.comAdgBizDataDefItemAddHis.selectedIndex );
+				this.onChange4comAdgBizDataDefItem( null );
+			}
+			
+			private function onDelBizDataDefItemAddFc():void
+			{
+				this.paramIo4bizData.bizDataDefItems.removeItemAt( this.comAdgBizDataDefItemAddFc.selectedIndex );
+				this.onChange4comAdgBizDataDefItem( null );
+			}
+			
+			private function onAddBizDataDefItemTimeFc():void
+			{	
+				if( this.prvVar4auWindow_bizDataDefItemTimeFc == null )
+				{
+					this.prvVar4auWindow_bizDataDefItemTimeFc = Com_BizData_BizDataDefItemTimeFc_AU(PopUpManager.createPopUp(this, Com_BizData_BizDataDefItemTimeFc_AU, true));
+					this.prvVar4auWindow_bizDataDefItemTimeFc.pubFun4setParamIn4closeCallback( this, this.callbackFunction4auWinClose_bizDataDefItemTimeFc );					
+				}
+				else
+				{
+					PopUpManager.addPopUp( this.prvVar4auWindow_bizDataDefItemTimeFc, this, true );
+				}
+				
+				this.prvVar4auWindow_bizDataDefItemTimeFc.title=resourceManager.getString('alert','autitle_newdefitem8');
+				
+				// 这里的代码须如此：先准备好后再设置给 auWindow
+				// 如果直接设置一个新建对象给auWindow，然后再操作其准备其内容，则可能不能触发auWindow内部的相关绑定动作					
+				var newBizDataDefItemTimeFc:BBizDataDefItemTimeFc = new BBizDataDefItemTimeFc();
+				newBizDataDefItemTimeFc.indicator = BizConst.BIZDATADEFITEM_INDICATOR_TIMEHIS;
+				newBizDataDefItemTimeFc.bizData = this.paramIo4bizData;
+				newBizDataDefItemTimeFc.itemBizData = null;
+				newBizDataDefItemTimeFc.timeFormula = BizConst.BIZDATADEFITEM_TIMEFORMULA_COUNTERPARTOFLAST1YEAR;				
+				
+				this.prvVar4auWindow_bizDataDefItemTimeFc.pubFun4setParamIo4bizDataDefItemTimeFc( newBizDataDefItemTimeFc, UtilUi.AUWINDOW_USE_NEW ); 				
+			}
+			
+			private function callbackFunction4auWinClose_bizDataDefItemTimeFc():void
+			{
+				if( this.prvVar4auWindow_bizDataDefItemTimeFc.pubFun4getParamOut4winCloseWay() == UtilUi.WINDOW_CLOSEWAY_OK )
+				{
+					var rstBizDataDefItemTimeFc:BBizDataDefItemTimeFc = this.prvVar4auWindow_bizDataDefItemTimeFc.pubFun4getParamIo4bizDataDefItemTimeFc();
+					if( rstBizDataDefItemTimeFc != null )
+					{
+						if( this.prvVar4auWindow_bizDataDefItemTimeFc.pubFun4getParamIo4winUse() == UtilUi.AUWINDOW_USE_NEW )
+						{
+							if( this.paramIo4bizData.bizDataDefItems == null )
+							{
+								this.paramIo4bizData.bizDataDefItems = new ArrayCollection();
+							}
+							this.paramIo4bizData.bizDataDefItems.addItem( rstBizDataDefItemTimeFc );
+							this.onChange4comAdgBizDataDefItem( null );
+						}
+					}
+				}				
+			}
+			
+			private function onDelBizDataDefItemTimeFc():void
+			{
+				this.paramIo4bizData.bizDataDefItems.removeItemAt( this.comAdgBizDataDefItemTimeFc.selectedIndex );
+				this.onChange4comAdgBizDataDefItem( null );
+			}		
+			
+			private function onAddBizDataDefItemMoney():void
+			{	
+				if( this.prvVar4auWindow_bizDataDefItemMoney == null )
+				{
+					this.prvVar4auWindow_bizDataDefItemMoney = Com_BizData_BizDataDefItemMoney_AU(PopUpManager.createPopUp(this, Com_BizData_BizDataDefItemMoney_AU, true));
+					this.prvVar4auWindow_bizDataDefItemMoney.pubFun4setParamIn4closeCallback( this, this.callbackFunction4auWinClose_bizDataDefItemMoney );					
+				}
+				else
+				{
+					PopUpManager.addPopUp( this.prvVar4auWindow_bizDataDefItemMoney, this, true );
+				}
+				
+				this.prvVar4auWindow_bizDataDefItemMoney.title=resourceManager.getString('alert','autitle_newdefitem8');
+				
+				// 这里的代码须如此：先准备好后再设置给 auWindow
+				// 如果直接设置一个新建对象给auWindow，然后再操作其准备其内容，则可能不能触发auWindow内部的相关绑定动作					
+				var newBizDataDefItemMoney:BBizDataDefItemMoney = new BBizDataDefItemMoney();
+				newBizDataDefItemMoney.indicator = BizConst.BIZDATADEFITEM_INDICATOR_MONEY;
+				newBizDataDefItemMoney.bizData = this.paramIo4bizData;
+				newBizDataDefItemMoney.itemBizData = null;
+				newBizDataDefItemMoney.priceType = BizConst.PRICE_TYPE_REAL;				
+				
+				this.prvVar4auWindow_bizDataDefItemMoney.pubFun4setParamIo4bizDataDefItemMoney( newBizDataDefItemMoney, UtilUi.AUWINDOW_USE_NEW ); 				
+			}
+			
+			private function callbackFunction4auWinClose_bizDataDefItemMoney():void
+			{
+				if( this.prvVar4auWindow_bizDataDefItemMoney.pubFun4getParamOut4winCloseWay() == UtilUi.WINDOW_CLOSEWAY_OK )
+				{
+					var rstBizDataDefItemMoney:BBizDataDefItemMoney = this.prvVar4auWindow_bizDataDefItemMoney.pubFun4getParamIo4bizDataDefItemMoney();
+					if( rstBizDataDefItemMoney != null )
+					{
+						if( this.prvVar4auWindow_bizDataDefItemMoney.pubFun4getParamIo4winUse() == UtilUi.AUWINDOW_USE_NEW )
+						{
+							if( this.paramIo4bizData.bizDataDefItems == null )
+							{
+								this.paramIo4bizData.bizDataDefItems = new ArrayCollection();
+							}
+							this.paramIo4bizData.bizDataDefItems.addItem( rstBizDataDefItemMoney );
+							this.onChange4comAdgBizDataDefItem( null );
+						}
+					}
+				}				
+			}
+			
+			private function onDelBizDataDefItemMoney():void
+			{
+				this.paramIo4bizData.bizDataDefItems.removeItemAt( this.comAdgBizDataDefItemMoney.selectedIndex );
+				this.onChange4comAdgBizDataDefItem( null );
+			}		
+			
+			private function onAddBizDataDefItemMoneyComb():void
+			{	
+				if( this.prvVar4chooserWindow_ItemBizData4bizDataDefItemMoneyComb == null )
+				{
+					this.prvVar4chooserWindow_ItemBizData4bizDataDefItemMoneyComb = Com_BizData_BizData_Chooser(PopUpManager.createPopUp(this, Com_BizData_BizData_Chooser, true));
+					this.prvVar4chooserWindow_ItemBizData4bizDataDefItemMoneyComb.pubFun4setParamIn4closeCallback( this, this.callbackFunction4chooserWinClose_ItemBizData4bizDataDefItemMoneyComb );
+					
+					var arrDictBizDataType:ArrayCollection = new ArrayCollection();
+					var arrDictBizDataType_all:ArrayCollection = ClientEnvironment.getBizDataTypeArr();
+					if( arrDictBizDataType_all != null )
+					{
+						var i:int;
+						var sysDictionaryItem:BSysDictionaryItem = null;
+						for( i=0; i<arrDictBizDataType_all.length; i=i+1 )
+						{
+							sysDictionaryItem = BSysDictionaryItem(arrDictBizDataType_all.getItemAt(i));
+
+							if( sysDictionaryItem.value == BizConst.BIZDATA_TYPE_MONEY )							
+							{
+								arrDictBizDataType.addItem( sysDictionaryItem );
+							}
+						}
+					}
+					
+					this.prvVar4chooserWindow_ItemBizData4bizDataDefItemMoneyComb.pubFun4setParamIn4arrDictBizDataType( arrDictBizDataType );
+					this.prvVar4chooserWindow_ItemBizData4bizDataDefItemMoneyComb.pubFun4setParamIn4blConstrainedByPermission( true );
+					this.prvVar4chooserWindow_ItemBizData4bizDataDefItemMoneyComb.pubFun4setParamIn4blOnlyIsManaging( false );	
+				}
+				else
+				{
+					PopUpManager.addPopUp( this.prvVar4chooserWindow_ItemBizData4bizDataDefItemMoneyComb, this, true );
+				}
+			}
+			
+			private function callbackFunction4chooserWinClose_ItemBizData4bizDataDefItemMoneyComb():void
+			{
+				var alert_title_hint:String = resourceManager.getString('alert','alert_title_hint');
+				var alert_msg:String = "";
+				
+				var i:int;
+				var bizDataDefItemMoneyComb:BBizDataDefItemMoneyComb = null; 
+				if( this.prvVar4chooserWindow_ItemBizData4bizDataDefItemMoneyComb.pubFun4getParamOut4winCloseWay() == UtilUi.WINDOW_CLOSEWAY_OK )
+				{
+					var selectedBizData:BBizData = this.prvVar4chooserWindow_ItemBizData4bizDataDefItemMoneyComb.pubFun4getParamOut4selectedBizData();
+					if( selectedBizData != null )
+					{											
+						//	定义项的业务数据不能重复	begin
+						if( this.paramIo4bizData.bizDataDefItems == null )
+						{
+							this.paramIo4bizData.bizDataDefItems = new ArrayCollection();
+						}
+						
+						for( i=0; i<this.paramIo4bizData.bizDataDefItems.length; i=i+1 )
+						{
+							bizDataDefItemMoneyComb = BBizDataDefItemMoneyComb( this.paramIo4bizData.bizDataDefItems.getItemAt(i) );
+							if( bizDataDefItemMoneyComb.itemBizData.id == selectedBizData.id)
+							{
+								alert_msg = resourceManager.getString('alert','alert_msg_bizdatadefitem_bizdata_in8');
+								Alert.show(  alert_msg, alert_title_hint );	
+								return;
+							}
+						}
+						//	定义项的业务数据不能重复	end
+						var newBizDataDefItemMoneyComb:BBizDataDefItemMoneyComb = new BBizDataDefItemMoneyComb();
+						newBizDataDefItemMoneyComb.indicator = BizConst.BIZDATADEFITEM_INDICATOR_MONEYCOMB;
+						newBizDataDefItemMoneyComb.bizData = this.paramIo4bizData;
+						newBizDataDefItemMoneyComb.itemBizData = selectedBizData;
+						newBizDataDefItemMoneyComb.coefficient = 1.0;
+						
+						this.paramIo4bizData.bizDataDefItems.addItem( newBizDataDefItemMoneyComb );
+						this.onChange4comAdgBizDataDefItem( null );							 				
+					}
+				}				
+			}
+			
+			private function onDelBizDataDefItemMoneyComb():void
+			{
+				this.paramIo4bizData.bizDataDefItems.removeItemAt( this.comAdgBizDataDefItemMoneyComb.selectedIndex );
+				this.onChange4comAdgBizDataDefItem( null );
+			}				
+			
+			private function onAddBizDataDefItemKpi():void
+			{	
+				if( this.prvVar4auWindow_bizDataDefItemKpi == null )
+				{
+					this.prvVar4auWindow_bizDataDefItemKpi = Com_BizData_BizDataDefItemKpi_AU(PopUpManager.createPopUp(this, Com_BizData_BizDataDefItemKpi_AU, true));
+					this.prvVar4auWindow_bizDataDefItemKpi.pubFun4setParamIn4closeCallback( this, this.callbackFunction4auWinClose_bizDataDefItemKpi );					
+				}
+				else
+				{
+					PopUpManager.addPopUp( this.prvVar4auWindow_bizDataDefItemKpi, this, true );
+				}
+				
+				this.prvVar4auWindow_bizDataDefItemKpi.title=resourceManager.getString('alert','autitle_newdefitem8');
+				
+				// 这里的代码须如此：先准备好后再设置给 auWindow
+				// 如果直接设置一个新建对象给auWindow，然后再操作其准备其内容，则可能不能触发auWindow内部的相关绑定动作					
+				var newBizDataDefItemKpi:BBizDataDefItemKpi = new BBizDataDefItemKpi();
+				newBizDataDefItemKpi.indicator = BizConst.BIZDATADEFITEM_INDICATOR_KPI;
+				newBizDataDefItemKpi.bizData = this.paramIo4bizData;
+				newBizDataDefItemKpi.aitemBizData = null;
+				newBizDataDefItemKpi.bitemBizData = null;
+				newBizDataDefItemKpi.kpiFormula = BizConst.BIZDATADEFITEM_KPIFORMULA_RATIO;				
+				
+				this.prvVar4auWindow_bizDataDefItemKpi.pubFun4setParamIo4bizDataDefItemKpi( newBizDataDefItemKpi, UtilUi.AUWINDOW_USE_NEW ); 				
+			}
+			
+			private function callbackFunction4auWinClose_bizDataDefItemKpi():void
+			{
+				if( this.prvVar4auWindow_bizDataDefItemKpi.pubFun4getParamOut4winCloseWay() == UtilUi.WINDOW_CLOSEWAY_OK )
+				{
+					var rstBizDataDefItemKpi:BBizDataDefItemKpi = this.prvVar4auWindow_bizDataDefItemKpi.pubFun4getParamIo4bizDataDefItemKpi();
+					if( rstBizDataDefItemKpi != null )
+					{
+						if( this.prvVar4auWindow_bizDataDefItemKpi.pubFun4getParamIo4winUse() == UtilUi.AUWINDOW_USE_NEW )
+						{
+							if( this.paramIo4bizData.bizDataDefItems == null )
+							{
+								this.paramIo4bizData.bizDataDefItems = new ArrayCollection();
+							}
+							this.paramIo4bizData.bizDataDefItems.addItem( rstBizDataDefItemKpi );
+							this.onChange4comAdgBizDataDefItem( null );
+						}
+					}
+				}				
+			}
+			
+			private function onDelBizDataDefItemKpi():void
+			{
+				this.paramIo4bizData.bizDataDefItems.removeItemAt( this.comAdgBizDataDefItemKpi.selectedIndex );
+				this.onChange4comAdgBizDataDefItem( null );
+			}				
+
+			private function onAddBizDataDefItemForecastAssessment():void
+			{	
+				if( this.prvVar4chooserWindow_ItemBizData4bizDataDefItemForecastAssessment == null )
+				{
+					this.prvVar4chooserWindow_ItemBizData4bizDataDefItemForecastAssessment = Com_BizData_BizData_Chooser(PopUpManager.createPopUp(this, Com_BizData_BizData_Chooser, true));
+					this.prvVar4chooserWindow_ItemBizData4bizDataDefItemForecastAssessment.pubFun4setParamIn4closeCallback( this, this.callbackFunction4chooserWinClose_ItemBizData4bizDataDefItemForecastAssessment );
+					
+					var arrDictBizDataType:ArrayCollection = new ArrayCollection();
+					var arrDictBizDataType_all:ArrayCollection = ClientEnvironment.getBizDataTypeArr();
+					if( arrDictBizDataType_all != null )
+					{
+						var i:int;
+						var sysDictionaryItem:BSysDictionaryItem = null;
+						for( i=0; i<arrDictBizDataType_all.length; i=i+1 )
+						{
+							sysDictionaryItem = BSysDictionaryItem(arrDictBizDataType_all.getItemAt(i));
+							//	modified by liuzhen, 2011.07.01	begin
+							/*
+							if( sysDictionaryItem.value == BizConst.GLOBAL_NULL_NULL ||
+							sysDictionaryItem.value == BizConst.BIZDATA_TYPE_FCMODEL ||
+							sysDictionaryItem.value == BizConst.BIZDATA_TYPE_FCHAND )
+							*/
+							if( sysDictionaryItem.value != BizConst.GLOBAL_NULL_NULL &&
+								sysDictionaryItem.value != BizConst.BIZDATA_TYPE_FCCOMB &&
+								sysDictionaryItem.value != BizConst.BIZDATA_TYPE_KPI &&
+								sysDictionaryItem.value != BizConst.BIZDATA_TYPE_MONEY &&
+								sysDictionaryItem.value != BizConst.BIZDATA_TYPE_MONEYCOMB &&
+								sysDictionaryItem.value != BizConst.BIZDATA_TYPE_FORECASTASSESSMENT &&
+								sysDictionaryItem.value != BizConst.BIZDATA_TYPE_TIMEFC &&
+								sysDictionaryItem.value != BizConst.BIZDATA_TYPE_TIMEHIS
+							)							
+								//	modified by liuzhen, 2011.07.01	end
+							{
+								arrDictBizDataType.addItem( sysDictionaryItem );
+							}
+						}
+					}
+					
+					this.prvVar4chooserWindow_ItemBizData4bizDataDefItemForecastAssessment.pubFun4setParamIn4arrDictBizDataType( arrDictBizDataType );
+					this.prvVar4chooserWindow_ItemBizData4bizDataDefItemForecastAssessment.pubFun4setParamIn4blConstrainedByPermission( true );
+					this.prvVar4chooserWindow_ItemBizData4bizDataDefItemForecastAssessment.pubFun4setParamIn4blOnlyIsManaging( false );	
+				}
+				else
+				{
+					PopUpManager.addPopUp( this.prvVar4chooserWindow_ItemBizData4bizDataDefItemForecastAssessment, this, true );
+				}
+			}
+			
+			private function callbackFunction4chooserWinClose_ItemBizData4bizDataDefItemForecastAssessment():void
+			{
+				var alert_title_hint:String = resourceManager.getString('alert','alert_title_hint');
+				var alert_msg:String = "";
+
+				if( this.prvVar4chooserWindow_ItemBizData4bizDataDefItemForecastAssessment.pubFun4getParamOut4winCloseWay() == UtilUi.WINDOW_CLOSEWAY_OK )
+				{
+					var selectedBizData:BBizData = this.prvVar4chooserWindow_ItemBizData4bizDataDefItemForecastAssessment.pubFun4getParamOut4selectedBizData();
+					if( selectedBizData != null )
+					{											
+						var newBizDataDefItemForcastAssessmenet:BBizDataDefItemForecastAssessment = new BBizDataDefItemForecastAssessment();
+						newBizDataDefItemForcastAssessmenet.indicator = BizConst.BIZDATADEFITEM_INDICATOR_FORECASTASSESSMENT;
+						newBizDataDefItemForcastAssessmenet.bizData = this.paramIo4bizData;
+						newBizDataDefItemForcastAssessmenet.itemBizData = selectedBizData;
+						newBizDataDefItemForcastAssessmenet.startPeriod=190001;
+						newBizDataDefItemForcastAssessmenet.endPeriod=190001;
+						this.paramIo4bizData.bizDataDefItems.addItem( newBizDataDefItemForcastAssessmenet );
+						this.onChange4comAdgBizDataDefItem( null );							 				
+					}
+				}				
+			}
+			
+			private function onDelBizDataDefItemForecastAssessment():void
+			{
+				this.paramIo4bizData.bizDataDefItems.removeItemAt( this.comAdgBizDataDefItemForecastAssessment.selectedIndex );
+				this.onChange4comAdgBizDataDefItem( null );
+			}		
+			
+			//	5	事件响应方法    end
+			
+			//	6	本地方法    begin
+			private function prvFun4prepare4save():Boolean
+			{
+				//	基本信息
+				var alert_title_hint:String = resourceManager.getString('alert','alert_title_hint');
+				var alert_msg:String = "";
+
+				if( this.comboBoxIsValid.selectedItem == null )
+				{
+					alert_msg = resourceManager.getString('alert','alert_msg_isvalidisnull');
+					Alert.show(  alert_msg, alert_title_hint );
+					return false;
+				}
+				
+				this.paramIo4bizData.code = this.txtCode.text;
+				this.paramIo4bizData.name = this.txtName.text;	 			
+				this.paramIo4bizData.isValid = BSysDictionaryItem(this.comboBoxIsValid.selectedItem).value; 
+				this.paramIo4bizData.description = this.txtDescription.text;
+				this.paramIo4bizData.comments = this.txtComments.text;
+				// bizDataDefItems 已经实时处理			
+				
+				//是否支持折和计算
+			    var suitSupport:String =  cbSuitSupport.selected.toString();
+				if (suitSupport == BizConst.SUIT_SUPPORT ) {
+					this.paramIo4bizData.isSuitSupport = BizConst.SUIT_SUPPORT_TWO;
+				} else {
+					this.paramIo4bizData.isSuitSupport = BizConst.SUIT_SUPPORT_ONE;
+				}
+				
+				if( this.paramIo4bizData.code == null||this.paramIo4bizData.code=="" )
+				{
+					alert_msg = resourceManager.getString('alert','alert_msg_codeisnull');
+					Alert.show(  alert_msg, alert_title_hint );
+					return false;
+				}
+				
+				if( this.paramIo4bizData.name == null||this.paramIo4bizData.name=="" )
+				{
+					alert_msg = resourceManager.getString('alert','alert_msg_nameisnull');
+					Alert.show(  alert_msg, alert_title_hint );
+					return false;
+				}
+				
+				if( this.paramIo4bizData.isValid == BizConst.GLOBAL_NULL_NULL )
+				{
+					alert_msg = resourceManager.getString('alert','alert_msg_isvalidisnull');
+					Alert.show(  alert_msg, alert_title_hint );
+					return false;
+				}
+				
+				if( this.paramIo4bizData.type == BizConst.BIZDATA_TYPE_HISTORYADR ||
+					//this.paramIo4bizData.type == BizConst.BIZDATA_TYPE_FCHAND ||	//	人工预测定义可以为空，为空时表示判断预测的值不必被统计预测影响
+					this.paramIo4bizData.type == BizConst.BIZDATA_TYPE_FCCOMB ||
+					this.paramIo4bizData.type == BizConst.BIZDATA_TYPE_TIMEHIS ||
+					this.paramIo4bizData.type == BizConst.BIZDATA_TYPE_TIMEFC ||
+					this.paramIo4bizData.type == BizConst.BIZDATA_TYPE_MONEYCOMB ||
+					this.paramIo4bizData.type == BizConst.BIZDATA_TYPE_KPI )
+				{
+					if( this.paramIo4bizData.bizDataDefItems == null || this.paramIo4bizData.bizDataDefItems.length <= 0 )
+					{
+						alert_msg = resourceManager.getString('alert','alert_msg_bizdatadefitems8');
+						Alert.show(  alert_msg, alert_title_hint );
+						return false;					
+					}					
+				}
+				
+				if( this.paramIo4bizData.type == BizConst.BIZDATA_TYPE_FCHAND )
+				{
+					if( this.paramIo4bizData.bizDataDefItems != null && this.paramIo4bizData.bizDataDefItems.length == 1 )
+					{
+						var bizDataDefItemFcHand:BBizDataDefItemFcHand = BBizDataDefItemFcHand(this.paramIo4bizData.bizDataDefItems.getItemAt(0));
+						bizDataDefItemFcHand.coefficient = Number(bizDataDefItemFcHand.coefficient);
+						if( isNaN(bizDataDefItemFcHand.coefficient) )
+						{
+							alert_msg = resourceManager.getString('alert','alert_msg_coefficientisinvalid8');
+							Alert.show(  alert_msg, alert_title_hint );
+							return false;						
+						}						
+					}
+				}
+				
+				var i:int;
+				
+				if( this.paramIo4bizData.type == BizConst.BIZDATA_TYPE_FCCOMB )
+				{
+					var bizDataDefItemFcComb:BBizDataDefItemFcComb = null;
+					for( i=0; i<this.paramIo4bizData.bizDataDefItems.length; i=i+1 )
+					{
+						bizDataDefItemFcComb = BBizDataDefItemFcComb(this.paramIo4bizData.bizDataDefItems.getItemAt(i));
+						bizDataDefItemFcComb.coefficient = Number(bizDataDefItemFcComb.coefficient);
+						if( isNaN(bizDataDefItemFcComb.coefficient) )
+						{
+							alert_msg = resourceManager.getString('alert','alert_msg_coefficientisinvalid8');
+							Alert.show(  alert_msg, alert_title_hint );
+							return false;						
+						}						
+					}
+				}				
+
+				if( this.paramIo4bizData.type == BizConst.BIZDATA_TYPE_MONEYCOMB )
+				{
+					var bizDataDefItemMoneyComb:BBizDataDefItemMoneyComb = null;
+					for( i=0; i<this.paramIo4bizData.bizDataDefItems.length; i=i+1 )
+					{
+						bizDataDefItemMoneyComb = BBizDataDefItemMoneyComb(this.paramIo4bizData.bizDataDefItems.getItemAt(i));
+						bizDataDefItemMoneyComb.coefficient = Number(bizDataDefItemMoneyComb.coefficient);
+						if( isNaN(bizDataDefItemMoneyComb.coefficient) )
+						{
+							alert_msg = resourceManager.getString('alert','alert_msg_coefficientisinvalid8');
+							Alert.show(  alert_msg, alert_title_hint );
+							return false;						
+						}						
+					}
+				}
+				
+				if( this.paramIo4bizData.type == BizConst.BIZDATA_TYPE_FORECASTASSESSMENT)
+				{
+					 var bizDataDefItemForecastAssessment:BBizDataDefItemForecastAssessment = null;
+					 for(i=0; i<this.paramIo4bizData.bizDataDefItems.length; i++)
+					 {
+						 bizDataDefItemForecastAssessment = BBizDataDefItemForecastAssessment(this.paramIo4bizData.bizDataDefItems.getItemAt(i));
+						if( !UtilPeriod.checkPeriod(bizDataDefItemForecastAssessment.startPeriod))
+						{
+							alert_msg = resourceManager.getString('alert','alert_msg_periodbegin8');
+							Alert.show(  alert_msg, alert_title_hint );
+							return false;	
+						}
+						if( !UtilPeriod.checkPeriod(bizDataDefItemForecastAssessment.endPeriod))
+						{
+							alert_msg = resourceManager.getString('alert','alert_msg_periodend8');
+							Alert.show(  alert_msg, alert_title_hint );
+							return false;	
+						}		
+						if(UtilPeriod.getPeriodDifference(bizDataDefItemForecastAssessment.startPeriod,bizDataDefItemForecastAssessment.endPeriod)<0)
+						{
+							alert_msg = resourceManager.getString('alert','alert_msg_begingtend8');
+							Alert.show(  alert_msg, alert_title_hint );
+							return false;
+						}			
+						if( UtilPeriod.getPeriodDifference( bizDataDefItemForecastAssessment.startPeriod,bizDataDefItemForecastAssessment.endPeriod) >= SysConst.PERIODNUM_MAX_NUM )
+						{
+							alert_msg = resourceManager.getString('alert','alert_msg_diffover8');
+							Alert.show( alert_msg, alert_title_hint);
+							return false;						
+						}						
+					 }
+					 var j:int = 0;
+					 var _bizDataDefItemForecastAssessment:BBizDataDefItemForecastAssessment;
+					 //判断期间重合 begin
+					 for(i=0; i<this.paramIo4bizData.bizDataDefItems.length; i++)
+					 {
+						 bizDataDefItemForecastAssessment = BBizDataDefItemForecastAssessment(this.paramIo4bizData.bizDataDefItems.getItemAt(i));
+						 var startPeriod:int  = bizDataDefItemForecastAssessment.startPeriod;
+						 var endPeriod:int = bizDataDefItemForecastAssessment.endPeriod;
+						 for(j=i+1;j<this.paramIo4bizData.bizDataDefItems.length;j++)
+						 {
+							 _bizDataDefItemForecastAssessment = BBizDataDefItemForecastAssessment(this.paramIo4bizData.bizDataDefItems.getItemAt(j));
+							 if(UtilPeriod.getPeriodDifference(startPeriod,_bizDataDefItemForecastAssessment.startPeriod)>0)
+							 {
+								 if(UtilPeriod.getPeriodDifference(endPeriod,_bizDataDefItemForecastAssessment.startPeriod)<=0)
+								 {
+									 alert_msg = resourceManager.getString('alert','alert_msg_forecastassessment_error_period8');
+									 Alert.show(  alert_msg, alert_title_hint );
+									 return false;	 
+								 }
+							 }
+							 else if(UtilPeriod.getPeriodDifference(startPeriod,_bizDataDefItemForecastAssessment.startPeriod)<0)
+							 {
+								 if(UtilPeriod.getPeriodDifference(startPeriod,_bizDataDefItemForecastAssessment.endPeriod)>=0)
+								 {
+									 alert_msg = resourceManager.getString('alert','alert_msg_forecastassessment_error_period8');
+									 Alert.show(  alert_msg, alert_title_hint );
+									 return false;	 
+								 }
+							 }
+							 else
+							 {
+								 alert_msg = resourceManager.getString('alert','alert_msg_forecastassessment_error_period8');
+								 Alert.show(  alert_msg, alert_title_hint );
+								 return false; 
+							 }
+						 }
+						 
+					 }
+					 //判断期间重合 end
+				}				
+				return true;
+			}				
+			
+			private function prvFun4clearComAdgs4BizDataDefItem():void
+			{
+				//	这个方法是为了选中的业务数据每次变化时，把原来的数据定义的界面元素抛弃掉，
+				//	以免各个类型的业务数据都藏在后面偷偷的运行（因为各界面的dataProvider与业务数据表中的选中记录绑定了）
+				//	我自己猜的。所以没有采用另外一个似乎更合法的“new 一次，多次使用的方法”
+ 
+				this.comAdgBizDataDefItemHistoryAd = null;
+				this.comAdgBizDataDefItemHistoryAdR = null;
+				this.comAdgBizDataDefItemFcHand = null;
+				this.comAdgBizDataDefItemFcComb = null;
+				this.comAdgBizDataDefItemTimeHis = null;
+				this.comAdgBizDataDefItemTimeFc = null;
+				this.comAdgBizDataDefItemMoney = null;
+				this.comAdgBizDataDefItemMoneyComb = null;
+				this.comAdgBizDataDefItemKpi = null;	
+				this.comAdgBizDataDefItemForecastAssessment = null;
+			}							
+			//	6	本地方法   end						
+
+
+		]]>
+	</fx:Script>
+	
+	<common:LabelBoundary labelText="{resourceManager.getString('menu','busData')}" />
+	<s:VGroup width="100%" height="200" >
+		<mx:Grid width="100%" height="100%">
+			<mx:GridRow width="100%" height="100%" verticalAlign="middle">
+				<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+					<s:Label text="{resourceManager.getString('note','busDataCode')}"/>
+				</mx:GridItem>
+				<mx:GridItem width="100%" height="100%" verticalAlign="middle">
+					<mx:TextInput id="txtCode" maxChars="255" width="100%" text="{this.paramIo4bizData.code}"/>
+				</mx:GridItem>
+				<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+				</mx:GridItem>
+				<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+					<s:Label text="{resourceManager.getString('note','busDataName')}"/>
+				</mx:GridItem>
+				<mx:GridItem width="100%" height="100%" verticalAlign="middle">
+					<mx:TextInput id="txtName" maxChars="255" width="100%" text="{this.paramIo4bizData.name}"/>
+				</mx:GridItem>
+			</mx:GridRow>
+			<mx:GridRow width="100%" height="100%" verticalAlign="middle">
+				<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+					<s:Label text="{resourceManager.getString('note','busDataType')}"/>
+				</mx:GridItem>
+				<mx:GridItem width="100%" height="100%" verticalAlign="middle">
+					<mx:TextInput id="txtType" maxChars="255" width="100%" text="{ClientEnvironment.getSysDictionaryItemLocale('BIZDATA', 'TYPE', this.paramIo4bizData.type )}" enabled="false"/>
+				</mx:GridItem>
+				<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+				</mx:GridItem>
+				<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+					<s:Label text="{resourceManager.getString('note','isValid')}"/>
+				</mx:GridItem>
+				<mx:GridItem width="100%" height="100%" verticalAlign="middle">
+					<s:ComboBox width="100%" id="comboBoxIsValid" dataProvider="{this.prvVar4arrDictGlobalYesNo}">
+					</s:ComboBox>						
+				</mx:GridItem>
+			</mx:GridRow>
+			<mx:GridRow width="100%" height="100%" verticalAlign="middle">
+				<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+					<s:Label text="{resourceManager.getString('note','source')}"/>
+				</mx:GridItem>
+				<mx:GridItem width="100%" height="100%" verticalAlign="middle">
+					<mx:TextInput id="txtSource" maxChars="255" width="100%" text="{ClientEnvironment.getSysDictionaryItemLocale( 'GLOBAL', 'DATASOURCE', this.paramIo4bizData.source )}" enabled="false"/>
+				</mx:GridItem>
+				<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+				</mx:GridItem>
+				<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+					<s:Label text="{resourceManager.getString('note','isSuitSupport')}" />
+				</mx:GridItem>
+				<mx:GridItem width="100%" height="100%" verticalAlign="middle">
+					<s:CheckBox id="cbSuitSupport" selected="false" />
+				</mx:GridItem>
+			</mx:GridRow>				
+			<mx:GridRow width="100%" height="100%" verticalAlign="middle">
+				<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+					<s:Label text="{resourceManager.getString('note','busDataDesc')}"/>
+				</mx:GridItem>
+				<mx:GridItem width="100%" height="100%" verticalAlign="middle" colSpan="4">
+					<mx:TextInput id="txtDescription" maxChars="255" width="100%" text="{this.paramIo4bizData.description}"/>
+				</mx:GridItem>
+			</mx:GridRow>	
+			<mx:GridRow width="100%" height="100%" verticalAlign="middle">
+				<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+					<s:Label text="{resourceManager.getString('note','remark')}"/>
+				</mx:GridItem>
+				<mx:GridItem width="100%" height="100%" verticalAlign="middle" colSpan="4">
+					<mx:TextInput width="100%" id="txtComments" maxChars="255" text="{this.paramIo4bizData.comments}"/>
+				</mx:GridItem>
+			</mx:GridRow>							
+		</mx:Grid>	
+	</s:VGroup>
+	
+	<common:LabelBoundary labelText="{resourceManager.getString('menu','dataDefinition')}" />
+	<s:VGroup width="100%" height="100%" id="panelBizDataDefItem" >
+		<containers:AksControlBar id="aksControlBarDefItem">
+			<buttons:ButtonAdd click="onAddBizDataDefItem()" enabled="{this.prvVar4enabled4BtnAddBizDataDefItem}"/>
+			<buttons:ButtonRemove click="onDelBizDataDefItem()" enabled="{this.prvVar4enabled4BtnDelBizDataDefItem}"/>						
+		</containers:AksControlBar>
+	</s:VGroup>
+	<s:HGroup width="100%" horizontalAlign="center">
+		<buttons:ButtonSave click="onSave()" />
+		<buttons:ButtonCancel click="onCancel()" />
+	</s:HGroup>
+</s:TitleWindow>

@@ -1,0 +1,20 @@
+title=Change Password
+heading=Change Password
+
+loginname=User ID
+username=User Name
+password_old=Old Password
+password_new=New Password
+password_new_confirm=New Password Confirm
+
+btn_save=Save
+btn_clear=Clear
+
+alert_title_hint=Alert
+alert_msg_passwordisnull=Password is missing!
+alert_msg_passwordconfirmunmatch=Password validation fails!
+alert_msg_succeed=Succeed!
+
+
+
+

@@ -1,0 +1,296 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Module xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		   xmlns:s="library://ns.adobe.com/flex/spark" 
+		   xmlns:mx="library://ns.adobe.com/flex/mx" layout="vertical" width="100%" height="100%" paddingLeft="10" paddingRight="10"
+		   creationComplete="creationCompleteHandler(event)" keyDown="dataGridKeyDownHandler(event)"  
+		   xmlns:common="dmdd.dmddmx.com.common.*"
+		   xmlns:containers="aks.aksmx.containers.*"  xmlns:distributioncenter="dmdd.dmddmx.com.distributioncenter.*">
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+		<s:RemoteObject endpoint="{ClientEnvironment.endpoint}" id="dcService" destination="DistributionCenterService">	
+			<s:method name="saveDcImport" result="resultHandler4saveDcImport(event)" fault="faultHandler4saveDcImport(event)">
+			</s:method>							  
+		</s:RemoteObject>	
+	</fx:Declarations>
+	<fx:Metadata>
+		[ResourceBundle("mod_maindata_distributioncenter")]
+	</fx:Metadata>	
+	
+	<fx:Script>
+		<![CDATA[
+			import aks.aksas.utils.UtilExportDataGird;
+			import aks.aksas.utils.UtilUi;
+			
+			import dmdd.dmddas.common.constant.BizConst;
+			import dmdd.dmddas.common.system.ClientEnvironment;
+			import dmdd.dmddas.common.utils.UtilExceptionLocale;
+			import dmdd.dmddas.common.constant.SkinConst;
+			import com.cool.assets.CoolAssetsFile;
+			import mx.collections.ArrayCollection;
+			import mx.controls.Alert;
+			import mx.events.FlexEvent;
+			import mx.rpc.events.FaultEvent;
+			import mx.rpc.events.ResultEvent;
+			
+			//	描述    begin
+			//	描述    end
+			
+			//	0	输入参数    begin						
+			//	0	输入参数    end
+			
+			//	1	输出参数    begin
+			//	1	输出参数    end
+			
+			//	2	本地变量    begin	
+			[Bindable]
+			private var prvVar4dp4comAdgImDC:ArrayCollection = new ArrayCollection();	
+			
+			private var prvVar4arrFailedRecord:ArrayCollection = new ArrayCollection();
+			//	2	本地变量    end			
+			
+			//	3	公共方法    begin			
+			//	3	公共方法    end		
+			
+			//	4	初始化方法    begin	
+			protected function creationCompleteHandler(event:FlexEvent):void
+			{
+				this.btnSave.enabled = false;
+				this.btnExport.enabled = false;
+			}			
+			//	4	初始化方法    end				
+			
+			//	5	事件响应方法    begin
+			
+			private function onClear():void
+			{
+				this.prvVar4dp4comAdgImDC = new ArrayCollection();
+				this.comAdgImDC.columnImportResult.visible = false;
+				this.btnSave.enabled = false;
+				this.btnExport.enabled = false;
+			}
+			
+			private function onSave():void
+			{
+				var alert_title_hint:String = resourceManager.getString('mod_maindata_distributioncenter','alert_title_hint');
+				var alert_msg:String = null;  
+				
+				if( this.prvVar4dp4comAdgImDC.length <= 0 )
+				{
+					alert_msg = resourceManager.getString('mod_maindata_distributioncenter','alert_msg_nodatatosave');
+					Alert.show( alert_msg, alert_title_hint );	
+					return;												
+				}
+				
+				this.btnSave.enabled = false;
+				this.btnExport.enabled = false;
+				
+				UtilUi.pubFun4PopWaitWindow( this );
+				
+				this.dcService.saveDcImport( this.prvVar4dp4comAdgImDC );
+			}	
+			
+			private function faultHandler4saveDcImport(event:FaultEvent):void
+			{
+				UtilUi.pubFun4RemoveWaitWindow();
+				Alert.show( UtilExceptionLocale.getExceptionMessageLocaleByFaultEvent( event ), resourceManager.getString('main','alt_title_warn') );
+			}
+			
+			private function resultHandler4saveDcImport(event:ResultEvent):void 
+			{
+				this.prvVar4dp4comAdgImDC = ArrayCollection(event.result);
+				
+				this.prvVar4arrFailedRecord = new ArrayCollection();
+				
+				var totalNum:int = 0; 
+				var failNum:int = 0;
+				var i:int;
+				var rstImDC:Object = null;
+				if( this.prvVar4dp4comAdgImDC != null )
+				{
+					totalNum = this.prvVar4dp4comAdgImDC.length;
+					for( i=0; i<this.prvVar4dp4comAdgImDC.length; i=i+1 )
+					{
+						rstImDC = Object(this.prvVar4dp4comAdgImDC.getItemAt(i));
+						if( rstImDC.importResult != BizConst.IMPORT_RESULT_SUCCESS )
+						{
+							rstImDC.importResult = UtilExceptionLocale.getExceptionMessageLocaleByCauseMessage( rstImDC.importResult );
+							
+							this.prvVar4arrFailedRecord.addItem( rstImDC );
+						}
+					}
+					
+					failNum = this.prvVar4arrFailedRecord.length;
+				}
+				
+				UtilUi.pubFun4RemoveWaitWindow();
+				this.comAdgImDC.columnImportResult.visible = true;
+				
+				var alert_title_hint:String = resourceManager.getString('mod_maindata_distributioncenter','alert_title_hint');
+				var alert_msg:String = null;  	
+				
+				alert_msg = resourceManager.getString('mod_maindata_distributioncenter','alert_msg_totalnum');
+				alert_msg = alert_msg + totalNum + "\n";
+				alert_msg = alert_msg + resourceManager.getString('mod_maindata_distributioncenter','alert_msg_failnum');
+				alert_msg = alert_msg + failNum + "\n";
+				
+				Alert.show( alert_msg, alert_title_hint );		
+				
+				if( failNum > 0 )
+				{
+					this.btnExport.enabled = true;
+				}
+				else
+				{
+					this.btnExport.enabled = false;
+				}
+			}		
+			
+			private function onExport():void
+			{
+				var TSVString:String = UtilExportDataGird.exportCSV4AdvancedDataGrid( comAdgImDC ) ;
+				
+				// Copy the TSV string to the clipboard
+				System.setClipboard(TSVString);			
+			}			
+			
+			//	5	事件响应方法    end
+			
+			//	6	本地方法    begin
+			protected function dataGridKeyDownHandler(event:KeyboardEvent):void
+			{     
+				if (event.ctrlKey && this.comAdgImDC.getChildByName("clipboardProxy") == null )     
+				{       
+					// Add an invisible TextField object to the DataGrid       
+					var textFieldClipboard:TextField = new TextField();       
+					textFieldClipboard.name = "clipboardProxy";       
+					this.comAdgImDC.addChild(textFieldClipboard);       
+					textFieldClipboard.visible = false;       
+					textFieldClipboard.type = TextFieldType.INPUT;       
+					textFieldClipboard.multiline = true;       
+					// Populate the TextField with selected data in TSV format       
+					// textField.text = getTextFromItems(dataGrid.selectedItems);       
+					// textField.setSelection(0, textField.text.length - 1);       
+					// Listen for textInput event       
+					textFieldClipboard.addEventListener(TextEvent.TEXT_INPUT, clipboardProxyPasteHandler);    
+					// Set player-level focus to the TextField       
+					systemManager.stage.focus = textFieldClipboard;     
+				}   
+			}
+			
+			private function clipboardProxyPasteHandler(event:TextEvent):void   
+			{     
+				// Extract values from TSV format and populate the DataGrid
+				if( this.comAdgImDC.columnImportResult.visible == true )
+				{
+					this.comAdgImDC.columnImportResult.visible = false;
+				}
+				
+				this.prvVar4dp4comAdgImDC = new ArrayCollection();
+				this.getImOrganizationsFromText( event.text );  
+				this.btnSave.enabled = true;
+				
+				// 一定要在这里把 textField移除，不然会报 Flash.events.event 到 indexChang eEvent 的类型转换错误
+				// 移去 textField
+				var textFieldClipboard:TextField = TextField(this.comAdgImDC.getChildByName("clipboardProxy"));       
+				if ( textFieldClipboard != null )
+				{         
+					this.comAdgImDC.removeChild(textFieldClipboard);
+				}   								
+			}   
+			
+			private function getImOrganizationsFromText(text:String):void   
+			{     
+				var alert_title_hint:String = resourceManager.getString('mod_maindata_distributioncenter','alert_title_hint');
+				var alert_msg:String = null;  
+				
+				var rstArrayImHistoryData:Array = new Array();
+				var rows:Array = text.split("\n");
+				if( rows == null )
+				{
+					alert_msg = resourceManager.getString('mod_maindata_distributioncenter','alert_msg_nodata');
+					Alert.show( alert_msg, alert_title_hint );	
+					return;	
+				}     
+				if (!rows[rows.length - 1])
+				{       
+					rows.pop();
+				}     
+				
+				if( rows.length <= 1 )
+				{
+					alert_msg = resourceManager.getString('mod_maindata_distributioncenter','alert_msg_nodata');
+					Alert.show( alert_msg, alert_title_hint );						
+					return;
+				}
+				
+				
+				var rwHeader:String = rows[0];
+				var fieldsHeader:Array = rwHeader.split( "\t" );
+				if(!(fieldsHeader[fieldsHeader.length-1]))
+				{
+					fieldsHeader.pop();
+				} 				
+				if( fieldsHeader.length < 9 )
+				{
+					alert_msg = resourceManager.getString('mod_maindata_distributioncenter','alert_msg_errorcolumnheader');
+					Alert.show( alert_msg, alert_title_hint );						
+					return;					
+				}
+				
+				
+				var rowIdx:int;				
+				var row:String = null;
+				var fields:Array = null;
+				
+				
+				var newImDC:Object = null;
+				for( rowIdx=1; rowIdx<rows.length; rowIdx=rowIdx+1 )
+				{
+					newImDC = new Object();
+					newImDC.importResult = null;
+					
+					row = rows[rowIdx];
+					fields = row.split("\t");
+					
+					//	上级组织编码
+					newImDC.parentCode = fields[0];
+					
+					//	层次值
+					newImDC.dclayer = fields[1];
+					
+					//	编码
+					newImDC.code = fields[2];
+					
+					//	名称
+					newImDC.name = fields[3];
+					
+					//	是否目录（0否1是）
+					newImDC.isCatalog = fields[4];
+					
+					//	是否有效（0否1是）
+					newImDC.isValid = fields[5];
+					//详细地址
+					newImDC.detailAddress= fields[6];
+					//	描述
+					newImDC.description = fields[7];
+					
+					//	备注
+					newImDC.comments = fields[8];
+					
+					
+					this.prvVar4dp4comAdgImDC.addItem( newImDC );
+				}
+			}   			
+			//	6	本地方法   end				
+		]]>
+	</fx:Script>	
+	<common:LabelBoundary paddingTop="5" labelText="{resourceManager.getString('mod_maindata_distributioncenter','distributioncenter')}" />
+
+	<containers:AksControlBar>
+		<s:Button label="{resourceManager.getString('mod_maindata_distributioncenter','btn_save')}" icon="{CoolAssetsFile.saveIcon}"  click="onSave()" id="btnSave"/> 
+		<s:Button label="{resourceManager.getString('mod_maindata_distributioncenter','btn_clear')}" icon="{CoolAssetsFile.clearIcon}"  click="onClear()"/>
+		<s:Button label="{resourceManager.getString('mod_maindata_distributioncenter','btn_export')}" icon="{CoolAssetsFile.doctableIcon}"  click="onExport()" id="btnExport"/>
+	</containers:AksControlBar>
+	<distributioncenter:Com_DistributionCenter_Import_AdvancedDataGrid id="comAdgImDC" dataProvider="{this.prvVar4dp4comAdgImDC}" width="100%" height="100%"/>
+
+</mx:Module>

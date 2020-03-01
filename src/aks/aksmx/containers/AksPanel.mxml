@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Panel xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx" width="400" height="300"
+		 creationComplete="creationCompleteHandler(event)" >
+	<s:layout>
+		<s:BasicLayout/>
+	</s:layout>
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+	</fx:Declarations>	
+	<fx:Script>
+		<![CDATA[
+			import mx.events.FlexEvent;
+			
+			//	描述		begin
+			//	描述		end
+			
+			//	0	输入参数    begin	
+			//	0	输入参数    end
+			
+			//	1	输出参数    begin	
+			//	1	输出参数    end
+			
+			//	2	本地变量    begin
+			//	2	本地变量    end			
+			
+			//	3	公共方法    begin
+			//	3	公共方法    end		
+			
+			//	4	初始化方法    begin			
+			protected function creationCompleteHandler(event:FlexEvent):void
+			{
+				this.prvFun4init4expand();
+			}							
+			//	4	初始化方法    end				
+			
+			//	5	事件响应方法    begin					
+			//	5	事件响应方法    end
+			
+			//	6	本地方法    begin		
+			//	6	本地方法   end		
+			
+			//	F1. 双击收缩/展开功能    begin
+			
+			//	F1.1 输入参数    begin
+			[Bindable]
+			public var paramIn4expandable:Boolean = false;
+			
+			[Bindable]
+			public var paramIn4expMinHeight:Number = -1;
+			
+			[Bindable]
+			public var paramIn4expMaxHeight:Number = -1;	
+			//	F1.1 输入参数    end
+			
+			//	F1.2 本地变量    begin
+			private var prvVar4blExpanded:Boolean = true;
+			//	F1.2 本地变量    end	
+			
+			//	F1.3 初始化方法    begin
+			private function prvFun4init4expand():void
+			{
+				if( this.paramIn4expandable == true )
+				{
+					this.doubleClickEnabled = true;
+					this.addEventListener(MouseEvent.DOUBLE_CLICK, onDoubleClick);									
+				}
+			}		
+			//	F1.3 初始化方法    end
+			
+			//	F1.4 事件响应方法    begin
+			private function onDoubleClick( mouseEvent:MouseEvent ):void
+			{
+				if( this.prvVar4blExpanded == true )
+				{
+					// 收缩
+					if( this.paramIn4expMinHeight < 0 )
+					{
+						this.height = this.minHeight;
+					}
+					else
+					{
+						this.height = this.paramIn4expMinHeight;
+					}
+					this.prvVar4blExpanded = false;
+				}
+				else
+				{
+					// 展开
+					if( this.paramIn4expMaxHeight < 0 )
+					{
+						this.percentHeight = 100;
+					}
+					else
+					{
+						this.height = this.paramIn4expMaxHeight;
+					}
+					this.prvVar4blExpanded = true;
+				}
+			}  
+			//	F1.4 事件响应方法    end			
+			
+			//	F1. 双击收缩/展开功能    end				
+			
+		]]>
+	</fx:Script>
+	
+</s:Panel>

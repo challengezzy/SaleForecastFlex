@@ -1,0 +1,440 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="dmddweb" basedir="." default="compileDmddWeb">
+	<property environment="env" />
+	
+	<tstamp>
+		<format property="today" pattern="yyyyMMdd" />
+	</tstamp>
+	<property name="output" value="../../output" />
+	<property name="script.root" value="../db/script" />
+	<property name="release.root" value="${output}/release${today}" />
+	
+	<property name="SDK_VERSION" value="4.5.1.21328" />
+	
+	<!-- 加载自定义的配置文件 -->
+	<property name="FLEX_HOME" value="${env.FLEX_HOME}" />
+	<property name="FLEX_FRAMEWORK" value="${FLEX_HOME}/frameworks/libs" />
+	<property name="ANT_HOME" value="${env.ANT_HOME}" />
+	<property name="SRC_DIR" value="${basedir}/../src" />
+	<property name="DEPLOY_DIR" value="${basedir}/../../war/dmddweb" />
+	<property name="LOCALE_DIR" value="${basedir}/../locale" />
+	<property name="mainName" value="dmddweb" />
+	<property name="WEBROOT_DIR" value="${basedir}/../WebRoot" />
+	<property name="compile.dest" value="./temp" />
+	<!-- 引入flexTasks.jar -->
+	<taskdef resource="flexTasks.tasks" classpath="${FLEX_HOME}/ant/lib/flexTasks.jar" />
+	
+	<taskdef resource="net/sf/antcontrib/antlib.xml">
+		<classpath>
+			<pathelement location="${ANT_HOME}/lib/ant-contrib-1.0b3.jar" />
+		</classpath>
+	</taskdef>
+	
+	<target name="compileDmddWeb" depends="init,copyRSLs,compileApplication,createModule,copyOutput " />
+	<target name="init">
+		<mkdir dir="${output}" />
+		<delete dir="${release.root}" />
+		<mkdir dir="${release.root}" />
+		
+		<delete dir="${DEPLOY_DIR}" />
+		<mkdir dir="${DEPLOY_DIR}" />
+		<delete file="${DEPLOY_DIR}/../${mainName}.war" />
+	</target>
+	
+	<path id="java.classpath">
+		<fileset dir="${WEBLIB_DIR}" includes="*.jar" />
+		<fileset dir="${coolcore.root}/jar" includes="*.jar" />
+	</path>
+
+	<!-- 将FLEX FRAMEWORK文件拷贝到部署目录 供RSLS使用 -->
+	<target name="copyRSLs">
+		<copy todir="${DEPLOY_DIR}">
+			<fileset dir="${FLEX_HOME}/frameworks/rsls">
+				<include name="**/**" />
+			</fileset>
+		</copy>
+	</target>
+	
+	<target name="compileApplication" depends="init">
+		
+		<!-- 编译主程序并生成一个Link Report 用于嵌入module中-->
+		<mxmlc file="${SRC_DIR}/${mainName}.mxml" link-report="${SRC_DIR}/${mainName}_LinkReport.xml" 
+			output="${DEPLOY_DIR}/${mainName}.swf" keep-generated-actionscript="false" 
+			keep-all-type-selectors="true" actionscript-file-encoding="UTF-8" 
+			locale="zh_CN,en_US"
+			incremental="true" benchmark="true" optimize="true" 
+			warnings="true" maxmemory="1024m" isolate-styles="false">
+			<!-- 防止出现Permgen Space错误-->
+			<jvmarg value="-Xmx1024m" />
+			<jvmarg value="-Xms512m" />
+			<!--项目的多语言及配置文件目录-->
+			<source-path path-element="${LOCALE_DIR}/{locale}" />
+			<load-config filename="${FLEX_HOME}/frameworks/flex-config.xml" />
+			<source-path path-element="${SRC_DIR}" />
+			<!-- flex 4默认的主题是spark 所以这里设置添加HALO主题 -->
+			<theme dir="${FLEX_HOME}/frameworks/themes/Halo" append="true">
+				<include name="halo.swc" />
+			</theme>
+			<!--设置services-config.xml中的{context.root}，如果没有详细定义，那flex将用空值。-->
+			<context-root>dmddweb</context-root>
+			<!-- 指定services配置文件 -->
+			<services>D:/workspace/workspace_newsvn/SaleForecastWeb/WebRoot/WEB-INF/flex/services-config.xml</services>
+			<debug>false</debug>
+			
+			<runtime-shared-library-path path-element="${FLEX_HOME}/frameworks/libs/framework.swc">
+     			<url rsl-url="framework_${SDK_VERSION}.swz" />
+     			<url rsl-url="framework_${SDK_VERSION}.swf" />
+     			<url rsl-url="http://fpdownload.adobe.com/pub/swz/flex/${SDK_VERSION}/framework_${SDK_VERSION}.swz" policy-file-url="http://fpdownload.adobe.com/pub/swz/crossdomain.xml"/>
+    		</runtime-shared-library-path>
+
+    		<runtime-shared-library-path path-element="${FLEX_HOME}/frameworks/libs/textLayout.swc">
+     			<url rsl-url="textLayout_2.0.0.232.swz" />
+     			<url rsl-url="textLayout_2.0.0.232.swf"/>
+     			<url rsl-url="http://fpdownload.adobe.com/pub/swz/tlf/2.0.0.232/textLayout_2.0.0.232.swz" policy-file-url="http://fpdownload.adobe.com/pub/swz/crossdomain.xml"/>
+    		</runtime-shared-library-path>
+					
+			<runtime-shared-library-path path-element="${FLEX_HOME}/frameworks/libs/osmf.swc">
+	 			<url rsl-url="osmf_1.0.0.16316.swz" />
+	 			<url rsl-url="osmf_1.0.0.16316.swf"/>
+	 			<url rsl-url="http://fpdownload.adobe.com/pub/swz/tlf/2.0.0.232/textLayout_2.0.0.232.swz" policy-file-url="http://fpdownload.adobe.com/pub/swz/crossdomain.xml"/>
+			</runtime-shared-library-path>
+
+    		<runtime-shared-library-path path-element="${FLEX_HOME}/frameworks/libs/mx/mx.swc">
+     			<url rsl-url="mx_${SDK_VERSION}.swz" />
+     			<url rsl-url="mx_${SDK_VERSION}.swf"/>
+     			<url rsl-url="http://fpdownload.adobe.com/pub/swz/flex/${SDK_VERSION}/mx_${SDK_VERSION}.swz" policy-file-url="http://fpdownload.adobe.com/pub/swz/crossdomain.xml"/>
+    		</runtime-shared-library-path>
+
+    		<runtime-shared-library-path path-element="${FLEX_HOME}/frameworks/libs/rpc.swc">
+     			<url rsl-url="rpc_${SDK_VERSION}.swz" />
+     			<url rsl-url="rpc_${SDK_VERSION}.swf"/>
+     			<url rsl-url="http://fpdownload.adobe.com/pub/swz/flex/${SDK_VERSION}/rpc_${SDK_VERSION}.swz" policy-file-url="http://fpdownload.adobe.com/pub/swz/crossdomain.xml"/>
+    		</runtime-shared-library-path>
+
+    		<runtime-shared-library-path path-element="${FLEX_HOME}/frameworks/libs/charts.swc">
+     			<url rsl-url="charts_${SDK_VERSION}.swz" />
+     			<url rsl-url="charts_${SDK_VERSION}.swf"/>
+     			<url rsl-url="http://fpdownload.adobe.com/pub/swz/flex/${SDK_VERSION}/charts_${SDK_VERSION}.swz" policy-file-url="http://fpdownload.adobe.com/pub/swz/crossdomain.xml"/>
+    		</runtime-shared-library-path>
+
+    		<runtime-shared-library-path path-element="${FLEX_HOME}/frameworks/libs/spark.swc">
+     			<url rsl-url="spark_${SDK_VERSION}.swz" />
+     			<url rsl-url="spark_${SDK_VERSION}.swf"/>
+     			<url rsl-url="http://fpdownload.adobe.com/pub/swz/flex/${SDK_VERSION}/spark_${SDK_VERSION}.swz" policy-file-url="http://fpdownload.adobe.com/pub/swz/crossdomain.xml"/>
+    		</runtime-shared-library-path>
+
+    		<runtime-shared-library-path path-element="${FLEX_HOME}/frameworks/libs/advancedgrids.swc">
+     			<url rsl-url="advancedgrids_${SDK_VERSION}.swz" />
+     			<url rsl-url="advancedgrids_${SDK_VERSION}.swf"/>
+     			<url rsl-url="http://fpdownload.adobe.com/pub/swz/flex/${SDK_VERSION}/advancedgrids_${SDK_VERSION}.swz" policy-file-url="http://fpdownload.adobe.com/pub/swz/crossdomain.xml"/>
+    		</runtime-shared-library-path>
+
+    		<runtime-shared-library-path path-element="${FLEX_HOME}/frameworks/libs/sparkskins.swc">
+     			<url rsl-url="sparkskins_${SDK_VERSION}.swz" />
+     			<url rsl-url="sparkskins_${SDK_VERSION}.swf"/>
+     			<url rsl-url="http://fpdownload.adobe.com/pub/swz/flex/${SDK_VERSION}/sparkskins_${SDK_VERSION}.swz" policy-file-url="http://fpdownload.adobe.com/pub/swz/crossdomain.xml"/>
+    		</runtime-shared-library-path>
+
+    		<runtime-shared-library-path path-element="${FLEX_HOME}/frameworks/libs/spark_dmv.swc">
+     			<url rsl-url="spark_dmv_${SDK_VERSION}.swz" />
+     			<url rsl-url="spark_dmv_${SDK_VERSION}.swf"/>
+     			<url rsl-url="http://fpdownload.adobe.com/pub/swz/flex/${SDK_VERSION}/spark_dmv_${SDK_VERSION}.swz" policy-file-url="http://fpdownload.adobe.com/pub/swz/crossdomain.xml"/>
+    		</runtime-shared-library-path>
+			
+			<!-- 引用CoolFlex SWC库 -->
+			<library-path dir="../libs" append="true">
+				<include name="CoolFlex.swc" />
+				<include name="flexlib.swc" />
+				<include name="RightClickLib.swc" />
+				<include name="Efflex_v0[1].03_fx3_fp9.swc" />
+				<include name="ResizeContainers.swc" />
+				<include name="superPanel.swc" />
+			</library-path>
+			<library-path dir="${FLEX_HOME}/frameworks" append="true">
+				<include name="libs" />
+				<include name="/locale/${locale}" />
+			</library-path>
+		</mxmlc>
+		<delete>
+			<!-- 删除 cache文件 -->
+			<fileset dir="${DEPLOY_DIR}/" includes="${mainName}*.cache" defaultexcludes="false" />
+		</delete>
+	</target>
+	<target name="createModule">
+		<macrodef name="compileModule">
+			<attribute name="package" />
+			<attribute name="moduleName" />
+			<sequential>
+				<echo message="--compile module @{package}/@{moduleName}.mxml" />
+				<!-- 编译module并使用主程序的link_port-->
+				<mxmlc file="${SRC_DIR}/@{package}/@{moduleName}.mxml" load-externs="${SRC_DIR}/${mainName}_LinkReport.xml" 
+					output="${DEPLOY_DIR}/@{package}/@{moduleName}.swf" keep-generated-actionscript="false" 
+					actionscript-file-encoding="UTF-8" keep-all-type-selectors="true" 
+					incremental="true" optimize="true" warnings="true" fork="true" 
+					locale="zh_CN,en_US"
+					benchmark="true" maxmemory="2024m" isolate-styles="false">
+					<!-- 防止出现Permgen Space错误-->
+					<jvmarg value="-Xmx1024m" />
+					<jvmarg value="-Xms512m" />
+
+					<!--项目的多语言及配置文件目录-->
+					<source-path path-element="${LOCALE_DIR}/{locale}" />
+
+					<load-config filename="${FLEX_HOME}/frameworks/flex-config.xml" />
+					<source-path path-element="${SRC_DIR}" />
+					<source-path path-element="${FLEX_HOME}/frameworks" />
+					<!-- flex 4默认的主题是spark 所以这里设置添加HALO主题 -->
+					<theme dir="${FLEX_HOME}/frameworks/themes/Halo" append="true">
+						<include name="halo.swc" />
+					</theme>
+					<!-- 指定services配置文件 -->
+					<context-root>dmddweb</context-root>
+					<!-- <services>D:/hudson/jobs/DMDDWEB/workspace/WebRoot/WEB-INF/flex/services-config.xml</services> -->
+					<services>D:/workspace/workspace_newsvn/SaleForecastWeb/WebRoot/WEB-INF/flex/services-config.xml</services>
+					<debug>false</debug>
+					
+	      	<runtime-shared-library-path path-element="${FLEX_HOME}/frameworks/libs/framework.swc">
+     			<url rsl-url="framework_${SDK_VERSION}.swz" />
+     			<url rsl-url="framework_${SDK_VERSION}.swf" />
+     			<url rsl-url="http://fpdownload.adobe.com/pub/swz/flex/${SDK_VERSION}/framework_${SDK_VERSION}.swz" policy-file-url="http://fpdownload.adobe.com/pub/swz/crossdomain.xml"/>
+    		</runtime-shared-library-path>
+
+    		<runtime-shared-library-path path-element="${FLEX_HOME}/frameworks/libs/textLayout.swc">
+     			<url rsl-url="textLayout_2.0.0.232.swz" />
+     			<url rsl-url="textLayout_2.0.0.232.swf"/>
+     			<url rsl-url="http://fpdownload.adobe.com/pub/swz/tlf/2.0.0.232/textLayout_2.0.0.232.swz" policy-file-url="http://fpdownload.adobe.com/pub/swz/crossdomain.xml"/>
+    		</runtime-shared-library-path>
+					
+			<runtime-shared-library-path path-element="${FLEX_HOME}/frameworks/libs/osmf.swc">
+	 			<url rsl-url="osmf_1.0.0.16316.swz" />
+	 			<url rsl-url="osmf_1.0.0.16316.swf"/>
+	 			<url rsl-url="http://fpdownload.adobe.com/pub/swz/tlf/2.0.0.232/textLayout_2.0.0.232.swz" policy-file-url="http://fpdownload.adobe.com/pub/swz/crossdomain.xml"/>
+			</runtime-shared-library-path>
+
+    		<runtime-shared-library-path path-element="${FLEX_HOME}/frameworks/libs/mx/mx.swc">
+     			<url rsl-url="mx_${SDK_VERSION}.swz" />
+     			<url rsl-url="mx_${SDK_VERSION}.swf"/>
+     			<url rsl-url="http://fpdownload.adobe.com/pub/swz/flex/${SDK_VERSION}/mx_${SDK_VERSION}.swz" policy-file-url="http://fpdownload.adobe.com/pub/swz/crossdomain.xml"/>
+    		</runtime-shared-library-path>
+
+    		<runtime-shared-library-path path-element="${FLEX_HOME}/frameworks/libs/rpc.swc">
+     			<url rsl-url="rpc_${SDK_VERSION}.swz" />
+     			<url rsl-url="rpc_${SDK_VERSION}.swf"/>
+     			<url rsl-url="http://fpdownload.adobe.com/pub/swz/flex/${SDK_VERSION}/rpc_${SDK_VERSION}.swz" policy-file-url="http://fpdownload.adobe.com/pub/swz/crossdomain.xml"/>
+    		</runtime-shared-library-path>
+
+    		<runtime-shared-library-path path-element="${FLEX_HOME}/frameworks/libs/charts.swc">
+     			<url rsl-url="charts_${SDK_VERSION}.swz" />
+     			<url rsl-url="charts_${SDK_VERSION}.swf"/>
+     			<url rsl-url="http://fpdownload.adobe.com/pub/swz/flex/${SDK_VERSION}/charts_${SDK_VERSION}.swz" policy-file-url="http://fpdownload.adobe.com/pub/swz/crossdomain.xml"/>
+    		</runtime-shared-library-path>
+
+    		<runtime-shared-library-path path-element="${FLEX_HOME}/frameworks/libs/spark.swc">
+     			<url rsl-url="spark_${SDK_VERSION}.swz" />
+     			<url rsl-url="spark_${SDK_VERSION}.swf"/>
+     			<url rsl-url="http://fpdownload.adobe.com/pub/swz/flex/${SDK_VERSION}/spark_${SDK_VERSION}.swz" policy-file-url="http://fpdownload.adobe.com/pub/swz/crossdomain.xml"/>
+    		</runtime-shared-library-path>
+
+    		<runtime-shared-library-path path-element="${FLEX_HOME}/frameworks/libs/advancedgrids.swc">
+     			<url rsl-url="advancedgrids_${SDK_VERSION}.swz" />
+     			<url rsl-url="advancedgrids_${SDK_VERSION}.swf"/>
+     			<url rsl-url="http://fpdownload.adobe.com/pub/swz/flex/${SDK_VERSION}/advancedgrids_${SDK_VERSION}.swz" policy-file-url="http://fpdownload.adobe.com/pub/swz/crossdomain.xml"/>
+    		</runtime-shared-library-path>
+
+    		<runtime-shared-library-path path-element="${FLEX_HOME}/frameworks/libs/sparkskins.swc">
+     			<url rsl-url="sparkskins_${SDK_VERSION}.swz" />
+     			<url rsl-url="sparkskins_${SDK_VERSION}.swf"/>
+     			<url rsl-url="http://fpdownload.adobe.com/pub/swz/flex/${SDK_VERSION}/sparkskins_${SDK_VERSION}.swz" policy-file-url="http://fpdownload.adobe.com/pub/swz/crossdomain.xml"/>
+    		</runtime-shared-library-path>
+
+    		<runtime-shared-library-path path-element="${FLEX_HOME}/frameworks/libs/spark_dmv.swc">
+     			<url rsl-url="spark_dmv_${SDK_VERSION}.swz" />
+     			<url rsl-url="spark_dmv_${SDK_VERSION}.swf"/>
+     			<url rsl-url="http://fpdownload.adobe.com/pub/swz/flex/${SDK_VERSION}/spark_dmv_${SDK_VERSION}.swz" policy-file-url="http://fpdownload.adobe.com/pub/swz/crossdomain.xml"/>
+    		</runtime-shared-library-path>
+	      
+					<!-- 引用CoolFlex SWC库 -->
+					<library-path dir="../libs" append="true">
+						<include name="CoolFlex.swc" />
+						<include name="flexlib.swc" />
+						<include name="RightClickLib.swc" />
+						<include name="Efflex_v0[1].03_fx3_fp9.swc" />
+						<include name="ResizeContainers.swc" />
+						<include name="superPanel.swc" />
+					</library-path>
+					
+					<library-path dir="${FLEX_HOME}/frameworks" append="true">
+						<include name="libs" />
+						<include name="/locale/${application.locale}" />
+					</library-path>
+				</mxmlc>
+				<delete>
+					<!-- 删除 cache文件 -->
+					<fileset dir="${DEPLOY_DIR}/@{package}/" includes="@{moduleName}*.cache" defaultexcludes="false" />
+				</delete>
+			</sequential>
+		</macrodef>
+		
+		
+
+				
+				
+				
+				
+				
+				
+				
+				
+				<compileModule package="dmdd/dmddmx/mod/replenish" moduleName="Mod_Replenish_ReCompute"/>
+				<compileModule package="dmdd/dmddmx/mod/replenish" moduleName="Mod_Replenish_Import_StockDays"  />
+				<compileModule package="dmdd/dmddmx/mod/replenish" moduleName="Mod_Replenish_Import_TermEnd" />
+				<compileModule package="dmdd/dmddmx/mod/replenish" moduleName="Mod_Replenish_Query_Current"  />
+				<compileModule package="dmdd/dmddmx/mod/replenish" moduleName="Mod_Replenish_Report"/>
+				<compileModule package="dmdd/dmddmx/mod/replenish" moduleName="Mod_Replenish_History_Report" />
+				<compileModule package="dmdd/dmddmx/mod/sop" moduleName="Mod_Sop_SopHand"  />
+				<compileModule package="dmdd/dmddmx/mod/bulletin" moduleName="Mod_Bulletin"/>
+		
+		<compileModule package="dmdd/dmddmx/mod/maindata/product" moduleName="Mod_Maindata_Product_Product_Import"/>
+		<compileModule package="dmdd/dmddmx/mod/maindata/product" moduleName="Mod_Maindata_Product_ProductCharacterLayer" />
+		<compileModule package="dmdd/dmddmx/mod/maindata/product" moduleName="Mod_Maindata_Product_ProductCharacter_Import"  />
+		<compileModule package="dmdd/dmddmx/mod/maindata/product" moduleName="Mod_Maindata_Product_ProductProCharacter_Import"  />
+		
+						
+		<compileModule package="dmdd/dmddmx/mod/maindata/organization" moduleName="Mod_Maindata_Organization_Organization"/>
+		<compileModule package="dmdd/dmddmx/mod/maindata/organization" moduleName="Mod_Maindata_Organization_OrganizationCharacter"/>
+		<compileModule package="dmdd/dmddmx/mod/maindata/organization" moduleName="Mod_Maindata_Organization_OrganizationLayer" />
+		<compileModule package="dmdd/dmddmx/mod/maindata/organization" moduleName="Mod_Maindata_Organization_OrganizationCharacterLayer" />
+		<compileModule package="dmdd/dmddmx/mod/maindata/organization" moduleName="Mod_Maindata_Organization_Organization_Import"  />
+		<compileModule package="dmdd/dmddmx/mod/maindata/organization" moduleName="Mod_Maindata_Organization_OrganizationCharacter_Import"  />
+		<compileModule package="dmdd/dmddmx/mod/maindata/organization" moduleName="Mod_Maindata_Organization_OrganizationOrgCharacter_Import"  />
+		
+		<compileModule package="dmdd/dmddmx/mod/maindata/bizdata" moduleName="Mod_Maindata_BizData_BizDataPeriodVersion"/>
+		<compileModule package="dmdd/dmddmx/mod/maindata/bizdata" moduleName="Mod_Maindata_BizData_BizDataHisAdR"/>
+		<compileModule package="dmdd/dmddmx/mod/maindata/bizdata" moduleName="Mod_Maindata_BizData_BizDataSysDef"/>
+		<compileModule package="dmdd/dmddmx/mod/maindata/bizdata" moduleName="Mod_Maindata_BizData_BizDataTimeHis"  />
+		<compileModule package="dmdd/dmddmx/mod/maindata/bizdata" moduleName="Mod_Maindata_BizData_BizDataMoney" />
+		<compileModule package="dmdd/dmddmx/mod/maindata/bizdata" moduleName="Mod_Maindata_BizData_BizDataFcHand"/>
+		<compileModule package="dmdd/dmddmx/mod/maindata/bizdata" moduleName="Mod_Maindata_BizData_BizDataMoneyComb"/>
+		<compileModule package="dmdd/dmddmx/mod/maindata/bizdata" moduleName="Mod_Maindata_BizData_ForecastAssessment" />
+		<compileModule package="dmdd/dmddmx/mod/maindata/bizdata" moduleName="Mod_Maindata_BizData_BizDataFcComb"/>
+		<compileModule package="dmdd/dmddmx/mod/maindata/bizdata" moduleName="Mod_Maindata_BizData_BizDataTimeFc"/>
+		<compileModule package="dmdd/dmddmx/mod/maindata/bizdata" moduleName="Mod_Maindata_BizData_BizDataKpi"/>
+		<compileModule package="dmdd/dmddmx/mod/maindata/bizdata" moduleName="Mod_Maindata_BizData_BizDataAddFc"/>
+		<compileModule package="dmdd/dmddmx/mod/maindata/bizdata" moduleName="Mod_Maindata_BizData_BizDataAddHis"/>
+		<compileModule package="dmdd/dmddmx/mod/maindata/bizdata" moduleName="Mod_Maindata_BizData_BizDataAvgHis"/>
+		<compileModule package="dmdd/dmddmx/mod/maindata/unit" moduleName="Mod_Maindata_Unit"  />
+		<compileModule package="dmdd/dmddmx/mod/maindata/distributioncenter" moduleName="Mod_Maindata_DC_DCImport"  />
+		<compileModule package="dmdd/dmddmx/mod/maindata/distributioncenter" moduleName="Mod_Maindata_DC_DCManager" />
+		
+		<compileModule package="dmdd/dmddmx/mod/forecast" moduleName="Mod_Forecast_ForecastData_ForecastHandQuick"  />
+		<compileModule package="dmdd/dmddmx/mod/forecast" moduleName="Mod_Forecast_ForecastErrorMappingModel_Query" />
+		<compileModule package="dmdd/dmddmx/mod/forecast" moduleName="Mod_Forecast_ForecastData_ForecastModel_Query"/> 
+		<compileModule package="dmdd/dmddmx/mod/forecast" moduleName="Mod_Forecast_ForecastData_ForecastHand" />         
+		<compileModule package="dmdd/dmddmx/mod/forecast" moduleName="Mod_Forecast_ForecastData_Import" />               
+		<compileModule package="dmdd/dmddmx/mod/forecast" moduleName="Mod_Forecast_ForecastData_ForecastModel_Latest"  />
+		<compileModule package="dmdd/dmddmx/mod/forecast" moduleName="Mod_Forecast_ForecastData_ForecastModel_Create"  />
+		<compileModule package="dmdd/dmddmx/mod/forecast" moduleName="Mod_Forecast_ForecastModelM"/>
+				<compileModule package="dmdd/dmddmx/mod/forecast" moduleName="Mod_Forecast_ForecastData_ForecastModel"/>
+				<compileModule package="dmdd/dmddmx/mod/forecast" moduleName="Mod_Forecast_ForecastMakeLog_Query"  />
+				<compileModule package="dmdd/dmddmx/mod/forecast" moduleName="Mod_Forecast_ForecastData_Audit"  />
+				
+				<compileModule package="dmdd/dmddmx/mod/forecast" moduleName="Mod_Forecast_ForecastData_Query"  />
+		<compileModule package="dmdd/dmddmx/mod/forecast" moduleName="Mod_Forecast_ForecastAssessment_Create_Manu"  />
+<compileModule package="dmdd/dmddmx/mod/homepage" moduleName="Mod_Homepage"/>
+				
+				<compileModule package="dmdd/dmddmx/mod/history" moduleName="Mod_History_HistoryAdjustLog_Query"/>
+				<compileModule package="dmdd/dmddmx/mod/history" moduleName="Mod_History_HistoryData_Import" />
+				<compileModule package="dmdd/dmddmx/mod/history" moduleName="Mod_History_HistoryData_Query"  />
+				<compileModule package="dmdd/dmddmx/mod/history" moduleName="Mod_History_HistoryData_Input"  />
+				<compileModule package="dmdd/dmddmx/mod/history" moduleName="Mod_History_HistoryData_Adjust" />
+				<compileModule package="dmdd/dmddmx/mod/history" moduleName="Mod_History_HistoryDataADR_Import" />
+				
+				<compileModule package="dmdd/dmddmx/mod/price" moduleName="Mod_Price_PriceData_Import" />
+				<compileModule package="dmdd/dmddmx/mod/price" moduleName="Mod_Price_PriceData_Adjust" />
+				<compileModule package="dmdd/dmddmx/mod/price" moduleName="Mod_Price_PriceData_Query"  />
+				
+				<compileModule package="dmdd/dmddmx/mod/report" moduleName="Mod_Report_Column"/>
+				<compileModule package="dmdd/dmddmx/mod/report" moduleName="Mod_Report_Weight"/>
+				<compileModule package="dmdd/dmddmx/mod/report" moduleName="Mod_Report_Row"/>
+				<compileModule package="dmdd/dmddmx/mod/report" moduleName="Mod_Report_Statistics"  />
+				<compileModule package="dmdd/dmddmx/mod/report" moduleName="Mod_Report_BreakDown"/>
+				<compileModule package="dmdd/dmddmx/mod/report" moduleName="Mod_Report_Expansion"/>
+				<compileModule package="dmdd/dmddmx/mod/report" moduleName="Mod_Report_HistoryForecast"/>
+				<compileModule package="dmdd/dmddmx/mod/system" moduleName="Mod_System_SysPeriod"/>
+				<compileModule package="dmdd/dmddmx/mod/system" moduleName="Mod_System_MetadataMng" />
+				
+				<compileModule package="dmdd/dmddmx/mod/security" moduleName="Mod_Security_Interface_Product"/>
+				<compileModule package="dmdd/dmddmx/mod/security" moduleName="Mod_Securty_OperatorUserProOrg_Import"  />
+				<compileModule package="dmdd/dmddmx/mod/security" moduleName="Mod_Security_Interface_HistoryData_InvoiceWeight"/>
+				<compileModule package="dmdd/dmddmx/mod/security" moduleName="Mod_Security_ChangePassword"/>
+				<compileModule package="dmdd/dmddmx/mod/security" moduleName="Mod_Security_OperatorUser"  />
+				<compileModule package="dmdd/dmddmx/mod/security" moduleName="Mod_Security_Interface_PriceData" />
+				<compileModule package="dmdd/dmddmx/mod/security" moduleName="Mod_Security_Interface_Organization" />
+				<compileModule package="dmdd/dmddmx/mod/security" moduleName="Mod_Security_Interface_HistoryData_InvoicePrice" />
+				<compileModule package="dmdd/dmddmx/mod/security" moduleName="Mod_Security_Interface_SemiFinishedProduct"/>
+				<compileModule package="dmdd/dmddmx/mod/security" moduleName="Mod_Security_SysBak_Manual" />
+				<compileModule package="dmdd/dmddmx/mod/security" moduleName="Mod_Security_SysBak_Query"  />
+				<compileModule package="dmdd/dmddmx/mod/security/standard" moduleName="Mod_Security_Interface_Standard_HistoryData"  />
+				<compileModule package="dmdd/dmddmx/mod/security/standard" moduleName="Mod_Security_Interface_Standard_HistoryDataADR"  />
+				
+				<compileModule package="dmdd/dmddmx/mod/conversion" moduleName="Mod_Conversion_ConversionType_Manage" />
+				<compileModule package="dmdd/dmddmx/mod/conversion" moduleName="Mod_Conversion_ConversionSet_Audit"/>
+				<compileModule package="dmdd/dmddmx/mod/conversion" moduleName="Mod_Conversion_ConversionSet_Import"  />
+				<compileModule package="dmdd/dmddmx/mod/conversion" moduleName="Mod_Conversion_ConversionReport"/>
+				
+				<compileModule package="dmdd/dmddmx/mod/mobile" moduleName="Mod_Security_Mobile_Forecast" />
+				<compileModule package="dmdd/dmddmx/mod/mobile" moduleName="Mod_Security_Mobile_Report_Single"  />
+				<compileModule package="dmdd/dmddmx/mod/mobile" moduleName="Mod_Security_Mobile_Report_Multi"/>
+				
+		
+		<compileModule package="dmdd/dmddmx/mod/forecast" moduleName="Mod_Forecast_ForecastInst"  />
+		<!-- new function 2017 -->
+		<!-- 库存报表 -->
+		<compileModule package="dmdd/dmddmx/mod/invreport" moduleName="Mod_InvReport_OverStockRisk"/>
+		<compileModule package="dmdd/dmddmx/mod/invreport" moduleName="Mod_InvReport_OverStockRiskSummary"/>
+		<compileModule package="dmdd/dmddmx/mod/invreport" moduleName="Mod_InvReport_ForecastInventory"/>
+		<!--
+		<compileModule package="dmdd/dmddmx/mod/invreport" moduleName="Mod_InvReport_ConverMonths"/>
+		<compileModule package="dmdd/dmddmx/mod/invreport" moduleName="Mod_InvReport_ConverMonthsSummary"/>
+		-->
+		<compileModule package="dmdd/dmddmx/mod/invreport" moduleName="Mod_InvReport_InventoryRisk"/>
+		<compileModule package="dmdd/dmddmx/mod/invreport" moduleName="Mod_InvReport_InventoryRisk_Summary"/>
+		
+		<compileModule package="dmdd/dmddmx/mod/maindata" moduleName="Mod_Maindata_Product_Report"/>
+		<compileModule package="dmdd/dmddmx/mod/maindata" moduleName="Mod_Maindata_ProductSuit_Report"/>
+		<compileModule package="dmdd/dmddmx/mod/maindata" moduleName="Mod_Maindata_ForecastProduct_Report"/>
+		
+		<!-- 库存相关数据导入及查询 -->
+		<!--
+		<compileModule package="dmdd/dmddmx/mod/inventory" moduleName="Mod_Inventory_Mtd_Import"/>
+		<compileModule package="dmdd/dmddmx/mod/inventory" moduleName="Mod_Inventory_Mtd_InQuery"/>
+		-->
+		<compileModule package="dmdd/dmddmx/mod/inventory" moduleName="Mod_Inventory_Zlife_Import"/>
+		<compileModule package="dmdd/dmddmx/mod/inventory" moduleName="Mod_Inventory_Popr_Import"/>
+		<compileModule package="dmdd/dmddmx/mod/inventory" moduleName="Mod_Inventory_Zlife_InQuery"/>
+		<compileModule package="dmdd/dmddmx/mod/inventory" moduleName="Mod_Inventory_Popr_InQuery"/>
+		<compileModule package="dmdd/dmddmx/mod/inventory" moduleName="Mod_Inventory_Stock_Query"/>
+		<compileModule package="dmdd/dmddmx/mod/inventory" moduleName="Mod_Inventory_Popr_Query"/>
+		<compileModule package="dmdd/dmddmx/mod/inventory" moduleName="Mod_Inventory_SafeStock_Import"/>
+		<compileModule package="dmdd/dmddmx/mod/inventory" moduleName="Mod_Inventory_SafeStock_Query"/>
+		
+		<compileModule package="dmdd/dmddmx/mod/maindata/product" moduleName="Mod_Maindata_Product_Product"/>
+		<compileModule package="dmdd/dmddmx/mod/maindata/product" moduleName="Mod_Maindata_Product_ProductCharacter"/>
+		<compileModule package="dmdd/dmddmx/mod/maindata/product" moduleName="Mod_Maindata_Product_ProductLayer" />
+		
+		
+		
+	</target>
+
+	<target name="clean">
+		<delete dir="${DEPLOY_DIR}" />
+	</target>
+	
+	<target name="copyOutput">
+		<copy todir="${release.root}">
+			<fileset dir="${DEPLOY_DIR}">
+				<include name="**/**" />
+			</fileset>
+		</copy>
+	</target>
+</project>

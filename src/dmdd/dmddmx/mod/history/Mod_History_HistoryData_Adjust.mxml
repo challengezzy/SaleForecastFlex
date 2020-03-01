@@ -1,0 +1,1114 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Module xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		   xmlns:s="library://ns.adobe.com/flex/spark" 
+		   xmlns:mx="library://ns.adobe.com/flex/mx" 
+		   layout="vertical" width="100%" height="100%" paddingLeft="10" paddingRight="10"
+		   creationComplete="creationCompleteHandler(event)" 
+		   xmlns:security="dmdd.dmddmx.com.security.*" xmlns:uirowdata="dmdd.dmddmx.com.uirowdata.*" 
+		   xmlns:history="dmdd.dmddmx.com.history.*"
+		   xmlns:controls="aks.aksmx.controls.*" xmlns:containers="aks.aksmx.containers.*" xmlns:charts="aks.aksmx.charts.*" xmlns:buttons="com.cool.buttons.*" xmlns:common="dmdd.dmddmx.com.common.*" >
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+		<s:RemoteObject endpoint="{ClientEnvironment.endpoint}" id="srvUiRowData" destination="UiRowDataService">	
+			<s:method name="getUiRowDatas" result="resultHandler4getUiRowDatas(event)" fault="faultHandler4getUiRowDatas(event)">
+			</s:method>							
+		</s:RemoteObject>
+		<s:RemoteObject endpoint="{ClientEnvironment.endpoint}" id="srvHistory" destination="HistoryService">	
+			<s:method name="saveHistoryDatas4AdjustUI" result="resultHandler4saveHistoryDatas4AdjustUI(event)" fault="faultHandler4saveHistoryDatas4AdjustUI(event)">
+			</s:method>										
+		</s:RemoteObject>				
+	</fx:Declarations>
+	<fx:Script>
+		<![CDATA[
+			import aks.aksas.charts.AksChartDataObject;
+			import aks.aksas.collections.HashMap;
+			import aks.aksas.utils.UtilUi;
+			
+			import com.cool.assets.CoolAssetsFile;
+			import com.cool.utils.AlertUtil;
+			import com.cool.utils.DataListExportUtil;
+			
+			import dmdd.dmddas.common.constant.BizConst;
+			import dmdd.dmddas.common.constant.SkinConst;
+			import dmdd.dmddas.common.constant.SysConst;
+			import dmdd.dmddas.common.constant.UIConst;
+			import dmdd.dmddas.common.system.ClientEnvironment;
+			import dmdd.dmddas.common.utils.UtilExceptionLocale;
+			import dmdd.dmddas.common.utils.UtilPeriod;
+			import dmdd.dmddas.common.utils.UtilStrKey;
+			import dmdd.dmddas.common.utils.UtilUiPopbScope;
+			import dmdd.dmddas.common.utils.UtilUiRowData;
+			import dmdd.dmddas.common.utils.UtilUiRowDataChart;
+			import dmdd.dmddas.common.vo.UiCondVo;
+			import dmdd.dmddas.dataaccess.aidobject.ABProOrg;
+			import dmdd.dmddas.dataaccess.aidobject.ABUiRowData;
+			import dmdd.dmddas.dataaccess.bizobject.BBizData;
+			import dmdd.dmddas.dataaccess.bizobject.BBizDataDefItemHistoryAdR;
+			import dmdd.dmddas.dataaccess.bizobject.BHistoryAdjustLog;
+			import dmdd.dmddas.dataaccess.bizobject.BHistoryAdjustLogAdjustItem;
+			import dmdd.dmddas.dataaccess.bizobject.BHistoryAdjustLogProOrg;
+			import dmdd.dmddas.dataaccess.bizobject.BSysDictionaryItem;
+			import dmdd.dmddas.dataaccess.bizobject.BUiPopbScope;
+			import dmdd.dmddas.dataaccess.bizobject.BUnit;
+			import dmdd.dmddas.dataaccess.bizobject.BUnitGroup;
+			import dmdd.dmddmx.com.chart.ForecastDataChartWindow;
+			import dmdd.dmddmx.com.uirowdata.Com_UiRowData_ColumnSet;
+			
+			import mx.collections.ArrayCollection;
+			import mx.collections.IList;
+			import mx.controls.Alert;
+			import mx.events.CloseEvent;
+			import mx.events.DataGridEvent;
+			import mx.events.FlexEvent;
+			import mx.events.IndexChangedEvent;
+			import mx.events.ListEvent;
+			import mx.managers.PopUpManager;
+			import mx.rpc.events.FaultEvent;
+			import mx.rpc.events.ResultEvent;
+			import mx.utils.StringUtil;
+			
+			
+			
+			//历史数据修正功能界面
+			
+			//	0	输入参数    begin						
+			//	0	输入参数    end
+			
+			//	1	输出参数    begin
+			//	1	输出参数    end
+			
+			//	2	本地变量    begin	
+			[Bindable]
+			private var dp4datagridEdit:ArrayCollection = new ArrayCollection();//可编辑数据		
+			[Bindable]
+			private var dp4datagridRef:ArrayCollection = new ArrayCollection(); //参考显示数据
+			[Bindable]
+			private var dp4datagridRef4bak:ArrayCollection = new ArrayCollection();//参考显示数据，备份
+			[Bindable]
+			private var dp4AdjustLogItem:ArrayCollection = new ArrayCollection();						
+			
+			[Bindable]
+			private var arrDictBizDataType:ArrayCollection = new ArrayCollection();	
+			
+			//条件中是否选中对应项
+			private var isDisPro:Boolean = false;
+			private var isDisProChar:Boolean = false;
+			private var isDisOrg:Boolean = false;
+			private var isDisOrgChar:Boolean = false;
+			
+			/** 可选单位 */
+			[Bindable]
+			private var arrUnits:ArrayCollection = new ArrayCollection();
+			[Bindable]
+			private var unitGroup:BUnitGroup = null;
+			private var unit:BUnit = null;
+			
+			private var arr4checkedUiRowData:ArrayCollection = new ArrayCollection();//记录选中的项
+			//	 显示设置		end
+			
+			
+			//	查询条件		begin
+			private var uiCondVo:UiCondVo; //快速查询条件，转换后
+			private var uiPopbScope:BUiPopbScope;
+			
+			private var qcondArrUiRowDataProOrgs:ArrayCollection = new ArrayCollection();
+			private var qcondArrBizDatas:ArrayCollection = new ArrayCollection();
+			
+			private var qcondPeriodBegin:int;
+			private var qcondPeriodEnd:int;
+			
+			[Bindable]
+			private var arrEditPeriods:ArrayCollection = new ArrayCollection();//记录可以编辑期间
+			
+			/** 图形展示 */
+			private var chartWindow:ForecastDataChartWindow;
+			//	查询条件		end
+			
+			//	2	本地变量    end			
+			
+			//	3	公共方法    begin			
+			//	3	公共方法    end		
+			
+			//	4	初始化方法    begin	
+			protected function creationCompleteHandler(event:FlexEvent):void
+			{
+				//	初始化界面参数	begin
+				arrDictBizDataType = new ArrayCollection();
+				
+				var arrSysDictBizDataType:ArrayCollection = ClientEnvironment.getBizDataTypeArr();
+				if( arrSysDictBizDataType != null )
+				{
+					var i:int;
+					var sysDictionaryItem:BSysDictionaryItem = null;
+					for( i=0; i<arrSysDictBizDataType.length; i=i+1 )
+					{
+						sysDictionaryItem = BSysDictionaryItem(arrSysDictBizDataType.getItemAt(i));
+						if( sysDictionaryItem.value == BizConst.GLOBAL_NULL_NULL ||
+							sysDictionaryItem.value == BizConst.BIZDATA_TYPE_HISTORY ||
+							sysDictionaryItem.value == BizConst.BIZDATA_TYPE_HISTORYAD ||
+							sysDictionaryItem.value == BizConst.BIZDATA_TYPE_HISTORYADR ||
+							sysDictionaryItem.value == BizConst.BIZDATA_TYPE_TIMEHIS )
+						{
+							arrDictBizDataType.addItem( sysDictionaryItem );
+						}
+					}
+				}				
+				//	初始化界面参数	end
+			}			
+			//	4	初始化方法    end				
+			
+			//	5	事件响应方法    begin	
+			private function callbackFunction4execute4comProOrgBizDataPeriodScope():void
+			{						
+				uiPopbScope = condSetComp.getUiPopbScope();
+				//	先检查期间是否正确	begin
+				//	期间范围已经基本检查，这里要加对历史最大开放期间的检查
+				var periodEnd:int = UtilPeriod.getPeriod( ClientEnvironment.getSysPeriod().compilePeriod, uiPopbScope.periodOffsetBegin );
+				
+				var alert_title_hint:String = resourceManager.getString('alert','alert_title_hint');
+				var alert_msg:String = "";					
+				if( UtilPeriod.getPeriodDifference( periodEnd, ClientEnvironment.getSysPeriod().historyOpenPeriod ) < 0 )
+				{
+					alert_msg = resourceManager.getString('alert','alert_msg_period_endgtopen14');
+					Alert.show( alert_msg, alert_title_hint);
+					return;						
+				}				
+				//	先检查期间是否正确	end
+				
+				uiCondVo = UtilUiPopbScope.getUiScopeCondVo(uiPopbScope,this);
+				
+				if(uiCondVo.isValid == false){
+					AlertUtil.show(uiCondVo.inValidStr,AlertUtil.MESSAGE_ERROR);
+					return;
+				}
+				
+				unitGroup = uiCondVo.unitGroup;
+				unit = uiCondVo.unit;
+				unitGroupSet(unit);
+				
+				//	从 comProOrgBizDataPeriodScope中取得查询条件	begin
+				qcondArrUiRowDataProOrgs = uiCondVo.arrUiRowDataProOrgs;
+				qcondArrBizDatas = uiCondVo.arrBizDatas;
+				
+				//	从 comPeriodSpan 取得查询期间	并求得可编辑期间	begin
+				qcondPeriodBegin =uiCondVo.periodBegin;
+				qcondPeriodEnd = uiCondVo.periodEnd;
+				
+				//设置可编辑的序列号 begin
+				var periodLoc:int;
+				arrEditPeriods = new ArrayCollection();
+				var diff:int = UtilPeriod.getPeriodDifference(qcondPeriodBegin,qcondPeriodEnd);
+				for( periodLoc=0; periodLoc <= diff; periodLoc = periodLoc + 1 )
+				{
+					arrEditPeriods.addItem(String(UtilPeriod.getPeriod( qcondPeriodBegin, periodLoc )));
+				}
+				//设置可编辑的序列号 end
+				
+				adgEdit.setPeriodBeginEnd( qcondPeriodBegin, qcondPeriodEnd, true );
+				adgRef.setPeriodBeginEnd( qcondPeriodBegin, qcondPeriodEnd, false );
+				//从 comProOrgBizDataPeriodScope中取得显示设置	begin
+				refreshColumnDispControlSet(1);
+				
+				var blPageProOrg:Boolean = condSetComp.isPageProOrg;
+				if( blPageProOrg == true )
+				{	
+					//	初始化数据表格控制板
+					comAksDataGridControlBar.pubFun4setResultParams( true, qcondArrUiRowDataProOrgs.length, ClientEnvironment.getSysParamPageSize() );
+					
+					//	去执行第一页查询
+					prvFun4pageQueryHistoryDatas( 1 );
+				}
+				else
+				{	
+					//	初始化数据表格控制板					
+					comAksDataGridControlBar.pubFun4setResultParams( false, qcondArrUiRowDataProOrgs.length, qcondArrUiRowDataProOrgs.length );
+					
+					//	不分页查询
+					UtilUi.pubFun4PopWaitWindow( this );
+					
+					dp4datagridEdit = new ArrayCollection();
+					dp4datagridRef = new ArrayCollection();
+					dp4AdjustLogItem = new ArrayCollection();
+					
+					srvUiRowData.getUiRowDatas( qcondArrUiRowDataProOrgs, qcondPeriodBegin, qcondPeriodEnd, qcondArrBizDatas, ClientEnvironment.getSysPeriod()  );
+				}								
+			}
+			
+			/** 设置单位组中的单位 */
+			private function unitGroupSet(unit:BUnit):void
+			{
+				var unitGroupId:Number = unit.unitGroup.id;
+				arrUnits = ClientEnvironment.getUnitGroup(unitGroupId).units;
+				
+				var selUnit:BUnit =null;
+				for(var i:int=0;i<arrUnits.length;i++)
+				{
+					selUnit = BUnit(arrUnits.getItemAt(i));
+					if(selUnit.id == unit.id)
+					{	
+						comboBoxUnit.selectedIndex = i; 
+						comboBoxUnit.selectedItem = selUnit;
+						break;
+					}
+				}
+				
+				comboBoxUnit.enabled = true;
+			}
+			
+			//	分页查询相关		begin			
+			private function prvFun4pageQueryHistoryDatas( _pageIndex:int ):void
+			{
+				UtilUi.pubFun4PopWaitWindow( this );
+				var arrUiRowDataProOrgs:ArrayCollection = new ArrayCollection();
+				var i:int;
+				var pageSize:int = ClientEnvironment.getSysParamPageSize();
+				var indexBegin:int = pageSize * (_pageIndex-1);
+				var indexEnd:int = pageSize * _pageIndex;
+				if( indexEnd > qcondArrUiRowDataProOrgs.length )
+				{
+					indexEnd = qcondArrUiRowDataProOrgs.length;
+				}
+				//	分页查询,根据pageIndex计算需要传递给服务器的查询条件
+				for( i=indexBegin; i<indexEnd; i=i+1 )
+				{
+					arrUiRowDataProOrgs.addItem( qcondArrUiRowDataProOrgs.getItemAt(i) );	
+				}
+				
+				dp4datagridEdit = new ArrayCollection();
+				dp4datagridRef = new ArrayCollection();
+				dp4AdjustLogItem = new ArrayCollection();
+				
+				srvUiRowData.getUiRowDatas( arrUiRowDataProOrgs, qcondPeriodBegin, qcondPeriodEnd, qcondArrBizDatas, ClientEnvironment.getSysPeriod()  );					
+			}			
+			//	分页查询相关		end		
+			
+			private function faultHandler4getUiRowDatas(event:FaultEvent):void
+			{
+				UtilUi.pubFun4RemoveWaitWindow();
+				Alert.show( UtilExceptionLocale.getExceptionMessageLocaleByFaultEvent( event ), resourceManager.getString('main','alt_title_warn') );
+			}
+			
+			private function resultHandler4getUiRowDatas(event:ResultEvent):void 
+			{
+				btnRefreshChart.enabled = true;
+				
+				dp4datagridEdit = new ArrayCollection();
+				dp4datagridRef = new ArrayCollection();
+				dp4datagridRef4bak = new ArrayCollection();
+				dp4AdjustLogItem = new ArrayCollection();
+				
+				var arrRstABUiRowData:ArrayCollection = ArrayCollection(event.result);
+				if( arrRstABUiRowData == null )
+				{
+					UtilUi.pubFun4RemoveWaitWindow();
+					return;
+				}
+				
+				var selectedUnit:BUnit = BUnit(comboBoxUnit.selectedItem);
+				
+				var i:int;
+				var uiRowData:ABUiRowData = null;
+				
+				for( i=0; i<arrRstABUiRowData.length; i=i+1 )
+				{
+					uiRowData = ABUiRowData(arrRstABUiRowData.getItemAt(i));
+					if( selectedUnit != null && selectedUnit.isBase ==BizConst.GLOBAL_YESNO_NO )
+					{
+						uiRowData.exchangeUnit( 1, selectedUnit.exchangeRate );
+					}					
+					
+					if( uiRowData.bizData.type == BizConst.BIZDATA_TYPE_HISTORYADR &&
+						ClientEnvironment.getBizDataIsManaging(uiRowData.bizData) == BizConst.GLOBAL_YESNO_YES )
+					{
+						//	历史调整原因类 的才可以修改
+						dp4datagridEdit.addItem( uiRowData );
+					}
+					else
+					{
+						dp4datagridRef.addItem( uiRowData );
+						dp4datagridRef4bak.addItem(uiRowData);
+					}
+					
+				}						
+				
+				var editHeight:int = dp4datagridEdit.length * 20;
+				if(editHeight < 150){
+					editHeight = 150;
+				}else if (editHeight > 280){
+					editHeight = 280;
+				}
+				
+				adgEdit.height = editHeight;
+				UtilUi.pubFun4RemoveWaitWindow();
+			}				
+			
+			private function onAddScale():void
+			{
+				if( adgEdit.selectedItem == null )
+				{
+					return;
+				}
+				
+				var scaleValue:Number = Number(adjustTextInput.text);
+				if( checkScaleValue(scaleValue) == false )
+				{
+					return;
+				}
+				
+				var selectedUiRowData:ABUiRowData = ABUiRowData(adgEdit.selectedItem);
+				var i:int;
+				var periodDiff:int = UtilPeriod.getPeriodDifference( qcondPeriodBegin, qcondPeriodEnd );
+				for( i=0; i<=periodDiff; i=i+1 )
+				{
+					var oldValue:Number = selectedUiRowData.pubFun4getPeriodDataValue(i);
+					var newValue:Number = oldValue+scaleValue;
+					selectedUiRowData.pubFun4setPeriodDataValue( i, newValue );
+				}
+			}
+			private function onSubScale():void
+			{
+				if( adgEdit.selectedItem == null )
+				{
+					return;
+				}
+				
+				var scaleValue:Number = Number(adjustTextInput.text);
+				if( checkScaleValue(scaleValue) == false )
+				{
+					return;
+				}
+				
+				var selectedUiRowData:ABUiRowData = ABUiRowData(adgEdit.selectedItem);
+				var i:int;
+				var periodDiff:int = UtilPeriod.getPeriodDifference( qcondPeriodBegin, qcondPeriodEnd );
+				for( i=0; i<=periodDiff; i=i+1 )
+				{
+					var oldValue:Number = selectedUiRowData.pubFun4getPeriodDataValue(i);
+					var newValue:Number = oldValue-scaleValue;
+					selectedUiRowData.pubFun4setPeriodDataValue( i, newValue );
+				}
+			}	
+			private function onSetScale():void
+			{
+				if( adgEdit.selectedItem == null )
+				{
+					return;
+				}
+				
+				var scaleValue:Number = Number(adjustTextInput.text);
+				if( checkScaleValue(scaleValue) == false )
+				{
+					return;
+				}
+				
+				var selectedUiRowData:ABUiRowData = ABUiRowData(adgEdit.selectedItem);
+				var i:int;
+				var periodDiff:int = UtilPeriod.getPeriodDifference( qcondPeriodBegin, qcondPeriodEnd );
+				for( i=0; i<=periodDiff; i=i+1 )
+				{
+					selectedUiRowData.pubFun4setPeriodDataValue( i, scaleValue );
+				}
+			}			
+			
+			private function onAddPercent():void
+			{
+				if( adgEdit.selectedItem == null )
+				{
+					return;
+				}
+				var percentValue:Number = Number(adjustTextInput.text);
+				if( checkPercentValue(percentValue) == false )
+				{
+					return;
+				}
+				
+				var selectedUiRowData:ABUiRowData = ABUiRowData(adgEdit.selectedItem);
+				var i:int;
+				var periodDiff:int = UtilPeriod.getPeriodDifference( qcondPeriodBegin, qcondPeriodEnd );
+				for( i=0; i<=periodDiff; i=i+1 )
+				{
+					var oldValue:Number = selectedUiRowData.pubFun4getPeriodDataValue(i);
+					var newValue:Number = Math.round( oldValue + oldValue*percentValue*0.01 );
+					selectedUiRowData.pubFun4setPeriodDataValue( i, newValue );
+				}			
+			}	
+			private function onSubPercent():void
+			{
+				if( adgEdit.selectedItem == null )
+				{
+					return;
+				}
+				var percentValue:Number = Number(adjustTextInput.text);
+				if( checkPercentValue(percentValue) == false )
+				{
+					return;
+				}
+				
+				var selectedUiRowData:ABUiRowData = ABUiRowData(adgEdit.selectedItem);
+				var i:int;
+				var periodDiff:int = UtilPeriod.getPeriodDifference( qcondPeriodBegin, qcondPeriodEnd );
+				for( i=0; i<=periodDiff; i=i+1 )
+				{
+					var oldValue:Number = selectedUiRowData.pubFun4getPeriodDataValue(i);
+					var newValue:Number = Math.round( oldValue - oldValue*percentValue*0.01 );
+					selectedUiRowData.pubFun4setPeriodDataValue( i, newValue );
+				}			
+			}				
+			
+			/**
+			 * 根据HistoryAdR数据的变化情况，对HistoryAd数据进行变化，并处理HistoryAdjustLogAdjustItem
+			 */ 
+			private function onCompute():void
+			{
+				var selectedUnit:BUnit = BUnit(comboBoxUnit.selectedItem);				
+				var periodDiff:int = UtilPeriod.getPeriodDifference( qcondPeriodBegin, qcondPeriodEnd );
+				
+				var i:int;
+				
+				//	处理	historyAdjustLogAdjustItem	begin
+				//	把 historyAdjustLogAdjustItem 放到  hashmap 中，方便使用	begin
+				var hmap_historyAdjustLogAdjustItem:HashMap = new HashMap();
+				var strKey4historyAdjustLogAdjustItem:String = null;
+				var historyAdjustLogAdjustItem:BHistoryAdjustLogAdjustItem = null;
+				for( i=0; i<dp4AdjustLogItem.length; i=i+1 )
+				{
+					historyAdjustLogAdjustItem = BHistoryAdjustLogAdjustItem(dp4AdjustLogItem.getItemAt(i));
+					strKey4historyAdjustLogAdjustItem = UtilStrKey.getStrKey4PPcOOcPB(	historyAdjustLogAdjustItem.product,
+																						historyAdjustLogAdjustItem.productCharacter,
+																						historyAdjustLogAdjustItem.organization,
+																						historyAdjustLogAdjustItem.organizationCharacter,
+																						historyAdjustLogAdjustItem.period,
+																						historyAdjustLogAdjustItem.bizData																						
+																						);
+					hmap_historyAdjustLogAdjustItem.put( strKey4historyAdjustLogAdjustItem, historyAdjustLogAdjustItem );
+				}
+				//	把 historyAdjustLogAdjustItem 放到  hashmap 中，方便使用	end
+				
+				var periodLoc:int;
+				var uiRowData_edit:ABUiRowData = null;
+				var period:int;
+				var value:Number;
+				for( i=0; i<dp4datagridEdit.length; i=i+1 )
+				{
+					uiRowData_edit = ABUiRowData( dp4datagridEdit.getItemAt(i) );
+					for( periodLoc=0; periodLoc <= periodDiff; periodLoc=periodLoc+1 )
+					{
+						period = UtilPeriod.getPeriod( qcondPeriodBegin, periodLoc );
+						strKey4historyAdjustLogAdjustItem = UtilStrKey.getStrKey4PPcOOcPB(	uiRowData_edit.product,
+																							uiRowData_edit.productCharacter,
+																							uiRowData_edit.organization,
+																							uiRowData_edit.organizationCharacter,
+																							period,
+																							uiRowData_edit.bizData
+																							);
+						historyAdjustLogAdjustItem = BHistoryAdjustLogAdjustItem(hmap_historyAdjustLogAdjustItem.getValue( strKey4historyAdjustLogAdjustItem ));
+						
+						value = uiRowData_edit.pubFun4getPeriodDataValue(periodLoc);
+						if( isNaN(value) )
+						{
+							value = 0;
+							uiRowData_edit.pubFun4setPeriodDataValue( periodLoc, 0 );
+						}
+						
+						if( Math.round( value*selectedUnit.exchangeRate ) != uiRowData_edit.pubFun4getPeriodDataValueBak(periodLoc) )
+						{
+							//	值变化	
+							if( historyAdjustLogAdjustItem != null )
+							{
+								//	更新
+								historyAdjustLogAdjustItem.newValue = value;
+							}
+							else
+							{
+								//	新建		
+								historyAdjustLogAdjustItem = new BHistoryAdjustLogAdjustItem();
+								historyAdjustLogAdjustItem.product = uiRowData_edit.product;
+								historyAdjustLogAdjustItem.productCharacter = uiRowData_edit.productCharacter;
+								historyAdjustLogAdjustItem.organization = uiRowData_edit.organization;
+								historyAdjustLogAdjustItem.organizationCharacter = uiRowData_edit.organizationCharacter;
+								historyAdjustLogAdjustItem.bizData = uiRowData_edit.bizData;
+								historyAdjustLogAdjustItem.period = period;
+								historyAdjustLogAdjustItem.oldValue = uiRowData_edit.pubFun4getPeriodDataValueBak(periodLoc)*1.0/selectedUnit.exchangeRate;
+								
+								historyAdjustLogAdjustItem.newValue = value;
+								
+								hmap_historyAdjustLogAdjustItem.put( strKey4historyAdjustLogAdjustItem, historyAdjustLogAdjustItem );
+							}
+						}
+						else
+						{
+							//	值不变化
+							if( historyAdjustLogAdjustItem != null )
+							{
+								//	值恢复的情形
+								//	删除
+								hmap_historyAdjustLogAdjustItem.remove( strKey4historyAdjustLogAdjustItem );
+							}
+						}
+					}
+				}
+				
+				//	从 hashmap 取回	begin
+				dp4AdjustLogItem = hmap_historyAdjustLogAdjustItem.getValues()
+				//	从 hashmap 取回	end
+				//	处理	historyAdjustLogAdjustItem	end
+				
+				//	计算	historyAd	begin
+				
+				//	把 historyAd uiRowData 放到  hashmap 中，方便使用	begin
+				var hmap_uiRowData_HistoryAd:HashMap = new HashMap();
+				var strKey4uiRowData:String = null;
+				var uiRowData_view:ABUiRowData = null;
+				for( i=0; i<dp4datagridRef.length; i=i+1 )
+				{
+					uiRowData_view = ABUiRowData( dp4datagridRef.getItemAt(i) );
+					
+					if( uiRowData_view.bizData.type == BizConst.BIZDATA_TYPE_HISTORYAD )
+					{
+						//	把值恢复成备份值	begin
+						for( periodLoc=0; periodLoc<=periodDiff; periodLoc=periodLoc+1 )
+						{
+							uiRowData_view.pubFun4setPeriodDataValue( periodLoc, uiRowData_view.pubFun4getPeriodDataValueBak(periodLoc)*1.0/selectedUnit.exchangeRate );	
+						}
+						//	把值恢复成备份值	end
+						
+						strKey4uiRowData = UtilStrKey.getStrKey4PPcOOcB(	uiRowData_view.product,
+																			uiRowData_view.productCharacter,
+																			uiRowData_view.organization,
+																			uiRowData_view.organizationCharacter,
+																			uiRowData_view.bizData
+																		);
+						hmap_uiRowData_HistoryAd.put( strKey4uiRowData, uiRowData_view );
+					}
+				}
+				//	把 historyAd uiRowData 放到  hashmap 中，方便使用	end
+				
+				var bizData_HistoryAd:BBizData = null;
+				if( hmap_uiRowData_HistoryAd.size() > 0 )
+				{
+					for( i=0; i<dp4AdjustLogItem.length; i=i+1 )
+					{
+						historyAdjustLogAdjustItem = BHistoryAdjustLogAdjustItem( dp4AdjustLogItem.getItemAt(i) );
+						if( historyAdjustLogAdjustItem.bizData.bizDataDefItems == null )
+						{
+							continue;
+						}
+						if( historyAdjustLogAdjustItem.bizData.bizDataDefItems.length != 1 )
+						{
+							continue;
+						}
+						bizData_HistoryAd = BBizDataDefItemHistoryAdR( historyAdjustLogAdjustItem.bizData.bizDataDefItems.getItemAt(0) ).historyAdBizData;
+						
+						strKey4uiRowData = UtilStrKey.getStrKey4PPcOOcB(	historyAdjustLogAdjustItem.product,
+																			historyAdjustLogAdjustItem.productCharacter,
+																			historyAdjustLogAdjustItem.organization,
+																			historyAdjustLogAdjustItem.organizationCharacter,
+																			bizData_HistoryAd
+																		);
+						uiRowData_view = ABUiRowData( hmap_uiRowData_HistoryAd.getValue( strKey4uiRowData ) );
+						if( uiRowData_view != null )
+						{
+							periodLoc = UtilPeriod.getPeriodDifference( qcondPeriodBegin, historyAdjustLogAdjustItem.period );
+							value = uiRowData_view.pubFun4getPeriodDataValue( periodLoc ) - (historyAdjustLogAdjustItem.newValue - historyAdjustLogAdjustItem.oldValue );
+							uiRowData_view.pubFun4setPeriodDataValue( periodLoc,value );
+						}
+					}
+				}
+				
+				//	不必从 hashmap中重新取，因为这个过程中只有更新，上述操作直接作用在dp对象上了
+				
+				//	计算	historyAd	end
+				adgRef.invalidateList();//由于加入了高亮同步显示，所以这里需要加入刷新语句，刷新list内容。
+			}			
+			
+			private function onSave():void
+			{
+				tabNav4historyAdjust.selectedChild = tab4historyAdjustLog; // 跳到logTab页，避免该tab页出现从没被初始化而出错
+				tabNav4historyAdjust_changeHandler( null );
+
+				var alert_title_hint:String = resourceManager.getString('alert','alert_title_hint');
+				var alert_msg:String = "";
+				
+				if( dp4AdjustLogItem.length == 0 )
+				{					
+					alert_msg = resourceManager.getString('alert','alert_msg_noadjust14');
+					Alert.show(alert_msg, alert_title_hint);
+					return;					
+				}				
+				
+				alert_msg = resourceManager.getString('alert','alert_msg_saveconfirm14');
+				Alert.show( alert_msg, alert_title_hint, Alert.OK | Alert.CANCEL, this, saveConfirmHandler, null, Alert.OK );				
+			}
+			
+			private function saveConfirmHandler(event:CloseEvent):void
+			{
+				if( event.detail == Alert.OK )
+				{
+					UtilUi.pubFun4PopWaitWindow( this );
+					
+					var selectedUnit:BUnit = BUnit(comboBoxUnit.selectedItem);				
+					var periodDiff:int = UtilPeriod.getPeriodDifference( qcondPeriodBegin, qcondPeriodEnd );					
+					
+					var i:int;
+					var uiRowData_edit:ABUiRowData = null;
+					var value:Number;
+					var period:int;
+					var periodLoc:int;
+					
+					//	收集 uiRowData	begin
+					var arrUiRowData4save:ArrayCollection = new ArrayCollection();
+					var uiRowData4save:ABUiRowData = null;
+					for( i=0; i<dp4datagridEdit.length; i=i+1 )
+					{
+						uiRowData_edit = ABUiRowData( dp4datagridEdit.getItemAt(i) );
+						for( periodLoc=0; periodLoc <= periodDiff; periodLoc=periodLoc+1 )
+						{
+							period = UtilPeriod.getPeriod( qcondPeriodBegin, periodLoc );							
+							value = uiRowData_edit.pubFun4getPeriodDataValue(periodLoc);
+							
+							if( Math.round(value*selectedUnit.exchangeRate) != uiRowData_edit.pubFun4getPeriodDataValueBak(periodLoc) )
+							{
+								//	值变化
+								uiRowData4save = new ABUiRowData();
+								uiRowData4save.copyDeep( uiRowData_edit );
+								if( selectedUnit.isBase == BizConst.GLOBAL_YESNO_NO )
+								{
+									uiRowData4save.exchangeUnit( selectedUnit.exchangeRate, 1 );
+								}
+								arrUiRowData4save.addItem( uiRowData4save );
+								break;
+							}
+						}
+					}
+					//	收集 uiRowData	end
+					
+					//	收集 historyAdjustLog	begin
+					var historyAdjustLog4save:BHistoryAdjustLog = new BHistoryAdjustLog();
+					historyAdjustLog4save.compilePeriod = ClientEnvironment.getSysPeriod().compilePeriod;
+					historyAdjustLog4save.submitTime = new Date( new Date().getTime() + ClientEnvironment.getTimeDifference() );
+					historyAdjustLog4save.submitter = ClientEnvironment.getOperatorUser().userName;
+					historyAdjustLog4save.operatorUser = ClientEnvironment.getOperatorUser();
+					historyAdjustLog4save.description = StringUtil.trim( txtDescription.text );
+					
+					historyAdjustLog4save.historyAdjustLogProOrgs = new ArrayCollection();
+					historyAdjustLog4save.historyAdjustLogAdjustItems = new ArrayCollection();
+					
+					var arrProOrgs:ArrayCollection = uiCondVo.arrProOrgs;
+					var proOrg:ABProOrg = null;
+					var historyAdjustLogProOrg4save:BHistoryAdjustLogProOrg = null;
+					for( i=0; i<arrProOrgs.length; i=i+1 )
+					{
+						proOrg = ABProOrg( arrProOrgs.getItemAt(i) );
+						
+						historyAdjustLogProOrg4save = new BHistoryAdjustLogProOrg();
+						historyAdjustLogProOrg4save.product = proOrg.product;
+						historyAdjustLogProOrg4save.organization = proOrg.organization;
+						historyAdjustLogProOrg4save.historyAdjustLog = historyAdjustLog4save;
+						historyAdjustLog4save.historyAdjustLogProOrgs.addItem( historyAdjustLogProOrg4save );
+					}
+					
+					var historyAdjustLogAdjustItem:BHistoryAdjustLogAdjustItem = null;
+					var historyAdjustLogAdjustItem4save:BHistoryAdjustLogAdjustItem = null;
+					for( i=0; i<dp4AdjustLogItem.length; i=i+1 )
+					{
+						historyAdjustLogAdjustItem = BHistoryAdjustLogAdjustItem( dp4AdjustLogItem.getItemAt( i ) );
+						
+						historyAdjustLogAdjustItem4save = new BHistoryAdjustLogAdjustItem();
+						historyAdjustLogAdjustItem4save.copyDeep( historyAdjustLogAdjustItem );
+						if( selectedUnit.isBase == BizConst.GLOBAL_YESNO_NO )
+						{
+							historyAdjustLogAdjustItem4save.exchangeUnit( selectedUnit.exchangeRate, 1 );
+						}
+						historyAdjustLogAdjustItem4save.historyAdjustLog = historyAdjustLog4save;
+						historyAdjustLog4save.historyAdjustLogAdjustItems.addItem( historyAdjustLogAdjustItem4save );
+					}
+					//	收集 historyAdjustLog	end					
+					
+					srvHistory.saveHistoryDatas4AdjustUI( arrUiRowData4save, historyAdjustLog4save );
+				}
+			}			
+			
+			private function faultHandler4saveHistoryDatas4AdjustUI(event:FaultEvent):void
+			{
+				UtilUi.pubFun4RemoveWaitWindow();
+				
+				Alert.show( UtilExceptionLocale.getExceptionMessageLocaleByFaultEvent( event ), resourceManager.getString('main','alt_title_warn') );			
+			}
+			
+			private function resultHandler4saveHistoryDatas4AdjustUI(event:ResultEvent):void 
+			{
+				UtilUi.pubFun4RemoveWaitWindow();
+				
+				var alert_title_hint:String = resourceManager.getString('alert','alert_title_hint');
+				var alert_msg:String = resourceManager.getString('alert','alert_msg_savesucceed14');
+				Alert.show( alert_msg, alert_title_hint);
+				
+				txtDescription.text = "";
+				tabNav4historyAdjust.selectedChild = tab4historyAdjust;
+				
+				//	重新查询当前页数据
+				var blPageProOrg:Boolean = condSetComp.isPageProOrg;
+				if( blPageProOrg == true )
+				{						
+					//	查询当前页
+					prvFun4pageQueryHistoryDatas( comAksDataGridControlBar.pubFun4geParamOut4pageIndex() );
+				}
+				else
+				{	
+					//	不分页查询
+					UtilUi.pubFun4PopWaitWindow( this );
+					srvUiRowData.getUiRowDatas( qcondArrUiRowDataProOrgs, qcondPeriodBegin, qcondPeriodEnd, qcondArrBizDatas, ClientEnvironment.getSysPeriod()  );
+				}	
+			}				
+			
+
+			protected function tabNav4historyAdjust_changeHandler(event:IndexChangedEvent):void
+			{
+				if( tabNav4historyAdjust.selectedChild == tab4historyAdjustLog )
+				{
+					onCompute();
+				}
+			}
+			
+			protected function comAdgUiRowDataView_columnStretchHandler(event:DataGridEvent):void
+			{
+				adgEdit.pubFun4synColumnWidth( adgRef );
+			}
+			
+			protected function comAdgUiRowDataEdit_columnStretchHandler(event:DataGridEvent):void
+			{
+				adgRef.pubFun4synColumnWidth( adgEdit );
+			}		
+			
+			private function onRefreshChart():void
+			{
+				chartWindow = UtilUiRowDataChart.showRowDataChartWindow(adgEdit,adgRef,qcondPeriodBegin,qcondPeriodEnd,arrEditPeriods,callbackFunction4SetNewuiRowData,this);
+			}
+			
+			
+			private function callbackFunction4SetNewuiRowData():void
+			{	
+				var dataindex:int = chartWindow.aksLineChart4scale.pubFun4getDataIndex();
+				var valueindex:int = chartWindow.aksLineChart4scale.pubFun4getValueIndex();
+				var newY:Number = chartWindow.aksLineChart4scale.pubFun4getNewValue();
+				
+				var uiRowData:ABUiRowData  = ABUiRowData(chartWindow.arr4checkedUiRowData4scale.getItemAt(dataindex));
+				var strKey:String = UtilStrKey.getStrKey4PPcOOcB(uiRowData.product,uiRowData.productCharacter,
+					uiRowData.organization,uiRowData.organizationCharacter,uiRowData.bizData);
+				var _uiRowData:ABUiRowData;
+				for(var i:int = 0;i<dp4datagridEdit.length;i++)
+				{
+					_uiRowData=ABUiRowData(dp4datagridEdit.getItemAt(i));
+					if( UtilStrKey.getStrKey4PPcOOcB(_uiRowData.product,_uiRowData.productCharacter,
+						_uiRowData.organization,_uiRowData.organizationCharacter,_uiRowData.bizData) == strKey)
+					{
+						_uiRowData.pubFun4setPeriodDataValue(valueindex,newY);
+					}
+				}
+				
+			}
+			protected function comAdgUiRowDataEdit_changeHandler(event:ListEvent):void
+			{
+				/*
+				if(adgEdit.selectedIndex>-1 )
+				{	
+					var uiRowData:ABUiRowData =ABUiRowData(adgEdit.selectedItem);
+					var strKey:String = UtilStrKey.getStrKey4PPcOOc(uiRowData.product,uiRowData.productCharacter,uiRowData.organization,uiRowData.organizationCharacter);
+					
+					var selectSize:int=0;
+					var selectedIndices:Array=new Array();
+					adgRef.selectedIndices=selectedIndices;//清除以前的选择记录记录
+					for(var i:int =0;i<dp4datagridRef.length;i++)
+					{
+						var _uiRowData:ABUiRowData = ABUiRowData(dp4datagridRef.getItemAt(i));
+						var _strKey:String= UtilStrKey.getStrKey4PPcOOc(_uiRowData.product,_uiRowData.productCharacter,_uiRowData.organization,_uiRowData.organizationCharacter);
+						if(_strKey==strKey)
+						{
+							IList(dp4datagridRef).addItemAt(_uiRowData,0);
+							selectSize=selectSize+1;
+							IList(dp4datagridRef).removeItemAt(i+1);
+						}												
+					}
+					//将前面selectSize个Item设置成已选
+					for(var j:int=0;j<selectSize;j++)
+					{
+						selectedIndices.push(j);
+					}
+					adgRef.selectedIndices=selectedIndices;
+				}
+				*/
+				//modify by zhangzy 由原来的选中状态，改为只显示相关选项
+				if(adgEdit.selectedIndex>-1 )
+				{	
+					var uiRowData:ABUiRowData =ABUiRowData(adgEdit.selectedItem);
+					var strKey:String = UtilStrKey.getStrKey4PPcOOc(uiRowData.product,uiRowData.productCharacter,uiRowData.organization,uiRowData.organizationCharacter);
+					var tempArr:ArrayCollection = new ArrayCollection();
+					var selectSize:int=0;
+					
+					
+					dp4datagridRef = new ArrayCollection();//清除以前的选择记录记录
+					
+					for(var i:int =0;i<dp4datagridRef4bak.length;i++)
+					{
+						var _uiRowData:ABUiRowData = ABUiRowData(dp4datagridRef4bak.getItemAt(i));
+						var _strKey:String= UtilStrKey.getStrKey4PPcOOc(_uiRowData.product,_uiRowData.productCharacter,_uiRowData.organization,_uiRowData.organizationCharacter);
+						if(_strKey==strKey)
+						{
+							tempArr.addItem(_uiRowData);
+						}												
+					}
+					dp4datagridRef.addAll(tempArr);
+				}
+				
+			}
+			
+			private function onChange4comboBoxUnit():void
+			{
+				//	单位变化	begin
+				var selectedUnit:BUnit = BUnit(comboBoxUnit.selectedItem);
+				var i:int;
+				
+				var uiRowData:ABUiRowData = null;
+				var historyAdjustLogAdjustItem:BHistoryAdjustLogAdjustItem = null;
+				if( selectedUnit != null && unit != null && selectedUnit.id != unit.id )
+				{ 
+					if( dp4datagridRef != null )
+					{
+						for( i=0; i<dp4datagridRef.length; i=i+1 )
+						{
+							uiRowData = ABUiRowData(dp4datagridRef.getItemAt(i));
+							uiRowData.exchangeUnit( unit.exchangeRate, selectedUnit.exchangeRate );
+						}
+					}	
+					
+					if( dp4datagridEdit != null )
+					{
+						for( i=0; i<dp4datagridEdit.length; i=i+1 )
+						{
+							uiRowData = ABUiRowData(dp4datagridEdit.getItemAt(i));
+							uiRowData.exchangeUnit( unit.exchangeRate, selectedUnit.exchangeRate );
+						}
+					}	
+					
+					if( dp4AdjustLogItem != null )
+					{
+						for( i=0; i<dp4AdjustLogItem.length; i=i+1 )
+						{
+							historyAdjustLogAdjustItem = BHistoryAdjustLogAdjustItem(dp4AdjustLogItem.getItemAt(i)); 
+							historyAdjustLogAdjustItem.exchangeUnit( unit.exchangeRate, selectedUnit.exchangeRate );
+						}
+					}
+					
+					this.unit = selectedUnit;
+				}
+				//	单位变化	end
+				//	单位变化	end
+			}
+			
+			private function onColumnSet():void
+			{
+				if(uiCondVo == null)
+					return; //还没查询过数据
+				
+				adgEdit.onColumnSet(adgRef);
+			}
+			
+			private function refreshColumnDispControlSet(type:Number):void{
+				//3个入口，设置显示列 1，查询条件中执行后 2，分层计算后 3，列显示手工设置后
+				
+				if(type == 1){ 
+					//1查询条件中执行后
+					isDisPro = uiCondVo.isShowProduct;
+					isDisProChar = uiCondVo.isShowProductCharacter;
+					isDisOrg = uiCondVo.isShowOrganization;
+					isDisOrgChar = uiCondVo.isShowOrganizationCharacter;
+					
+				}
+				//同步设置
+				adgEdit.setVisible4Dimension(isDisPro,isDisProChar,isDisOrg,isDisOrgChar);
+				adgRef.pubFun4synColumnWidth( adgEdit );
+				if(adgAdjustLog != null){
+					adgAdjustLog.setVisible4Dimension(isDisPro,isDisProChar,isDisOrg,isDisOrgChar);
+				}
+				
+			}
+			
+			private function onExport():void
+			{				
+				var TSVString:String = DataListExportUtil.generateCsvData(adgEdit,1) ;
+				
+				// Copy the TSV string to the clipboard
+				System.setClipboard(TSVString);					
+			}
+			
+			protected function onBatchAdjust(event:MouseEvent):void
+			{
+				
+				if(adgEdit.selectedIndex == -1){
+					
+					AlertUtil.show("请选中一行可编辑数据！");
+					return;
+				}
+				
+				PopUpManager.addPopUp(adjustWindow,this);
+				PopUpManager.centerPopUp(adjustWindow);
+			}
+			
+			protected function onBatchAdjustOkHandler(event:MouseEvent):void
+			{
+				if(adjustTextInput.text == null || 	adjustTextInput.text == ""){
+					AlertUtil.show("请输入调整值！");
+				}
+				
+				if(btnScale.selected && btnAdd.selected ){
+					onAddScale();
+				}else if(btnScale.selected && btnSub.selected ){
+					onSubScale();
+				}else if(btnPercent.selected && btnAdd.selected ){
+					onAddPercent();
+				}else if(btnPercent.selected && btnSub.selected ){
+					onSubPercent();
+				}
+				
+				PopUpManager.removePopUp(adjustWindow);
+			}
+			
+			//	5	事件响应方法    end
+			
+			//	6	本地方法    begin
+			
+			
+			private function checkScaleValue( _scaleValue:Number ):Boolean
+			{
+				var alert_title_hint:String = resourceManager.getString('alert','alert_title_hint');	
+				var alert_msg:String = resourceManager.getString('alert','alert_msg_scale');				
+				
+				if( isNaN(_scaleValue) )
+				{
+					Alert.show(alert_msg, alert_title_hint);
+					return false;							
+				}
+				
+				if( Math.floor( _scaleValue ) != _scaleValue )
+				{
+					Alert.show(alert_msg, alert_title_hint);
+					return false;								
+				}
+				
+				if( _scaleValue < 0 || _scaleValue > 999999999 )
+				{
+					Alert.show(alert_msg, alert_title_hint);
+					return false;					
+				}
+				
+				return true;
+			}
+			
+			private function checkPercentValue( _percentValue:Number ):Boolean
+			{
+				var alert_title_hint:String = resourceManager.getString('alert','alert_title_hint');	
+				var alert_msg:String = resourceManager.getString('alert','alert_msg_percent14');				
+				
+				if( isNaN(_percentValue) )
+				{
+					Alert.show(alert_msg, alert_title_hint);
+					return false;							
+				}
+				
+				if( Math.floor( _percentValue ) != _percentValue )
+				{
+					Alert.show(alert_msg, alert_title_hint);
+					return false;								
+				}
+				
+				if( _percentValue < 0 || _percentValue > 999 )
+				{
+					Alert.show(alert_msg, alert_title_hint);
+					return false;					
+				}
+				
+				return true;
+			}
+			//	6	本地方法   end	
+		]]>
+	</fx:Script>
+	
+	<fx:Declarations>
+		<s:RadioButtonGroup id="adjTypeGroup"/>
+		<s:RadioButtonGroup id="adjDirectionGroup"/>
+		<s:TitleWindow title="批量调整" id="adjustWindow" width="240" height="220" 
+					   close="PopUpManager.removePopUp(adjustWindow)">
+			<s:layout>
+				<s:VerticalLayout verticalAlign="middle" paddingLeft="20" gap="6" paddingRight="20" paddingBottom="10"/>
+			</s:layout>
+			<s:HGroup>
+				<s:RadioButton id="btnScale" label="范围调整" groupName="adjTypeGroup" selected="true"/>
+				<s:RadioButton id="btnPercent" label="百分比调整" groupName="adjTypeGroup" />
+			</s:HGroup>
+			<s:HGroup>
+				<s:RadioButton id="btnAdd" label="增加" groupName="adjDirectionGroup" selected="true"/>
+				<s:Spacer width="18" />
+				<s:RadioButton id="btnSub" label="减少" groupName="adjDirectionGroup" />
+			</s:HGroup>
+			<s:Spacer height="10" />
+			<s:HGroup verticalAlign="bottom" >
+				<s:Label text="调整值：" />
+				<s:TextInput width="100" maxChars="9" id="adjustTextInput" restrict="0-9\."/>
+				<s:Label text="%" visible="{btnPercent.selected}" />
+			</s:HGroup>
+			
+			<s:Spacer height="25" />
+			<s:HGroup horizontalAlign="center" width="100%">
+				<buttons:ButtonOk click="onBatchAdjustOkHandler(event)"  />
+				<buttons:ButtonCancel click="PopUpManager.removePopUp(adjustWindow)" />
+			</s:HGroup>
+		</s:TitleWindow>
+	</fx:Declarations>
+	
+	<common:LabelBoundary paddingTop="5" labelText="{resourceManager.getString('menu','queryCond')}" />
+	<security:Com_Security_ProOrg_BizData_Period_Quick id="condSetComp" uiCode="{UIConst.UICODE_HISTORYDATA_ADJUST}" 
+													   width="100%" height="26" arrDictBizDataType="{arrDictBizDataType}" 
+													   blOnlyIsManagingBizData="false" executeCallback4thisObject="{this}" 
+													   executeCallback4function="{callbackFunction4execute4comProOrgBizDataPeriodScope}">
+	</security:Com_Security_ProOrg_BizData_Period_Quick>
+	<common:LabelBoundary paddingTop="5" labelText="{resourceManager.getString('menu','historyData')}" />
+	
+	<s:HGroup width="100%" verticalAlign="middle" paddingTop="3" paddingLeft="10">
+		<s:Label text="{resourceManager.getString('note','unit')}" id="lbUnit"/>
+		<s:ComboBox id="comboBoxUnit" dataProvider="{arrUnits}" change="onChange4comboBoxUnit()" enabled="false"/>
+		<s:Spacer width="10" />
+		<s:Button id="btnSave" click="onSave()" label="{resourceManager.getString('button','save')}" icon="{CoolAssetsFile.save_allIcon}"/>
+		<s:Button id="btnRefreshChart" click="onRefreshChart()" label="{resourceManager.getString('button','chartView')}" icon="{CoolAssetsFile.chart_lineIcon}" />
+		<s:Button id="btnExport" click="onExport()" label="{resourceManager.getString('button','export')}" icon="{CoolAssetsFile.excelIcon}"/>
+		<s:Button id="btnBatchAdjust" click="onBatchAdjust(event)" label="{resourceManager.getString('button','batchAdjust')}" icon="{CoolAssetsFile.edit_batchIcon}" />
+		<s:Button id="btnCompute" click="onCompute()" label="{resourceManager.getString('button','compute')}" icon="{CoolAssetsFile.computeIcon}"/>	
+		<s:Button id="btnColumnSet" click="onColumnSet()" label="{resourceManager.getString('button','columnViewSet')}" icon="{CoolAssetsFile.optsetIcon}"/>
+	</s:HGroup>
+	<mx:TabNavigator width="100%" height="570" id="tabNav4historyAdjust" change="tabNav4historyAdjust_changeHandler(event)">
+		<s:NavigatorContent label="{resourceManager.getString('menu','historyClean')}" id="tab4historyAdjust" width="100%" height="100%">
+			<s:layout>
+				<s:VerticalLayout paddingBottom="0" paddingTop="0" />
+			</s:layout>
+			<mx:DividedBox width="100%" height="100%">
+				<uirowdata:Com_UiRowData_UiRowData_AdvancedDataGrid id="adgEdit" width="100%" height="60%" columnStretch="comAdgUiRowDataEdit_columnStretchHandler(event)" 
+									dataProvider="{dp4datagridEdit}" change="comAdgUiRowDataEdit_changeHandler(event)" editable="true" />					
+				<uirowdata:Com_UiRowData_UiRowData_AdvancedDataGrid id="adgRef" width="100%" height="40%" columnStretch="comAdgUiRowDataView_columnStretchHandler(event)"
+									dataProvider="{dp4datagridRef}" editable="true" />
+				<controls:AksDataGridControlBar id="comAksDataGridControlBar" paramIn4enabled4BtnSetColumns="false" paramIn4callback4thisObject="{this}" paramIn4callback4queryFunction="{this.prvFun4pageQueryHistoryDatas}">
+				</controls:AksDataGridControlBar>
+			</mx:DividedBox>					
+		</s:NavigatorContent>
+		<s:NavigatorContent label="{resourceManager.getString('menu','cleanComment')}" id="tab4historyAdjustLog" width="100%" height="100%">
+			<s:layout>
+				<s:VerticalLayout/>
+			</s:layout>
+			<s:VGroup width="100%" paddingLeft="10" paddingRight="10">
+				<s:Label text="{resourceManager.getString('note','overallComment')}" verticalAlign="middle"/>
+				<s:TextArea width="100%" maxChars="255" id="txtDescription" heightInLines="4"/>
+				<s:Label text="{resourceManager.getString('note','cleanDetail')}" verticalAlign="middle"/>
+			</s:VGroup>
+			
+			<history:Com_History_HistoryAdjustLogAdjustItem_AdvancedDataGrid id="adgAdjustLog" dataProvider="{dp4AdjustLogItem}" editable="true" width="100%" height="100%"/>
+		</s:NavigatorContent>
+	</mx:TabNavigator>
+</mx:Module>

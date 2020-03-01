@@ -1,0 +1,709 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:TitleWindow xmlns:fx="http://ns.adobe.com/mxml/2009" 
+			   xmlns:s="library://ns.adobe.com/flex/spark" 
+			   xmlns:mx="library://ns.adobe.com/flex/mx" width="950" height="600" close="onCancel()"
+			   creationComplete="creationCompleteHandler(event)" 
+			   xmlns:product="dmdd.dmddmx.com.product.*" xmlns:organization="dmdd.dmddmx.com.organization.*"
+			   xmlns:containers="aks.aksmx.containers.*"
+			   xmlns:proorg="dmdd.dmddmx.com.proorg.*" xmlns:buttons="com.cool.buttons.*">
+	<s:layout>
+		<s:VerticalLayout paddingLeft="10" paddingRight="10" paddingTop="5"/>
+	</s:layout>
+
+	<fx:Declarations>
+		<s:RadioButtonGroup id="radioButtonGropProductFilter" itemClick="onProductFilter(event)"/>
+		<s:RadioButtonGroup id="radioButtonGropOrganizationFilter" itemClick="onOrganizationFilter(event)"/>	
+		<s:ComboBox id="comboBoxProductLayer" dataProvider="{ClientEnvironment.getProductLayers()}" selectedIndex="0"/>						
+		<s:ComboBox id="comboBoxOrganizatioLayer" dataProvider="{ClientEnvironment.getOrganizationLayers()}" selectedIndex="0"/>						
+		<s:RadioButtonGroup id="radioButtonGropHandle4Result"/>
+		
+		<!--kevin 增加 <<-->
+		<s:RemoteObject endpoint="{ClientEnvironment.endpoint}" id="srvProduct" destination="ProductService">		
+			<s:method name="getProductTreeRoot4UI" result="resultHandler4getProductTreeRoot4UI(event)" fault="faultHandler4getProductTreeRoot4UI(event)">
+			</s:method>
+		</s:RemoteObject>
+		<s:RemoteObject endpoint="{ClientEnvironment.endpoint}" id="srvOrganization" destination="OrganizationService">		
+			<s:method name="getOrganizationTreeRoot4UI" result="resultHandler4getOrganizationTreeRoot4UI(event)" fault="faultHandler4getOrganizationTreeRoot4UI(event)">
+			</s:method>
+		</s:RemoteObject>
+		<!--kevin >>-->
+		
+	</fx:Declarations>
+	<fx:Metadata>
+	</fx:Metadata>	
+	<fx:Script>
+		<![CDATA[
+			import aks.aksas.collections.HashMap;
+			import aks.aksas.utils.UtilArrayCollection;
+			import aks.aksas.utils.UtilUi;
+			
+			import dmdd.dmddas.common.constant.BizConst;
+			import dmdd.dmddas.common.constant.SysConst;
+			import dmdd.dmddas.common.constant.UIConst;
+			import dmdd.dmddas.common.system.ClientEnvironment;
+			import dmdd.dmddas.common.utils.UtilExceptionLocale;
+			import dmdd.dmddas.common.utils.UtilOrganization;
+			import dmdd.dmddas.common.utils.UtilOrganizationCharacter;
+			import dmdd.dmddas.common.utils.UtilProOrg;
+			import dmdd.dmddas.common.utils.UtilProduct;
+			import dmdd.dmddas.common.utils.UtilProductCharacter;
+			import dmdd.dmddas.dataaccess.aidobject.ABProDC;
+			import dmdd.dmddas.dataaccess.aidobject.ABProOrg;
+			import dmdd.dmddas.dataaccess.bizobject.BDistributionCenter;
+			import dmdd.dmddas.dataaccess.bizobject.BOrganization;
+			import dmdd.dmddas.dataaccess.bizobject.BOrganizationCharacter;
+			import dmdd.dmddas.dataaccess.bizobject.BOrganizationLayer;
+			import dmdd.dmddas.dataaccess.bizobject.BProduct;
+			import dmdd.dmddas.dataaccess.bizobject.BProductCharacter;
+			import dmdd.dmddas.dataaccess.bizobject.BProductLayer;
+			
+			import mx.collections.ArrayCollection;
+			import mx.controls.Alert;
+			import mx.events.FlexEvent;
+			import mx.events.ItemClickEvent;
+			import mx.managers.PopUpManager;
+			import mx.rpc.events.FaultEvent;
+			import mx.rpc.events.ResultEvent;
+			import mx.utils.StringUtil;
+			
+			//	描述		begin
+			//	描述		end
+			
+			//	0	输入参数    begin	
+			private var paramIn4closeCallback4thisObject:Object = null;
+			private var paramIn4closeCallback4function:Function = null;
+			
+			
+			//	0	输入参数    end
+			
+			//	1	输出参数    begin
+			private var paramOut4selectedProOrg:ABProOrg = null;
+			private var paramOut4selectedProOrgs:ArrayCollection = null;
+			
+			// kevin 增加<<
+			[Bindable]
+			public var paramIo4selectedProduct:BProduct = null;
+			[Bindable]
+			public var paramIo4selectedOrganization:BOrganization = null;
+			
+			// kevin >>
+			
+			private var paramOut4winCloseWay:int = UtilUi.WINDOW_CLOSEWAY_CANCEL;		
+			//	1	输出参数    end
+			
+			//	2	本地变量    begin				
+			[Bindable]
+			private var prvVar4dp4comAdgProOrg:ArrayCollection = new ArrayCollection();		
+			[Bindable]
+			private var prvVar4dp4bak:ArrayCollection = new ArrayCollection();
+			
+			private var paramout4ProDC:ArrayCollection = new ArrayCollection();
+			
+			private var prvVar4dpkeep:ArrayCollection=new ArrayCollection();//用来记录勾选了“保留现有结果”的情况下查询结果。
+			//	2	本地变量    end			
+			
+			//	3	公共方法    begin	
+			//	关闭回调函数参数													
+			public function pubFun4setParamIn4closeCallback( _thisObject:Object, _function:Function ):void
+			{
+				this.paramIn4closeCallback4thisObject = _thisObject;
+				this.paramIn4closeCallback4function = _function;	
+			}
+			//	关闭方式参数
+			public function pubFun4getParamOut4winCloseWay():int
+			{
+				return this.paramOut4winCloseWay;
+			}				
+			//	关闭窗口
+			private function prvFun4close():void
+			{
+				PopUpManager.removePopUp( this );						
+				this.paramIn4closeCallback4function.call( this.paramIn4closeCallback4thisObject );				
+			}							
+			
+			
+			//	处理对象参数
+			public function pubFun4getParamOut4selectedProOrg():ABProOrg
+			{
+				return this.paramOut4selectedProOrg;
+			}	
+			
+			public function pubFun4getParamOut4selectedProOrgs():ArrayCollection
+			{
+				return this.paramOut4selectedProOrgs;
+			}			
+			//	3	公共方法    end		
+			
+			//	4	初始化方法    begin			
+			protected function creationCompleteHandler(event:FlexEvent):void
+			{
+				this.title = resourceManager.getString('menu','selectBusScope');	
+				this.x = 100;
+				this.y = 50;
+				this.onChange4comAdgProOrgPermission();
+			}				
+					
+			//	4	初始化方法    end				
+			
+			//	5	事件响应方法    begin	
+			protected function onProductFilter(event:ItemClickEvent):void
+			{
+				if(event.currentTarget.selectedValue == "productlayer")
+				{
+					gridproduct.removeChild(comProductCharaterField);
+					gridproduct.addChild(comboBoxProductLayer);
+				}
+				else if(event.currentTarget.selectedValue=="productcharacter")
+				{
+					gridproduct.removeChild(comboBoxProductLayer);
+					gridproduct.addChild(comProductCharaterField);
+				}
+			}
+			
+			protected function onOrganizationFilter(event:ItemClickEvent):void
+			{
+				if(event.currentTarget.selectedValue == "Organizationlayer")
+				{
+					gridOrganization.removeChild(comOrganizationCharacterField);
+					gridOrganization.addChild(comboBoxOrganizatioLayer);
+				}
+				else if(event.currentTarget.selectedValue=="Organizationcharacter")
+				{
+					gridOrganization.removeChild(comboBoxOrganizatioLayer);
+					gridOrganization.addChild( comOrganizationCharacterField);
+				}
+			}
+			//kevin 增加的<<
+			private function onQuery():void
+			{
+				UtilUi.pubFun4PopWaitWindow( this );
+				this.srvProduct.getProductTreeRoot4UI();	
+				this.srvOrganization.getOrganizationTreeRoot4UI();	
+
+			}
+			private function onExpandAll():void
+			{
+				this.comAdgProduct.expandAll();
+				this.comAdgOrganization.expandAll();
+				
+			}		
+			
+			private function onCollapseAll():void
+			{
+				this.comAdgProduct.collapseAll();
+				this.comAdgOrganization.collapseAll();
+				
+			}	
+			
+			private function faultHandler4getProductTreeRoot4UI(event:FaultEvent):void
+			{
+				UtilUi.pubFun4RemoveWaitWindow();
+				Alert.show( UtilExceptionLocale.getExceptionMessageLocaleByFaultEvent( event ), resourceManager.getString('alert','alt_title_warn') );
+			}	
+			
+			private function resultHandler4getProductTreeRoot4UI(event:ResultEvent):void 
+			{
+				var productTreeRoot:BProduct = BProduct(event.result);
+				
+				ClientEnvironment.setProductTreeRoot( productTreeRoot );
+				
+				UtilUi.pubFun4RemoveWaitWindow();
+			}		
+			
+			private function faultHandler4getOrganizationTreeRoot4UI(event:FaultEvent):void
+			{
+				UtilUi.pubFun4RemoveWaitWindow();
+				Alert.show( UtilExceptionLocale.getExceptionMessageLocaleByFaultEvent( event ), resourceManager.getString('alert','alt_title_warn') );
+			}	
+			
+			private function resultHandler4getOrganizationTreeRoot4UI(event:ResultEvent):void 
+			{
+				var organizationTreeRoot:BOrganization = BOrganization(event.result);
+				
+				ClientEnvironment.setOrganizationTreeRoot( organizationTreeRoot );
+				
+				UtilUi.pubFun4RemoveWaitWindow();
+			}
+			
+			
+			
+			//kevin >>
+			
+			
+			private function onOk():void
+			{
+				if(tabNavigator.selectedIndex == 1){
+					this.paramOut4selectedProOrg = ABProOrg( comAdgProOrg.selectedItem );
+					this.paramOut4selectedProOrgs = new ArrayCollection( comAdgProOrg.selectedItems );
+					this.paramOut4winCloseWay = UtilUi.WINDOW_CLOSEWAY_OK;
+					this.prvFun4close();
+					
+				}else if(tabNavigator.selectedIndex == 0){
+					onMoveIn1();
+				}
+			}	
+			
+			private function onCancel():void
+			{	
+				this.paramOut4winCloseWay = UtilUi.WINDOW_CLOSEWAY_CANCEL;
+				this.prvFun4close();
+			}					
+			
+			private function onMoveIn():void
+			{
+				this.prvVar4dp4comAdgProOrg.removeAll();
+								
+				var selectedItems:ArrayCollection = new ArrayCollection( comAdgProOrgPermission.selectedItems );
+				
+				this.prvVar4dp4comAdgProOrg.addAll( selectedItems );
+				this.prvVar4dp4bak.addAll( selectedItems );
+				this.prvVar4dpkeep.removeAll();
+			}		
+			//kevin 增加 <<
+			private function onMoveIn1():void
+			{
+				
+				UtilUi.pubFun4PopWaitWindow(this);
+				
+				prvVar4dp4comAdgProOrg.removeAll();
+				var arr4selectedPro:ArrayCollection =new ArrayCollection(comAdgProduct.selectedItems);
+				var arr4selectedDC:ArrayCollection =new ArrayCollection(comAdgOrganization.selectedItems);
+				
+				var arr4skuPro:ArrayCollection = new ArrayCollection();
+				var arr4skuDC:ArrayCollection = new ArrayCollection();
+				for each(var pro:BProduct in arr4selectedPro)
+				{					
+					arr4skuPro.addAll(UtilProduct.getDetailProducts4Recursion(pro));
+				}
+				for each(var dc:BOrganization in arr4selectedDC)
+				{
+					arr4skuDC.addAll(UtilOrganization.getDetailOrganizations(dc));
+				}
+				//得到所有明细组合数据 _arr4ProOrg_1
+				var prodc:ABProOrg =null;
+				var _arr4ProOrg_1:ArrayCollection = new ArrayCollection();
+				for each(var pro_:BProduct in arr4skuPro)
+				{
+					for each(var dc_:BOrganization in arr4skuDC)
+					{
+						prodc = new ABProOrg();
+						prodc.product=pro_;
+						prodc.organization = dc_;
+						_arr4ProOrg_1.addItem(prodc);
+						
+					}
+				}
+				
+				//获取用户权限范围内的
+				var arr4Rst:ArrayCollection = UtilProOrg.getAuthorizedProOrg(_arr4ProOrg_1);
+
+				paramOut4selectedProOrgs = new ArrayCollection();
+				paramOut4selectedProOrgs.addAll(arr4Rst);
+//				prvVar4dp4comAdgProOrg = new ArrayCollection();				
+//				prvVar4dp4comAdgProOrg.addAll(arr4Rst);
+//				prvVar4dp4bak.addItem( arr4Rst );
+//				prvVar4dpkeep.removeAll();
+				
+				UtilUi.pubFun4RemoveWaitWindow();
+				
+				if(arr4Rst.length > 0){
+					this.paramOut4winCloseWay = UtilUi.WINDOW_CLOSEWAY_OK;
+					this.prvFun4close();
+				}else{
+					Alert.show("选中的数据范围组合不在你当前的权限数据范围内，请重新选择！");
+				}
+			}			
+			//kevin >>
+			
+			private function onBreakDown():void
+			{
+				UtilUi.pubFun4PopWaitWindow( ClientEnvironment.modWork );
+				this.prvVar4dp4comAdgProOrg.removeAll();
+				this.prvVar4dp4bak.removeAll();
+				var alert_title_hint:String = resourceManager.getString('alert','alert_title_hint');
+				var alert_msg:String = ""; 
+					
+				//add by luowang 产品和组织过滤增加了产品和组织的特征维度
+				var hmProOrg:HashMap = new HashMap();
+				var arrProOrgPermission:ArrayCollection =new ArrayCollection(comAdgProOrgPermission.selectedItems);
+				for(var selectedindex:int=0;selectedindex<arrProOrgPermission.length;selectedindex++)
+				{
+					var arrProduct:ArrayCollection =new ArrayCollection(); 
+					var arrOrganization:ArrayCollection = new ArrayCollection();
+					var  proOrg:ABProOrg = arrProOrgPermission.getItemAt(selectedindex) as ABProOrg;
+					if(radioButtonGropProductFilter.selectedValue=="productlayer")			
+					{	
+						if(this.comboBoxProductLayer.selectedItem == null)
+						{
+							alert_msg = resourceManager.getString('alert','alert_msg_noproductlayer15');
+							Alert.show( alert_msg, alert_title_hint );		
+							UtilUi.pubFun4RemoveWaitWindow();
+							return ;
+						}							
+						var productLayer:BProductLayer = BProductLayer( this.comboBoxProductLayer.selectedItem );
+						if( productLayer.value < proOrg.product.productLayer.value )
+						{
+							alert_msg = resourceManager.getString('alert','alert_msg_productlayerishigher15');
+							Alert.show( alert_msg, alert_title_hint );
+							UtilUi.pubFun4RemoveWaitWindow();
+							return;	
+						}
+						else arrProduct =UtilProduct.getProductsByLayer(proOrg.product , productLayer );
+					}
+					else 
+					{
+						if(this.comProductCharaterField.paramIo4selectedProductCharacter==null)
+						{
+							alert_msg = resourceManager.getString('alert','alert_msg_noproductcharater15');
+							Alert.show( alert_msg, alert_title_hint );
+							UtilUi.pubFun4RemoveWaitWindow();
+							return ;
+						}	
+						if(this.comProductCharaterField.paramIo4selectedProductCharacter.parentProductCharacter==null)//根目录是不让选的
+						{
+							alert_msg = resourceManager.getString('alert','alert_msg_cannotroot15');
+							Alert.show( alert_msg, alert_title_hint );
+							UtilUi.pubFun4RemoveWaitWindow();
+							return ;
+						}	
+						var productCharacter:BProductCharacter=BProductCharacter(this.comProductCharaterField.paramIo4selectedProductCharacter);
+						arrProduct = UtilProduct.getDetailProductsByProductCharacter(proOrg.product,productCharacter);
+					
+					}
+					if(radioButtonGropOrganizationFilter.selectedValue=="Organizationlayer")
+					{
+						if(this.comboBoxOrganizatioLayer.selectedItem==null)
+						{
+							alert_msg = resourceManager.getString('alert','alert_msg_noorglayer15');
+							Alert.show( alert_msg, alert_title_hint );
+							UtilUi.pubFun4RemoveWaitWindow();
+							return ;
+						}	
+						var orgnaizationLayer:BOrganizationLayer = BOrganizationLayer( this.comboBoxOrganizatioLayer.selectedItem );
+						if( orgnaizationLayer.value < proOrg.organization.organizationLayer.value )
+						{
+							alert_msg = resourceManager.getString('alert','alert_msg_organizationlayerishigher15');
+							Alert.show( alert_msg, alert_title_hint );
+							UtilUi.pubFun4RemoveWaitWindow();
+							return;	
+						}
+						else arrOrganization= UtilOrganization.getOrganizationsByLayer( proOrg.organization, orgnaizationLayer );
+					}
+					else
+					{
+						if(this.comOrganizationCharacterField.paramIo4selectedOrganizationCharacter==null)
+						{
+							alert_msg = resourceManager.getString('alert','alert_msg_noorgcharater15');
+							Alert.show( alert_msg, alert_title_hint );
+							UtilUi.pubFun4RemoveWaitWindow();
+							return ;
+						}
+						if(this.comOrganizationCharacterField.paramIo4selectedOrganizationCharacter.parentOrganizationCharacter==null)
+						{
+							alert_msg = resourceManager.getString('alert','alert_msg_cannotroot15');
+							Alert.show( alert_msg, alert_title_hint );
+							UtilUi.pubFun4RemoveWaitWindow();
+							return ;
+						}
+						var organizationCharacter:BOrganizationCharacter=BOrganizationCharacter(this.comOrganizationCharacterField.paramIo4selectedOrganizationCharacter)
+						arrOrganization=UtilOrganization.getDetailOrganizationsByOrganizationCharacter(proOrg.organization,organizationCharacter);
+					}				
+				
+					var i:int;
+					var j:int;
+					var product:BProduct = null;
+					var organization:BOrganization = null;
+					var proOrg_breakdown:ABProOrg = null;
+					if( arrProduct != null && arrOrganization != null && arrProduct.length > 0 && arrOrganization.length > 0 )
+					{
+						for( i=0; i<arrProduct.length; i=i+1 )
+						{
+							product = BProduct(arrProduct.getItemAt(i));
+							
+							if( product.isValid == BizConst.GLOBAL_YESNO_YES )
+							{
+								for( j=0; j<arrOrganization.length; j=j+1 )
+								{
+									organization = BOrganization(arrOrganization.getItemAt(j));
+									
+									if( organization.isValid == BizConst.GLOBAL_YESNO_YES )
+									{
+										proOrg_breakdown = new ABProOrg();
+										proOrg_breakdown.product = product;
+										proOrg_breakdown.organization = organization;
+										hmProOrg.put(product.code+"-"+organization.code,proOrg_breakdown);																			
+									}								
+								}							
+							}
+						}					
+					}
+				}
+				// TODO 将hmProOrg的value部分放入列表框中，这样做是为了过滤掉重复的
+				var arr_result:ArrayCollection = hmProOrg.getValues();
+				prvVar4dp4bak.addAll(arr_result);
+				prvVar4dp4comAdgProOrg.addAll(arr_result);
+				this.prvVar4dpkeep.removeAll();
+				UtilUi.pubFun4RemoveWaitWindow();
+			}
+			
+			private function onFilter():void
+			{
+				UtilUi.pubFun4PopWaitWindow( this );
+				var productStr:String = this.textInputProductFilter.text.toUpperCase();
+				var productCodeStr:String = this.textInputProductCodeFilter.text.toUpperCase();
+				var orgnStr:String = this.textInputOraganizationFilter.text.toUpperCase();
+				var orgCodeStr:String = this.textInputOraganizationCodeFilter.text.toUpperCase();
+				productStr = StringUtil.trim(productStr);
+				orgnStr = StringUtil.trim(orgnStr);						
+				if(productStr =="" && orgnStr=="" && productCodeStr=="" && orgCodeStr=="")//什么关键字也不输入，就是相当于返回上次点了“分解”之后的结果
+				{		
+					prvVar4dp4comAdgProOrg.removeAll();
+					for(var length:int=0;length<prvVar4dp4bak.length;length++)
+					{
+						var proOrg:ABProOrg = ABProOrg(prvVar4dp4bak.getItemAt(length));
+						prvVar4dp4comAdgProOrg.addItem(proOrg);
+					}
+					UtilUi.pubFun4RemoveWaitWindow();
+					return ;
+				}							
+				
+				if(radioButtoninresult.selected)
+				{
+					var size:int = prvVar4dp4comAdgProOrg.length;
+					var arr4temp:ArrayCollection = new ArrayCollection();	
+					for(var i:int=0;i<size;i++)
+					{
+						var abProgOrg:ABProOrg = prvVar4dp4comAdgProOrg.getItemAt(i) as ABProOrg;
+						if(!UtilProOrg.checkKey4ProOrg(productStr,productCodeStr,orgnStr,orgCodeStr,checkBoxContainSubProduct.selected,checkBoxContainSubOrganization.selected,abProgOrg))
+							arr4temp.addItem(abProgOrg);
+					}
+					prvVar4dp4comAdgProOrg = UtilArrayCollection.removeItems( prvVar4dp4comAdgProOrg, arr4temp );	
+				}
+				else if(radioButtonkeepresult.selected)
+				{
+					var size4bak:int = prvVar4dp4bak.length;
+					for(var j:int=0;j<size4bak;j++)
+					{
+						var abProgOrg4keep:ABProOrg = prvVar4dp4bak.getItemAt(j) as ABProOrg;
+						if(UtilProOrg.checkKey4ProOrg(productStr,productCodeStr,orgnStr,orgCodeStr,checkBoxContainSubProduct.selected,checkBoxContainSubOrganization.selected,abProgOrg4keep))
+						{
+							if(prvVar4dpkeep.contains(abProgOrg4keep))
+								continue;
+							else
+								prvVar4dpkeep.addItem(abProgOrg4keep);
+						}
+					}
+					prvVar4dp4comAdgProOrg.removeAll();
+					prvVar4dp4comAdgProOrg.addAll(prvVar4dpkeep);
+				}
+				UtilUi.pubFun4RemoveWaitWindow();
+			}
+			
+			private function onChange4comAdgProOrgPermission():void
+			{
+				if(comAdgProOrgPermission == null)
+					return ;
+				
+				var selectedItems:ArrayCollection = new ArrayCollection( comAdgProOrgPermission.selectedItems );
+				if( selectedItems == null || selectedItems.length <= 0 )
+				{
+					this.btnMoveIn.enabled = false;	
+					this.btnBreakDown.enabled=false;
+				}
+				else if( selectedItems.length >0 )
+				{					
+					this.btnBreakDown.enabled=true;
+					this.btnMoveIn.enabled = true;
+				}
+			}
+			
+			
+			
+			private function onRemove():void
+			{
+				UtilUi.pubFun4PopWaitWindow( this );
+				var productStr:String = this.textInputProductFilter.text.toUpperCase();
+				var productCodeStr:String = this.textInputProductCodeFilter.text.toUpperCase();
+				var orgnStr:String = this.textInputOraganizationFilter.text.toUpperCase();
+				var orgCodeStr:String = this.textInputOraganizationCodeFilter.text.toUpperCase();
+				productStr = StringUtil.trim(productStr);
+				orgnStr = StringUtil.trim(orgnStr);						
+				if(productStr =="" && orgnStr=="" && productCodeStr=="" && orgCodeStr=="")//什么关键字也不输入,也就是什么都不移除
+				{							
+					UtilUi.pubFun4RemoveWaitWindow();
+					return ;
+				}							
+				
+				var size:int = prvVar4dp4comAdgProOrg.length;
+				var arr4temp:ArrayCollection = new ArrayCollection();	
+				for(var i:int=0;i<size;i++)
+				{
+					var abProgOrg:ABProOrg = prvVar4dp4comAdgProOrg.getItemAt(i) as ABProOrg;
+					if(UtilProOrg.checkKey4ProOrg(productStr,productCodeStr,orgnStr,orgCodeStr,checkBoxContainSubProduct.selected,checkBoxContainSubOrganization.selected,abProgOrg))
+						arr4temp.addItem(abProgOrg);
+				}
+				prvVar4dp4comAdgProOrg = UtilArrayCollection.removeItems( prvVar4dp4comAdgProOrg, arr4temp );	
+				
+				UtilUi.pubFun4RemoveWaitWindow();
+			}
+			//	5	事件响应方法    end
+			
+			//	6	本地方法    begin
+			//	6	本地方法   end				
+
+
+
+			protected function navigatorcontent1_showHandler(event:FlexEvent):void
+			{
+				btnOK.enabled = true;
+			}
+			
+		]]>
+	</fx:Script>	
+		
+	<mx:TabNavigator id="tabNavigator" width="100%" height="100%" tabWidth="150">
+		<s:NavigatorContent show="navigatorcontent1_showHandler(event)" label="{resourceManager.getString('menu','accessScopeTree')}" width="100%" height="100%">
+			<s:layout>
+				<s:VerticalLayout/>
+			</s:layout>
+			<s:HGroup width="100%" paddingLeft="10" >
+				<buttons:ButtonRefresh click="onQuery()"/>
+				<buttons:ButtonExpandAll click="onExpandAll()"/>
+				<buttons:ButtonCollapseAll click="onCollapseAll()"/>
+			</s:HGroup>
+			
+			<s:BorderContainer width="100%" height="100%">
+				<s:layout>
+					<s:HorizontalLayout/>
+				</s:layout>
+				<product:Com_Product_Product_AdvancedDataGrid paramIo4dp4adgProduct="{ClientEnvironment.getProductTreeRootArr()}" allowMultipleSelection="true" width="50%" height="100%" id="comAdgProduct"/>
+				
+				<organization:Com_Organization_Organization_AdvancedDataGrid allowMultipleSelection="true" width="50%" height="100%" id="comAdgOrganization"
+																			 paramIo4dp4adgOrganization="{ClientEnvironment.getOrganizationTreeRootArr()}"/>
+				
+			</s:BorderContainer>
+			
+			
+		</s:NavigatorContent>
+		
+		<s:NavigatorContent label="{resourceManager.getString('menu','accessScope')}" width="100%" height="100%">
+			<s:layout>
+				<s:VerticalLayout/>
+			</s:layout>
+			<proorg:Com_ProOrg_ProOrg_AdvancedDataGrid id="comAdgProOrgPermission" dataProvider="{ClientEnvironment.getPermissionProOrgs()}" change="onChange4comAdgProOrgPermission()" allowMultipleSelection="true" width="100%" height="100%"/>
+			
+			<s:BorderContainer width="100%" height="30" minHeight="30" maxHeight="30">
+				<s:layout>
+					<s:VerticalLayout paddingLeft="10" paddingRight="10" paddingTop="0" paddingBottom="5"/>
+				</s:layout>
+				<mx:Grid width="100%" height="30">
+					<mx:GridRow width="100%" height="100%" verticalAlign="middle">
+						<mx:GridItem width="40%" height="100%" verticalAlign="middle">
+							<s:RadioButton id="radioButtonProductLayerFilter" value="productlayer" label="{resourceManager.getString('note','proLayer')}" groupName="radioButtonGropProductFilter"/>
+							<s:RadioButton id="radioButtonProductCharacterFilter" value="productcharacter" label="{resourceManager.getString('note','proChar')}" groupName="radioButtonGropProductFilter"  selected="true"/>													
+						</mx:GridItem>
+						<mx:GridItem width="100%" height="100%" verticalAlign="middle" id="gridproduct">
+							<product:Com_Product_ProductCharacter_Field id="comProductCharaterField" width="100%" paramIn4enabled4btnOpenChooser="true" paramIn4enabled4btnClear="false">
+							</product:Com_Product_ProductCharacter_Field>				
+						</mx:GridItem>					
+						<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+						</mx:GridItem>
+						<mx:GridItem width="40%" height="100%" verticalAlign="middle">
+							<s:RadioButton id="radioButtonOrganizationLayerFilter" value="Organizationlayer" label="{resourceManager.getString('note','orgLayer')}" groupName="radioButtonGropOrganizationFilter"/>
+							<s:RadioButton id="radioButtonOrganizationLayerCharacterFilter" value="Organizationcharacter" label="{resourceManager.getString('note','orgChar')}" groupName="radioButtonGropOrganizationFilter"  selected="true"/>																		
+						</mx:GridItem>
+						<mx:GridItem width="100%" height="100%" verticalAlign="middle" id="gridOrganization">
+							<organization:Com_Organization_OrganizationCharacter_Field width="100%" id="comOrganizationCharacterField" paramIn4enabled4btnOpenChooser="true" paramIn4enabled4btnClear="false">
+							</organization:Com_Organization_OrganizationCharacter_Field>
+						</mx:GridItem>
+						<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+						</mx:GridItem>
+						<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+							<s:Button label="{resourceManager.getString('button','movein')}" click="onMoveIn()" id="btnMoveIn"/>
+						</mx:GridItem>	
+						<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+							<s:Button label="{resourceManager.getString('button','breakdown')}" click="onBreakDown()" id="btnBreakDown"/>
+						</mx:GridItem>	
+					</mx:GridRow>							
+				</mx:Grid>					
+			</s:BorderContainer>
+			
+			<s:Panel width="100%" height="100%" minHeight="30" title="{resourceManager.getString('menu','selectItem')}">
+				<s:layout>
+					<s:VerticalLayout/>
+				</s:layout>
+				<proorg:Com_ProOrg_ProOrg_AdvancedDataGrid id="comAdgProOrg" allowMultipleSelection="true"  dataProvider="{this.prvVar4dp4comAdgProOrg}" width="100%" height="100%"/>
+			</s:Panel>	
+			<s:BorderContainer width="100%" height="90" minHeight="90" maxHeight="90">
+				<s:layout>
+					<s:VerticalLayout paddingLeft="10" paddingRight="10" paddingTop="0" paddingBottom="5"/>
+				</s:layout>
+				<mx:Grid width="100%" height="90">
+					<mx:GridRow width="100%" height="100%" verticalAlign="middle" horizontalAlign="right">					
+						<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+						</mx:GridItem>
+						<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+						</mx:GridItem>
+						<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+						</mx:GridItem>
+						<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+						</mx:GridItem>
+						<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+						</mx:GridItem>
+						<mx:GridItem width="25%" height="100%" verticalAlign="middle" horizontalAlign="right">
+							<s:RadioButton id="radioButtonkeepresult" value="keepresult" label="{resourceManager.getString('note','keepCurrentResult')}" groupName="radioButtonGropHandle4Result"/>
+							<s:RadioButton id="radioButtoninresult" value="inresult" label="{resourceManager.getString('note','filterCurrentResult')}" groupName="radioButtonGropHandle4Result"  selected="true"/>
+						</mx:GridItem>				
+					</mx:GridRow>
+					<mx:GridRow width="100%" height="100%" verticalAlign="middle">
+						<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+							<s:Label text="{resourceManager.getString('note','proCode')}"/>
+						</mx:GridItem>
+						<mx:GridItem width="100%" height="100%" verticalAlign="middle">
+							<s:TextInput id="textInputProductCodeFilter"  width="100%"/>
+						</mx:GridItem>
+						<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+							<s:Label text="{resourceManager.getString('note','proName')}"/>
+						</mx:GridItem>
+						<mx:GridItem width="100%" height="100%" verticalAlign="middle">
+							<s:TextInput id="textInputProductFilter"  width="100%"/>
+						</mx:GridItem>
+						<mx:GridItem width="40%" height="100%" verticalAlign="middle">
+							<s:CheckBox id="checkBoxContainSubProduct" label="{resourceManager.getString('note','containLowerPro')}"/>
+						</mx:GridItem>	
+						<mx:GridItem width="25%" height="100%" verticalAlign="middle" horizontalAlign="right">
+							<s:Button label="{resourceManager.getString('button','remove')}" click="onRemove()"/>
+						</mx:GridItem>		
+					</mx:GridRow>
+					
+					<mx:GridRow width="100%" height="100%" verticalAlign="middle">
+						
+						<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+							<s:Label text="{resourceManager.getString('note','orgCode')}"/>
+						</mx:GridItem>
+						<mx:GridItem width="100%" height="100%" verticalAlign="middle">
+							<s:TextInput id="textInputOraganizationCodeFilter" width="100%"/>
+						</mx:GridItem>
+						<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+							<s:Label text="{resourceManager.getString('note','orgName')}"/>
+						</mx:GridItem>
+						<mx:GridItem width="100%" height="100%" verticalAlign="middle">
+							<s:TextInput id="textInputOraganizationFilter" width="100%"/>
+						</mx:GridItem>
+						<mx:GridItem width="40%" height="100%" verticalAlign="middle">
+							<s:CheckBox id="checkBoxContainSubOrganization" label="{resourceManager.getString('note','containLowerOrg')}"/>
+						</mx:GridItem>
+						<mx:GridItem width="25%" height="100%" verticalAlign="middle" horizontalAlign="right">
+							<s:Button label="{resourceManager.getString('button','filter')}" click="onFilter()" id="btnFilter"/>
+						</mx:GridItem>				
+					</mx:GridRow>				
+				</mx:Grid>
+			</s:BorderContainer>
+		</s:NavigatorContent>
+	</mx:TabNavigator>	
+	<s:HGroup width="100%" height="25" horizontalAlign="center">
+		<buttons:ButtonOk id="btnOK" enabled="{new ArrayCollection(comAdgProOrg.selectedItems).length>0}" click="onOk()" />
+		<buttons:ButtonCancel click="onCancel()" />
+	</s:HGroup>
+</s:TitleWindow>
+

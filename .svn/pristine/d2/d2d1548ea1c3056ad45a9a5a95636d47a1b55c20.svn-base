@@ -1,0 +1,442 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Module xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		   xmlns:s="library://ns.adobe.com/flex/spark" 
+		   xmlns:mx="library://ns.adobe.com/flex/mx" layout="vertical" width="100%" height="100%" paddingRight="10" paddingLeft="10"
+		   creationComplete="creationCompleteHandler(event)"  
+		   xmlns:containers="aks.aksmx.containers.*" xmlns:controls="aks.aksmx.controls.*" 
+		   xmlns:bulletin="dmdd.dmddmx.com.bulletin.*" xmlns:common="dmdd.dmddmx.com.common.*">
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+		<s:RemoteObject endpoint="{ClientEnvironment.endpoint}" id="srvBulletin" destination="BulletinService">
+			<s:method name="getBulletinsStat" result="resultHandler4getBulletinsStat(event)" fault="faultHandler4getBulletinsStat(event)">
+			</s:method>			
+			<s:method name="getBulletins" result="resultHandler4getBulletins(event)" fault="faultHandler4getBulletins(event)">
+			</s:method>
+			<s:method name="delBulletin" result="resultHandler4delBulletin(event)" fault="faultHandler4delBulletin(event)">
+			</s:method>			
+
+			<s:method name="updBulletinIsPublish" result="resultHandler4updBulletinIsPublish(event)" fault="faultHandler4updBulletinIsPublish(event)">
+			</s:method>						
+			
+		</s:RemoteObject>		
+	</fx:Declarations>
+	<fx:Metadata>
+		[ResourceBundle("mod_bulletin")]
+	</fx:Metadata>
+	<fx:Script>
+		<![CDATA[
+			import aks.aksas.utils.UtilUi;
+			
+			import com.cool.assets.CoolAssetsFile;
+			import dmdd.dmddas.common.constant.BizConst;
+			import dmdd.dmddas.common.constant.FunPermiConst;
+			import dmdd.dmddas.common.system.ClientEnvironment;
+			import dmdd.dmddas.common.utils.UtilExceptionLocale;
+			import dmdd.dmddas.dataaccess.bizobject.BBulletin;
+			import dmdd.dmddmx.com.bulletin.Com_Bulletin_BulletinOperatorUser_AU;
+			import dmdd.dmddmx.com.bulletin.Com_Bulletin_Bulletin_AU;
+			
+			import dmdd.dmddas.common.constant.SkinConst;
+			import mx.collections.ArrayCollection;
+			import mx.controls.Alert;
+			import mx.events.CloseEvent;
+			import mx.events.FlexEvent;
+			import mx.managers.PopUpManager;
+			import mx.rpc.events.FaultEvent;
+			import mx.rpc.events.ResultEvent;
+			
+			
+			//	描述    begin
+			//	描述    end
+			
+			//	0	输入参数    begin						
+			//	0	输入参数    end
+			
+			//	1	输出参数    begin
+			//	1	输出参数    end
+			
+			//	2	本地变量    begin	
+			[Bindable]
+			private var prvVar4dp4comAdgBulletin:ArrayCollection = new ArrayCollection();
+			
+			private var prvVar4sqlRestriction:String = null;	
+			
+			
+			private var prvVar4auWindow:Com_Bulletin_Bulletin_AU = null;
+			private var prvVar4auWindow_publishList:Com_Bulletin_BulletinOperatorUser_AU = null;
+			
+			
+			[Bindable]
+			private var prvVar4blFunPermission4query:Boolean = true;			
+			[Bindable]
+			private var prvVar4blFunPermission4manage:Boolean = true;
+			//	2	本地变量    end			
+			
+			//	3	公共方法    begin			
+			//	3	公共方法    end		
+			
+			//	4	初始化方法    begin	
+			protected function creationCompleteHandler(event:FlexEvent):void
+			{
+				this.prvVar4blFunPermission4manage = ClientEnvironment.checkIsPermission( FunPermiConst.BULLETIN_MANAGE );
+				
+			}			
+			//	4	初始化方法    end				
+			
+			//	5	事件响应方法    begin		
+			private function callbackFunction4query4comQCond():void
+			{				
+				this.prvVar4sqlRestriction = this.comQCond.pubFun4getParamOut4sqlRestriction();
+				if( this.prvVar4sqlRestriction == null || this.prvVar4sqlRestriction == "" )
+				{
+					this.prvVar4sqlRestriction = " ( operatorUserId = " + ClientEnvironment.getOperatorUser().id + " ) ";
+				}
+				else
+				{
+					this.prvVar4sqlRestriction = this.prvVar4sqlRestriction + " and ( operatorUserId = " + ClientEnvironment.getOperatorUser().id + " ) ";
+				}
+				var blPageQuery:Boolean = this.comQCond.pubFun4getParamOut4blPageQuery();
+				
+				if( blPageQuery == true )
+				{	
+					UtilUi.pubFun4PopWaitWindow( this );
+					this.srvBulletin.getBulletinsStat( this.prvVar4sqlRestriction );	
+				}
+				else
+				{	
+					//	不分页查询
+					UtilUi.pubFun4PopWaitWindow( this );
+					this.srvBulletin.getBulletins( this.prvVar4sqlRestriction, true, -1, ClientEnvironment.getSysParamPageSize() );
+				}								
+			}			
+			
+			//	分页查询相关		begin
+			private function faultHandler4getBulletinsStat(event:FaultEvent):void
+			{
+				UtilUi.pubFun4RemoveWaitWindow();
+				Alert.show( UtilExceptionLocale.getExceptionMessageLocaleByFaultEvent( event ), resourceManager.getString('main','alt_title_warn') );
+			}	
+			
+			private function resultHandler4getBulletinsStat(event:ResultEvent):void 
+			{
+				//	初始化数据表格控制板
+				var rstSize:Number = Number(event.result);
+				this.comAksDataGridControlBar.pubFun4setResultParams( true, rstSize, ClientEnvironment.getSysParamPageSize() );
+				
+				//	去执行第一页查询
+				this.srvBulletin.getBulletins( this.prvVar4sqlRestriction, true, 1, ClientEnvironment.getSysParamPageSize() );
+			}
+			
+			private function prvFun4pageQueryBulletins( _pageIndex:int ):void
+			{
+				UtilUi.pubFun4PopWaitWindow( this );
+				this.srvBulletin.getBulletins( this.prvVar4sqlRestriction, true, _pageIndex, ClientEnvironment.getSysParamPageSize() );					
+			}			
+			//	分页查询相关		end
+			
+			
+			private function faultHandler4getBulletins(event:FaultEvent):void
+			{
+				UtilUi.pubFun4RemoveWaitWindow();
+				Alert.show( UtilExceptionLocale.getExceptionMessageLocaleByFaultEvent( event ), resourceManager.getString('main','alt_title_warn') );
+			}	
+			
+			private function resultHandler4getBulletins(event:ResultEvent):void 
+			{
+				this.prvVar4dp4comAdgBulletin = ArrayCollection(event.result);
+				
+				if( this.comQCond.pubFun4getParamOut4blPageQuery() == false )
+				{
+					//	不是分页查询，需要根据查询结果初始化数据表格控制板
+					this.comAksDataGridControlBar.pubFun4setResultParams( false, this.prvVar4dp4comAdgBulletin.length, this.prvVar4dp4comAdgBulletin.length );
+				}
+				
+				UtilUi.pubFun4RemoveWaitWindow();
+			}					
+			
+				
+			
+			private function onNew():void
+			{
+				if( this.prvVar4auWindow == null )
+				{
+					this.prvVar4auWindow = Com_Bulletin_Bulletin_AU(PopUpManager.createPopUp(this, Com_Bulletin_Bulletin_AU, true));
+					this.prvVar4auWindow.pubFun4setParamIn4closeCallback( this, callbackFunction4auWinClose );
+				}
+				else
+				{
+					PopUpManager.addPopUp( this.prvVar4auWindow, this, true );
+				}	
+				
+				this.prvVar4auWindow.title = resourceManager.getString('mod_bulletin','autitle_new');
+				
+				// 这里的代码须如此：先准备好后再设置给 auWindow
+				// 如果直接设置一个新建对象给auWindow，然后再操作其准备其内容，则可能不能触发auWindow内部的相关绑定动作	
+				var newBulletin:BBulletin = new BBulletin();	
+				newBulletin.createTime = new Date( new Date().getTime() + ClientEnvironment.getTimeDifference() );			
+				newBulletin.operatorUser = ClientEnvironment.getOperatorUser();
+				newBulletin.isPublish = BizConst.GLOBAL_YESNO_NO;
+				
+				this.prvVar4auWindow.pubFun4setParamIo4bulletin( newBulletin, UtilUi.AUWINDOW_USE_NEW );								
+			} 
+			
+			private function onUpd():void
+			{
+				var selectedBulletin:BBulletin = BBulletin( this.comAdgBulletin.selectedItem );
+				// 不必检查，这个方法被调用的前提已经保证 
+				
+				if( this.prvVar4auWindow == null )
+				{
+					this.prvVar4auWindow = Com_Bulletin_Bulletin_AU(PopUpManager.createPopUp(this, Com_Bulletin_Bulletin_AU, true));
+					this.prvVar4auWindow.pubFun4setParamIn4closeCallback( this, callbackFunction4auWinClose );	
+				}
+				else
+				{
+					PopUpManager.addPopUp( this.prvVar4auWindow, this, true );
+				}	
+				
+				this.prvVar4auWindow.title = resourceManager.getString('mod_bulletin','autitle_upd');
+				
+				// 这里的代码须如此：先准备好后再设置给 auWindow
+				// 如果直接设置一个新建对象给auWindow，然后再操作其准备其内容，则可能不能触发auWindow内部的相关绑定动作	
+				var updBulletin:BBulletin = new BBulletin();	
+				updBulletin.copyDeep( selectedBulletin );	
+				updBulletin.modifyTime = new Date( new Date().getTime() + ClientEnvironment.getTimeDifference() );
+				updBulletin.isPublish = BizConst.GLOBAL_YESNO_NO;	//	改完后都变成不发布的，免得误发布
+				this.prvVar4auWindow.pubFun4setParamIo4bulletin( updBulletin, UtilUi.AUWINDOW_USE_UPD );							 
+				
+			} 
+			
+			private function callbackFunction4auWinClose():void
+			{
+				if( this.prvVar4auWindow.pubFun4getParamOut4winCloseWay() == UtilUi.WINDOW_CLOSEWAY_OK )
+				{
+					var rstBulletin:BBulletin = this.prvVar4auWindow.pubFun4getParamIo4bulletin();
+					if( rstBulletin != null )
+					{
+						if( this.prvVar4auWindow.pubFun4getParamIo4winUse() == UtilUi.AUWINDOW_USE_NEW )
+						{
+							if( this.prvVar4dp4comAdgBulletin == null )
+							{
+								this.prvVar4dp4comAdgBulletin = new ArrayCollection();
+							}
+							this.prvVar4dp4comAdgBulletin.addItemAt( rstBulletin, 0 );							
+						}
+						else if( this.prvVar4auWindow.pubFun4getParamIo4winUse() == UtilUi.AUWINDOW_USE_UPD )
+						{
+							this.prvVar4dp4comAdgBulletin.setItemAt( rstBulletin, this.comAdgBulletin.selectedIndex );
+						}
+					}
+				}
+				//this.prvVar4auWindow = null;														
+			}			
+			
+			
+			private function onDel():void
+			{
+				var alert_title_hint:String = resourceManager.getString('mod_bulletin','alert_title_hint');
+				var alert_msg_deleteconfirm:String = resourceManager.getString('mod_bulletin','alert_msg_deleteconfirm');
+				
+				Alert.show( alert_msg_deleteconfirm, alert_title_hint, Alert.OK | Alert.CANCEL, this, deleteConfirmHandler, null, Alert.OK );
+				
+			}				
+			
+			private function deleteConfirmHandler(event:CloseEvent):void
+			{
+				if( event.detail == Alert.OK )
+				{
+					// 相关检查都已在 prvFun4getEnabled4BtnDel中执行，此处不再检查    begin
+					var selectedBulletin:BBulletin = BBulletin(this.comAdgBulletin.selectedItem);
+					// 相关检查都已在 prvFun4getEnabled4BtnDel中执行，此处不再检查    end					
+					UtilUi.pubFun4PopWaitWindow( this );
+					this.srvBulletin.delBulletin( selectedBulletin );										
+				}
+			}	
+			
+			private function faultHandler4delBulletin(event:FaultEvent):void
+			{
+				UtilUi.pubFun4RemoveWaitWindow();
+				Alert.show( UtilExceptionLocale.getExceptionMessageLocaleByFaultEvent( event ), resourceManager.getString('main','alt_title_warn') );
+			}	
+			
+			private function resultHandler4delBulletin(event:ResultEvent):void 
+			{
+				UtilUi.pubFun4RemoveWaitWindow();
+				var alert_title_hint:String = resourceManager.getString('mod_bulletin','alert_title_hint');
+				var alert_msg:String = null;
+				
+				var blSucceed:Boolean = Boolean(event.result);
+				if( blSucceed == true )
+				{
+					alert_msg = resourceManager.getString('mod_bulletin','alert_msg_succeed');
+					Alert.show(alert_msg, alert_title_hint);
+					this.prvVar4dp4comAdgBulletin.removeItemAt( this.comAdgBulletin.selectedIndex );					
+				}
+				else
+				{
+					alert_msg = resourceManager.getString('mod_bulletin','alert_msg_fail');
+					Alert.show(alert_msg, alert_title_hint);
+				}				
+			}		
+					
+			
+			private function onPublishList():void
+			{
+				var selectedBulletin:BBulletin = BBulletin( this.comAdgBulletin.selectedItem );
+				// 不必检查，这个方法被调用的前提已经保证 
+				
+				if( this.prvVar4auWindow_publishList == null )
+				{
+					this.prvVar4auWindow_publishList = Com_Bulletin_BulletinOperatorUser_AU(PopUpManager.createPopUp(this, Com_Bulletin_BulletinOperatorUser_AU, true));
+					this.prvVar4auWindow_publishList.pubFun4setParamIn4closeCallback( this, callbackFunction4auWinClose_publishList );	
+				}
+				else
+				{
+					PopUpManager.addPopUp( this.prvVar4auWindow_publishList, this, true );
+				}	
+				
+				
+				// 这里的代码须如此：先准备好后再设置给 auWindow
+				// 如果直接设置一个新建对象给auWindow，然后再操作其准备其内容，则可能不能触发auWindow内部的相关绑定动作	
+				var updBulletin:BBulletin = new BBulletin();	
+				updBulletin.copyDeep( selectedBulletin );	
+				updBulletin.isPublish = BizConst.GLOBAL_YESNO_NO;	//	改完后都变成不发布的，免得误发布
+				this.prvVar4auWindow_publishList.pubFun4setParamIo4bulletin( updBulletin, UtilUi.AUWINDOW_USE_UPD );
+			} 
+			
+			private function callbackFunction4auWinClose_publishList():void
+			{
+				if( this.prvVar4auWindow_publishList.pubFun4getParamOut4winCloseWay() == UtilUi.WINDOW_CLOSEWAY_OK )
+				{
+					var rstBulletin:BBulletin = this.prvVar4auWindow_publishList.pubFun4getParamIo4bulletin();
+					if( rstBulletin != null )
+					{
+						this.prvVar4dp4comAdgBulletin.setItemAt( rstBulletin, this.comAdgBulletin.selectedIndex );
+					}
+				}
+				//this.prvVar4auWindow = null;														
+			}			
+			
+			
+			
+			private function onPublish( _isPublish:int ):void
+			{
+				var selectedBulletin:BBulletin = BBulletin(this.comAdgBulletin.selectedItem);
+				
+				var bulletin4publish:BBulletin = new BBulletin();
+				bulletin4publish.copyShallow( selectedBulletin );
+				bulletin4publish.isPublish = _isPublish;
+				if( _isPublish == BizConst.GLOBAL_YESNO_YES )
+				{
+					bulletin4publish.publishTime = new Date( new Date().getTime() + ClientEnvironment.getTimeDifference() ); // 发布时间
+				}
+				
+				this.srvBulletin.updBulletinIsPublish( bulletin4publish );	
+			}	
+			
+			private function faultHandler4updBulletinIsPublish(event:FaultEvent):void
+			{
+				UtilUi.pubFun4RemoveWaitWindow();
+				Alert.show( UtilExceptionLocale.getExceptionMessageLocaleByFaultEvent( event ), resourceManager.getString('main','alt_title_warn') );
+			}	
+			
+			private function resultHandler4updBulletinIsPublish(event:ResultEvent):void 
+			{
+				UtilUi.pubFun4RemoveWaitWindow();
+				
+				var updBulletin:BBulletin = BBulletin(event.result);
+				this.prvVar4dp4comAdgBulletin.setItemAt(updBulletin, this.comAdgBulletin.selectedIndex);	
+			}
+			
+			//	5	事件响应方法    end
+			
+			//	6	本地方法    begin
+			private function prvFun4getEnabled4BtnManage( _selectedItem:Object ):Boolean
+			{
+				// todo
+				if( _selectedItem == null )
+				{
+					return false;
+				}
+				
+				if( this.prvVar4blFunPermission4manage == false )
+				{
+					return false;
+				}
+				
+				return true;
+			}
+			
+			private function prvFun4getEnabled4BtnPublish( _selectedItem:BBulletin ):Boolean
+			{
+				if( _selectedItem == null )
+				{
+					return false;	
+				}
+				
+				if( this.prvVar4blFunPermission4manage == true )
+				{
+					if( _selectedItem.isPublish == BizConst.GLOBAL_YESNO_NO )
+					{
+						return true;
+					}					
+				}
+				
+				return false;
+			}	
+			
+			private function prvFun4getEnabled4BtnUnPublish( _selectedItem:BBulletin ):Boolean
+			{
+				if( _selectedItem == null )
+				{
+					return false;	
+				}
+				
+				if( this.prvVar4blFunPermission4manage == true )
+				{
+					if( _selectedItem.isPublish == BizConst.GLOBAL_YESNO_YES )
+					{
+						return true;
+					}					
+				}
+				
+				return false;
+			}				
+			//	6	本地方法   end	
+			
+		]]>
+	</fx:Script>
+	<common:LabelBoundary paddingTop="5" labelText="{resourceManager.getString('menu','queryCond')}" />
+	<bulletin:Com_Bulletin_Bulletin_QueryCond width="100%" id="comQCond" paramIn4queryCallback4thisObject="{this}" paramIn4queryCallback4function="{this.callbackFunction4query4comQCond}" paramIn4enabled="{this.prvVar4blFunPermission4query}">
+	</bulletin:Com_Bulletin_Bulletin_QueryCond>	
+	<mx:VDividedBox width="100%" height="100%">
+				
+		<mx:VBox width="100%" height="100%">
+			<common:LabelBoundary paddingTop="5" labelText="{resourceManager.getString('mod_bulletin','bulletin')}" />
+
+			<containers:AksControlBar>
+				<s:Button label="{resourceManager.getString('mod_bulletin','btn_new')}"  icon="{CoolAssetsFile.newIcon}" enabled="{this.prvVar4blFunPermission4manage}" click="onNew()"/>
+				<s:Button label="{resourceManager.getString('mod_bulletin','btn_upd')}"  icon="{CoolAssetsFile.editIcon}" enabled="{this.prvFun4getEnabled4BtnManage(this.comAdgBulletin.selectedItem)}" click="onUpd()"/>
+				<s:Button label="{resourceManager.getString('mod_bulletin','btn_del')}"  icon="{CoolAssetsFile.deleteIcon}" enabled="{this.prvFun4getEnabled4BtnManage(this.comAdgBulletin.selectedItem)}" click="onDel()"/>
+				
+				<mx:Spacer width="20"/>
+				<s:Button label="{resourceManager.getString('mod_bulletin','btn_publishlist')}" enabled="{this.prvFun4getEnabled4BtnManage(this.comAdgBulletin.selectedItem)}" click="onPublishList()"/>
+				
+				<mx:Spacer width="20"/>
+				<s:Button label="{resourceManager.getString('mod_bulletin','btn_publish')}"   enabled="{this.prvFun4getEnabled4BtnPublish(BBulletin(this.comAdgBulletin.selectedItem))}" click="onPublish(BizConst.GLOBAL_YESNO_YES)"/>								
+				<s:Button label="{resourceManager.getString('mod_bulletin','btn_unpublish')}" enabled="{this.prvFun4getEnabled4BtnUnPublish(BBulletin(this.comAdgBulletin.selectedItem))}" click="onPublish(BizConst.GLOBAL_YESNO_NO)"/>
+				
+				<controls:AksDataGridControlBar id="comAksDataGridControlBar" width="100%" paramIn4callback4thisObject="{this}" paramIn4callback4queryFunction="{this.prvFun4pageQueryBulletins}" paramIn4dataGrid="{this.comAdgBulletin}">
+				</controls:AksDataGridControlBar>		
+			</containers:AksControlBar>
+				
+			<bulletin:Com_Bulletin_DataGrid id="comAdgBulletin" dataProvider="{this.prvVar4dp4comAdgBulletin}" width="100%" height="100%"/>			
+		</mx:VBox>
+		<mx:VBox width="100%" height="100%">
+			<common:LabelBoundary paddingTop="5" labelText="{resourceManager.getString('mod_bulletin','bulletinoperatoruser')}" />
+			<bulletin:Com_Bulletin_BulletinOperatorUser_AdvancedDataGrid dataProvider="{BBulletin(this.comAdgBulletin.selectedItem).bulletinOperatorUsers}" width="100%" height="100%"/>
+		</mx:VBox>
+
+		
+	</mx:VDividedBox>
+</mx:Module>

@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:TitleWindow xmlns:fx="http://ns.adobe.com/mxml/2009" 
+			   xmlns:s="library://ns.adobe.com/flex/spark" 
+			   xmlns:mx="library://ns.adobe.com/flex/mx" width="800" height="500" close="onClose()"
+			   creationComplete="creationCompleteHandler(event)" >
+	<s:layout>
+		<s:VerticalLayout paddingLeft="10" paddingRight="10" paddingTop="10" paddingBottom="10"/>
+	</s:layout>
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+	</fx:Declarations>
+	
+	<fx:Metadata>
+		[ResourceBundle("com_bulletin_bulletin_au_view")]
+	</fx:Metadata>
+	
+	<fx:Script>
+		<![CDATA[
+			import aks.aksas.utils.UtilUi;
+			
+			import com.cool.assets.CoolAssetsFile;
+			
+			import dmdd.dmddas.common.system.ClientEnvironment;
+			import dmdd.dmddas.dataaccess.bizobject.BBulletin;
+			
+			import mx.collections.ArrayCollection;
+			import mx.controls.Alert;
+			import mx.events.FlexEvent;
+			import mx.managers.PopUpManager;
+			import mx.rpc.events.FaultEvent;
+			import mx.rpc.events.ResultEvent;
+			import mx.utils.StringUtil;
+			//	描述		begin
+			//	描述		end
+			
+			//	0	输入参数    begin		
+			private var paramIn4closeCallback4thisObject:Object = null;
+			private var paramIn4closeCallback4function:Function = null;
+			
+
+			[Bindable]
+			private var paramIo4bulletin:BBulletin = null;							
+			//	0	输入参数    end
+			
+			//	1	输出参数    begin
+			
+			//	1	输出参数    end
+			
+			//	2	本地变量    begin
+			//	2	本地变量    end			
+			
+			//	3	公共方法    begin	
+			//	构造函数
+			public function pubFun4constructor( _paramIo4bulletin:BBulletin, _paramIn4closeCallback4thisObject:Object, _paramIn4closeCallback4function:Function ):void
+			{
+				this.pubFun4setParamIo4bulletin( _paramIo4bulletin );
+				this.pubFun4setParamIn4closeCallback( _paramIn4closeCallback4thisObject, _paramIn4closeCallback4function );
+			}	
+			
+			//	关闭回调函数参数													
+			public function pubFun4setParamIn4closeCallback( _thisObject:Object, _function:Function ):void
+			{
+				this.paramIn4closeCallback4thisObject = _thisObject;
+				this.paramIn4closeCallback4function = _function;	
+			}
+			//	关闭方式参数
+			//	关闭窗口
+			private function prvFun4close():void
+			{
+				PopUpManager.removePopUp( this );
+				if( this.paramIn4closeCallback4thisObject != null && this.paramIn4closeCallback4function != null )
+				{
+					this.paramIn4closeCallback4function.call( this.paramIn4closeCallback4thisObject );	
+				}		
+			}				
+			
+			//	界面用途参数		
+			
+			
+			//	处理对象参数
+			/**
+			 * _paramIo4bulletin:BBulletin	处理对象
+			 */ 			
+			public function pubFun4setParamIo4bulletin( _paramIo4bulletin:BBulletin ):void
+			{
+				this.paramIo4bulletin = _paramIo4bulletin;
+			}
+			public function pubFun4getParamIo4bulletin():BBulletin
+			{
+				return this.paramIo4bulletin;
+			}				
+			//	3	公共方法    end		
+			
+			//	4	初始化方法    begin			
+			private function creationCompleteHandler(event:FlexEvent):void
+			{
+				this.title = resourceManager.getString('com_bulletin_bulletin_au_view','windowtitle');
+				this.x = 100;
+				this.y = 50;
+			}						
+			//	4	初始化方法    end				
+			
+			//	5	事件响应方法    begin					
+			private function onClose():void
+			{
+				this.prvFun4close();
+			}	
+			
+			//	5	事件响应方法    end
+			
+			//	6	本地方法    begin					
+			//	6	本地方法   end						
+
+
+		]]>
+	</fx:Script>
+	
+	<s:controlBarLayout>
+		<s:HorizontalLayout horizontalAlign="center">
+		</s:HorizontalLayout>
+	</s:controlBarLayout>	
+	<s:controlBarContent>
+		<s:Button label="{resourceManager.getString('com_bulletin_bulletin_au_view','btn_close')}" click="onClose()" icon="{CoolAssetsFile.deleteIcon}"/>		
+	</s:controlBarContent>
+	<mx:Grid width="100%">
+		<mx:GridRow width="100%" height="100%" verticalAlign="middle">
+			<mx:GridItem width="70" height="100%" verticalAlign="middle">
+				<s:Label text="{resourceManager.getString('com_bulletin_bulletin_au_view','title')}"/>
+			</mx:GridItem>
+			<mx:GridItem width="400" height="100%" verticalAlign="middle">
+				<mx:TextInput id="txtTitle" width="100%" maxChars="255" text="{this.paramIo4bulletin.title}" editable="false"/>
+			</mx:GridItem>
+		</mx:GridRow>
+		<mx:GridRow width="100%" height="100%" verticalAlign="middle">
+			<mx:GridItem width="70" height="100%" verticalAlign="middle">
+				<s:Label text="{resourceManager.getString('com_bulletin_bulletin_au_view','summary')}"/>
+			</mx:GridItem>
+			<mx:GridItem width="400" height="100%" verticalAlign="middle">
+				<mx:TextInput id="txtSummary" width="100%" maxChars="255" text="{this.paramIo4bulletin.summary}" editable="false"/>
+			</mx:GridItem>
+		</mx:GridRow>
+	</mx:Grid>
+	<s:TextArea id="txtContent" text="{this.paramIo4bulletin.content}" editable="false" width="90%" height="100%"/>
+	
+</s:TitleWindow>

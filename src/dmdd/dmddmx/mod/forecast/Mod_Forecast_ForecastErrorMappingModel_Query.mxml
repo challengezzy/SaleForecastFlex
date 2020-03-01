@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Module xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		   xmlns:s="library://ns.adobe.com/flex/spark" 
+		   xmlns:mx="library://ns.adobe.com/flex/mx" layout="vertical" width="100%" height="100%" paddingLeft="10" paddingRight="10" 
+		   creationComplete="creationCompleteHandler(event)" 
+		   xmlns:common="dmdd.dmddmx.com.common.*"
+		   xmlns:forecast="dmdd.dmddmx.com.forecast.*" xmlns:controls="aks.aksmx.controls.*">
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+		<s:RemoteObject endpoint="{ClientEnvironment.endpoint}" id="srvForecast" destination="ForecastService">
+			<s:method name="getForecastErrorMappingModelsStat" result="resultHandler4getForecastErrorMappingModelsStat(event)" fault="faultHandler4getForecastErrorMappingModelsStat(event)">
+			</s:method>			
+			<s:method name="getForecastErrorMappingModels" result="resultHandler4getForecastErrorMappingModels(event)" fault="faultHandler4getForecastErrorMappingModels(event)">
+			</s:method>			
+		</s:RemoteObject>		
+	</fx:Declarations>
+	<fx:Script>
+		<![CDATA[
+			import aks.aksas.utils.UtilUi;
+			
+			import dmdd.dmddas.common.constant.BizConst;
+			import dmdd.dmddas.common.system.ClientEnvironment;
+			import dmdd.dmddas.common.utils.UtilExceptionLocale;
+			import dmdd.dmddas.common.utils.UtilPeriod;
+			import dmdd.dmddas.dataaccess.bizobject.BForecastErrorMappingModel;
+			import dmdd.dmddas.common.constant.SkinConst;
+
+			import mx.collections.ArrayCollection;
+			import mx.controls.Alert;
+			import mx.events.FlexEvent;
+			import mx.events.IndexChangedEvent;
+			import mx.rpc.events.FaultEvent;
+			import mx.rpc.events.ResultEvent;
+			import mx.utils.StringUtil;
+			
+			
+			//	描述    begin
+			//	描述    end
+			
+			//	0	输入参数    begin						
+			//	0	输入参数    end
+			
+			//	1	输出参数    begin
+			//	1	输出参数    end
+			
+			//	2	本地变量    begin	
+			[Bindable]
+			private var prvVar4dp4comAdgForecastErrorMappingModel:ArrayCollection = new ArrayCollection();
+			
+			private var prvVar4sqlRestriction:String = null;				
+			//	2	本地变量    end			
+			
+			//	3	公共方法    begin			
+			//	3	公共方法    end		
+			
+			//	4	初始化方法    begin	
+			protected function creationCompleteHandler(event:FlexEvent):void
+			{
+				this.comQCond.qcondTxtCompilePeriod.text = String(ClientEnvironment.getSysPeriod().compilePeriod);
+			}			
+			//	4	初始化方法    end				
+			
+			//	5	事件响应方法    begin		
+			private function callbackFunction4query4comQCond():void
+			{				
+				this.prvVar4sqlRestriction = this.comQCond.pubFun4getParamOut4sqlRestriction();
+				var blPageQuery:Boolean = this.comQCond.pubFun4getParamOut4blPageQuery();
+				
+				if( blPageQuery == true )
+				{	
+					UtilUi.pubFun4PopWaitWindow( this );
+					this.srvForecast.getForecastErrorMappingModelsStat( this.prvVar4sqlRestriction );	
+				}
+				else
+				{	
+					//	不分页查询
+					UtilUi.pubFun4PopWaitWindow( this );
+					this.srvForecast.getForecastErrorMappingModels( this.prvVar4sqlRestriction, -1, ClientEnvironment.getSysParamPageSize() );
+				}								
+			}			
+			
+			//	分页查询相关		begin
+			private function faultHandler4getForecastErrorMappingModelsStat(event:FaultEvent):void
+			{
+				UtilUi.pubFun4RemoveWaitWindow();
+				Alert.show( UtilExceptionLocale.getExceptionMessageLocaleByFaultEvent( event ), resourceManager.getString('main','alt_title_warn') );
+			}	
+			
+			private function resultHandler4getForecastErrorMappingModelsStat(event:ResultEvent):void 
+			{
+				//	初始化数据表格控制板
+				var rstSize:Number = Number(event.result);
+				this.comAksDataGridControlBar.pubFun4setResultParams( true, rstSize, ClientEnvironment.getSysParamPageSize() );
+				
+				//	去执行第一页查询
+				this.srvForecast.getForecastErrorMappingModels( this.prvVar4sqlRestriction, 1, ClientEnvironment.getSysParamPageSize() );
+			}
+			
+			private function prvFun4pageQueryForecastErrorMappingModels( _pageIndex:int ):void
+			{
+				UtilUi.pubFun4PopWaitWindow( this );
+				this.srvForecast.getForecastErrorMappingModels( this.prvVar4sqlRestriction, _pageIndex, ClientEnvironment.getSysParamPageSize() );					
+			}			
+			//	分页查询相关		end
+			
+			
+			private function faultHandler4getForecastErrorMappingModels(event:FaultEvent):void
+			{
+				UtilUi.pubFun4RemoveWaitWindow();
+				Alert.show( UtilExceptionLocale.getExceptionMessageLocaleByFaultEvent( event ), resourceManager.getString('main','alt_title_warn') );
+			}	
+			
+			private function resultHandler4getForecastErrorMappingModels(event:ResultEvent):void 
+			{
+				this.prvVar4dp4comAdgForecastErrorMappingModel = ArrayCollection(event.result);
+				
+				if( this.comQCond.pubFun4getParamOut4blPageQuery() == false )
+				{
+					//	不是分页查询，需要根据查询结果初始化数据表格控制板
+					this.comAksDataGridControlBar.pubFun4setResultParams( false, this.prvVar4dp4comAdgForecastErrorMappingModel.length, this.prvVar4dp4comAdgForecastErrorMappingModel.length );
+				}
+				
+				UtilUi.pubFun4RemoveWaitWindow();
+			}				
+			//	5	事件响应方法    end
+			
+			//	6	本地方法    begin
+			//	6	本地方法   end	
+			
+		]]>
+	</fx:Script>
+	<common:LabelBoundary paddingTop="5" labelText="{resourceManager.getString('menu','queryCond')}" />
+
+	<forecast:Com_Forecast_ForecastErrorMappingModel_QueryCond width="100%" id="comQCond" paramIn4queryCallback4thisObject="{this}" paramIn4queryCallback4function="{this.callbackFunction4query4comQCond}" paramIn4enabled="{true}">
+	</forecast:Com_Forecast_ForecastErrorMappingModel_QueryCond>		
+	
+	<common:LabelBoundary paddingTop="5" labelText="{resourceManager.getString('menu','errorAnalysis')}" />
+
+	<forecast:Com_Forecast_ForecastErrorMappingModel_AdvancedDataGrid id="comAdgForecastErrorMappingModel" width="100%" height="100%"
+						dataProvider="{this.prvVar4dp4comAdgForecastErrorMappingModel}" paramIn4visible4ForecastInstInfo="{true}" />
+	<controls:AksDataGridControlBar id="comAksDataGridControlBar" width="100%" paramIn4callback4thisObject="{this}" paramIn4callback4queryFunction="{this.prvFun4pageQueryForecastErrorMappingModels}" paramIn4dataGrid="{this.comAdgForecastErrorMappingModel}">
+	</controls:AksDataGridControlBar>	
+
+
+</mx:Module>

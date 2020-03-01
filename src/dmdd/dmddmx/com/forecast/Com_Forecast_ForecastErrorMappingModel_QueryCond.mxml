@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:BorderContainer xmlns:fx="http://ns.adobe.com/mxml/2009" 
+				   xmlns:s="library://ns.adobe.com/flex/spark" 
+				   xmlns:mx="library://ns.adobe.com/flex/mx" width="100%" height="40"
+				   creationComplete="creationCompleteHandler(event)" 
+				   xmlns:security="dmdd.dmddmx.com.security.*" xmlns:buttons="com.cool.buttons.*">
+	<s:layout>
+		<s:HorizontalLayout paddingLeft="10" paddingRight="10" verticalAlign="middle" horizontalAlign="left"/>
+	</s:layout>
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+	</fx:Declarations>
+	<fx:Metadata>
+		[ResourceBundle("com_forecast_forecasterrormappingmodel_querycond")]
+	</fx:Metadata>
+	<fx:Script>
+		<![CDATA[
+			import dmdd.dmddas.common.constant.BizConst;
+			import dmdd.dmddas.common.constant.SysConst;
+			import dmdd.dmddas.common.system.ClientEnvironment;
+			import dmdd.dmddas.common.utils.UtilPeriod;
+			import dmdd.dmddas.dataaccess.bizobject.BSysDictionaryItem;
+			import com.cool.assets.CoolAssetsFile;
+
+			import mx.collections.ArrayCollection;
+			import mx.controls.Alert;
+			import mx.events.FlexEvent;
+			import mx.utils.StringUtil;
+			//	0	输入参数    begin
+			public var paramIn4queryCallback4thisObject:Object = null;
+			public var paramIn4queryCallback4function:Function = null;			
+			
+			[Bindable]
+			public var paramIn4enabled:Boolean = true;
+			//	0	输入参数    end
+			
+			//	1	输出参数    begin
+			private var paramOut4sqlRestriction:String = null;
+			private var paramOut4blPageQuery:Boolean = true;
+			//	1	输出参数    end
+			
+			//	2	本地变量    begin
+			[Bindable]
+			private var prvVar4arrDictForecastMakeLogActionType:ArrayCollection = ClientEnvironment.getSysDictionaryItems( "FORECASTMAKELOG", "ACTIONTYPE", true );
+			//	2	本地变量    end			
+			
+			//	3	公共方法    begin	
+			public function pubFun4getParamOut4sqlRestriction():String
+			{
+				return this.paramOut4sqlRestriction;
+			}
+			
+			public function pubFun4getParamOut4blPageQuery():Boolean
+			{
+				return this.paramOut4blPageQuery;
+			}
+			//	3	公共方法    end		
+			
+			//	4	初始化方法    begin			
+			protected function creationCompleteHandler(event:FlexEvent):void
+			{
+			}					
+			//	4	初始化方法    end				
+			
+			//	5	事件响应方法    begin
+			private function onQuery():void
+			{
+				var sqlRestriction:String = SysConst.SQL_STR_TRUE;
+				
+				var alert_title_hint:String = resourceManager.getString('com_forecast_forecasterrormappingmodel_querycond','alert_title_hint');
+				var alert_msg:String = null;				
+				
+				var str4compilePeriod:String = StringUtil.trim(this.qcondTxtCompilePeriod.text);
+				if( str4compilePeriod != null && str4compilePeriod != "" )
+				{
+					var compilerPeriod:int = UtilPeriod.parse( str4compilePeriod );
+					if( compilerPeriod == SysConst.PERIOD_NULL )
+					{
+						alert_msg = resourceManager.getString('com_forecast_forecasterrormappingmodel_querycond','alert_msg_compileperiodisinvalid');
+						Alert.show( alert_msg, alert_title_hint);
+						return;											
+					}
+					sqlRestriction = sqlRestriction + " and (compilePeriod=" + compilerPeriod + ") ";
+				}
+				
+				var qcondForecastInstCode:String = StringUtil.trim( this.qcondTxtForecastInstCode.text );
+				var qcondForecastInstCodeLike:Boolean = this.qcondCheckBoxForecastInstCodeLike.selected;
+				var qcondForecastInstName:String = StringUtil.trim( this.qcondTxtForecastInstName.text );
+				var qcondForecastInstNameLike:Boolean = this.qcondCheckBoxForecastInstNameLike.selected;
+				
+				if( qcondForecastInstCode != "" )
+				{
+					if( qcondForecastInstCodeLike == true )
+					{
+						sqlRestriction = sqlRestriction + " and (forecastInstCode like '%" + qcondForecastInstCode + "%')";
+					}
+					else
+					{
+						sqlRestriction = sqlRestriction + " and (forecastInstCode = '" + qcondForecastInstCode + "')";
+					}
+				}
+				
+				if( qcondForecastInstName != "" )
+				{
+					if( qcondForecastInstNameLike == true )
+					{
+						sqlRestriction = sqlRestriction + " and (forecastInstName like '%" + qcondForecastInstName + "%')";
+					}
+					else
+					{
+						sqlRestriction = sqlRestriction + " and (forecastInstName = '" + qcondForecastInstName + "')";
+					}
+				}
+				
+				if( sqlRestriction == SysConst.SQL_STR_TRUE )
+				{
+					sqlRestriction = null;
+				}
+				
+				this.paramOut4blPageQuery = this.qcondCheckBoxPageQuery.selected;
+				this.paramOut4sqlRestriction = sqlRestriction;
+				this.paramIn4queryCallback4function.call( this.paramIn4queryCallback4thisObject );
+			}			
+			//	5	事件响应方法    end
+			
+			//	6	本地方法    begin		
+			//	6	本地方法   end				
+
+		]]>
+	</fx:Script>
+	<s:Label text="{resourceManager.getString('com_forecast_forecasterrormappingmodel_querycond','compileperiod')}"/>
+	<mx:TextInput id="qcondTxtCompilePeriod" width="100" maxChars="6"/>
+	<s:Spacer width="30"/>
+
+	<s:Label text="{resourceManager.getString('com_forecast_forecasterrormappingmodel_querycond','forecastinstcode')}"/>
+	<mx:TextInput id="qcondTxtForecastInstCode" width="100"/>
+	<s:CheckBox label="{resourceManager.getString('com_forecast_forecasterrormappingmodel_querycond','chkbox_like')}" id="qcondCheckBoxForecastInstCodeLike"/>
+	<s:Spacer width="30"/>
+
+	<s:Label text="{resourceManager.getString('com_forecast_forecasterrormappingmodel_querycond','forecastinstname')}"/>
+	<mx:TextInput id="qcondTxtForecastInstName" width="100"/>
+	<s:CheckBox label="{resourceManager.getString('com_forecast_forecasterrormappingmodel_querycond','chkbox_like')}" id="qcondCheckBoxForecastInstNameLike"/>
+	<s:Spacer width="30"/>
+
+	<s:CheckBox label="{resourceManager.getString('com_forecast_forecasterrormappingmodel_querycond','chkbox_pagequery')}" id="qcondCheckBoxPageQuery" selected="true"/>
+	<buttons:ButtonQuery click="onQuery()" enabled="{this.paramIn4enabled}"/>
+	
+</s:BorderContainer>

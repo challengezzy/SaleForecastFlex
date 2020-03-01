@@ -1,0 +1,231 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:TitleWindow xmlns:fx="http://ns.adobe.com/mxml/2009" 
+			   xmlns:s="library://ns.adobe.com/flex/spark" 
+			   xmlns:mx="library://ns.adobe.com/flex/mx" width="980" height="470" close="onCancel()"
+			   creationComplete="creationCompleteHandler(event)" 
+			   xmlns:containers="aks.aksmx.containers.*" xmlns:product="dmdd.dmddmx.com.product.*">
+	<s:layout>
+		<s:VerticalLayout/>
+	</s:layout>
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+		<s:RemoteObject endpoint="{ClientEnvironment.endpoint}" id="srvProduct" destination="ProductService">		
+			<s:method name="getProductsByCodeOrName" result="resultHandler4getProductsByCodeOrName(event)" fault="faultHandler4getProductsByCodeOrName(event)">
+			</s:method>
+		</s:RemoteObject>		
+	</fx:Declarations>
+
+	<fx:Script>
+		<![CDATA[
+			import aks.aksas.utils.UtilArrayCollection;
+			import aks.aksas.utils.UtilUi;
+			
+			import com.cool.assets.CoolAssetsFile;
+			
+			import dmdd.dmddas.common.constant.SysConst;
+			import dmdd.dmddas.common.constant.UIConst;
+			import dmdd.dmddas.common.system.ClientEnvironment;
+			import dmdd.dmddas.common.utils.UtilDataGridColumnLabelFunction;
+			import dmdd.dmddas.common.utils.UtilDataGridKeyBoardEvent;
+			import dmdd.dmddas.common.utils.UtilExceptionLocale;
+			import dmdd.dmddas.common.utils.UtilProduct;
+			import dmdd.dmddas.dataaccess.bizobject.BProduct;
+			
+			import mx.collections.ArrayCollection;
+			import mx.controls.Alert;
+			import mx.events.FlexEvent;
+			import mx.managers.PopUpManager;
+			import mx.resources.ResourceManager;
+			import mx.rpc.events.FaultEvent;
+			import mx.rpc.events.ResultEvent;
+			
+			//	描述		begin
+			//	描述		end
+
+			//	0	输入参数    begin	
+			private var paramIn4closeCallback4thisObject:Object = null;
+			private var paramIn4closeCallback4function:Function = null;				
+			//	0	输入参数    end
+			
+			//	1	输出参数    begin
+			public var selectedProduct:BProduct = null;
+			public var selectedProductArr:Array = null;
+			
+			private var winCloseWay:int = UtilUi.WINDOW_CLOSEWAY_CANCEL;		
+			//	1	输出参数    end
+			
+			//	2	本地变量    begin		
+			[Bindable]
+			private var productArr:ArrayCollection;
+			
+			[Bindable]
+			private var selectedProArr:ArrayCollection = new ArrayCollection();
+			
+			[Bindable]
+			public var multipleSelection:Boolean = false;
+			
+			//	2	本地变量    end			
+			
+			//	3	公共方法    begin	
+			//	关闭回调函数参数													
+			public function pubFun4setParamIn4closeCallback( _thisObject:Object, _function:Function ):void
+			{
+				paramIn4closeCallback4thisObject = _thisObject;
+				paramIn4closeCallback4function = _function;	
+			}
+			//	关闭方式参数
+			public function getWinCloseWay():int
+			{
+				return winCloseWay;
+			}				
+			//	关闭窗口
+			private function prvFun4close():void
+			{
+				PopUpManager.removePopUp( this );						
+				paramIn4closeCallback4function.call( paramIn4closeCallback4thisObject );				
+			}							
+			
+			
+			//	处理对象参数
+			public function getSelectedProduct():BProduct
+			{
+				return selectedProduct;
+			}										
+			//	3	公共方法    end		
+			
+			//	4	初始化方法    begin			
+			protected function creationCompleteHandler(event:FlexEvent):void
+			{
+				title = resourceManager.getString('menu','selectProduct');	
+				x = 100;
+				y = 50;
+				
+				comAdgProduct.addEventListener(KeyboardEvent.KEY_UP,UtilDataGridKeyBoardEvent.onAdvancedDataGridCtrlA);
+			}				
+			
+			//	4	初始化方法    end				
+			
+			//	5	事件响应方法    begin	
+			private function onQuery():void
+			{
+				UtilUi.pubFun4PopWaitWindow( this );
+				
+				srvProduct.getProductsByCodeOrName(txtCode.text, txtName.text);	
+			}
+			
+			
+			private function faultHandler4getProductsByCodeOrName(event:FaultEvent):void
+			{
+				UtilUi.pubFun4RemoveWaitWindow();
+				Alert.show( event.fault.faultDetail );
+			}	
+			
+			private function resultHandler4getProductsByCodeOrName(event:ResultEvent):void 
+			{
+				productArr = event.result as ArrayCollection;
+				
+				UtilUi.pubFun4RemoveWaitWindow();
+			}
+			
+			private function onAdd():void
+			{
+				if(comAdgProduct.selectedItems.length <= 0){
+					return ;
+				}
+				
+				var newSelectedArr:ArrayCollection = new ArrayCollection(); 
+				for(var i:int=0;i<comAdgProduct.selectedItems.length;i++){
+					newSelectedArr.addItem(comAdgProduct.selectedItems[i]);
+				}
+				
+				selectedProArr = UtilProduct.getUnionProductArr(selectedProArr,newSelectedArr);
+			}
+			
+			private function onRemove():void
+			{
+				var arr4remove:ArrayCollection = new ArrayCollection( selectedProDg.selectedItems );
+				selectedProArr = UtilArrayCollection.removeItems( selectedProArr, arr4remove );
+				
+			}
+			
+			private function onOk():void
+			{
+				if(multipleSelection){
+					selectedProductArr = selectedProArr.toArray();
+				}else{
+					selectedProduct = BProduct( comAdgProduct.selectedItem );
+				}
+				
+				
+				winCloseWay = UtilUi.WINDOW_CLOSEWAY_OK;
+				prvFun4close();
+			}	
+			
+			private function onCancel():void
+			{	
+				winCloseWay = UtilUi.WINDOW_CLOSEWAY_CANCEL;
+				prvFun4close();
+			}
+			
+			private function enterKey(event:KeyboardEvent):void{
+				if(event.keyCode==13){
+					onQuery();  //激发提交事件
+				}
+			} 
+			
+			//	5	事件响应方法    end
+			
+			//	6	本地方法    begin
+			//	6	本地方法   end				
+			
+		]]>
+	</fx:Script>
+	<mx:HBox width="100%" height="100%">
+		<mx:VBox width="360" height="100%" paddingLeft="5" paddingRight="5">
+			<s:HGroup width="100%" paddingTop="10" paddingBottom="10" verticalAlign="middle">
+				<s:Label text="{resourceManager.getString('label','selectedItem')}"/>
+			</s:HGroup>
+			<mx:AdvancedDataGrid id="selectedProDg" dataProvider="{selectedProArr}" width="100%" height="100%"  allowMultipleSelection="{multipleSelection}">
+				<mx:columns>
+					<mx:AdvancedDataGridColumn width="120" headerText="{ResourceManager.getInstance().getString('label','proCode')}" dataField="code"/>
+					<mx:AdvancedDataGridColumn width="150" headerText="{ResourceManager.getInstance().getString('label','proName')}" dataField="name"/>
+					<mx:AdvancedDataGridColumn width="80" headerText="{resourceManager.getString('note','isKit')}" 	dataField="isSuit" labelFunction="UtilDataGridColumnLabelFunction.getGlobalYesNoLocale"/>
+				</mx:columns>
+			</mx:AdvancedDataGrid>
+		</mx:VBox>
+		<mx:VBox verticalAlign="middle" height="100%">
+			<s:Button id="btnAdd" label="{resourceManager.getString('button','add')}" icon="{CoolAssetsFile.arrow_leftIcon}" click="onAdd()"/>
+			<s:Button id="btnDel" label="{resourceManager.getString('button','remove')}" icon="{CoolAssetsFile.arrow_rightIcon}" click="onRemove()"/>
+		</mx:VBox>
+		
+		<mx:VBox width="560%" height="100%" paddingLeft="5" paddingRight="5">
+			<s:HGroup width="100%" paddingTop="10" paddingBottom="10" verticalAlign="middle">
+				<s:Label text="{resourceManager.getString('note','proCode')}"/>
+				<s:TextInput id="txtCode" maxChars="255" width="150" keyDown="enterKey(event)" />
+				<s:Spacer width="10" />
+				<s:Label text="{resourceManager.getString('note','proName')}"/>
+				<s:TextInput id="txtName" maxChars="255"  width="150" keyDown="enterKey(event)" />
+				<s:Spacer width="10" />
+				<s:Button id="btnQuery" label="{resourceManager.getString('button','query')}" icon="{CoolAssetsFile.queryIcon}" click="onQuery()"/> 
+			</s:HGroup>
+			<mx:AdvancedDataGrid id="comAdgProduct" dataProvider="{productArr}" width="100%" height="100%" allowMultipleSelection="{multipleSelection}" >
+				<mx:columns>
+					<mx:AdvancedDataGridColumn width="120" headerText="{ResourceManager.getInstance().getString('label','proCode')}" dataField="code"/>
+					<mx:AdvancedDataGridColumn width="150" headerText="{ResourceManager.getInstance().getString('label','proName')}" dataField="name"/>
+					<mx:AdvancedDataGridColumn width="80" headerText="{resourceManager.getString('note','isKit')}" 	dataField="isSuit" labelFunction="UtilDataGridColumnLabelFunction.getGlobalYesNoLocale"/>
+					<mx:AdvancedDataGridColumn width="95" headerText="{ResourceManager.getInstance().getString('label','iscatalog')}" 	dataField="isCatalog" 	labelFunction="UtilDataGridColumnLabelFunction.getGlobalYesNoLocale"/>
+					<mx:AdvancedDataGridColumn width="80" headerText="{ResourceManager.getInstance().getString('label','isValid')}" 		dataField="isValid" 	labelFunction="UtilDataGridColumnLabelFunction.getGlobalYesNoLocale"/>
+				</mx:columns>
+			</mx:AdvancedDataGrid>
+		</mx:VBox>
+	</mx:HBox>
+		
+	<s:BorderContainer width="100%" height="30" borderColor="#E4ECF7">
+		<s:layout>
+			<s:HorizontalLayout horizontalAlign="center"/>
+		</s:layout>
+		<s:Button label="{resourceManager.getString('button','ok')}" enabled="{comAdgProduct.selectedItems.pop()}" click="onOk()"/>
+		<s:Button label="{resourceManager.getString('button','cancel')}" click="onCancel()"/>
+	</s:BorderContainer>
+</s:TitleWindow>
+

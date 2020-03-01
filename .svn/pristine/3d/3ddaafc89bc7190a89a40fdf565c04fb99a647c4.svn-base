@@ -1,0 +1,367 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Module xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		   xmlns:s="library://ns.adobe.com/flex/spark" 
+		   xmlns:mx="library://ns.adobe.com/flex/mx" layout="vertical" width="100%" height="100%" paddingLeft="10" paddingRight="10"
+		   creationComplete="creationCompleteHandler(event)"  
+		   xmlns:containers="aks.aksmx.containers.*" xmlns:product="dmdd.dmddmx.com.product.*" xmlns:common="dmdd.dmddmx.com.common.*">
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+		<s:RemoteObject endpoint="{ClientEnvironment.endpoint}" id="srvProduct" destination="ProductService">		
+			<s:method name="getProductCharacterTreeRoot4UI" result="resultHandler4getProductCharacterTreeRoot4UI(event)" fault="faultHandler4getProductCharacterTreeRoot4UI(event)">
+			</s:method>
+			<s:method name="delProductCharacter" result="resultHandler4delProductCharacter(event)" fault="faultHandler4delProductCharacter(event)">
+			</s:method>			
+		</s:RemoteObject>		
+	</fx:Declarations>
+
+	<fx:Script>
+		<![CDATA[
+			import aks.aksas.utils.UtilUi;
+			
+			import dmdd.dmddas.common.constant.BizConst;
+			import dmdd.dmddas.common.constant.FunPermiConst;
+			import dmdd.dmddas.common.system.ClientEnvironment;
+			import dmdd.dmddas.common.utils.UtilExceptionLocale;
+			import dmdd.dmddas.common.utils.UtilProductCharacter;
+			import dmdd.dmddas.dataaccess.bizobject.BProductCharacter;
+			import dmdd.dmddas.dataaccess.bizobject.BProductCharacterLayer;
+			import dmdd.dmddmx.com.product.Com_Product_ProductCharacter_AU;
+			import dmdd.dmddas.common.constant.SkinConst;
+			import com.cool.assets.CoolAssetsFile;
+
+			import mx.collections.ArrayCollection;
+			import mx.controls.Alert;
+			import mx.events.CloseEvent;
+			import mx.events.FlexEvent;
+			import mx.events.MenuEvent;
+			import mx.managers.PopUpManager;
+			import mx.rpc.events.FaultEvent;
+			import mx.rpc.events.ResultEvent;
+			
+			//	描述    begin
+			//	描述    end
+			
+			//	0	输入参数    begin						
+			//	0	输入参数    end
+			
+			//	1	输出参数    begin
+			//	1	输出参数    end
+			
+			//	2	本地变量    begin				
+			private var prvVar4auWindow:Com_Product_ProductCharacter_AU = null;
+			
+			[Bindable]
+			private var prvVar4blFunPermission4manage:Boolean = true;
+			[Bindable]
+			private var prvVar4blFunPermission4query:Boolean = true;			
+			//	2	本地变量    end			
+			
+			//	3	公共方法    begin			
+			//	3	公共方法    end		
+			
+			//	4	初始化方法    begin	
+		
+						
+			protected function creationCompleteHandler(event:FlexEvent):void
+			{
+				this.prvVar4blFunPermission4manage = ClientEnvironment.checkIsPermission( FunPermiConst.MAINDATA_PRODUCTCHARACTER_MANAGE );
+				
+				
+				var rightClickMenuItems:Array = [];
+				if(prvVar4blFunPermission4query){
+					rightClickMenuItems.push({label:resourceManager.getString('button','expand'),keyname:"expand"});
+					rightClickMenuItems.push({label:resourceManager.getString('button','collapse'),keyname:"collapse"});
+				}
+				
+				if(prvVar4blFunPermission4manage){
+					rightClickMenuItems.push({label:resourceManager.getString('button','new'),keyname:"new"});
+					rightClickMenuItems.push({label:resourceManager.getString('button','del'),keyname:"del"});
+					rightClickMenuItems.push({label:resourceManager.getString('button','edit'),keyname:"edit"});
+				}
+				if(prvVar4blFunPermission4query){
+					rightClickMenuItems.push({label:resourceManager.getString('button','refresh'),keyname:"refresh"});
+				}
+				
+				comAdgProductCharacter.setRightClickMenuItems(rightClickMenuItems);
+				comAdgProductCharacter.rightClickMenu.addEventListener(MenuEvent.ITEM_CLICK,proCharaRightMenuClicked);
+				
+			}
+			//	4	初始化方法    end	
+			//	5	事件响应方法    begin
+			private function proCharaRightMenuClicked(event:MenuEvent):void{
+				var item:Object = event.item;
+				if(item == null)
+					return;
+				
+				if(item.keyname == "refresh"){
+					onQuery();
+					return;
+				}
+				
+				if( comAdgProductCharacter != null && comAdgProductCharacter.selectedItem == null ){
+					Alert.show("Please select one item !");
+					return ;
+				}
+				
+				if(item.keyname == "expand"){
+					onExpandAll();
+				}else if(item.keyname == "collapse"){
+					onCollapseAll();
+				}else if(item.keyname == "new"){
+					onNew();
+				}else if(item.keyname == "del"){
+					onDel();
+				}else if(item.keyname == "edit"){
+					onUpd();
+				}
+				
+			}
+			private function onQuery():void
+			{	
+				//	不分页查询
+				UtilUi.pubFun4PopWaitWindow( this );
+				this.srvProduct.getProductCharacterTreeRoot4UI();				
+			}	
+			
+			
+			private function faultHandler4getProductCharacterTreeRoot4UI(event:FaultEvent):void
+			{
+				UtilUi.pubFun4RemoveWaitWindow();
+				Alert.show( UtilExceptionLocale.getExceptionMessageLocaleByFaultEvent( event ), resourceManager.getString('main','alt_title_warn') );
+			}	
+			
+			private function resultHandler4getProductCharacterTreeRoot4UI(event:ResultEvent):void 
+			{
+				var productCharacterTreeRoot:BProductCharacter = BProductCharacter(event.result);
+				
+				ClientEnvironment.setProductCharacterTreeRoot( productCharacterTreeRoot );
+				
+				UtilUi.pubFun4RemoveWaitWindow();
+			}					
+			
+			
+			private function onNew():void
+			{
+				var selectedProductCharacter:BProductCharacter = BProductCharacter(this.comAdgProductCharacter.selectedItem);
+				
+				if( selectedProductCharacter.isCatalog == BizConst.GLOBAL_YESNO_NO )
+				{
+					var alert_title_hint:String = resourceManager.getString('alert','alert_title_hint');
+					var alert_msg:String = resourceManager.getString('alert','alert_msg_notcatcalog2');					
+					Alert.show( alert_msg, alert_title_hint );					
+					
+					return;			 		
+				}
+				
+				var productCharacterLayer4newProductCharacter:BProductCharacterLayer = ClientEnvironment.getProductCharacterLayerByValue( selectedProductCharacter.productCharacterLayer.value + 1 ); 
+				
+				if( productCharacterLayer4newProductCharacter == null )
+				{
+					alert_msg = resourceManager.getString('alert','alert_msg_maxlayer2');					
+					Alert.show( alert_msg, alert_title_hint );
+					return;
+				}
+				
+				if( this.prvVar4auWindow == null )
+				{
+					this.prvVar4auWindow = Com_Product_ProductCharacter_AU(PopUpManager.createPopUp(this, Com_Product_ProductCharacter_AU, true));
+					this.prvVar4auWindow.pubFun4setParamIn4closeCallback( this, callbackFunction4auWinClose );
+				}
+				else
+				{
+					PopUpManager.addPopUp( this.prvVar4auWindow, this, true );
+				}	
+				
+				this.prvVar4auWindow.title = resourceManager.getString('menu','newProChar');
+				
+				// 这里的代码须如此：先准备好后再设置给 auWindow
+				// 如果直接设置一个新建对象给auWindow，然后再操作其准备其内容，则可能不能触发auWindow内部的相关绑定动作
+				var newProductCharacter:BProductCharacter = new BProductCharacter();
+				
+				newProductCharacter.parentProductCharacter = selectedProductCharacter;
+				newProductCharacter.productCharacterLayer = productCharacterLayer4newProductCharacter;
+				newProductCharacter.type = newProductCharacter.parentProductCharacter.type;
+				newProductCharacter.isCatalog = BizConst.GLOBAL_YESNO_YES; // 初始默认值"是"
+				
+				this.prvVar4auWindow.pubFun4setParamIo4productCharacter( newProductCharacter, UtilUi.AUWINDOW_USE_NEW );								
+			} 
+			
+			private function onUpd():void
+			{
+				var selectedProductCharacter:BProductCharacter = BProductCharacter( this.comAdgProductCharacter.selectedItem );
+				// 不必检查，这个方法被调用的前提已经保证 
+				
+				if( this.prvVar4auWindow == null )
+				{
+					this.prvVar4auWindow = Com_Product_ProductCharacter_AU(PopUpManager.createPopUp(this, Com_Product_ProductCharacter_AU, true));
+					this.prvVar4auWindow.pubFun4setParamIn4closeCallback( this, callbackFunction4auWinClose );	
+				}
+				else
+				{
+					PopUpManager.addPopUp( this.prvVar4auWindow, this, true );
+				}	
+				
+				this.prvVar4auWindow.title = resourceManager.getString('menu','editProChar');				
+				// 这里的代码须如此：先准备好后再设置给 auWindow
+				// 如果直接设置一个新建对象给auWindow，然后再操作其准备其内容，则可能不能触发auWindow内部的相关绑定动作
+				var updProductCharacter:BProductCharacter = new BProductCharacter();	
+				updProductCharacter.copyDeep( selectedProductCharacter );			
+				this.prvVar4auWindow.pubFun4setParamIo4productCharacter( updProductCharacter, UtilUi.AUWINDOW_USE_UPD );							 
+				
+			} 
+			
+			private function callbackFunction4auWinClose():void
+			{
+				if( this.prvVar4auWindow.pubFun4getParamOut4winCloseWay() == UtilUi.WINDOW_CLOSEWAY_OK )
+				{
+					var rstProductCharacter:BProductCharacter = this.prvVar4auWindow.pubFun4getParamIo4productCharacter();
+					if( rstProductCharacter != null )
+					{
+						var selectedProductCharacter:BProductCharacter = BProductCharacter( this.comAdgProductCharacter.selectedItem );
+						
+						if( this.prvVar4auWindow.pubFun4getParamIo4winUse() == UtilUi.AUWINDOW_USE_NEW )
+						{
+							rstProductCharacter.parentProductCharacter = selectedProductCharacter;
+							if( selectedProductCharacter.subProductCharacters == null )
+							{
+								selectedProductCharacter.subProductCharacters = new ArrayCollection();
+							}
+							selectedProductCharacter.subProductCharacters.addItem( rstProductCharacter );
+							
+							this.comAdgProductCharacter.expandItem( selectedProductCharacter, true );						
+						}
+						else if( this.prvVar4auWindow.pubFun4getParamIo4winUse() == UtilUi.AUWINDOW_USE_UPD )
+						{
+							var productCharacterTreeRoot:BProductCharacter = rstProductCharacter;	//	更新时,服务器返回的是整棵树结构
+							var pathProductCharacters:ArrayCollection = null;
+							var i:int;
+							if( productCharacterTreeRoot != null )
+							{
+								ClientEnvironment.setProductCharacterTreeRoot( productCharacterTreeRoot ); 								
+								selectedProductCharacter = UtilProductCharacter.getProductCharacterInTreeByRecursion( selectedProductCharacter, ClientEnvironment.getProductCharacterTreeRoot() );
+								pathProductCharacters = UtilProductCharacter.getPathFromRoot( selectedProductCharacter );					
+								if( pathProductCharacters != null )
+								{
+									for( i=0; i<pathProductCharacters.length; i=i+1 )
+									{
+										this.comAdgProductCharacter.expandItem( pathProductCharacters.getItemAt(i), true );
+									}	
+								}
+							}							
+						}
+					}
+				}
+				//this.prvVar4auWindow = null;														
+			}			
+			
+			
+			private function onDel():void
+			{
+				var alert_title_hint:String = resourceManager.getString('alert','alert_title_hint');
+				var alert_msg:String = "";
+				
+				var selectedProductCharacter:BProductCharacter = BProductCharacter(this.comAdgProductCharacter.selectedItem);	
+				
+				if( selectedProductCharacter.productCharacterLayer.value == 0 )
+				{
+					//	根节点不能删除
+					alert_msg = resourceManager.getString('alert','alert_msg_deleteroot2');
+					Alert.show( alert_msg , alert_title_hint);
+					return;						
+				}
+				
+				alert_msg = resourceManager.getString('alert','alert_msg_deleteconfirm2');
+				
+				Alert.show( alert_msg, alert_title_hint, Alert.OK | Alert.CANCEL, this, deleteConfirmHandler, null, Alert.OK );
+				
+			}				
+			
+			private function deleteConfirmHandler(event:CloseEvent):void
+			{
+				if( event.detail == Alert.OK )
+				{
+					// 相关检查都已在 prvFun4getEnabled4BtnDel中执行，此处不再检查    begin
+					var selectedProductCharacter:BProductCharacter = BProductCharacter(this.comAdgProductCharacter.selectedItem);
+					// 相关检查都已在 prvFun4getEnabled4BtnDel中执行，此处不再检查    end					
+					UtilUi.pubFun4PopWaitWindow( this );
+					this.srvProduct.delProductCharacter( selectedProductCharacter );										
+				}
+			}	
+			
+			private function faultHandler4delProductCharacter(event:FaultEvent):void
+			{
+				UtilUi.pubFun4RemoveWaitWindow();
+				Alert.show( UtilExceptionLocale.getExceptionMessageLocaleByFaultEvent( event ), resourceManager.getString('alert','alt_title_warn') );
+			}	
+			
+			private function resultHandler4delProductCharacter(event:ResultEvent):void 
+			{
+				UtilUi.pubFun4RemoveWaitWindow();
+				
+				var alert_title_hint:String = resourceManager.getString('alert','alert_title_hint');
+				var alert_msg:String = null;
+				
+				var blSucceed:Boolean = Boolean(event.result);
+				if( blSucceed == true )
+				{
+					alert_msg = resourceManager.getString('alert','alert_msg_succeed');
+					Alert.show(alert_msg, alert_title_hint);
+					var selectedProductCharacter:BProductCharacter = BProductCharacter( this.comAdgProductCharacter.selectedItem );
+					var parentProductCharacter:BProductCharacter = selectedProductCharacter.parentProductCharacter;
+					if( parentProductCharacter != null  )
+					{
+						var delIndex:int = parentProductCharacter.subProductCharacters.getItemIndex( selectedProductCharacter ); 
+						parentProductCharacter.subProductCharacters.removeItemAt( delIndex );					
+					}						
+				}
+				else
+				{
+					alert_msg = resourceManager.getString('alert','alert_msg_fail');
+					Alert.show(alert_msg, alert_title_hint);
+				}				
+			}			
+			
+			private function onExpandAll():void
+			{
+				this.comAdgProductCharacter.expandAll();
+			}		
+			
+			private function onCollapseAll():void
+			{
+				this.comAdgProductCharacter.collapseAll();
+			}				
+			//	5	事件响应方法    end
+			
+			//	6	本地方法    begin
+			private function prvFun4getEnabled4BtnManage( _selectedItem:Object ):Boolean
+			{
+				// todo
+				if( _selectedItem == null )
+				{
+					return false;
+				}
+				
+				if( this.prvVar4blFunPermission4manage == false )
+				{
+					return false;
+				}
+				
+				return true;
+			}
+			//	6	本地方法   end	
+			
+		]]>
+	</fx:Script>
+	<common:LabelBoundary paddingTop="5" labelText="{resourceManager.getString('menu','proChar')}" />
+	<containers:AksControlBar>
+		<s:Button label="{resourceManager.getString('button','refresh')}" icon="{CoolAssetsFile.refresh3Icon}"	enabled="{this.prvVar4blFunPermission4query}" click="onQuery()" />
+		<s:Button label="{resourceManager.getString('button','new')}" icon="{CoolAssetsFile.newIcon}" 	enabled="{this.prvFun4getEnabled4BtnManage(this.comAdgProductCharacter.selectedItem)}" click="onNew()"/>
+		<s:Button label="{resourceManager.getString('button','edit')}"  icon="{CoolAssetsFile.editIcon}"	enabled="{this.prvFun4getEnabled4BtnManage(this.comAdgProductCharacter.selectedItem)}" click="onUpd()"/>
+		<s:Button label="{resourceManager.getString('button','del')}" icon="{CoolAssetsFile.deleteIcon}" 	enabled="{this.prvFun4getEnabled4BtnManage(this.comAdgProductCharacter.selectedItem)}" click="onDel()"/>
+		<mx:Spacer width="20"/>
+		<s:Button label="{resourceManager.getString('button','expandall')}" icon="{CoolAssetsFile.expandallIcon}"	enabled="{this.prvVar4blFunPermission4query}" click="onExpandAll()" />
+		<s:Button label="{resourceManager.getString('button','collapseall')}" icon="{CoolAssetsFile.collapseallIcon}"	enabled="{this.prvVar4blFunPermission4query}" click="onCollapseAll()" />					
+	</containers:AksControlBar>
+	<product:Com_Product_ProductCharacter_AdvancedDataGrid paramIo4dp4adgProductCharacter="{ClientEnvironment.getProductCharacterTreeRootArr()}" itemDoubleClick="onUpd()" doubleClickEnabled="true" width="100%" height="100%" id="comAdgProductCharacter"/>
+
+</mx:Module>

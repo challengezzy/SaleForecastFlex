@@ -1,0 +1,772 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Module xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		   xmlns:s="library://ns.adobe.com/flex/spark" 
+		   xmlns:mx="library://ns.adobe.com/flex/mx" layout="vertical" width="100%" height="100%"
+		   paddingBottom="5" paddingTop="5" paddingLeft="10" paddingRight="10"
+		   xmlns:containers="aks.aksmx.containers.*" xmlns:product="dmdd.dmddmx.com.product.*"  xmlns:security="dmdd.dmddmx.com.security.*"
+		   creationComplete="creationCompleteHandler(event)" xmlns:common="dmdd.dmddmx.com.common.*" xmlns:buttons="com.cool.buttons.*" >
+	<fx:Declarations>
+		<s:RemoteObject endpoint="{ClientEnvironment.endpoint}" id="srvProduct" destination="ProductService">	
+			<s:method name="importProduct" result="resultHandler4importProduct(event)" fault="faultHandler4importProduct(event)">
+			</s:method>					
+			<s:method name="importProductCharacter" result="resultHandler4importProductCharacter(event)" fault="faultHandler4importProductCharacter(event)">
+			</s:method>	
+			<s:method name="importProductProCharacter" result="resultHandler4importProductProCharacter(event)" fault="faultHandler4importProductProCharacter(event)">
+			</s:method>		
+		</s:RemoteObject>
+		<s:RemoteObject endpoint="{ClientEnvironment.endpoint}" id="ifc" destination="InterfaceService">	
+			<s:method name="getInterFaceValues4SemiFinishedProduct" result="resultHandler4getInterFaceValues(event)" fault="faultHandler4getInterFaceValues(event)">
+			</s:method>							  
+		</s:RemoteObject>
+	</fx:Declarations>
+	<fx:Metadata>
+		[ResourceBundle("mod_security_interface_semifinishedproduct")]
+	</fx:Metadata>	
+	<fx:Script>
+		<![CDATA[
+			import aks.aksas.utils.UtilArrayCollection;
+			import aks.aksas.utils.UtilUi;
+			
+			import dmdd.dmddas.common.constant.BizConst;
+			import dmdd.dmddas.common.system.ClientEnvironment;
+			import dmdd.dmddas.common.utils.UtilExceptionLocale;
+			import dmdd.dmddas.dataaccess.aidobject.ABImProduct;
+			import dmdd.dmddas.dataaccess.aidobject.ABImProductCharacter;
+			import dmdd.dmddas.dataaccess.aidobject.ABImProductProCharacter;
+			import dmdd.dmddas.dataaccess.bizobject.BProduct;
+			import dmdd.dmddas.dataaccess.bizobject.BProductCharacter;
+			
+			import mx.collections.ArrayCollection;
+			import mx.collections.ArrayList;
+			import mx.collections.IViewCursor;
+			import mx.controls.Alert;
+			import mx.controls.DataGrid;
+			import mx.controls.dataGridClasses.DataGridColumn;
+			import mx.events.CloseEvent;
+			import mx.events.FlexEvent;
+			import mx.rpc.events.FaultEvent;
+			import mx.rpc.events.ResultEvent;
+			//	描述    begin
+			//	描述    end
+			
+			//	0	输入参数    begin						
+			//	0	输入参数    end
+			
+			//	1	输出参数    begin
+			//	1	输出参数    end
+			
+			//	2	本地变量    begin	
+			[Bindable]
+			private var prvVar4dp4comAdgImProduct:ArrayCollection = new ArrayCollection();	
+			
+			[Bindable]
+			private var prvVar4dp4comAdgImProductCharacter:ArrayCollection = new ArrayCollection();	
+			
+			[Bindable]
+			private var prvVar4dp4comAdgImProductProCharacter:ArrayCollection = new ArrayCollection();	
+			[Bindable]
+			private var prvVar4dp4comAdgImProductWaring:ArrayCollection = new ArrayCollection();
+			
+			private var prvVar4arrFailedRecord:ArrayCollection = new ArrayCollection();
+			//	2	本地变量    end			
+			
+			//	3	公共方法    begin			
+			//	3	公共方法    end		
+			
+			//	4	初始化方法    begin	
+			protected function creationCompleteHandler(event:FlexEvent):void
+			{
+				
+			}	
+			
+			//	4	初始化方法    end				
+			
+			//	5	事件响应方法    begin
+			//------------------------interface data begin-----------------------//\
+			private function onLoad():void
+			{
+				var date:String = text_date.text;
+				var alert_title_hint:String = resourceManager.getString('alert','alert_title_hint');
+				var alert_msg:String="";
+				if(date=="")
+				{
+					
+					alert_msg  = resourceManager.getString('alert','alert_msg_inputdate12');
+					Alert.show( alert_msg, alert_title_hint );	
+					return;											
+				}
+				else
+				{
+					if(date.length!=8)
+					{
+						alert_msg  = resourceManager.getString('alert','alert_msg_inputdate_err12');
+						Alert.show( alert_msg, alert_title_hint );	
+						return;
+					}					
+					var ma:RegExp = new RegExp("^[0-9]+$");
+					if(!ma.test(date))
+					{
+						alert_msg  = resourceManager.getString('alert','alert_msg_inputdate_err12');
+						Alert.show( alert_msg, alert_title_hint );	
+						return;
+					}
+				}
+				
+				if(text_region.text == "")
+				{
+					alert_msg  = resourceManager.getString('alert','alert_msg_inputdate_noregion12a');
+					Alert.show( alert_msg, alert_title_hint );	
+					return;
+				}
+				var alert_msg_waitforgetdata:String = resourceManager.getString('alert','alert_msg_waitforgetdata12');
+				
+				Alert.show( alert_msg_waitforgetdata, alert_title_hint, Alert.OK | Alert.CANCEL, this, alert_msg_waitforgetdataConfirmHandler, null, Alert.OK );
+				
+			}
+			
+			private function alert_msg_waitforgetdataConfirmHandler(event:CloseEvent):void
+			{
+				if( event.detail == Alert.OK )
+				{
+					//	已经确认过，执行操作
+					UtilUi.pubFun4PopWaitWindow(this);
+					ifc.getInterFaceValues4SemiFinishedProduct("ZMM0004",text_date.text,text_region.text);
+				}
+			}
+			private function faultHandler4getInterFaceValues(event:FaultEvent):void
+			{
+				UtilUi.pubFun4RemoveWaitWindow();
+				Alert.show( UtilExceptionLocale.getExceptionMessageLocaleByFaultEvent( event ), resourceManager.getString('alert','alt_title_warn') );
+			}
+			
+			private function resultHandler4getInterFaceValues(event:ResultEvent):void 
+			{	
+				var resut:Object = event.result;
+				//第一步,装载产品
+				prvVar4dp4comAdgImProduct = new ArrayCollection();
+				var arr4products:ArrayCollection = resut.PRODUCT as ArrayCollection;
+				var newImProduct:ABImProduct = null;
+				for each (var product:BProduct in arr4products)
+				{
+					newImProduct = new ABImProduct();
+					newImProduct.importResult = null;
+					
+					//上级产品编码
+					if(product.parentProduct!=null)
+						newImProduct.parentCode = product.parentProduct.code;
+					
+					//	层次值
+					newImProduct.layerValue = "3";
+					
+					//	单位组编码
+					newImProduct.unitGroupCode = "U01";	
+					
+					//	管理单位编码
+					newImProduct.unitCode = "01";
+					
+					//	编码
+					newImProduct.code = product.code;
+					
+					//	名称
+					newImProduct.name = product.name;
+					
+					//	是否目录（0否1是）
+					newImProduct.isCatalog ="0";
+					
+					//	是否有效（0否1是）
+					newImProduct.isValid = "1";
+					
+					//	描述
+					newImProduct.description = "";
+					
+					//	备注
+					newImProduct.comments = "从接口读取";
+					
+					prvVar4dp4comAdgImProduct.addItem(newImProduct);
+				}
+				//第二部装载产品特征
+				prvVar4dp4comAdgImProductCharacter =  new ArrayCollection();
+				var arr4productcharacters:ArrayCollection = resut.PRODUCTCHARACTER as ArrayCollection; 
+				var newImProductCharacter:ABImProductCharacter = null;
+				for each(var productcharacter:BProductCharacter in arr4productcharacters)
+				{
+					newImProductCharacter = new ABImProductCharacter();
+					newImProductCharacter.importResult = null;
+					
+					
+					//	上级产品特征编码
+					if(productcharacter.parentProductCharacter!=null)
+						newImProductCharacter.parentCode = productcharacter.parentProductCharacter.code;
+					
+					//	层次值
+					newImProductCharacter.layerValue = "2";
+					
+					//	编码
+					newImProductCharacter.code = "";
+					
+					//	名称
+					newImProductCharacter.name = productcharacter.name;
+					
+					//	类型
+					newImProductCharacter.type =productcharacter.type;
+					
+					//	是否目录（0否1是）
+					newImProductCharacter.isCatalog = "0";
+					
+					//	描述
+					newImProductCharacter.description = "";
+					
+					//	备注
+					newImProductCharacter.comments = "从接口读取";
+					
+					
+					this.prvVar4dp4comAdgImProductCharacter.addItem( newImProductCharacter );
+				}
+				//第三步读取产品,特征关联关系
+				prvVar4dp4comAdgImProductProCharacter= new ArrayCollection();
+				var newImProductProCharacter:ABImProductProCharacter = null;
+				var hm4productprocharacter:ArrayCollection = resut.PRODUCTPROCHARACTER as ArrayCollection;
+				for each(var hmobj:Object in hm4productprocharacter)
+				{
+					newImProductProCharacter = new ABImProductProCharacter();
+					newImProductProCharacter.importResult = null;
+					
+					//	明细产品编码
+					newImProductProCharacter.detailProductCode = hmobj.PRODUCTCODE;
+					
+					//	明细产品特征编码
+					newImProductProCharacter.detailProductCharacterCode = hmobj.PROCDUCTCHARACTERCODE;
+					
+					
+					this.prvVar4dp4comAdgImProductProCharacter.addItem( newImProductProCharacter );
+				}
+				
+				//第四步，缺失特征的产品
+				
+				prvVar4dp4comAdgImProductWaring = new ArrayCollection();
+				
+				hm4productprocharacter = resut.NOCHARACTER as ArrayCollection;
+				for each(var hmobj4warning:Object in hm4productprocharacter)
+				{
+					newImProductProCharacter = new ABImProductProCharacter();
+					
+					//	明细产品编码
+					newImProductProCharacter.detailProductCode = hmobj4warning.PRODUCTCODE;
+					
+					//	明细产品特征编码
+					newImProductProCharacter.detailProductCharacterCode = hmobj4warning.REASON;
+					
+					
+					this.prvVar4dp4comAdgImProductWaring.addItem( newImProductProCharacter );
+				}
+				
+				UtilUi.pubFun4RemoveWaitWindow();
+			}
+			//------------------------interface data end------------------------------//
+			//------------------------product begin------------------------------//
+			private function onProductClear():void
+			{				
+				this.prvVar4dp4comAdgImProduct = new ArrayCollection();
+				this.comAdgImProduct.columnImportResult.visible = false;
+				
+			}
+			
+			private function onProductSave():void
+			{
+				var alert_title_hint:String = resourceManager.getString('alert','alert_title_hint');
+				var alert_msg:String = null;  
+				
+				if( this.prvVar4dp4comAdgImProduct.length <= 0 )
+				{
+					alert_msg = resourceManager.getString('alert','alert_msg_nodatatosave12');
+					Alert.show( alert_msg, alert_title_hint );	
+					return;												
+				}
+				
+				
+				UtilUi.pubFun4PopWaitWindow( this );
+				
+				this.srvProduct.importProduct( this.prvVar4dp4comAdgImProduct );
+			}	
+			
+			private function faultHandler4importProduct(event:FaultEvent):void
+			{
+				UtilUi.pubFun4RemoveWaitWindow();
+				Alert.show( UtilExceptionLocale.getExceptionMessageLocaleByFaultEvent( event ), resourceManager.getString('alert','alt_title_warn') );
+			}
+			
+			private function resultHandler4importProduct(event:ResultEvent):void 
+			{
+				this.prvVar4dp4comAdgImProduct = ArrayCollection(event.result);
+				
+				this.prvVar4arrFailedRecord = new ArrayCollection();
+				
+				var totalNum:int = 0; 
+				var failNum:int = 0;
+				var i:int;
+				var rstImProduct:ABImProduct = null;
+				if( this.prvVar4dp4comAdgImProduct != null )
+				{
+					totalNum = this.prvVar4dp4comAdgImProduct.length;
+					for( i=0; i<this.prvVar4dp4comAdgImProduct.length; i=i+1 )
+					{
+						rstImProduct = ABImProduct(this.prvVar4dp4comAdgImProduct.getItemAt(i));
+						if( rstImProduct.importResult != BizConst.IMPORT_RESULT_SUCCESS )
+						{
+							rstImProduct.importResult = UtilExceptionLocale.getExceptionMessageLocaleByCauseMessage( rstImProduct.importResult );
+							
+							this.prvVar4arrFailedRecord.addItem( rstImProduct ); 
+						}
+					}
+					failNum = this.prvVar4arrFailedRecord.length;
+				}
+				
+				UtilUi.pubFun4RemoveWaitWindow();
+				this.comAdgImProduct.columnImportResult.visible = true;
+				
+				var alert_title_hint:String = resourceManager.getString('alert','alert_title_hint');
+				var alert_msg:String = null;  	
+				
+				alert_msg = resourceManager.getString('alert','alert_msg_totalnum12');
+				alert_msg = alert_msg + totalNum + "\n";
+				alert_msg = alert_msg + resourceManager.getString('alert','alert_msg_failnum12');
+				alert_msg = alert_msg + failNum + "\n";
+				
+				Alert.show( alert_msg, alert_title_hint );
+				
+				if( failNum > 0 )
+				{
+					this.btnProductExport.enabled = true;
+				}
+				else
+				{
+					this.btnProductExport.enabled = false;
+				}
+			}		
+			
+			private function onProductExport():void
+			{
+				var TSVString:String = "";
+				
+				// Run through each field to create the column headers row
+				TSVString += this.comAdgImProduct.columnParentCode.headerText + "\t";
+				TSVString += this.comAdgImProduct.columnLayerValue.headerText + "\t";
+				TSVString += this.comAdgImProduct.columnUnitGroupCode.headerText + "\t";
+				TSVString += this.comAdgImProduct.columnUnitCode.headerText + "\t";
+				
+				TSVString += this.comAdgImProduct.columnCode.headerText + "\t";
+				TSVString += this.comAdgImProduct.columnName.headerText + "\t";
+				TSVString += this.comAdgImProduct.columnIsCatalog.headerText + "\t";
+				TSVString += this.comAdgImProduct.columnIsValid.headerText + "\t";
+				TSVString += this.comAdgImProduct.columnDescription.headerText + "\t";
+				TSVString += this.comAdgImProduct.columnComments.headerText + "\t";
+				
+				TSVString += this.comAdgImProduct.columnImportResult.headerText + "\n";
+				
+				
+				var i:int;
+				var failImProduct:ABImProduct = null;
+				if( this.prvVar4arrFailedRecord != null )
+				{
+					for( i=0; i<this.prvVar4arrFailedRecord.length; i=i+1 )
+					{
+						failImProduct = ABImProduct( this.prvVar4arrFailedRecord.getItemAt( i ) );
+						
+						TSVString += failImProduct.parentCode + "\t";
+						TSVString += failImProduct.layerValue + "\t";
+						TSVString += failImProduct.unitGroupCode + "\t";
+						TSVString += failImProduct.unitCode + "\t";
+						
+						TSVString += failImProduct.code + "\t";
+						TSVString += failImProduct.name + "\t";
+						TSVString += failImProduct.isCatalog + "\t";
+						TSVString += failImProduct.isValid + "\t";
+						TSVString += failImProduct.description + "\t";						
+						TSVString += failImProduct.comments + "\t";
+						
+						TSVString += failImProduct.importResult + "\n";          			           				
+					}	
+				}	
+				// Copy the TSV string to the clipboard
+				System.setClipboard(TSVString);					
+			}
+			//------------------------product end------------------------------//
+			//------------------------productcharacter begin------------------------------//
+			private function onProductCharacterClear():void
+			{
+				this.prvVar4dp4comAdgImProductCharacter = new ArrayCollection();
+				this.comAdgImProductCharacter.columnImportResult.visible = false;
+				
+			}
+			private function onProductCharacterSave():void
+			{
+				var alert_title_hint:String = resourceManager.getString('alert','alert_title_hint');
+				var alert_msg:String = null;  
+				
+				if( this.prvVar4dp4comAdgImProductCharacter.length <= 0 )
+				{
+					alert_msg = resourceManager.getString('alert','alert_msg_nodatatosave12');
+					Alert.show( alert_msg, alert_title_hint );	
+					return;												
+				}
+				
+				UtilUi.pubFun4PopWaitWindow( this );
+				
+				this.srvProduct.importProductCharacter( this.prvVar4dp4comAdgImProductCharacter );
+			}	
+			
+			private function faultHandler4importProductCharacter(event:FaultEvent):void
+			{
+				UtilUi.pubFun4RemoveWaitWindow();
+				Alert.show( UtilExceptionLocale.getExceptionMessageLocaleByFaultEvent( event ), resourceManager.getString('alert','alt_title_warn') );
+			}
+			
+			private function resultHandler4importProductCharacter(event:ResultEvent):void 
+			{			
+				this.prvVar4dp4comAdgImProductCharacter = ArrayCollection(event.result);
+				
+				this.prvVar4arrFailedRecord = new ArrayCollection();
+				
+				var totalNum:int = 0; 
+				var failNum:int = 0;
+				var i:int;
+				var rstImProductCharacter:ABImProductCharacter = null;
+				if( this.prvVar4dp4comAdgImProductCharacter != null )
+				{
+					totalNum = this.prvVar4dp4comAdgImProductCharacter.length;
+					for( i=0; i<this.prvVar4dp4comAdgImProductCharacter.length; i=i+1 )
+					{
+						rstImProductCharacter = ABImProductCharacter(this.prvVar4dp4comAdgImProductCharacter.getItemAt(i));
+						if( rstImProductCharacter.importResult != BizConst.IMPORT_RESULT_SUCCESS )
+						{
+							rstImProductCharacter.importResult = UtilExceptionLocale.getExceptionMessageLocaleByCauseMessage( rstImProductCharacter.importResult );
+							
+							this.prvVar4arrFailedRecord.addItem( rstImProductCharacter );
+						}
+					}
+					failNum = this.prvVar4arrFailedRecord.length;
+				}
+				
+				UtilUi.pubFun4RemoveWaitWindow();
+				this.comAdgImProductCharacter.columnImportResult.visible = true;
+				
+				var alert_title_hint:String = resourceManager.getString('alert','alert_title_hint');
+				var alert_msg:String = null;  	
+				
+				alert_msg = resourceManager.getString('alert','alert_msg_totalnum12');
+				alert_msg = alert_msg + totalNum + "\n";
+				alert_msg = alert_msg + resourceManager.getString('alert','alert_msg_failnum12');
+				alert_msg = alert_msg + failNum + "\n";
+				
+				Alert.show( alert_msg, alert_title_hint );
+				
+				if( failNum > 0 )
+				{
+					this.btnProductCharacterExport.enabled = true;
+				}
+				else
+				{
+					this.btnProductCharacterExport.enabled = false;
+				}				
+				
+			}		
+			
+			private function onProductCharacterExport():void
+			{
+				var TSVString:String = "";
+				
+				// Run through each field to create the column headers row
+				TSVString += this.comAdgImProductCharacter.columnParentCode.headerText + "\t";
+				TSVString += this.comAdgImProductCharacter.columnLayerValue.headerText + "\t";
+				
+				TSVString += this.comAdgImProductCharacter.columnCode.headerText + "\t";
+				TSVString += this.comAdgImProductCharacter.columnName.headerText + "\t";
+				TSVString += this.comAdgImProductCharacter.columnType.headerText + "\t";
+				TSVString += this.comAdgImProductCharacter.columnIsCatalog.headerText + "\t";
+				TSVString += this.comAdgImProductCharacter.columnDescription.headerText + "\t";
+				TSVString += this.comAdgImProductCharacter.columnComments.headerText + "\t";
+				
+				TSVString += this.comAdgImProductCharacter.columnImportResult.headerText + "\n";
+				
+				
+				var i:int;
+				var failImProductCharacter:ABImProductCharacter = null;
+				if( this.prvVar4arrFailedRecord != null )
+				{
+					for( i=0; i<this.prvVar4arrFailedRecord.length; i=i+1 )
+					{
+						failImProductCharacter = ABImProductCharacter( this.prvVar4arrFailedRecord.getItemAt( i ) );
+						
+						TSVString += failImProductCharacter.parentCode + "\t";
+						TSVString += failImProductCharacter.layerValue + "\t";
+						
+						TSVString += failImProductCharacter.code + "\t";
+						TSVString += failImProductCharacter.name + "\t";
+						TSVString += failImProductCharacter.type + "\t";
+						TSVString += failImProductCharacter.isCatalog + "\t";
+						TSVString += failImProductCharacter.description + "\t";						
+						TSVString += failImProductCharacter.comments + "\t";
+						
+						TSVString += failImProductCharacter.importResult + "\n";          			           				
+					}	
+				}	
+				// Copy the TSV string to the clipboard
+				System.setClipboard(TSVString);					
+			}			
+			//------------------------productcharacter end------------------------------//
+			
+			//------------------------productprocharacter begin------------------------------//
+			private function onProductProCharacterClear():void
+			{
+				this.prvVar4dp4comAdgImProductProCharacter = new ArrayCollection();
+				this.comAdgImProductProCharacter.columnImportResult.visible = false;
+			}
+			private function onProductProCharacterSave():void
+			{
+				var alert_title_hint:String = resourceManager.getString('alert','alert_title_hint');
+				var alert_msg:String = null;  
+				
+				if( this.prvVar4dp4comAdgImProductProCharacter.length <= 0 )
+				{
+					alert_msg = resourceManager.getString('alert','alert_msg_nodatatosave12');
+					Alert.show( alert_msg, alert_title_hint );	
+					return;												
+				}
+				
+				UtilUi.pubFun4PopWaitWindow( this );
+				
+				this.srvProduct.importProductProCharacter( this.prvVar4dp4comAdgImProductProCharacter );
+			}	
+			
+			private function faultHandler4importProductProCharacter(event:FaultEvent):void
+			{
+				UtilUi.pubFun4RemoveWaitWindow();
+				Alert.show( UtilExceptionLocale.getExceptionMessageLocaleByFaultEvent( event ), resourceManager.getString('alert','alt_title_warn') );
+			}
+			
+			private function resultHandler4importProductProCharacter(event:ResultEvent):void 
+			{
+				this.prvVar4dp4comAdgImProductProCharacter = ArrayCollection(event.result);
+				
+				this.prvVar4arrFailedRecord = new ArrayCollection();
+				
+				var totalNum:int = 0; 
+				var failNum:int = 0;
+				var i:int;
+				var rstImProductProCharacter:ABImProductProCharacter = null;
+				if( this.prvVar4dp4comAdgImProductProCharacter != null )
+				{
+					totalNum = this.prvVar4dp4comAdgImProductProCharacter.length;
+					for( i=0; i<this.prvVar4dp4comAdgImProductProCharacter.length; i=i+1 )
+					{
+						rstImProductProCharacter = ABImProductProCharacter(this.prvVar4dp4comAdgImProductProCharacter.getItemAt(i));
+						if( rstImProductProCharacter.importResult != BizConst.IMPORT_RESULT_SUCCESS )
+						{
+							rstImProductProCharacter.importResult = UtilExceptionLocale.getExceptionMessageLocaleByCauseMessage( rstImProductProCharacter.importResult );
+							
+							this.prvVar4arrFailedRecord.addItem( rstImProductProCharacter ); 
+						}
+					}
+					
+					failNum = this.prvVar4arrFailedRecord.length;
+				}
+				
+				UtilUi.pubFun4RemoveWaitWindow();
+				this.comAdgImProductProCharacter.columnImportResult.visible = true;
+				
+				var alert_title_hint:String = resourceManager.getString('alert','alert_title_hint');
+				var alert_msg:String = null;  	
+				
+				alert_msg = resourceManager.getString('alert','alert_msg_totalnum12');
+				alert_msg = alert_msg + totalNum + "\n";
+				alert_msg = alert_msg + resourceManager.getString('alert','alert_msg_failnum12');
+				alert_msg = alert_msg + failNum + "\n";
+				
+				Alert.show( alert_msg, alert_title_hint );	
+				
+				if( failNum > 0 )
+				{
+					this.btnProductProCharacterExport.enabled = true;
+				}
+				else
+				{
+					this.btnProductProCharacterExport.enabled = false;
+				}				
+			}		
+			
+			private function onProductProCharacterExport():void
+			{
+				var TSVString:String = "";
+				
+				// Run through each field to create the column headers row
+				TSVString += this.comAdgImProductProCharacter.columnDetailProductCode.headerText + "\t";
+				TSVString += this.comAdgImProductProCharacter.columnDetailProductCharacterCode.headerText + "\t";
+				
+				TSVString += this.comAdgImProductProCharacter.columnImportResult.headerText + "\n";
+				
+				
+				var i:int;
+				var failImProductProCharacter:ABImProductProCharacter = null;
+				if( this.prvVar4arrFailedRecord != null )
+				{
+					for( i=0; i<this.prvVar4arrFailedRecord.length; i=i+1 )
+					{
+						failImProductProCharacter = ABImProductProCharacter( this.prvVar4arrFailedRecord.getItemAt( i ) );
+						
+						TSVString += failImProductProCharacter.detailProductCode + "\t";
+						TSVString += failImProductProCharacter.detailProductCharacterCode + "\t";
+						
+						TSVString += failImProductProCharacter.importResult + "\n";          			           				
+					}	
+				}	
+				// Copy the TSV string to the clipboard
+				System.setClipboard(TSVString);					
+			}			
+			
+			//------------------------productprocharacter end------------------------------//
+			//------------------------product warning beginb---------//
+			
+			private function onProductWarning():void
+			{
+				var TSVString:String = this.exportCSV( this.comAdgImProductWarning ) ;
+				// Copy the TSV string to the clipboard
+				System.setClipboard(TSVString);					
+			}		
+			
+			//--------------------------end-------------//
+			
+			//	5	事件响应方法    end
+			
+			//	6	本地方法    begin
+			private function exportCSV(dg:DataGrid, csvSeparator:String="\t", lineSeparator:String="\n"):String
+			{
+				var data:String = "";
+				var columns:Array = dg.columns;
+				var columnCount:int = columns.length;
+				var column:DataGridColumn;
+				var header:String = "";
+				var headerGenerated:Boolean = false;
+				var dataProvider:Object = dg.dataProvider;
+				var rowCount:int = dataProvider.length;
+				var dp:Object = null;
+				
+				var cursor:IViewCursor = dataProvider.createCursor ();
+				var j:int = 0;
+				
+				//loop through rows
+				while (!cursor.afterLast)
+				{
+					var obj:Object = null;
+					obj = cursor.current;
+					
+					//loop through all columns for the row
+					for(var k:int = 0; k < columnCount; k++)
+					{
+						column = columns[k];
+						//Exclude column data which is invisible (hidden)
+						if(!column.visible)
+						{
+							continue;
+						}
+						
+						data += "\""+ column.itemToLabel(obj)+ "\"";
+						if(k < (columnCount -1))
+						{
+							data += csvSeparator;
+						}
+						//generate header of CSV, only if it's not genereted yet
+						if (!headerGenerated)
+						{
+							header += "\"" + column.headerText + "\"";
+							if (k < columnCount - 1)
+							{
+								header += csvSeparator;
+							}
+						}
+						
+						
+					}
+					
+					headerGenerated = true;
+					if (j < (rowCount - 1))
+					{
+						data += lineSeparator;
+					}
+					j++;
+					cursor.moveNext ();
+				}
+				
+				//set references to null:
+				dataProvider = null;
+				columns = null;
+				column = null;
+				
+				return (header + "\r\n" + data);
+			} 
+			//	6	本地方法   end			
+			
+			
+			
+			
+		]]>
+	</fx:Script>
+	<s:VGroup width="100%" height="100%">
+		<common:LabelBoundary labelText="{resourceManager.getString('menu','product')}" />
+		<containers:AksControlBar>
+			<s:Label  text="{resourceManager.getString('note','readPeriodFormat_YYYYMMDD')}" />
+			<s:TextInput id="text_date" maxChars="8" />
+			<mx:Spacer width="30" />
+			<s:Label  text="{resourceManager.getString('note','accessGroup')}" />
+			<s:TextInput id="text_region"  />
+			<mx:Spacer width="30"/>
+			<s:Button label="{resourceManager.getString('button','loadData')}" click="onLoad()" id="btnLoad"/> 			
+		</containers:AksControlBar>
+		<mx:TabNavigator width="100%" height="100%" id="tabNav4chart">
+			<s:NavigatorContent label="{resourceManager.getString('menu','product')}" width="100%" height="100%" id="tab4product">
+				<s:layout>
+					<s:VerticalLayout/>
+				</s:layout>
+				<containers:AksControlBar>
+					<buttons:ButtonSave click="onProductSave()" id="btnProductSave"/> 
+					<buttons:ButtonClear click="onProductClear()"/>
+					<buttons:ButtonRemove click="UtilArrayCollection.removeSelectedItems( this.prvVar4dp4comAdgImProduct, this.comAdgImProduct.selectedItems );"/>
+					<buttons:ButtonExpErrorRecord click="onProductExport()" id="btnProductExport" />
+				</containers:AksControlBar>
+				<product:Com_Product_ImProduct_AdvancedDataGrid id="comAdgImProduct" dataProvider="{this.prvVar4dp4comAdgImProduct}" width="100%" height="100%" editable="true" allowMultipleSelection="true"/>					
+			</s:NavigatorContent>
+			<s:NavigatorContent label="{resourceManager.getString('menu','proChar')}" width="100%" height="100%" id="tab4productcharcter" >
+				<s:layout>
+					<s:VerticalLayout/>
+				</s:layout>
+				<containers:AksControlBar>
+					<buttons:ButtonSave click="onProductCharacterSave()" id="btnProductCharacterSave"/> 
+					<buttons:ButtonClear click="onProductCharacterClear()"/>
+					<buttons:ButtonRemove click="UtilArrayCollection.removeSelectedItems(this.prvVar4dp4comAdgImProductCharacter,comAdgImProductCharacter.selectedItems)"/>
+					<buttons:ButtonExpErrorRecord click="onProductCharacterExport()" id="btnProductCharacterExport"/>
+				</containers:AksControlBar>
+				<product:Com_Product_ImProductCharacter_AdvancedDataGrid id="comAdgImProductCharacter" dataProvider="{this.prvVar4dp4comAdgImProductCharacter}" width="100%" height="100%" editable="true" allowMultipleSelection="true"/>				
+			</s:NavigatorContent>
+			<s:NavigatorContent label="{resourceManager.getString('menu','proNproChar')}" width="100%" height="100%" id="tab4productprocharcter" >
+				<s:layout>
+					<s:VerticalLayout/>
+				</s:layout>
+				<containers:AksControlBar>
+					<buttons:ButtonSave click="onProductProCharacterSave()" id="btnProductProCharacterSave"/> 
+					<buttons:ButtonClear click="onProductProCharacterClear()"/>
+					<buttons:ButtonRemove click="UtilArrayCollection.removeSelectedItems(this.prvVar4dp4comAdgImProductProCharacter,comAdgImProductProCharacter.selectedItems)"/>
+					<buttons:ButtonExpErrorRecord click="onProductProCharacterExport()" id="btnProductProCharacterExport" />
+				</containers:AksControlBar>
+				<product:Com_Product_ImProductProCharacter_AdvancedDataGrid id="comAdgImProductProCharacter" dataProvider="{this.prvVar4dp4comAdgImProductProCharacter}" width="100%" height="100%" editable="true" allowMultipleSelection="true"/>
+			</s:NavigatorContent>
+			<s:NavigatorContent label="{resourceManager.getString('menu','dataExcept')}" width="100%" height="100%" id="tab4productnocharacter">
+				<s:layout>
+					<s:VerticalLayout/>
+				</s:layout>
+				<containers:AksControlBar>
+					<buttons:ButtonExpErrorRecord click="onProductWarning()"/>
+				</containers:AksControlBar>
+				<security:Com_Security_Interface_ProductWarn_AdvancedDataGrid id="comAdgImProductWarning" dataProvider="{this.prvVar4dp4comAdgImProductWaring}" width="100%" height="100%"/>
+			</s:NavigatorContent>
+		</mx:TabNavigator>
+	</s:VGroup>
+</mx:Module>

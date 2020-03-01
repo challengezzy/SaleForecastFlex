@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:BorderContainer xmlns:fx="http://ns.adobe.com/mxml/2009" 
+				   xmlns:s="library://ns.adobe.com/flex/spark" 
+				   xmlns:mx="library://ns.adobe.com/flex/mx" width="100%" height="40"
+				   creationComplete="creationCompleteHandler(event)" 
+				   xmlns:security="dmdd.dmddmx.com.security.*" xmlns:buttons="com.cool.buttons.*">
+	<s:layout>
+		<s:HorizontalLayout paddingLeft="10" paddingRight="10" verticalAlign="middle" horizontalAlign="left"/>
+	</s:layout>
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+	</fx:Declarations>
+	<fx:Metadata>
+		[ResourceBundle("com_forecast_forecastmakelog_querycond")]
+	</fx:Metadata>
+	<fx:Script>
+		<![CDATA[
+			import dmdd.dmddas.common.constant.BizConst;
+			import dmdd.dmddas.common.constant.SysConst;
+			import dmdd.dmddas.common.system.ClientEnvironment;
+			import dmdd.dmddas.common.utils.UtilPeriod;
+			import dmdd.dmddas.dataaccess.bizobject.BSysDictionaryItem;
+			import com.cool.assets.CoolAssetsFile;
+
+			import mx.collections.ArrayCollection;
+			import mx.controls.Alert;
+			import mx.events.FlexEvent;
+			import mx.utils.StringUtil;
+			//	0	输入参数    begin
+			public var paramIn4queryCallback4thisObject:Object = null;
+			public var paramIn4queryCallback4function:Function = null;			
+			
+			[Bindable]
+			public var paramIn4enabled:Boolean = true;
+			//	0	输入参数    end
+			
+			//	1	输出参数    begin
+			private var paramOut4sqlRestriction:String = null;
+			private var paramOut4blPageQuery:Boolean = true;
+			//	1	输出参数    end
+			
+			//	2	本地变量    begin
+			[Bindable]
+			private var prvVar4arrDictForecastMakeLogActionType:ArrayCollection = ClientEnvironment.getSysDictionaryItems( "FORECASTMAKELOG", "ACTIONTYPE", true );
+			//	2	本地变量    end			
+			
+			//	3	公共方法    begin	
+			public function pubFun4getParamOut4sqlRestriction():String
+			{
+				return this.paramOut4sqlRestriction;
+			}
+			
+			public function pubFun4getParamOut4blPageQuery():Boolean
+			{
+				return this.paramOut4blPageQuery;
+			}
+			//	3	公共方法    end		
+			
+			//	4	初始化方法    begin			
+			protected function creationCompleteHandler(event:FlexEvent):void
+			{
+			}					
+			//	4	初始化方法    end				
+			
+			//	5	事件响应方法    begin
+			private function onQuery():void
+			{
+				var sqlRestriction:String = null;
+				
+				var alert_title_hint:String = resourceManager.getString('com_forecast_forecastmakelog_querycond','alert_title_hint');
+				var alert_msg:String = null;				
+				if( this.qcondComOperatorUserField.paramIo4selectedOperatorUser == null )
+				{
+					alert_msg = resourceManager.getString('com_forecast_forecastmakelog_querycond','alert_msg_nooperatoruser');
+					Alert.show( alert_msg, alert_title_hint);
+					return;					
+				}
+				sqlRestriction = "( operatorUserId = " + this.qcondComOperatorUserField.paramIo4selectedOperatorUser.id + ") ";
+				
+				var str4compilePeriod:String = StringUtil.trim(this.qcondTxtCompilePeriod.text);
+				if( str4compilePeriod != null && str4compilePeriod != "" )
+				{
+					var compilerPeriod:int = UtilPeriod.parse( str4compilePeriod );
+					if( compilerPeriod == SysConst.PERIOD_NULL )
+					{
+						alert_msg = resourceManager.getString('com_forecast_forecastmakelog_querycond','alert_msg_compileperiodisinvalid');
+						Alert.show( alert_msg, alert_title_hint);
+						return;											
+					}
+					sqlRestriction = sqlRestriction + " and (compilePeriod=" + compilerPeriod + ") ";
+				}
+				
+				var sysDictionaryItem:BSysDictionaryItem = BSysDictionaryItem(this.qcondComboBoxActionType.selectedItem);
+				if( sysDictionaryItem != null && sysDictionaryItem.value != BizConst.GLOBAL_NULL_NULL )
+				{
+					sqlRestriction = sqlRestriction + " and (actionType=" + sysDictionaryItem.value + ") ";
+				}
+				
+				this.paramOut4blPageQuery = this.qcondCheckBoxPageQuery.selected;
+				this.paramOut4sqlRestriction = sqlRestriction;
+				this.paramIn4queryCallback4function.call( this.paramIn4queryCallback4thisObject );
+			}			
+			//	5	事件响应方法    end
+			
+			//	6	本地方法    begin		
+			//	6	本地方法   end				
+
+		]]>
+	</fx:Script>
+	
+	<mx:Grid width="100%">
+		<mx:GridRow width="100%" height="100%" verticalAlign="middle">
+			<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+				<s:Label text="{resourceManager.getString('com_forecast_forecastmakelog_querycond','compileperiod')}"/>
+			</mx:GridItem>
+			<mx:GridItem width="100%" height="100%" verticalAlign="middle">
+				<s:TextInput id="qcondTxtCompilePeriod" width="100%" maxChars="6"/>
+			</mx:GridItem>
+			<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+			</mx:GridItem>
+			<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+				<s:Label text="{resourceManager.getString('com_forecast_forecastmakelog_querycond','actiontype')}"/>
+			</mx:GridItem>
+			<mx:GridItem width="100%" height="100%" verticalAlign="middle">
+				<s:ComboBox id="qcondComboBoxActionType" dataProvider="{this.prvVar4arrDictForecastMakeLogActionType}" width="100%"/>
+			</mx:GridItem>			
+			<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+			</mx:GridItem>
+			<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+				<s:Label text="{resourceManager.getString('com_forecast_forecastmakelog_querycond','operatoruser')}"/>
+			</mx:GridItem>
+			<mx:GridItem width="100%" height="100%" verticalAlign="middle">
+				<security:Com_Security_OperatorUser_Field id="qcondComOperatorUserField">
+				</security:Com_Security_OperatorUser_Field>
+			</mx:GridItem>
+			<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+			</mx:GridItem>
+			<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+				<s:CheckBox label="{resourceManager.getString('com_forecast_forecastmakelog_querycond','chkbox_pagequery')}" id="qcondCheckBoxPageQuery" selected="true"/>
+				<buttons:ButtonQuery click="onQuery()" enabled="{this.paramIn4enabled}"/>
+			</mx:GridItem>
+		</mx:GridRow>			
+	</mx:Grid>		
+</s:BorderContainer>

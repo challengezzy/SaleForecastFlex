@@ -1,0 +1,398 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Module xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		   xmlns:s="library://ns.adobe.com/flex/spark" 
+		   xmlns:mx="library://ns.adobe.com/flex/mx" layout="vertical" width="100%" height="100%" paddingLeft="10" paddingRight="10"
+		   creationComplete="creationCompleteHandler(event)" 
+		   xmlns:security="dmdd.dmddmx.com.security.*"
+		   xmlns:common="dmdd.dmddmx.com.common.*"
+		   xmlns:controls="aks.aksmx.controls.*" xmlns:charts="aks.aksmx.charts.*" xmlns:containers="aks.aksmx.containers.*" 
+		   xmlns:proorg="dmdd.dmddmx.com.proorg.*" xmlns:period="dmdd.dmddmx.com.period.*" xmlns:price="dmdd.dmddmx.com.price.*">
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+		<s:RemoteObject endpoint="{ClientEnvironment.endpoint}" id="srvPrice" destination="PriceService">	
+			<s:method name="getUiRowPriceDatas" result="resultHandler4getUiRowPriceDatas(event)" fault="faultHandler4getUiRowPriceDatas(event)">
+			</s:method>							  
+		</s:RemoteObject>		
+	</fx:Declarations>
+	<fx:Script>
+		<![CDATA[
+			import aks.aksas.charts.AksChartDataObject;
+			import aks.aksas.utils.UtilArrayCollection;
+			import aks.aksas.utils.UtilUi;
+			
+			import com.cool.assets.CoolAssetsFile;
+			import com.cool.utils.DataListExportUtil;
+			
+			import dmdd.dmddas.common.constant.BizConst;
+			import dmdd.dmddas.common.constant.SysConst;
+			import dmdd.dmddas.common.constant.UIConst;
+			import dmdd.dmddas.common.system.ClientEnvironment;
+			import dmdd.dmddas.common.utils.UtilExceptionLocale;
+			import dmdd.dmddas.common.utils.UtilPeriod;
+			import dmdd.dmddas.common.utils.UtilProOrg;
+			import dmdd.dmddas.common.utils.UtilUiPopbScope;
+			import dmdd.dmddas.common.utils.UtilUnit;
+			import dmdd.dmddas.dataaccess.aidobject.ABProOrg;
+			import dmdd.dmddas.dataaccess.aidobject.ABUiRowPriceData;
+			import dmdd.dmddas.dataaccess.bizobject.BUiPopbScope;
+			import dmdd.dmddas.dataaccess.bizobject.BUnit;
+			import dmdd.dmddas.dataaccess.bizobject.BUnitGroup;
+			import dmdd.dmddmx.com.chart.ForecastDataChartWindow;
+			
+			import mx.collections.ArrayCollection;
+			import mx.controls.Alert;
+			import mx.events.FlexEvent;
+			import mx.managers.PopUpManager;
+			import mx.rpc.events.FaultEvent;
+			import mx.rpc.events.ResultEvent;
+
+			
+			//	描述    begin
+			//	描述    end
+			
+			//	0	输入参数    begin						
+			//	0	输入参数    end
+			
+			//	1	输出参数    begin
+			//	1	输出参数    end
+			
+			//	2	本地变量    begin	
+			[Bindable]
+			private var dp4comAdgUiRowPriceData:ArrayCollection = new ArrayCollection();
+						
+			[Bindable]
+			private var dp4chart4scale:ArrayCollection = new ArrayCollection();
+			
+			private var arr4displayName4chart:ArrayCollection = new ArrayCollection();
+			private var arr4yField4chart:ArrayCollection = new ArrayCollection();
+			
+			[Bindable]
+			private var dp4qcondComAdgProOrg:ArrayCollection = new ArrayCollection();
+			
+			//	查询条件		begin
+			private var qcondArrDetailProOrgs:ArrayCollection = new ArrayCollection();
+			private var qcondPeriodBegin:int = ClientEnvironment.getSysPeriod().compilePeriod;
+			private var qcondPeriodEnd:int = ClientEnvironment.getSysPeriod().compilePeriod;
+			private var qcondBlPageProOrg:Boolean = true;
+			//	查询条件		end
+			
+			//	 显示设置		begin			
+			private var unit:BUnit = null;
+			[Bindable]
+			private var arrUnits:ArrayCollection = new ArrayCollection();
+			//	 显示设置		end			
+			
+			private var uiPopbScope:BUiPopbScope;
+			
+			/** 图形展示 */
+			private var chartWindow:ForecastDataChartWindow;
+			
+			//	2	本地变量    end			
+			
+			//	3	公共方法    begin			
+			//	3	公共方法    end		
+			
+			//	4	初始化方法    begin	
+			protected function creationCompleteHandler(event:FlexEvent):void
+			{				
+			}			
+			//	4	初始化方法    end				
+			
+			//	5	事件响应方法    begin	
+			private function onQuery():void
+			{
+				var alert_msg:String = "";
+				var alert_title_hint:String = resourceManager.getString('alert','alert_title_hint');
+				
+				UtilUi.pubFun4PopWaitWindow( this );
+				
+				uiPopbScope = condSetComp.getUiPopbScope();
+				
+				var arrCondProOrgs:ArrayCollection = UtilUiPopbScope.getProOrgsArrByUiScope(uiPopbScope);
+				//	求明细业务范围，并检查单位组		begin
+				//	如果单位检查可以更改算法，这里可以不必到明细， 但因为要计算默认显示单位，所以，还是要打碎到明细才行
+				qcondArrDetailProOrgs = UtilProOrg.getDetailProOrgs( arrCondProOrgs, true );
+				if( qcondArrDetailProOrgs == null || qcondArrDetailProOrgs.length <= 0)
+				{
+					UtilUi.pubFun4RemoveWaitWindow();
+					alert_msg = resourceManager.getString('alert','alter_msg_detailproorgisnull14');
+					Alert.show( alert_msg, alert_title_hint);
+					return;						
+				}
+				
+				unit = UtilUnit.getUnitByProOrgs(qcondArrDetailProOrgs,this);
+				unitGroupSet(unit);
+				
+				//查询期间
+				qcondPeriodBegin = UtilPeriod.getPeriod( ClientEnvironment.getSysPeriod().compilePeriod, uiPopbScope.periodOffsetBegin );
+				qcondPeriodEnd = UtilPeriod.getPeriod( ClientEnvironment.getSysPeriod().compilePeriod, uiPopbScope.periodOffsetEnd );
+				
+				comAdgUiRowPriceData.pubFun4setParamIo4periodBeginEnd( qcondPeriodBegin, qcondPeriodEnd );
+				
+				UtilUi.pubFun4RemoveWaitWindow();
+				
+				if( qcondBlPageProOrg == true )
+				{	
+					//	初始化数据表格控制板
+					comAksDataGridControlBar.pubFun4setResultParams( true, qcondArrDetailProOrgs.length, ClientEnvironment.getSysParamPageSize() );
+					
+					//	去执行第一页查询
+					prvFun4pageQueryPriceDatas( 1 );
+				}
+				else
+				{	
+					//	初始化数据表格控制板					
+					comAksDataGridControlBar.pubFun4setResultParams( false, qcondArrDetailProOrgs.length, qcondArrDetailProOrgs.length );
+					
+					//	不分页查询
+					UtilUi.pubFun4PopWaitWindow( this );
+														
+					dp4comAdgUiRowPriceData = new ArrayCollection();
+					srvPrice.getUiRowPriceDatas( qcondArrDetailProOrgs, qcondPeriodBegin, qcondPeriodEnd  );
+				}								
+			}			
+			
+			//	分页查询相关		begin			
+			private function prvFun4pageQueryPriceDatas( _pageIndex:int ):void
+			{
+				UtilUi.pubFun4PopWaitWindow( this );
+				var arrDetailProOrgs:ArrayCollection = new ArrayCollection();
+				var i:int;
+				var pageSize:int = ClientEnvironment.getSysParamPageSize();
+				var indexBegin:int = pageSize * (_pageIndex-1);
+				var indexEnd:int = pageSize * _pageIndex;
+				if( indexEnd > qcondArrDetailProOrgs.length )
+				{
+					indexEnd = qcondArrDetailProOrgs.length;
+				}
+				//	分页查询,根据pageIndex计算需要传递给服务器的查询条件
+				for( i=indexBegin; i<indexEnd; i=i+1 )
+				{
+					arrDetailProOrgs.addItem( qcondArrDetailProOrgs.getItemAt(i) );	
+				}
+						
+				dp4comAdgUiRowPriceData = new ArrayCollection();
+				srvPrice.getUiRowPriceDatas( arrDetailProOrgs, qcondPeriodBegin, qcondPeriodEnd );					
+			}			
+			//	分页查询相关		end		
+			
+			private function faultHandler4getUiRowPriceDatas(event:FaultEvent):void
+			{
+				UtilUi.pubFun4RemoveWaitWindow();
+				Alert.show( UtilExceptionLocale.getExceptionMessageLocaleByFaultEvent( event ), resourceManager.getString('alert','alt_title_warn') );
+			}	
+			
+			private function resultHandler4getUiRowPriceDatas(event:ResultEvent):void 
+			{
+				btnRefreshChart.enabled = true;
+				
+				dp4comAdgUiRowPriceData = ArrayCollection(event.result);
+				
+				var i:int;
+				var seledtedUnit:BUnit = null;
+				var uiRowPriceData:ABUiRowPriceData = null;
+				if( dp4comAdgUiRowPriceData != null )
+				{
+					seledtedUnit = BUnit(comboBoxUnit.selectedItem);		
+					if( seledtedUnit != null && seledtedUnit.isBase == BizConst.GLOBAL_YESNO_NO )
+					{
+						for( i=0; i<dp4comAdgUiRowPriceData.length; i=i+1 )
+						{
+							uiRowPriceData = ABUiRowPriceData(dp4comAdgUiRowPriceData.getItemAt(i));
+							uiRowPriceData.exchangeUnit( 1, seledtedUnit.exchangeRate );
+						}						
+					}
+					
+				}
+				UtilUi.pubFun4RemoveWaitWindow();
+			}				
+			
+			private function onChange4comboBoxUnit():void
+			{
+				//	单位变化	begin
+				var selectedUnit:BUnit = BUnit(comboBoxUnit.selectedItem)
+				var i:int;
+				
+				var uiRowPriceData:ABUiRowPriceData = null;
+				if( selectedUnit != null && unit != null && selectedUnit.id != unit.id )
+				{
+					if( dp4comAdgUiRowPriceData != null )
+					{
+						for( i=0; i<dp4comAdgUiRowPriceData.length; i=i+1 )
+						{
+							uiRowPriceData = ABUiRowPriceData(dp4comAdgUiRowPriceData.getItemAt(i));
+							uiRowPriceData.exchangeUnit( unit.exchangeRate, selectedUnit.exchangeRate );
+						}
+					}	
+					
+					unit = selectedUnit;
+				}
+				//	单位变化	end
+			}
+			
+			private function onRefreshChart():void
+			{
+				var i:int;
+				var uiRowPriceData:ABUiRowPriceData = null;
+				
+				//	收集被勾选的 uiRowPriceData	begin
+				var arr4checkedUiRowPriceData:ArrayCollection = new ArrayCollection();
+				if( dp4comAdgUiRowPriceData != null )
+				{
+					for( i=0; i<dp4comAdgUiRowPriceData.length; i=i+1 )
+					{
+						uiRowPriceData = ABUiRowPriceData(dp4comAdgUiRowPriceData.getItemAt(i));
+						if( uiRowPriceData.isChecked == true )
+						{
+							arr4checkedUiRowPriceData.addItem( uiRowPriceData );	
+						}
+					}
+				}
+				
+				var alert_title_hint:String = resourceManager.getString('alert','alert_title_hint');
+				var alert_msg:String = "";			
+				
+				if( arr4checkedUiRowPriceData.length > SysConst.CHART_MAX_NUM )
+				{
+					alert_msg = resourceManager.getString('alert','alert_msg_chartexceedmaxnum14');
+					Alert.show( alert_msg, alert_title_hint);					
+				}
+				//	收集被勾选的 uiRowPriceData	begin
+				
+				//	收集displayName 和 yFieldName	begin
+				arr4displayName4chart = new ArrayCollection();
+				arr4yField4chart = new ArrayCollection();
+				
+				var displayName:String = null;
+				var yFieldName:String = null;				
+				for( i=0; i<arr4checkedUiRowPriceData.length; i=i+1 )
+				{
+					uiRowPriceData = ABUiRowPriceData( arr4checkedUiRowPriceData.getItemAt(i) );
+					
+					displayName = uiRowPriceData.product.toString() + "_" + uiRowPriceData.organization.toString();
+					
+					yFieldName = AksChartDataObject.getFiledName(i);
+					
+					arr4displayName4chart.addItem( displayName );
+					arr4yField4chart.addItem( yFieldName );	
+				}	
+				//	收集displayName 和 yFieldName	begin			
+				
+				// 收集chart 数据源    begin
+				dp4chart4scale = new ArrayCollection();
+				
+				var periodDiff:int = UtilPeriod.getPeriodDifference( qcondPeriodBegin, qcondPeriodEnd );
+				if( periodDiff == SysConst.PERIOD_DIFF_NULL )
+				{
+					return;
+				}
+				
+				var periodLoc:int;
+				
+				var aksChartDataObject:AksChartDataObject = null;
+				var value4chart:Number;
+				for( periodLoc=0; periodLoc<=periodDiff; periodLoc=periodLoc+1 )
+				{
+					aksChartDataObject = new AksChartDataObject();
+					aksChartDataObject.categoryFieldValue = String( UtilPeriod.getPeriod( qcondPeriodBegin, periodLoc ) );
+					for( i=0; i<arr4checkedUiRowPriceData.length; i=i+1 )
+					{
+						uiRowPriceData = ABUiRowPriceData( arr4checkedUiRowPriceData.getItemAt(i) );
+					
+						if( comAdgUiRowPriceData.visible4StandardPrice == true )
+						{
+							value4chart = uiRowPriceData.pubFun4getPeriodDataValueStandardPrice(periodLoc);
+						}
+						else
+						{
+							value4chart = uiRowPriceData.pubFun4getPeriodDataValueRealPrice(periodLoc);	
+						}
+						
+						aksChartDataObject.setData( i, value4chart );
+					}
+					dp4chart4scale.addItem( aksChartDataObject );
+				}
+				// 收集chart 数据源    end	
+				
+				if(chartWindow == null){
+					chartWindow = new ForecastDataChartWindow();
+				}
+				
+				chartWindow.arr4displayName4chart4scale = arr4displayName4chart;
+				chartWindow.arr4yField4chart4scale = arr4yField4chart;
+				chartWindow.dp4chart4scale = dp4chart4scale;
+				
+				PopUpManager.addPopUp(chartWindow,ClientEnvironment.modWork);
+				PopUpManager.centerPopUp(chartWindow);
+				chartWindow.refreshTabStatus();
+				
+			}
+			
+			//	5	事件响应方法    end
+			
+			//	6	本地方法    begin
+			private function onExport():void
+			{				
+				var TSVString:String = DataListExportUtil.generateCsvData(comAdgUiRowPriceData,1) ;
+				
+				// Copy the TSV string to the clipboard
+				System.setClipboard(TSVString);					
+			}
+			
+			/** 设置单位组中的单位 */
+			private function unitGroupSet(unit:BUnit):void
+			{
+				var unitGroupId:Number = unit.unitGroup.id;
+				arrUnits = ClientEnvironment.getUnitGroup(unitGroupId).units;
+				
+				var selUnit:BUnit =null;
+				for(var i:int=0;i<arrUnits.length;i++)
+				{
+					selUnit = BUnit(arrUnits.getItemAt(i));
+					if(selUnit.id == unit.id)
+					{	
+						comboBoxUnit.selectedIndex = i; 
+						comboBoxUnit.selectedItem = selUnit;
+						break;
+					}
+				}
+				
+				comboBoxUnit.enabled = true;
+			}
+			
+			//	6	本地方法   end	
+			
+		]]>
+	</fx:Script>
+
+	<common:LabelBoundary paddingTop="5" labelText="{resourceManager.getString('menu','queryCond')}" />
+	<security:Com_Security_ProOrg_Period_Quick  id="condSetComp" width="100%" height="26"
+												uiCode="{UIConst.UICODE_PRICEDATA_QUERY}"								
+												executeCallback4thisObject="{this}" executeCallback4function="{onQuery}">
+	</security:Com_Security_ProOrg_Period_Quick>
+	
+	<common:LabelBoundary paddingTop="3" labelText="{resourceManager.getString('menu','priceData')}" />
+	<s:HGroup width="100%" verticalAlign="middle" paddingTop="3" paddingLeft="10">
+		<s:Label text="{resourceManager.getString('note','unit')}" id="lbUnit"/>
+		<s:ComboBox id="comboBoxUnit" dataProvider="{arrUnits}" change="onChange4comboBoxUnit()" enabled="false"/>
+		<s:Spacer width="10" />
+		<s:RadioButton id="btnStandPrice" value="standprice" groupName="group" label="{resourceManager.getString('note','standardPrice')}"/>
+		<s:RadioButton id="btnRealPrice" value="realprice" groupName="group"  label="{resourceManager.getString('note','actualPrice')}"  selected="true"/>
+		<mx:Spacer width="10"/>
+		<s:Button id="btnRefreshChart" click="onRefreshChart()" label="{resourceManager.getString('button','chartView')}" icon="{CoolAssetsFile.chart_lineIcon}" />
+		<s:Button id="btnExport" click="onExport()" label="{resourceManager.getString('button','export')}" icon="{CoolAssetsFile.excelIcon}"/>
+	</s:HGroup>
+	
+	<price:Com_Price_UiRowPriceData_AdvancedDataGrid id="comAdgUiRowPriceData" width="100%" height="100%" 
+													 dataProvider="{dp4comAdgUiRowPriceData}" editable="true"
+													 visible4StandardPrice="{btnStandPrice.selected}"
+													 visible4RealPrice="{btnRealPrice.selected}"  
+													 paramIn4visible4ProductCode="true" paramIn4visible4ProductName="true" 
+													 paramIn4visible4OrganizationCode="true" paramIn4visible4OrganizationName="true"/>
+	
+	<controls:AksDataGridControlBar id="comAksDataGridControlBar" paramIn4enabled4BtnSetColumns="true"
+									paramIn4dataGrid="{comAdgUiRowPriceData}" paramIn4callback4thisObject="{this}" 
+									paramIn4callback4queryFunction="{prvFun4pageQueryPriceDatas}">
+	</controls:AksDataGridControlBar>
+	
+</mx:Module>

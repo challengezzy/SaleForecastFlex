@@ -1,0 +1,10 @@
+﻿choosertitle=选择查询范围
+
+lb_producct=产品选择
+lb_dc=分销中心选择
+
+btn_ok=确定
+
+alert_title_hint=提示
+alert_msg_nopro=请选择产品！
+alert_msg_nodc=请选择分销中心!

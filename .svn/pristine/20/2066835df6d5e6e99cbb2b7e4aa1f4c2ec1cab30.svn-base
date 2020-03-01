@@ -1,0 +1,318 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Module xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		   xmlns:s="library://ns.adobe.com/flex/spark" 
+		   xmlns:mx="library://ns.adobe.com/flex/mx" layout="vertical" width="100%" height="100%" paddingLeft="10" paddingRight="10" 
+		   creationComplete="creationCompleteHandler(event)" 
+		   xmlns:common="dmdd.dmddmx.com.common.*"
+		   xmlns:history="dmdd.dmddmx.com.history.*" xmlns:controls="aks.aksmx.controls.*" xmlns:containers="aks.aksmx.containers.*">
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+		<s:RemoteObject endpoint="{ClientEnvironment.endpoint}" id="srvHistory" destination="HistoryService">
+			<s:method name="getHistoryAdjustLogsStat" result="resultHandler4getHistoryAdjustLogsStat(event)" fault="faultHandler4getHistoryAdjustLogsStat(event)">
+			</s:method>			
+			<s:method name="getHistoryAdjustLogs" result="resultHandler4getHistoryAdjustLogs(event)" fault="faultHandler4getHistoryAdjustLogs(event)">
+			</s:method>			
+			<s:method name="getHistoryAdjustLog" result="resultHandler4getHistoryAdjustLog(event)" fault="faultHandler4getHistoryAdjustLog(event)">
+			</s:method>	
+		</s:RemoteObject>		
+	</fx:Declarations>
+	<fx:Script>
+		<![CDATA[
+			import aks.aksas.utils.UtilUi;
+			
+			import dmdd.dmddas.common.system.ClientEnvironment;
+			import dmdd.dmddas.common.utils.UtilExceptionLocale;
+			import dmdd.dmddas.common.utils.UtilPeriod;
+			import dmdd.dmddas.dataaccess.bizobject.BHistoryAdjustLog;
+			import dmdd.dmddas.dataaccess.bizobject.BHistoryAdjustLogAdjustItem;
+			import dmdd.dmddas.dataaccess.bizobject.BHistoryAdjustLogProOrg;
+			import dmdd.dmddas.dataaccess.bizobject.BUnit;
+			import com.cool.assets.CoolAssetsFile;
+
+			import mx.collections.ArrayCollection;
+			import mx.controls.Alert;
+			import mx.events.FlexEvent;
+			import mx.events.IndexChangedEvent;
+			import mx.rpc.events.FaultEvent;
+			import mx.rpc.events.ResultEvent;
+			import mx.utils.StringUtil;
+			
+			
+			//	描述    begin
+			//	描述    end
+			
+			//	0	输入参数    begin						
+			//	0	输入参数    end
+			
+			//	1	输出参数    begin
+			//	1	输出参数    end
+			
+			//	2	本地变量    begin	
+			[Bindable]
+			private var prvVar4dp4comAdgHistoryAdjustLog:ArrayCollection = new ArrayCollection();
+			
+			private var prvVar4sqlRestriction:String = null;	
+			[Bindable]
+			private var prvVar4selectedNum:int = -1;
+			//	2	本地变量    end			
+			
+			//	3	公共方法    begin			
+			//	3	公共方法    end		
+			
+			//	4	初始化方法    begin	
+			protected function creationCompleteHandler(event:FlexEvent):void
+			{
+				this.comQCond.qcondTxtCompilePeriod.text = String(ClientEnvironment.getSysPeriod().compilePeriod);
+			}			
+			//	4	初始化方法    end				
+			
+			//	5	事件响应方法    begin		
+			private function callbackFunction4query4comQCond():void
+			{				
+				this.prvVar4sqlRestriction = this.comQCond.pubFun4getParamOut4sqlRestriction();
+				var blPageQuery:Boolean = this.comQCond.pubFun4getParamOut4blPageQuery();
+				
+				if( blPageQuery == true )
+				{	
+					UtilUi.pubFun4PopWaitWindow( this );
+					this.srvHistory.getHistoryAdjustLogsStat( this.prvVar4sqlRestriction );	
+				}
+				else
+				{	
+					//	不分页查询
+					UtilUi.pubFun4PopWaitWindow( this );
+					this.srvHistory.getHistoryAdjustLogs( this.prvVar4sqlRestriction, true, true, -1, ClientEnvironment.getSysParamPageSize() );
+				}								
+			}			
+			
+			//	分页查询相关		begin
+			private function faultHandler4getHistoryAdjustLogsStat(event:FaultEvent):void
+			{
+				UtilUi.pubFun4RemoveWaitWindow();
+				Alert.show( UtilExceptionLocale.getExceptionMessageLocaleByFaultEvent( event ), resourceManager.getString('alert','alt_title_warn') );
+			}	
+			
+			private function resultHandler4getHistoryAdjustLogsStat(event:ResultEvent):void 
+			{
+				//	初始化数据表格控制板
+				var rstSize:Number = Number(event.result);
+				this.comAksDataGridControlBar.pubFun4setResultParams( true, rstSize, ClientEnvironment.getSysParamPageSize() );
+				
+				//	去执行第一页查询
+				this.srvHistory.getHistoryAdjustLogs( this.prvVar4sqlRestriction, true, true, 1, ClientEnvironment.getSysParamPageSize() );
+			}
+			
+			private function prvFun4pageQueryHistoryAdjustLogs( _pageIndex:int ):void
+			{
+				UtilUi.pubFun4PopWaitWindow( this );
+				this.srvHistory.getHistoryAdjustLogs( this.prvVar4sqlRestriction, true, true, _pageIndex, ClientEnvironment.getSysParamPageSize() );					
+			}			
+			//	分页查询相关		end
+			
+			
+			private function faultHandler4getHistoryAdjustLogs(event:FaultEvent):void
+			{
+				UtilUi.pubFun4RemoveWaitWindow();
+				Alert.show( UtilExceptionLocale.getExceptionMessageLocaleByFaultEvent( event ), resourceManager.getString('alert','alt_title_warn') );
+			}	
+			
+			private function resultHandler4getHistoryAdjustLogs(event:ResultEvent):void 
+			{
+				this.prvVar4dp4comAdgHistoryAdjustLog = ArrayCollection(event.result);			
+				
+				
+				if( this.comQCond.pubFun4getParamOut4blPageQuery() == false )
+				{
+					//	不是分页查询，需要根据查询结果初始化数据表格控制板
+					this.comAksDataGridControlBar.pubFun4setResultParams( false, this.prvVar4dp4comAdgHistoryAdjustLog.length, this.prvVar4dp4comAdgHistoryAdjustLog.length );
+				}
+				
+				UtilUi.pubFun4RemoveWaitWindow();
+			}				
+			
+			
+			
+			private function onChange4comAdgHistoryAdjustLog():void
+			{
+				if(this.comAdgHistoryAdjustLog.selectedIndex>-1)
+				{
+					var selectedHistoryAdjustLog:BHistoryAdjustLog = BHistoryAdjustLog( this.comAdgHistoryAdjustLog.selectedItem );		
+					this.prvVar4selectedNum = this.comAdgHistoryAdjustLog.selectedIndex;
+					if(selectedHistoryAdjustLog.isGetDetail == false)
+					{
+						this.srvHistory.getHistoryAdjustLog(selectedHistoryAdjustLog.id);
+						UtilUi.pubFun4PopWaitWindow(this);
+					}
+					
+				}
+			}
+			private function faultHandler4getHistoryAdjustLog(event:FaultEvent):void
+			{
+				UtilUi.pubFun4RemoveWaitWindow();
+				Alert.show( UtilExceptionLocale.getExceptionMessageLocaleByFaultEvent( event ), resourceManager.getString('alert','alt_title_warn') );
+			}	
+			
+			private function resultHandler4getHistoryAdjustLog(event:ResultEvent):void 
+			{
+				UtilUi.pubFun4RemoveWaitWindow();
+				var selectedHistoryAdjustLog:BHistoryAdjustLog = BHistoryAdjustLog(event.result);
+				selectedHistoryAdjustLog.isGetDetail = true;
+				this.prvVar4dp4comAdgHistoryAdjustLog.removeItemAt(this.prvVar4selectedNum);
+				this.prvVar4dp4comAdgHistoryAdjustLog.addItemAt(selectedHistoryAdjustLog,this.prvVar4selectedNum);
+				this.comAdgHistoryAdjustLog.selectedItem = selectedHistoryAdjustLog;
+	
+				//转换单位
+				var historyAdjustLogAdjustItems:ArrayCollection;
+				var historyAdjustLogAdjustProOrgs:ArrayCollection;
+
+				var unit:BUnit;
+
+				historyAdjustLogAdjustProOrgs = selectedHistoryAdjustLog.historyAdjustLogProOrgs;
+				var historyAdjustLogAdjustProOrg:BHistoryAdjustLogProOrg;
+				unit=null;
+				for(var k:int =0; k<historyAdjustLogAdjustProOrgs.length;k++)
+				{
+					historyAdjustLogAdjustProOrg =BHistoryAdjustLogProOrg( historyAdjustLogAdjustProOrgs.getItemAt(k));
+					if(unit==null)
+					{
+						unit = historyAdjustLogAdjustProOrg.product.unit;
+					}
+					else
+					{
+						if(historyAdjustLogAdjustProOrg.product!=null && unit.id!=historyAdjustLogAdjustProOrg.product.unit.id)
+						{
+							unit = historyAdjustLogAdjustProOrg.product.unitGroup.getBaseUnit();
+						}
+					}							
+				}
+				
+				historyAdjustLogAdjustItems = selectedHistoryAdjustLog.historyAdjustLogAdjustItems;
+				var HistoryAdjustLogAdjustItem:BHistoryAdjustLogAdjustItem;
+				
+				for(var j:int = 0;j<historyAdjustLogAdjustItems.length;j++)
+				{
+					HistoryAdjustLogAdjustItem = BHistoryAdjustLogAdjustItem(historyAdjustLogAdjustItems.getItemAt(j));
+					
+					if(HistoryAdjustLogAdjustItem.product!=null)
+					{
+						if(unit!=null && unit.id ==HistoryAdjustLogAdjustItem.product.unit.id)
+						{
+							HistoryAdjustLogAdjustItem.exchangeUnit(1,unit.exchangeRate);
+						}						
+						else 
+						{
+							HistoryAdjustLogAdjustItem.exchangeUnit(1,HistoryAdjustLogAdjustItem.product.unit.exchangeRate);
+						}						
+					}
+					else
+					{
+						if(unit!=null)
+						{
+							HistoryAdjustLogAdjustItem.exchangeUnit(1,unit.exchangeRate);
+						}
+					}
+				}
+				
+				
+				
+				if( this.tabNav4detail.selectedChild == this.tab4adjustItem )
+				{	
+					if( this.comAdgHistoryAdjustLogAdjustItem == null )
+					{
+						return;
+					}
+					
+					if( this.comAdgHistoryAdjustLog.selectedItem == null )
+					{
+						this.comAdgHistoryAdjustLogAdjustItem.setVisible4Dimension( false, false, false, false );
+						return;
+					}					
+					
+					var arrHistoryAdjustLogAdjustItems:ArrayCollection = selectedHistoryAdjustLog.historyAdjustLogAdjustItems;
+					if( arrHistoryAdjustLogAdjustItems == null || arrHistoryAdjustLogAdjustItems.length <= 0 )
+					{
+						this.comAdgHistoryAdjustLogAdjustItem.setVisible4Dimension( false, false, false, false );
+						return;
+					} 
+					
+					var blDispProduct:Boolean = false;
+					var blDispProductCharacter:Boolean = false;
+					var blDispOrganization:Boolean = false;
+					var blDispOrganizationCharacter:Boolean = false;
+					
+					var historyAdjustLogAdjustItem:BHistoryAdjustLogAdjustItem = null;
+					var i:int;
+					for( i=0; i<arrHistoryAdjustLogAdjustItems.length; i=i+1 )
+					{
+						if( (blDispProduct || blDispProductCharacter ) && (blDispOrganization || blDispOrganizationCharacter) )
+						{
+							//	最多列的可能
+							break;
+						}
+						// 有可能不整齐，所以都检查过来，而不是取一个就行
+						historyAdjustLogAdjustItem = BHistoryAdjustLogAdjustItem(arrHistoryAdjustLogAdjustItems.getItemAt( i ));
+						if( historyAdjustLogAdjustItem.product != null )
+						{
+							blDispProduct = true;
+						}
+						if( historyAdjustLogAdjustItem.productCharacter != null )
+						{
+							blDispProductCharacter = true;
+						}
+						if( historyAdjustLogAdjustItem.organization != null )
+						{
+							blDispOrganization = true;
+						}
+						if( historyAdjustLogAdjustItem.organizationCharacter != null )
+						{
+							blDispOrganizationCharacter = true;
+						}					
+					}
+					this.comAdgHistoryAdjustLogAdjustItem.setVisible4Dimension( blDispProduct, blDispProductCharacter, blDispOrganization, blDispOrganizationCharacter );					
+				}	
+			}
+			protected function tabNav4detail_changeHandler(event:IndexChangedEvent):void
+			{
+				this.onChange4comAdgHistoryAdjustLog();
+			}	
+			
+			//	5	事件响应方法    end
+			
+			//	6	本地方法    begin
+			//	6	本地方法   end	
+			
+		]]>
+	</fx:Script>
+	<history:Com_History_HistoryAdjustLog_QueryCond width="100%" id="comQCond" paramIn4queryCallback4thisObject="{this}" paramIn4queryCallback4function="{this.callbackFunction4query4comQCond}" paramIn4enabled="{true}">
+	</history:Com_History_HistoryAdjustLog_QueryCond>	
+
+	<mx:VDividedBox width="100%" height="100%">
+		<s:VGroup width="100%">
+			<common:LabelBoundary paddingTop="5" labelText="{resourceManager.getString('menu','cleanLog')}" />
+			<controls:AksDataGridControlBar id="comAksDataGridControlBar" width="100%" paramIn4callback4thisObject="{this}" paramIn4callback4queryFunction="{this.prvFun4pageQueryHistoryAdjustLogs}" paramIn4dataGrid="{this.comAdgHistoryAdjustLog}">
+			</controls:AksDataGridControlBar>	
+			<history:Com_History_HistoryAdjustLog_AdvancedDataGrid id="comAdgHistoryAdjustLog" dataProvider="{this.prvVar4dp4comAdgHistoryAdjustLog}" change="onChange4comAdgHistoryAdjustLog()" width="100%" height="100%"/>
+		</s:VGroup>
+
+		<s:VGroup width="100%">
+			<common:LabelBoundary paddingTop="5" labelText="{resourceManager.getString('menu','cleanDetail')}" />
+			<mx:TabNavigator width="100%" height="100%" id="tabNav4detail" change="tabNav4detail_changeHandler(event)">
+				<s:NavigatorContent label="{resourceManager.getString('menu','cleanScope')}" width="100%" height="100%">
+					<s:layout>
+						<s:VerticalLayout/>
+					</s:layout>
+					<history:Com_History_HistoryAdjustLogProOrg_AdvancedDataGrid width="100%" height="100%" dataProvider="{BHistoryAdjustLog(this.comAdgHistoryAdjustLog.selectedItem).historyAdjustLogProOrgs}"/>
+					
+				</s:NavigatorContent>
+				<s:NavigatorContent label="{resourceManager.getString('menu','cleanDetail')}" id="tab4adjustItem" width="100%" height="100%">
+					<s:layout>
+						<s:VerticalLayout/>
+					</s:layout>
+					<history:Com_History_HistoryAdjustLogAdjustItem_AdvancedDataGrid id="comAdgHistoryAdjustLogAdjustItem" width="100%" height="100%" dataProvider="{BHistoryAdjustLog(this.comAdgHistoryAdjustLog.selectedItem).historyAdjustLogAdjustItems}"/>
+				</s:NavigatorContent>
+			</mx:TabNavigator>			
+		</s:VGroup>
+	
+		
+	</mx:VDividedBox>
+</mx:Module>

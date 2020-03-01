@@ -1,0 +1,841 @@
+<?xml version="1.0" encoding="utf-8"?>
+<components:SuperTitleWindow xmlns:fx="http://ns.adobe.com/mxml/2009" 
+			   xmlns:s="library://ns.adobe.com/flex/spark" 
+			   xmlns:mx="library://ns.adobe.com/flex/mx" width="1000" height="550" close="onCancel()"
+			   creationComplete="creationCompleteHandler(event)" enableResize="false"
+			   xmlns:containers="aks.aksmx.containers.*" 
+			   xmlns:forecast="dmdd.dmddmx.com.forecast.*"  xmlns:bizdata="dmdd.dmddmx.com.bizdata.*" xmlns:charts="aks.aksmx.charts.*" xmlns:common="dmdd.dmddmx.com.common.*" xmlns:components="com.cool.components.*" xmlns:buttons="com.cool.buttons.*">
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+		<s:RemoteObject endpoint="{ClientEnvironment.endpoint}" id="srvForecast" destination="ForecastService">
+			<s:method name="forecastModelMSimulate" result="resultHandler4forecastModelMSimulate(event)" fault="faultHandler4forecastModelMSimulate(event)">
+			</s:method>			
+		</s:RemoteObject>		
+		<s:RemoteObject endpoint="{ClientEnvironment.endpoint}" id="srvUiRowData" destination="UiRowDataService">
+			<s:method name="getUiRowDatas" result="resultHandler4getUiRowDatas(event)" fault="faultHandler4getUiRowDatas(event)">
+			</s:method>					
+		</s:RemoteObject>		
+	</fx:Declarations>
+	<fx:Metadata>
+		[ResourceBundle("com_forecast_forecastmodelm_simulatorchooser")]
+	</fx:Metadata>	
+	<fx:Script>
+		<![CDATA[
+			import aks.aksas.charts.AksChartDataObject;
+			import aks.aksas.collections.HashMap;
+			import aks.aksas.utils.UtilNumber;
+			import aks.aksas.utils.UtilUi;
+			
+			import com.cool.assets.CoolAssetsFile;
+			
+			import dmdd.dmddas.common.constant.BizConst;
+			import dmdd.dmddas.common.constant.SysConst;
+			import dmdd.dmddas.common.constant.UIConst;
+			import dmdd.dmddas.common.system.ClientEnvironment;
+			import dmdd.dmddas.common.utils.UtilExceptionLocale;
+			import dmdd.dmddas.common.utils.UtilPeriod;
+			import dmdd.dmddas.common.utils.UtilProOrg;
+			import dmdd.dmddas.common.utils.UtilUiRowData;
+			import dmdd.dmddas.dataaccess.aidobject.ABProOrg;
+			import dmdd.dmddas.dataaccess.aidobject.ABUiRowData;
+			import dmdd.dmddas.dataaccess.aidobject.ABUiRowDataProOrg;
+			import dmdd.dmddas.dataaccess.bizobject.BBizData;
+			import dmdd.dmddas.dataaccess.bizobject.BForecastErrorMappingModel;
+			import dmdd.dmddas.dataaccess.bizobject.BForecastModelM;
+			import dmdd.dmddas.dataaccess.bizobject.BOrganizationLayer;
+			import dmdd.dmddas.dataaccess.bizobject.BProductLayer;
+			import dmdd.dmddas.dataaccess.bizobject.BSysDictionaryItem;
+			import dmdd.dmddas.dataaccess.bizobject.BUnit;
+			import dmdd.dmddas.dataaccess.bizobject.BUnitGroup;
+			
+			import mx.collections.ArrayCollection;
+			import mx.controls.Alert;
+			import mx.events.FlexEvent;
+			import mx.events.ListEvent;
+			import mx.managers.PopUpManager;
+			import mx.rpc.events.FaultEvent;
+			import mx.rpc.events.ResultEvent;
+			import mx.utils.StringUtil;
+			
+			//	描述		begin
+			//	描述		end
+			
+			//	0	输入参数    begin	
+			private var paramIn4closeCallback4thisObject:Object = null;
+			private var paramIn4closeCallback4function:Function = null;				
+			
+			private var paramIn4simulate4arrProOrg:ArrayCollection = new ArrayCollection();
+			private var paramIn4simulate4runProductLayer:BProductLayer = null;
+			private var paramIn4simulate4runOrganizationLayer:BOrganizationLayer = null;
+			private var paramIn4simulate4fcPeriodNum:int = 3;			
+			//	0	输入参数    end
+			
+			//	1	输出参数    begin
+			private var paramOut4selectedForecastModelM:BForecastModelM = null;	
+
+			
+			private var paramOut4winCloseWay:int = UtilUi.WINDOW_CLOSEWAY_CANCEL;		
+			//	1	输出参数    end
+			
+			//	2	本地变量    begin				
+			[Bindable]
+			private var prvVar4dp4comAdgForecastModelM:ArrayCollection = new ArrayCollection();
+			
+
+			[Bindable]
+			private var prvVar4arrDictBizDataType:ArrayCollection = new ArrayCollection();
+			
+			private var prvVar4chooserWindow:Com_Forecast_ForecastModelM_Chooser = null;
+			
+			public var comForecastModelMProperties_SetParam:Com_Forecast_ForecastlM_Properties_SetParam= null;
+			//	simulator 参数	begin			
+			private var prvVar4simulatorHistoryBizData:BBizData = null;
+			
+	
+			private var prvVar4simulatorHistoryDataDispPeriodNum:int = 3;	//	ClientEnvironment.getSysPeriod().forecastRunPeriod 向前 	HistoryDataDispPeriodNum 是图形开始期间
+	
+			private var prvVar4simulatorOutlierAnalyzePeriodNum:int = 3;	//	ClientEnvironment.getSysPeriod().forecastRunPeriod 向前 	OutlierAnalyzePeriodNum 是容差分析开始期间
+			
+			private var prvVar4simulatorFcPeriodNum:int = 3;	//	ClientEnvironment.getSysPeriod().forecastRunPeriod 向后 	FcPeriodNum 是图形终止期间
+			
+			[Bindable]
+			private var prvVar4simulator4dp4aksLineChart:ArrayCollection = new ArrayCollection();
+			
+			[Bindable]
+			private var prvVar4simulator4dp4comAdgForecastErrorMappingModel:ArrayCollection = new ArrayCollection();
+			
+			
+			private var prvVar4simulator4hmap4arrUiRowData4ForecastData:HashMap = new HashMap();
+			private var prvVar4simulator4uiRowData4HistoryData:ABUiRowData = null;
+			
+			private var prvVar4simulator4hmap4arrForecastErrorMappingModel:HashMap = new HashMap();
+			
+			private var prvVar4simulator4hmap4delete:HashMap = new HashMap();//用来关联显示显示和误差分析
+			//	simulator 参数	end
+			
+			//add by luowang 20110807 为了让模型一个个运行，这里加入一个运行记录数，标示运行到第几个模型  begin
+			[Bindable]
+			private var prvVar4simulatorRunNum:int = 0;
+			[Bindable]
+			private var arr4selectModelM:ArrayCollection = new ArrayCollection();
+			[Bindable]
+			private var prvVar4runForecastModelM:BForecastModelM;
+			//add by luowang 20110807 为了让模型一个个运行，这里加入一个运行记录数，标示运行到第几个模型  end
+			
+			[Bindable]
+			private var manageUnit:BUnit = new BUnit();
+			//	2	本地变量    end			
+			
+			//	3	公共方法    begin	
+			//	关闭回调函数参数													
+			public function pubFun4setParamIn4closeCallback( _thisObject:Object, _function:Function ):void
+			{
+				this.paramIn4closeCallback4thisObject = _thisObject;
+				this.paramIn4closeCallback4function = _function;	
+			}
+			//	关闭方式参数
+			public function pubFun4getParamOut4winCloseWay():int
+			{
+				return this.paramOut4winCloseWay;
+			}				
+			//	关闭窗口
+			private function prvFun4close():void
+			{
+				PopUpManager.removePopUp( this );						
+				this.paramIn4closeCallback4function.call( this.paramIn4closeCallback4thisObject );				
+			}							
+			
+			
+			//	处理对象参数
+			public function pubFun4getParamOut4selectedForecastModelM():BForecastModelM
+			{
+				return this.paramOut4selectedForecastModelM;
+			}										
+			
+			//	模拟参数
+			public function pubFun4setParamIn4simulate( _paramIn4simulate4arrProOrg:ArrayCollection, _paramIn4simulate4runProductLayer:BProductLayer, _paramIn4simulate4runOrganizationLayer:BOrganizationLayer, _paramIn4simulate4fcPeriodNum:int, _currentMappingModel:BForecastModelM ):void
+			{
+				this.paramIn4simulate4arrProOrg = _paramIn4simulate4arrProOrg;
+				this.paramIn4simulate4runProductLayer = _paramIn4simulate4runProductLayer;
+				this.paramIn4simulate4runOrganizationLayer  = _paramIn4simulate4runOrganizationLayer;
+				this.paramIn4simulate4fcPeriodNum = _paramIn4simulate4fcPeriodNum;
+				
+				//	清除上次使用的信息并把当前预测类别的模型放入待选模型列表	begin
+				this.prvVar4dp4comAdgForecastModelM = new ArrayCollection();
+				this.prvVar4simulator4dp4aksLineChart = new ArrayCollection();
+				this.prvVar4simulator4dp4comAdgForecastErrorMappingModel = new ArrayCollection();
+				this.prvVar4simulator4hmap4arrForecastErrorMappingModel.clear();
+				this.prvVar4simulator4hmap4arrUiRowData4ForecastData.clear();
+				this.prvVar4simulator4hmap4delete.clear();
+				this.prvVar4simulator4uiRowData4HistoryData = null;
+				
+				if( _currentMappingModel != null )
+				{
+					_currentMappingModel.historyBizData = this.prvVar4simulatorHistoryBizData;
+					_currentMappingModel.outlierAnalyzePeriodNum = this.prvVar4simulatorOutlierAnalyzePeriodNum;					
+					this.prvVar4dp4comAdgForecastModelM.addItem( _currentMappingModel );	
+				}
+				//	清除上次使用的信息并把当前预测类别的模型放入待选模型列表	end
+			}							
+			//	3	公共方法    end		
+			
+			//	4	初始化方法    begin			
+			protected function creationCompleteHandler(event:FlexEvent):void
+			{
+				this.title = resourceManager.getString('com_forecast_forecastmodelm_simulatorchooser','choosertitle');	
+				this.x = 100;
+				this.y = 50;		
+				
+				//	初始界面参数		begin
+				this.prvVar4arrDictBizDataType = new ArrayCollection();
+				var arrDictBizDataType:ArrayCollection = ClientEnvironment.getBizDataTypeArr();
+				if( arrDictBizDataType != null )
+				{
+					var i:int;
+					var sysDictionaryItem:BSysDictionaryItem = null;
+					for( i=0; i<arrDictBizDataType.length; i=i+1 )
+					{
+						sysDictionaryItem = BSysDictionaryItem(arrDictBizDataType.getItemAt(i));
+						if( sysDictionaryItem.value == BizConst.GLOBAL_NULL_NULL ||
+							sysDictionaryItem.value == BizConst.BIZDATA_TYPE_HISTORY ||
+							sysDictionaryItem.value == BizConst.BIZDATA_TYPE_HISTORYAD  )
+						{
+							this.prvVar4arrDictBizDataType.addItem( sysDictionaryItem );
+						}
+					}
+				}
+				//	初始界面参数		end
+				//this.comForecastModelMProperties_SetParam =  = Com_Forecast_ForecastlM_Properties_SetParam(PopUpManager.createPopUp(this, Com_Forecast_ForecastlM_Properties_SetParam, true));
+				this.comForecastModelMProperties_SetParam = new Com_Forecast_ForecastlM_Properties_SetParam();
+			}				
+					
+			//	4	初始化方法    end				
+			
+			//	5	事件响应方法    begin	
+			private function onOk():void
+			{
+				this.paramOut4selectedForecastModelM = BForecastModelM( this.comAdgForecastModelM.selectedItem );
+				
+				this.paramOut4winCloseWay = UtilUi.WINDOW_CLOSEWAY_OK;
+				this.prvFun4close();
+			}	
+			
+			private function onCancel():void
+			{	
+				this.paramOut4winCloseWay = UtilUi.WINDOW_CLOSEWAY_CANCEL;
+				this.prvFun4close();
+			}	
+			
+			
+			private function onAddForecastModelM():void
+			{				
+				if( this.prvVar4chooserWindow == null )
+				{
+					this.prvVar4chooserWindow = Com_Forecast_ForecastModelM_Chooser(PopUpManager.createPopUp(this, Com_Forecast_ForecastModelM_Chooser, true));
+					this.prvVar4chooserWindow.pubFun4setParamIn4closeCallback( this, callbackFunction4ChooserWinClose );	
+					this.prvVar4chooserWindow.comAdgForecastModelM.allowMultipleSelection = true;
+				}
+				else
+				{
+					PopUpManager.addPopUp( this.prvVar4chooserWindow, this, true );
+				}
+				PopUpManager.centerPopUp(prvVar4chooserWindow);
+			}	
+			
+			private function callbackFunction4ChooserWinClose():void
+			{
+				if( this.prvVar4chooserWindow.pubFun4getParamOut4winCloseWay() == UtilUi.WINDOW_CLOSEWAY_OK )
+				{
+					var arrSelectedForecastModelM:ArrayCollection = this.prvVar4chooserWindow.pubFun4getParamOut4selectedForecastModelMs();
+					
+					if( arrSelectedForecastModelM != null && arrSelectedForecastModelM.length > 0 )
+					{
+						// 向已有模型范围中加入
+						var i:int;
+						var forecastModelM:BForecastModelM = null;
+						var strKey:String = null;
+						
+						var hmap_forecastModelM:HashMap = new HashMap();
+						if( this.prvVar4dp4comAdgForecastModelM != null )
+						{
+							for( i=0; i<this.prvVar4dp4comAdgForecastModelM.length; i=i+1 )
+							{
+								forecastModelM = BForecastModelM(this.prvVar4dp4comAdgForecastModelM.getItemAt(i));
+								strKey = "" + forecastModelM.id;
+								hmap_forecastModelM.put( strKey, forecastModelM );
+							}							
+						}
+						else
+						{
+							this.prvVar4dp4comAdgForecastModelM = new ArrayCollection();
+						}
+						
+						for( i=0; i<arrSelectedForecastModelM.length; i=i+1 )
+						{
+							forecastModelM = BForecastModelM(arrSelectedForecastModelM.getItemAt(i));
+							strKey = "" + forecastModelM.id;
+							if( hmap_forecastModelM.getValue(strKey) == null )
+							{
+								forecastModelM.historyBizData = this.prvVar4simulatorHistoryBizData;
+								forecastModelM.outlierAnalyzePeriodNum = this.prvVar4simulatorOutlierAnalyzePeriodNum;
+
+								this.prvVar4dp4comAdgForecastModelM.addItem(forecastModelM);	
+							}
+						}												
+					}
+				}
+				//this.prvVar4auWindow = null;														
+			}			
+			
+			private function onDelForecastModelM():void
+			{
+				var selectedForecastModelM:BForecastModelM = BForecastModelM(this.comAdgForecastModelM.selectedItem);
+				
+				// 检查是否在模拟图示中
+				var strKey:String = "" + selectedForecastModelM.code + "_" + selectedForecastModelM.source;
+				
+				//删除关联关系hashmap对应
+				if(this.prvVar4simulator4hmap4delete.containsKey(strKey))
+				{
+					this.prvVar4simulator4hmap4delete.remove(strKey);
+				}
+				
+				if( this.prvVar4simulator4hmap4arrUiRowData4ForecastData.containsKey(strKey)  )
+				{
+					this.prvVar4simulator4hmap4arrUiRowData4ForecastData.remove(strKey)
+					//	模拟预测数据列表变化,需要重新画图
+					this.prvFun4refreshChart();
+				}
+				
+				// 检查是否在误差分析表中
+				if( this.prvVar4simulator4hmap4arrForecastErrorMappingModel.containsKey(strKey) )
+				{
+					this.prvVar4simulator4hmap4arrForecastErrorMappingModel.remove(strKey)
+					this.prvVar4simulator4dp4comAdgForecastErrorMappingModel = this.prvVar4simulator4hmap4arrForecastErrorMappingModel.getValues();
+				}
+	
+				
+				this.prvVar4dp4comAdgForecastModelM.removeItemAt( this.comAdgForecastModelM.selectedIndex );
+								
+			}		
+			
+			private function onSetParam():void
+			{
+				this.comForecastModelMProperties_SetParam =  Com_Forecast_ForecastlM_Properties_SetParam(PopUpManager.createPopUp(ClientEnvironment.modWork, Com_Forecast_ForecastlM_Properties_SetParam, true));
+				this.comForecastModelMProperties_SetParam.paramIo4forecastModelM = BForecastModelM(this.comAdgForecastModelM.selectedItem);
+				this.comForecastModelMProperties_SetParam.paramIn4editable = true;
+				this.comForecastModelMProperties_SetParam.paramIn4blShowBaseInfo = true;
+				this.comForecastModelMProperties_SetParam.comForecastModelMPropertiesCommonPara.comBizDataFieldHistoryBizData.paramIn4enabled4btnOpenChooser = false;
+				this.comForecastModelMProperties_SetParam.comForecastModelMPropertiesCommonPara.comBizDataFieldHistoryBizData.paramIn4enabled4btnClear = false;
+				this.comForecastModelMProperties_SetParam.comForecastModelMPropertiesCommonPara.txtOutlierAnalyzePeriodNum.enabled = false;
+				
+			}
+			
+			private function onSimulate():void
+			{
+				UtilUi.pubFun4PopWaitWindow( this );
+				this.arr4selectModelM= new ArrayCollection(this.comAdgForecastModelM.selectedItems);
+				for(var i:int = 0;i<arr4selectModelM.length;i++)
+				{
+					var simulatingForcastModelM:BForecastModelM = BForecastModelM(arr4selectModelM.getItemAt(i));
+					this.comForecastModelMProperties.paramIo4forecastModelM = simulatingForcastModelM;
+					if(this.comForecastModelMProperties.pubFun4prepare4save() == true)
+					{
+						var alert_title_hint:String = resourceManager.getString('com_forecast_forecastmodelm_simulatorchooser','alert_title_hint');
+						var alert_msg:String = null;	
+						if( this.paramIn4simulate4arrProOrg == null || this.paramIn4simulate4arrProOrg.length <= 0 )
+						{
+							alert_msg = resourceManager.getString('com_forecast_forecastmodelm_simulatorchooser','alert_msg_proorgisnull');
+							Alert.show(alert_msg, alert_title_hint);
+							UtilUi.pubFun4RemoveWaitWindow();
+							return ;
+						}
+						
+						if( this.paramIn4simulate4runProductLayer == null )
+						{
+							alert_msg = resourceManager.getString('com_forecast_forecastmodelm_simulatorchooser','alert_msg_runproductlayerisnull');
+							Alert.show(alert_msg, alert_title_hint);
+							UtilUi.pubFun4RemoveWaitWindow();
+							return ;						
+						}						
+						
+						if( this.paramIn4simulate4runOrganizationLayer == null )
+						{
+							alert_msg = resourceManager.getString('com_forecast_forecastmodelm_simulatorchooser','alert_msg_runorganizationlayerisnull');
+							Alert.show(alert_msg, alert_title_hint);
+							UtilUi.pubFun4RemoveWaitWindow();
+							return ;						
+						}
+					}
+					else
+					{
+						UtilUi.pubFun4RemoveWaitWindow();
+						return ;
+					}
+				}
+				this.prvVar4simulatorRunNum =0;
+				this.prvFun4Simulator(prvVar4simulatorRunNum);
+			}			
+			
+			private function faultHandler4forecastModelMSimulate(event:FaultEvent):void
+			{
+				UtilUi.pubFun4RemoveWaitWindow();
+				Alert.show( UtilExceptionLocale.getExceptionMessageLocaleByFaultEvent( event ), resourceManager.getString('main','alt_title_warn') );
+			}
+			
+			private function resultHandler4forecastModelMSimulate(event:ResultEvent):void 
+			{				
+				var rstArr:ArrayCollection = ArrayCollection(event.result);
+				if( rstArr == null || rstArr.length == 0 )
+				{
+					return;
+				}
+				
+				var rstBForecastErrorMappingModel:BForecastErrorMappingModel = BForecastErrorMappingModel(rstArr.getItemAt(0));					
+				var rst4arrForecastDataValue:ArrayCollection = ArrayCollection(rstArr.getItemAt(1));
+				
+				if( rst4arrForecastDataValue.length != this.prvVar4simulatorOutlierAnalyzePeriodNum + this.prvVar4simulatorFcPeriodNum )
+				{
+					Alert.show("Strange! This should not happen! ForecastData period num is not required");
+					return;						
+				}
+				
+				//	误差    begin	
+			//	var simulatingForcastModelM:BForecastModelM = BForecastModelM(this.comAdgForecastModelM.selectedItem);
+				var simulatingForcastModelM:BForecastModelM  = this.prvVar4runForecastModelM;
+				var strKey:String = "" + simulatingForcastModelM.code + "_" + simulatingForcastModelM.source;
+				var strKey_:String = ""+ simulatingForcastModelM.name + "_" + simulatingForcastModelM.source;
+				this.prvVar4simulator4hmap4arrForecastErrorMappingModel.put(strKey, rstBForecastErrorMappingModel);
+				this.prvVar4simulator4hmap4delete.put(strKey,strKey_);
+				//	误差    end
+				
+				//	预测数据 		begin
+				var uiRowData:ABUiRowData = new ABUiRowData();
+				uiRowData.periodBegin = UtilPeriod.getPeriod( ClientEnvironment.getSysPeriod().forecastRunPeriod, 0-this.prvVar4simulatorHistoryDataDispPeriodNum );
+				uiRowData.periodEnd = UtilPeriod.getPeriod( ClientEnvironment.getSysPeriod().forecastRunPeriod, this.prvVar4simulatorFcPeriodNum-1 );	// -1是因为 .forecastRunPeriod本身是一个预测期间
+				uiRowData.bizData = this.prvVar4simulatorHistoryBizData;//这里主要是为了能让它做数据转换。
+				
+				var periodBegin4OutlierAnalyze:int = UtilPeriod.getPeriod( ClientEnvironment.getSysPeriod().forecastRunPeriod, 0-this.prvVar4simulatorOutlierAnalyzePeriodNum );
+				var periodLocBegin:int = UtilPeriod.getPeriodDifference( uiRowData.periodBegin, periodBegin4OutlierAnalyze);
+				var periodLocEnd:int = UtilPeriod.getPeriodDifference( uiRowData.periodBegin, uiRowData.periodEnd);
+				var periodLoc:int;
+				var forecastDataValue:Number;
+				for( periodLoc=periodLocBegin; periodLoc<=periodLocEnd; periodLoc=periodLoc+1 )
+				{
+					forecastDataValue = Number(rst4arrForecastDataValue.getItemAt(periodLoc-periodLocBegin));
+					uiRowData.pubFun4setPeriodDataValue( periodLoc, forecastDataValue );
+				}
+				
+				//做管理单位处理
+				uiRowData.exchangeUnit( 1, manageUnit.exchangeRate );
+				this.prvVar4simulator4hmap4arrUiRowData4ForecastData.put( strKey, uiRowData );
+				//	预测数据		end
+				
+				//	更新模拟图示		begin
+				;
+				//	更新模拟图示		end
+				this.prvVar4simulatorRunNum = this.prvVar4simulatorRunNum+1;
+				if(this.prvVar4simulatorRunNum< this.arr4selectModelM.length)
+				{					
+					prvFun4Simulator(prvVar4simulatorRunNum);
+				}
+				if(this.prvVar4simulatorRunNum == this.arr4selectModelM.length)
+				{	
+					UtilUi.pubFun4RemoveWaitWindow();
+					this.prvVar4simulator4dp4comAdgForecastErrorMappingModel = this.prvVar4simulator4hmap4arrForecastErrorMappingModel.getValues();
+					this.prvFun4refreshChart();
+				}
+			}								
+			
+			
+			private function onRefreshSimulator():void
+			{
+				//	清除图表显示		begin
+				this.prvVar4simulator4dp4aksLineChart = new ArrayCollection();
+				this.prvVar4simulator4hmap4arrUiRowData4ForecastData.clear();
+				this.prvVar4simulator4uiRowData4HistoryData = null;
+				//	清除图表显示		end
+				
+				//	清除误差分析		begin
+				this.prvVar4simulator4hmap4arrForecastErrorMappingModel.clear();
+				this.prvVar4simulator4dp4comAdgForecastErrorMappingModel = new ArrayCollection();
+				//	清除误差分析		end
+				
+				//清除关联关系 begin
+				this.prvVar4simulator4hmap4delete.clear();
+				//清除关联关系 end
+				
+								
+				var alert_title_hint:String = resourceManager.getString('com_forecast_forecastmodelm_simulatorchooser','alert_title_hint');
+				var alert_msg:String = null;	
+				if( this.comBizDataFieldHistoryBizData.paramIo4selectedBizData == null )
+				{
+					alert_msg = resourceManager.getString('com_forecast_forecastmodelm_simulatorchooser','alert_msg_historybizdataisnull');
+					Alert.show(alert_msg, alert_title_hint);
+					return;										
+				}
+				
+				var outlierAnalyzePeriodNum:Number = Number(StringUtil.trim(this.txtOutlierAnalyzePeriodNum.text));
+				if( isNaN(outlierAnalyzePeriodNum) || UtilNumber.isInteger(outlierAnalyzePeriodNum) == false || outlierAnalyzePeriodNum < 0 )
+				{
+					alert_msg = resourceManager.getString('com_forecast_forecastmodelm_simulatorchooser','alert_msg_outlieranalyzeperiodnum');
+					Alert.show(alert_msg, alert_title_hint);
+					return;	
+				}			
+				
+				var historyDataDispPeriodNum:Number = Number(StringUtil.trim(this.txtHistoryDataDispPeriodNum.text));
+				if( isNaN(historyDataDispPeriodNum) || UtilNumber.isInteger(historyDataDispPeriodNum) == false || historyDataDispPeriodNum < 0 )
+				{
+					alert_msg = resourceManager.getString('com_forecast_forecastmodelm_simulatorchooser','alert_msg_historydatadispperiodnum');
+					Alert.show(alert_msg, alert_title_hint);
+					return;	
+				}				
+				
+				if( historyDataDispPeriodNum < outlierAnalyzePeriodNum )
+				{
+					alert_msg = resourceManager.getString('com_forecast_forecastmodelm_simulatorchooser','alert_msg_historydatadispperiodnum_lt_outlieranalyzeperiodnum');
+					Alert.show(alert_msg, alert_title_hint);
+					return;						
+				}
+				
+				if( this.paramIn4simulate4fcPeriodNum < 1 )
+				{
+					alert_msg = resourceManager.getString('com_forecast_forecastmodelm_simulatorchooser','alert_msg_fcperiodnum');
+					Alert.show(alert_msg, alert_title_hint);
+					return;			
+				}
+				
+				if( historyDataDispPeriodNum + this.paramIn4simulate4fcPeriodNum > SysConst.PERIODNUM_MAX_NUM )
+				{
+					alert_msg = resourceManager.getString('com_forecast_forecastmodelm_simulatorchooser','alert_msg_historyandfc_exceed_maxperiodnum');
+					Alert.show(alert_msg, alert_title_hint);
+					return;						
+				}
+				
+				if( this.paramIn4simulate4arrProOrg == null || this.paramIn4simulate4arrProOrg.length <= 0 )
+				{
+					alert_msg = resourceManager.getString('com_forecast_forecastmodelm_simulatorchooser','alert_msg_proorgisnull');
+					Alert.show(alert_msg, alert_title_hint);
+					return;						
+				}				
+				
+				
+				UtilUi.pubFun4PopWaitWindow( this );
+				
+				var arrDetailProOrgs:ArrayCollection = UtilProOrg.getDetailProOrgs( this.paramIn4simulate4arrProOrg, true );
+				if( arrDetailProOrgs == null || arrDetailProOrgs.length <= 0 )
+				{
+					UtilUi.pubFun4RemoveWaitWindow();
+					alert_msg = resourceManager.getString('com_forecast_forecastmodelm_simulatorchooser','alert_msg_detailproorgisnull');
+					Alert.show(alert_msg, alert_title_hint);
+					return;						
+				}
+				
+				var uiRowDataProOrg:ABUiRowDataProOrg = new ABUiRowDataProOrg();
+				var i:int;
+				var detailProOrg:ABProOrg = null;
+				var unitGroup:BUnitGroup = null;
+				var unit:BUnit = null;
+				
+				for( i=0; i<arrDetailProOrgs.length; i=i+1 )
+				{
+					detailProOrg = ABProOrg( arrDetailProOrgs.getItemAt(i) );
+
+					if( detailProOrg.product.unitGroup == null )
+					{
+						UtilUi.pubFun4RemoveWaitWindow();
+						alert_msg = resourceManager.getString('com_forecast_forecastmodelm_simulatorchooser','alter_msg_unitgroupisnull');
+						Alert.show( alert_msg, alert_title_hint);
+						return;							
+					}
+					if(unit == null )
+					{
+						unit = detailProOrg.product.unit;
+						if(this.manageUnit.id != unit.id)
+						{
+							this.manageUnit = unit;
+						}
+						
+					}
+					else
+					{
+						if(unit.id != detailProOrg.product.unit.id && unitGroup !=null)
+						{
+							this.manageUnit = unitGroup.getBaseUnit();
+						}
+					}
+					
+					if( unitGroup == null )
+					{
+						unitGroup = detailProOrg.product.unitGroup;
+					}
+					else if( detailProOrg.product.unitGroup.id != unitGroup.id )
+					{
+						UtilUi.pubFun4RemoveWaitWindow();
+						alert_msg = resourceManager.getString('com_forecast_forecastmodelm_simulatorchooser','alter_msg_multiunitgroup');
+						Alert.show( alert_msg, alert_title_hint);
+						return;									
+					}
+					
+					uiRowDataProOrg.detailProOrgIds.addItem( UtilProOrg.getProOrgId( detailProOrg.product, detailProOrg.organization ) );
+				}
+				
+				
+				//	刷新模拟参数并设置给目前在列的预测模型		begin
+				// 刷新全部成功才更新数据，避免刷新部分失败而下次加入模型的时候参数不一致的情况	
+				this.prvVar4simulatorHistoryBizData = this.comBizDataFieldHistoryBizData.paramIo4selectedBizData;
+				this.prvVar4simulatorHistoryDataDispPeriodNum = historyDataDispPeriodNum;
+				this.prvVar4simulatorOutlierAnalyzePeriodNum = outlierAnalyzePeriodNum;
+				this.prvVar4simulatorFcPeriodNum = this.paramIn4simulate4fcPeriodNum;
+				
+				var forecastModelM:BForecastModelM = null;
+				for( i=0; i<this.prvVar4dp4comAdgForecastModelM.length; i=i+1 )
+				{
+					forecastModelM = BForecastModelM(this.prvVar4dp4comAdgForecastModelM.getItemAt(i));
+					forecastModelM.historyBizData = this.prvVar4simulatorHistoryBizData;
+					forecastModelM.outlierAnalyzePeriodNum = this.prvVar4simulatorOutlierAnalyzePeriodNum;
+				}
+				//	刷新模拟参数并设置给目前在列的预测模型		end
+
+				
+				// 读取历史数据	begin			
+				var periodBegin:int = UtilPeriod.getPeriod( ClientEnvironment.getSysPeriod().forecastRunPeriod, 0-this.prvVar4simulatorHistoryDataDispPeriodNum );
+				//var periodEnd:int = UtilPeriod.getPeriod( ClientEnvironment.getSysPeriod().forecastRunPeriod, this.prvVar4simulatorFcPeriodNum-1 );
+				var periodEnd:int = ClientEnvironment.getSysPeriod().historyValidPeriod;	//	只查询和显示有效历史数据范围内的历史数据
+				var arrUiRowDataProOrg:ArrayCollection = new ArrayCollection();
+				arrUiRowDataProOrg.addItem( uiRowDataProOrg );
+				var arrBizData:ArrayCollection = new ArrayCollection();
+				arrBizData.addItem( this.prvVar4simulatorHistoryBizData );
+				this.srvUiRowData.getUiRowDatas( arrUiRowDataProOrg, periodBegin, periodEnd, arrBizData, ClientEnvironment.getSysPeriod() );
+				// 读取历史数据	end
+			}
+			
+			private function faultHandler4getUiRowDatas(event:FaultEvent):void
+			{
+				UtilUi.pubFun4RemoveWaitWindow();
+				
+				Alert.show( UtilExceptionLocale.getExceptionMessageLocaleByFaultEvent( event ), resourceManager.getString('main','alt_title_warn') );
+			}
+			
+			private function resultHandler4getUiRowDatas(event:ResultEvent):void 
+			{
+				var arrUiRowData4historyData:ArrayCollection = ArrayCollection(event.result);
+				if( arrUiRowData4historyData != null && arrUiRowData4historyData.length == 1 )
+				{
+					this.prvVar4simulator4uiRowData4HistoryData = ABUiRowData( arrUiRowData4historyData.getItemAt(0) );
+				}
+				else
+				{
+					//	历史数据未空的，也要把 this.prvVar4simulator4uiRowData4HistoryData 造出来，不然画图一直不画
+					this.prvVar4simulator4uiRowData4HistoryData = new ABUiRowData();
+					this.prvVar4simulator4uiRowData4HistoryData.bizData = this.prvVar4simulatorHistoryBizData;
+					this.prvVar4simulator4uiRowData4HistoryData.periodBegin = UtilPeriod.getPeriod( ClientEnvironment.getSysPeriod().forecastRunPeriod, 0-this.prvVar4simulatorHistoryDataDispPeriodNum );
+					this.prvVar4simulator4uiRowData4HistoryData.periodEnd = ClientEnvironment.getSysPeriod().historyValidPeriod;
+				}
+				//做管理单位显示处理				
+				prvVar4simulator4uiRowData4HistoryData.exchangeUnit( 1, manageUnit.exchangeRate );
+				
+				//	刷新图示	begin
+				this.prvFun4refreshChart();
+				//	刷新图示	end
+				
+				UtilUi.pubFun4RemoveWaitWindow();
+			}	
+			
+			protected function comAdgForecastModelM_changeHandler(event:ListEvent):void
+			{
+				// TODO Auto-generated method stub
+				if( this.comAdgForecastModelM.selectedItem != null )
+				{
+					//	comForecastModelMProperties 会被刷新
+					
+					// 这两个参数由模拟器部分统一设置		begin
+					this.comForecastModelMProperties.comForecastModelMPropertiesCommonPara.comBizDataFieldHistoryBizData.paramIn4enabled4btnOpenChooser = false;
+					this.comForecastModelMProperties.comForecastModelMPropertiesCommonPara.comBizDataFieldHistoryBizData.paramIn4enabled4btnClear = false;
+					this.comForecastModelMProperties.comForecastModelMPropertiesCommonPara.txtOutlierAnalyzePeriodNum.enabled = false;				
+					// 这两个参数由模拟器部分统一设置		end				
+					
+				}				
+			}
+			
+			//	5	事件响应方法    end
+			
+			//	6	本地方法    begin
+			private function prvFun4Simulator( _num:int):void
+			{
+				var simulatingForcastModelM:BForecastModelM = BForecastModelM(arr4selectModelM.getItemAt(_num));
+				this.prvVar4runForecastModelM = simulatingForcastModelM;
+				this.srvForecast.forecastModelMSimulate( ClientEnvironment.getSysPeriod(), simulatingForcastModelM, this.prvVar4simulatorFcPeriodNum, this.paramIn4simulate4arrProOrg, this.paramIn4simulate4runProductLayer, this.paramIn4simulate4runOrganizationLayer );				
+			}
+			
+			private function prvFun4CheckIparam():Boolean
+			{
+				
+				return true;
+			}
+			
+			private function prvFun4refreshChart():void
+			{
+				var i:int;
+				
+				var alert_title_hint:String = resourceManager.getString('com_forecast_forecastmodelm_simulatorchooser','alert_title_hint');
+				var alert_msg:String = "";	
+				
+				
+				//	收集要图示的 uiRowData	begin
+				if( this.prvVar4simulator4uiRowData4HistoryData == null )
+				{
+					return;
+				}				
+				var arr4uiRowData4ForecastData:ArrayCollection = this.prvVar4simulator4hmap4arrUiRowData4ForecastData.getValues();
+				
+
+				if( arr4uiRowData4ForecastData.length+1 > SysConst.CHART_MAX_NUM )
+				{
+					alert_msg = resourceManager.getString('com_forecast_forecastmodelm_simulatorchooser','alert_msg_chartexceedmaxnum');
+					Alert.show( alert_msg, alert_title_hint);					
+				}
+				//	收集要图示的 uiRowData	begin
+				
+				//	收集displayName 和 yFieldName	begin
+				var arr4displayName4chart:ArrayCollection = new ArrayCollection();
+				var arr4yField4chart:ArrayCollection = new ArrayCollection();
+				
+				var displayName:String = null;
+				var yFieldName:String = null;		
+				
+				displayName = this.prvVar4simulatorHistoryBizData.toString();
+				yFieldName = AksChartDataObject.getFiledName(0);
+				arr4displayName4chart.addItem( displayName );
+				arr4yField4chart.addItem( yFieldName );
+				
+				//modifiy by luowang 20110909 begin
+			//	var arrStrKey:ArrayCollection = new ArrayCollection(this.prvVar4simulator4hmap4arrUiRowData4ForecastData.getKeys());	
+				var arrStrKey:ArrayCollection = this.prvVar4simulator4hmap4delete.getValues();
+				
+				var arrStrKeyleng:int = arrStrKey.length;
+				for( i=0; i<arrStrKeyleng; i=i+1 )
+				{
+					displayName = arrStrKey.getItemAt(i) as String;
+					yFieldName = AksChartDataObject.getFiledName(i+1);
+					
+					arr4displayName4chart.addItem( displayName );
+					arr4yField4chart.addItem( yFieldName );
+				}	
+				//	收集displayName 和 yFieldName	begin			
+				
+				//	刷新Chart基本信息	begin
+				this.aksLineChart.pubFun4setSeries( arr4displayName4chart, arr4yField4chart );			
+				//	刷新Chart基本信息	end					
+				
+				
+				// 收集chart 数据源    begin
+				this.prvVar4simulator4dp4aksLineChart = new ArrayCollection();
+				
+				var periodBegin:int = UtilPeriod.getPeriod( ClientEnvironment.getSysPeriod().forecastRunPeriod, 0-this.prvVar4simulatorHistoryDataDispPeriodNum );
+				var periodEnd:int = UtilPeriod.getPeriod( ClientEnvironment.getSysPeriod().forecastRunPeriod, this.prvVar4simulatorFcPeriodNum-1 );
+				
+				var periodDiff:int = UtilPeriod.getPeriodDifference( periodBegin, periodEnd );
+				if( periodDiff == SysConst.PERIOD_DIFF_NULL )
+				{
+					return;
+				}
+				
+				var periodDiff4historyValid:int = UtilPeriod.getPeriodDifference( periodBegin, ClientEnvironment.getSysPeriod().historyValidPeriod );
+				
+				var periodLoc:int;
+				var uiRowData4ForecastData:ABUiRowData = null;
+				var aksChartDataObject:AksChartDataObject = null
+					
+				for( periodLoc=0; periodLoc<=periodDiff; periodLoc=periodLoc+1 )
+				{
+					aksChartDataObject = new AksChartDataObject();
+					aksChartDataObject.categoryFieldValue = String( UtilPeriod.getPeriod( periodBegin, periodLoc ) );
+					
+					if( periodLoc <= periodDiff4historyValid )
+					{					
+						aksChartDataObject.setData( 0, this.prvVar4simulator4uiRowData4HistoryData.pubFun4getPeriodDataValue(periodLoc) );
+					}
+					else
+					{
+						//	对于有效历史期间之外的历史数据，不显示
+						aksChartDataObject.setData( 0, NaN );
+					}
+					
+					
+					for( i=0; i<arr4uiRowData4ForecastData.length; i=i+1 )
+					{
+						uiRowData4ForecastData = ABUiRowData( arr4uiRowData4ForecastData.getItemAt(i) );
+	
+						aksChartDataObject.setData( i+1, uiRowData4ForecastData.pubFun4getPeriodDataValue(periodLoc) );
+					}
+					this.prvVar4simulator4dp4aksLineChart.addItem( aksChartDataObject );
+				}
+				// 收集chart 数据源    end				
+				
+			}			
+			//	6	本地方法   end				
+
+		]]>
+	</fx:Script>
+	<s:VGroup width="100%" height="100%" paddingLeft="5" paddingRight="5" paddingBottom="3">
+		<common:LabelBoundary labelText="{resourceManager.getString('com_forecast_forecastmodelm_simulatorchooser','modellist')}" height="20"/>
+		<s:HGroup width="100%" paddingLeft="10" paddingRight="10">
+			<s:Button label="{resourceManager.getString('com_forecast_forecastmodelm_simulatorchooser','btn_addforecastmodelm')}" 
+					  click="onAddForecastModelM()" icon="{CoolAssetsFile.addIcon}"/>
+			<s:Button label="{resourceManager.getString('com_forecast_forecastmodelm_simulatorchooser','btn_delforecastmodelm')}" 
+					  click="onDelForecastModelM()" icon="{CoolAssetsFile.minus2Icon}" enabled="{this.comAdgForecastModelM.selectedItem}"/>			
+			<mx:Spacer width="100%"/>
+			
+			<buttons:ButtonOk  enabled="{this.comAdgForecastModelM.selectedItem}" click="onOk()" />
+			<buttons:ButtonCancel click="onCancel()" />
+		
+		</s:HGroup>
+		<forecast:Com_Forecast_ForecastModelM_AdvancedDataGrid id="comAdgForecastModelM" width="100%" height="130" dataProvider="{this.prvVar4dp4comAdgForecastModelM}"
+															   change="comAdgForecastModelM_changeHandler(event)"   allowMultipleSelection="true"/>
+		
+		<common:LabelBoundary labelText="{resourceManager.getString('com_forecast_forecastmodelm_simulatorchooser','modelsimulator')}" />
+		<forecast:Com_Forecast_ForecastModelM_Properties id="comForecastModelMProperties" paramIo4forecastModelM="{BForecastModelM(this.comAdgForecastModelM.selectedItem)}"
+														 paramIn4editable="true" paramIn4blShowBaseInfo="true" width="0" height="0" visible="false">
+		</forecast:Com_Forecast_ForecastModelM_Properties>
+		
+		<s:HGroup width="100%" verticalAlign="middle">
+			<s:Label text="{resourceManager.getString('com_forecast_forecastmodelm_simulatorchooser','historydatadispperiodnum')}"/>
+			<mx:TextInput width="30" id="txtHistoryDataDispPeriodNum" maxChars="2" text="3"/>
+			<mx:Spacer width="10"/>
+			<s:Label text="{resourceManager.getString('com_forecast_forecastmodelm_simulatorchooser','outlieranalyzeperiodnum')}"/>
+			<mx:TextInput width="30" id="txtOutlierAnalyzePeriodNum" maxChars="2" text="3"/>			
+			<mx:Spacer width="10"/>
+			<s:Label text="{resourceManager.getString('com_forecast_forecastmodelm_simulatorchooser','hitorybizdata')}"/>
+			<bizdata:Com_BizData_BizData_Field id="comBizDataFieldHistoryBizData" width="140" paramIn4arrDictBizDataType="{this.prvVar4arrDictBizDataType}" 
+											   paramIn4blConstrainedByPermission="true" paramIn4blOnlyIsManaging="false"
+											   paramIn4enabled4btnOpenChooser="true" paramIn4enabled4btnClear="true"> 
+			</bizdata:Com_BizData_BizData_Field>
+			
+			<s:Button label="{resourceManager.getString('com_forecast_forecastmodelm_simulatorchooser','btn_refreshsimulator')}" click="onRefreshSimulator()" icon="{CoolAssetsFile.refresh3Icon}"/>
+			
+			<s:Button label="{resourceManager.getString('com_forecast_forecastmodelm_simulatorchooser','btn_setparam')}" click="onSetParam()" 
+					  enabled="{this.comAdgForecastModelM.selectedItem}" icon="{CoolAssetsFile.designIcon}"/>
+			<s:Button label="{resourceManager.getString('com_forecast_forecastmodelm_simulatorchooser','btn_simulate')}" click="onSimulate()" 
+					  enabled="{new ArrayCollection(this.comAdgForecastModelM.selectedItems).length>0}" icon="{CoolAssetsFile.triangle_rightIcon}"/>
+		</s:HGroup>
+		
+		<mx:TabNavigator width="100%" height="100%" tabWidth="200">
+			<s:NavigatorContent label="{resourceManager.getString('com_forecast_forecastmodelm_simulatorchooser','modelsimulator_chart')}" width="100%" height="100%">
+				<s:layout>
+					<s:HorizontalLayout/>
+				</s:layout>
+				<charts:AksLineChart id="aksLineChart" paramIn4dp4lineChart="{this.prvVar4simulator4dp4aksLineChart}" paramIn4visible4legend="false" width="100%" height="100%">
+				</charts:AksLineChart>
+			</s:NavigatorContent>	
+			<s:NavigatorContent label="{resourceManager.getString('com_forecast_forecastmodelm_simulatorchooser','modelsimulator_error')}" width="100%" height="100%">
+				<s:layout>
+					<s:HorizontalLayout/>
+				</s:layout>
+				<forecast:Com_Forecast_ForecastErrorMappingModel_AdvancedDataGrid id="comAdgForecastErrorMappingModel" height="100%" width="100%"
+																				  dataProvider="{this.prvVar4simulator4dp4comAdgForecastErrorMappingModel}" paramIn4visible4ForecastInstInfo="false" />
+			</s:NavigatorContent>				
+			
+		</mx:TabNavigator>
+	</s:VGroup>
+</components:SuperTitleWindow>

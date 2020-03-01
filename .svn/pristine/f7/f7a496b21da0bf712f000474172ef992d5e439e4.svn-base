@@ -1,0 +1,367 @@
+/* CSS file */
+	Application {
+		fontSize:12;
+	   backgroundColor: #F0F2F4;
+	   borderColor: #142B80;
+	   borderThickness: 5;
+	   borderStyle: solid;
+	   backgroundGradientAlphas: 0, 0;
+	fontWeight: normal;
+	color: #000000;
+	}
+	
+	Panel {
+	   borderColor: #ACC6DD;
+	   borderAlpha: 1;
+	   borderThicknessLeft: 1;
+	   borderThicknessTop: 1;
+	   borderThicknessBottom: 1;
+	   borderThicknessRight: 1;
+	   cornerRadius: 0;
+	   highlightAlphas: 0, 0;
+	   headerColors: #BBD3EB, #BBD3EB;
+	   dropShadowEnabled: false;
+	   titleStyleName: "mypanelTitle";
+	   headerHeight:30;
+	   backgroundColor: #E4ECF7;
+	   backgroundAlpha: 1;
+	   shadowDistance: 0;
+		fontSize: 12;
+		fontWeight: normal;
+	}
+	
+		.panel2 {
+	   borderColor: #7A9DBD;
+	   borderAlpha: 1;
+	   borderThicknessLeft: 1;
+	   borderThicknessTop: 1;
+	   borderThicknessBottom: 1;
+	   borderThicknessRight: 1;
+	   cornerRadius: 0;
+	   highlightAlphas: 0, 0;
+	   headerColors: #142B80, #142B80;
+	   dropShadowEnabled: false;
+	   titleStyleName: "mypanelTitle2";
+	   headerHeight:30;
+	   backgroundColor: #EBEFF2;
+	   backgroundAlpha: 1;
+	   shadowDistance: 0;
+		fontSize: 12;
+		fontWeight: bold;
+	}
+	
+	ComboBox {
+	   cornerRadius: 0;
+	   themeColor: #FFFFFF;
+	   fillAlphas: 1.0, 1.0;
+	   fillColors: #FFFFFF, #FFFFFF;
+		fontWeight: normal;
+	}
+	
+	DateChooser {
+	   cornerRadius: 0;
+	}
+	
+	NumericStepper {
+	   borderStyle: solid;
+	   borderColor: #999999;
+	   backgroundAlpha: 1;
+	   cornerRadius: 0;
+	   border-thickness-left:0;
+	}
+	
+	.mypanelTitle {
+   		fontWeight: normal;
+		headerStyleName: accordionHeader;
+	}
+	
+		.mypanelTitle2 {
+   		fontWeight: bold;
+   		color: #ffffff;
+		headerStyleName: accordionHeader;
+	}
+	
+	TabNavigator {
+		borderStyle: solid;
+		borderColor: #93B2D0;
+	   tabHeight: 30;
+	   backgroundAlpha: 1;
+	   borderThickness: 1;
+	   tabStyleName: "myTabs";
+	   firstTabStyleName: "myTabs";
+	   lastTabStyleName: "myTabs";
+	   selectedTabTextStyleName: "mySelectedTabs";
+	    paddingLeft: 10;
+	    paddingRight: 10;
+	    paddingBottom: 10;
+	    backgroundColor: #E4ECF7;
+	    backgroundAlpha: 1;
+	fontWeight: normal;
+	}
+	
+	.myTabs {
+	   cornerRadius: 0;
+	   highlightAlphas: 0, 0;
+	   fillAlphas: 0.96, 1.0, 0.96, 1.0;
+	   fillColors: #C1D7EA, #C1D7EA;
+	   borderColor: #93B2D0;
+	   color: #FFFFFF;
+	   textRollOverColor: #333333;
+	   themeColor: #333333;		
+	   backgroundColor: #8CB1DA;
+	}
+	
+	.mySelectedTabs {
+	   color: #333333;
+	   textRollOverColor: #333333;
+	}
+	
+	TabBar {
+		tabHeight: 30;
+	   backgroundAlpha: 1;
+	   borderColor: #333333;
+	   borderThickness: 1;
+	   tabStyleName: "myTabs2";
+	   firstTabStyleName: "myTabs2";
+	   lastTabStyleName: "myTabs2";
+	   selectedTabTextStyleName: "mySelectedTabs2";
+	 }
+	 
+	 .myTabs2 {
+	   cornerRadius: 0;
+	   highlightAlphas: 0, 0;
+	   fillAlphas: 0.96, 1;
+	   fillColors: #3E60B0, #3E60B0;
+	   borderColor: #3E60B0;
+	    borderThickness: 5;
+	   color: #FFFFFF;
+	   textRollOverColor: #FFFFFF;
+	   themeColor: #333333;
+		fontWeight: bold;
+	}
+	
+	
+	.mySelectedTabs2 {
+		 fillColors: #3E60B0, #3E60B0;
+		fontWeight: bold;
+	   color: #333333;
+	   textRollOverColor: #3E60B0;
+	}
+	
+	TitleWindow {
+		backgroundColor: #EBEFF2;	
+		backgroundAlpha: 1;
+		headerColors: #142B80, #142B80;
+		drop-shadow-enabled: false;
+	    cornerRadius: 0;
+	    controlBarStyleName: "controlBar";
+	    borderStyle: solid;
+	   borderColor: #142B80;
+	   borderThickness: 5;
+	titleStyleName: "titleWindowTitle";
+	fontWeight: normal;	    
+	}
+	
+	.titleWindowTitle {
+   		fontWeight: normal;
+   		color: #ffffff;
+		headerStyleName: accordionHeader;
+	}
+	
+	
+	Alert {
+	border-style:solid;
+	border-color:#D0DDEB;
+	border-thickness:1;
+	drop-shadow-enabled:true;
+	corner-radius:0;
+	header-height:30;
+	title-style-name: alertHeader;
+	controlBarStyleName: darkControlBar;
+
+	button-style-name:Button;
+	button-height:30;
+
+	}
+	
+
+    Button {
+       cornerRadius: 0;
+       paddingTop: 2;
+       paddingBottom: 2;
+       color: #000000;
+       textRollOverColor: #000000;
+       textSelectedColor: #000000;
+       borderColor: #999999;
+       themeColor: #7FB1BC;
+       highlightAlphas: 0, 0;
+	   fillAlphas: 1.0, 1.0;
+	   fillColors: #FEF67A, #FEF67A, #FEED7A, #FEED7A;
+		fontWeight: normal;
+    }
+    
+    
+    ToolTip {
+	   cornerRadius: 0;
+	   color: #000000;
+	   drop-shadow-enabled:false;
+	   dropShadowEnabled: false;
+	}
+	
+    CheckBox {
+    	fillColors: #ffffff, #cccccc, #ffffff, #eeeeee;
+	}
+	
+	AccordionHeader	{
+		color: #ffffff;
+		textRollOverColor: #ffffff;
+		text-selected-color: #ffffff;
+	}
+
+	Slider {
+	}
+	
+	VSlider	{
+	}
+	
+	DataGrid {
+		selectionColor: #FFCC00;
+	headerColors: #D6DBE0,#D6DBE0;
+	fontStyle: normal;
+	fontWeight: normal;
+	headerStyleName: myHeaderStyle;
+	}
+	
+	.myHeaderStyle {
+		fontWeight: normal;
+	}
+
+	AdvancedDataGrid {
+		headerColors: #D6DBE0,#D6DBE0;
+		selectionColor: #FFCC00;
+	headerStyleName: myHeaderStyle2;
+	}
+	
+	.myHeaderStyle2 {
+		fontWeight: normal;
+	}
+
+
+	DateChooser {
+	   cornerRadius: 0;
+	   borderThickness: 1;
+	   horizontalGap: 0;
+	   verticalGap: 6;
+	   headerColors: #666666, #666666;
+	   highlightAlphas: 1, 1;
+	   fillAlphas: 1, 1, 1, 1;
+	   fillColors: #003333, #003333, #009999, #009999;
+	   borderColor: #666666;
+	   backgroundAlpha: 1;
+	   dropShadowEnabled: false;
+	   shadowDistance: 0;
+	   shadowDirection: right;
+	   fontSize: 11;
+	   headerStyleName: "mydateChooserHeaderStyle";   weekDayStyleName: "mydateChooserWeekDayStyle";   todayStyleName: "mydateChooserTodayStyle";
+	fontWeight: normal;
+	}
+
+	.mydateChooserHeaderStyle {
+	   color: #ffffff;
+	   fontFamily: Verdana;
+	   fontWeight: normal;
+	   fontSize: 11;
+	   fontStyle: normal;
+	   textDecoration: none;
+	}
+
+	.mydateChooserWeekDayStyle {
+		fontFamily: Georgia;
+	}
+
+	.mydateChooserTodayStyle {
+	   color: #ffffff;
+	   fontWeight: normal;
+	   fontStyle: normal;
+	   textDecoration: none;
+	}
+
+	HScrollBar {
+	   fillAlphas: 1.0, 1.0, 1.0, 1.0;
+	   fillColors: #FFFFFF, #FFFFFF, #FFFFFF, #EEEEEE;
+		cornerRadius: 0;
+		trackColors: #DFEBF5, #DFEBF5;
+	}
+
+	VScrollBar {
+	   fillAlphas: 1.0, 1.0, 1.0, 1.0;
+	   fillColors: #FFFFFF, #FFFFFF, #FFFFFF, #EEEEEE;
+		cornerRadius: 0;
+		trackColors: #DFEBF5, #DFEBF5;
+	}
+
+	MenuBar {
+	   backgroundAlpha: 0;
+	   border-alpha: .3;
+	   border-color: #666666;
+	   highlightAlphas: 0, 0;
+	   fillAlphas: 0.2, 0.2;
+	   fillColors: #666666, #333333;
+	   color: #000000;
+	   textRollOverColor: #000000;
+	   textSelectedColor: #000000;
+	}
+	
+	ApplicationControlBar
+	{
+		highlightAlphas: 0, 0;
+		fillAlphas: 0.52, 0.66;
+		fillColors: #BBD3EB, #BBD3EB;
+		backgroundColor: #BBD3EB;
+		cornerRadius: 0;
+		dropShadowEnabled: true;
+		shadowDistance: 4;
+		shadowDirection: center;
+		dropShadowColor: #000000;		
+	}
+	
+.controlBar{
+	/* backgroundImage: Embed(source="assets/skins/global/Panel_headerSkin.png"); */
+	background-color:#EBEFF2;
+	border-style:solid;
+	border-color:#565656;
+	border-thickness: 0;
+	backgroundSize: "100%";
+	padding-top:5;
+	padding-left:10;
+	padding-bottom:5;
+	padding-right:10;
+	horizontal-gap:5;
+}	
+
+	ComboBox {
+	   dropdownStyleName: "myComboBoxDropDowns";
+	   color: #000000;
+	   highlightAlphas: 0, 0;
+  		fillAlphas: 0.6,0.4;
+  		fillColors: #FFFFFF, #FFFFFF;
+	}
+
+	.myComboBoxDropDowns {
+	   borderThickness: 1;
+	   borderColor: #919495;
+	   dropShadowEnabled: false;
+	   shadowDirection: center;
+	   shadowDistance: 0;
+	}
+
+	LinkButton {
+		color: #000000;
+	}
+	
+	RadioButton 
+	{ 
+		highlightAlphas: 0, 0;
+		fillColors: #ffffff, #ffffff, #ffffff, #ffffff;  
+	}
+

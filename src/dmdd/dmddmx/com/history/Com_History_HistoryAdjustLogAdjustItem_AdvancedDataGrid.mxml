@@ -1,0 +1,315 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:AdvancedDataGrid xmlns:fx="http://ns.adobe.com/mxml/2009" 
+					 xmlns:s="library://ns.adobe.com/flex/spark" 
+					 xmlns:mx="library://ns.adobe.com/flex/mx" horizontalScrollPolicy="on" styleName="adv1">
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+	</fx:Declarations>
+	
+	<fx:Script>
+		<![CDATA[
+			import dmdd.dmddas.common.utils.UtilDataGridColumnLabelFunction;
+			import dmdd.dmddas.dataaccess.bizobject.BHistoryAdjustLogAdjustItem;
+			
+			import mx.resources.ResourceManager;
+			
+			//	描述    begin
+			//	描述    end
+			
+			//	0	输入参数    begin	
+			[Bindable]
+			public var paramIn4visible4Product:Boolean = true;
+			[Bindable]
+			public var paramIn4visible4ProductCharacter:Boolean = false;
+			[Bindable]
+			public var paramIn4visible4Organization:Boolean = true;
+			[Bindable]
+			public var paramIn4visible4OrganizationCharacter:Boolean = false;			
+			//	0	输入参数    end
+			
+			//	1	输出参数    begin
+			//	1	输出参数    end
+			
+			//	2	本地变量    begin			
+			//	2	本地变量    end			
+			
+			//	3	公共方法    begin					
+			public function setVisible4Dimension( _visible4Product:Boolean, _visible4ProductCharacter:Boolean, _visible4Organization:Boolean, _visible4OrganizationCharacter:Boolean ):void
+			{
+				this.paramIn4visible4Product = _visible4Product;
+				this.paramIn4visible4ProductCharacter = _visible4ProductCharacter;
+				
+				this.paramIn4visible4Organization = _visible4Organization;
+				this.paramIn4visible4OrganizationCharacter = _visible4OrganizationCharacter;							
+			}			
+			//	3	公共方法    end		
+			
+			//	4	初始化方法    begin				
+			//	4	初始化方法    end				
+			
+			//	5	事件响应方法    begin
+			//	5	事件响应方法    end
+			
+			//	6	本地方法    begin
+			private function sortCompareFunction4ProductCode(obj1:BHistoryAdjustLogAdjustItem, obj2:BHistoryAdjustLogAdjustItem):int
+			{
+				if( obj1 == null )
+				{
+					return -1;
+				}
+				
+				if( obj2 == null )
+				{
+					return 1;
+				}
+				
+				var rstCompare:int = obj1.product.code.localeCompare( obj2.product.code )
+				if( rstCompare < 0 )
+				{
+					return -1;
+				}
+				else if( rstCompare > 0 )
+				{
+					return 1;
+				}
+				else
+				{
+					return 0;
+				}
+			}			
+			
+			private function sortCompareFunction4ProductName(obj1:BHistoryAdjustLogAdjustItem, obj2:BHistoryAdjustLogAdjustItem):int
+			{
+				if( obj1 == null )
+				{
+					return -1;
+				}
+				
+				if( obj2 == null )
+				{
+					return 1;
+				}
+				
+				var rstCompare:int = obj1.product.name.localeCompare( obj2.product.name )
+				if( rstCompare < 0 )
+				{
+					return -1;
+				}
+				else if( rstCompare > 0 )
+				{
+					return 1;
+				}
+				else
+				{
+					return 0;
+				}
+			}		
+			
+			private function sortCompareFunction4ProductCharacterCode(obj1:BHistoryAdjustLogAdjustItem, obj2:BHistoryAdjustLogAdjustItem):int
+			{
+				if( obj1 == null )
+				{
+					return -1;
+				}
+				
+				if( obj2 == null )
+				{
+					return 1;
+				}
+				
+				var rstCompare:int = obj1.productCharacter.code.localeCompare( obj2.productCharacter.code )
+				if( rstCompare < 0 )
+				{
+					return -1;
+				}
+				else if( rstCompare > 0 )
+				{
+					return 1;
+				}
+				else
+				{
+					return 0;
+				}
+			}			
+			
+			private function sortCompareFunction4ProductCharacterName(obj1:BHistoryAdjustLogAdjustItem, obj2:BHistoryAdjustLogAdjustItem):int
+			{
+				if( obj1 == null )
+				{
+					return -1;
+				}
+				
+				if( obj2 == null )
+				{
+					return 1;
+				}
+				
+				var rstCompare:int = obj1.productCharacter.name.localeCompare( obj2.productCharacter.name )
+				if( rstCompare < 0 )
+				{
+					return -1;
+				}
+				else if( rstCompare > 0 )
+				{
+					return 1;
+				}
+				else
+				{
+					return 0;
+				}
+			}				
+			
+			private function sortCompareFunction4OrganizationCode(obj1:BHistoryAdjustLogAdjustItem, obj2:BHistoryAdjustLogAdjustItem):int
+			{
+				if( obj1 == null )
+				{
+					return -1;
+				}
+				
+				if( obj2 == null )
+				{
+					return 1;
+				}
+				
+				var rstCompare:int = obj1.organization.code.localeCompare( obj2.organization.code )
+				if( rstCompare < 0 )
+				{
+					return -1;
+				}
+				else if( rstCompare > 0 )
+				{
+					return 1;
+				}
+				else
+				{
+					return 0;
+				}
+			}			
+			
+			private function sortCompareFunction4OrganizationName(obj1:BHistoryAdjustLogAdjustItem, obj2:BHistoryAdjustLogAdjustItem):int
+			{
+				if( obj1 == null )
+				{
+					return -1;
+				}
+				
+				if( obj2 == null )
+				{
+					return 1;
+				}
+				
+				var rstCompare:int = obj1.organization.name.localeCompare( obj2.organization.name )
+				if( rstCompare < 0 )
+				{
+					return -1;
+				}
+				else if( rstCompare > 0 )
+				{
+					return 1;
+				}
+				else
+				{
+					return 0;
+				}
+			}		
+			
+			private function sortCompareFunction4OrganizationCharacterCode(obj1:BHistoryAdjustLogAdjustItem, obj2:BHistoryAdjustLogAdjustItem):int
+			{
+				if( obj1 == null )
+				{
+					return -1;
+				}
+				
+				if( obj2 == null )
+				{
+					return 1;
+				}
+				
+				var rstCompare:int = obj1.organizationCharacter.code.localeCompare( obj2.organizationCharacter.code )
+				if( rstCompare < 0 )
+				{
+					return -1;
+				}
+				else if( rstCompare > 0 )
+				{
+					return 1;
+				}
+				else
+				{
+					return 0;
+				}
+			}			
+			
+			private function sortCompareFunction4OrganizationCharacterName(obj1:BHistoryAdjustLogAdjustItem, obj2:BHistoryAdjustLogAdjustItem):int
+			{
+				if( obj1 == null )
+				{
+					return -1;
+				}
+				
+				if( obj2 == null )
+				{
+					return 1;
+				}
+				
+				var rstCompare:int = obj1.organizationCharacter.name.localeCompare( obj2.organizationCharacter.name )
+				if( rstCompare < 0 )
+				{
+					return -1;
+				}
+				else if( rstCompare > 0 )
+				{
+					return 1;
+				}
+				else
+				{
+					return 0;
+				}
+			}				
+			
+			private function sortCompareFunction4BizData(obj1:BHistoryAdjustLogAdjustItem, obj2:BHistoryAdjustLogAdjustItem):int
+			{
+				if( obj1 == null )
+				{
+					return -1;
+				}
+				
+				if( obj2 == null )
+				{
+					return 1;
+				}
+				
+				var rstCompare:int = obj1.bizData.toString().localeCompare( obj2.bizData.toString() )
+				if( rstCompare < 0 )
+				{
+					return -1;
+				}
+				else if( rstCompare > 0 )
+				{
+					return 1;
+				}
+				else
+				{
+					return 0;
+				}
+			}								
+			//	6	本地方法   end					
+		]]>
+	</fx:Script>
+	<mx:columns>		
+		<mx:AdvancedDataGridColumn id="columnProductCode"					headerText="{ResourceManager.getInstance().getString('label','proCode')}" 					dataField="product" 					labelFunction="UtilDataGridColumnLabelFunction.getProductCode"					editable="false" width="100" visible="{this.paramIn4visible4Product}" 					sortCompareFunction="sortCompareFunction4ProductCode"/>
+		<mx:AdvancedDataGridColumn id="columnProductName"					headerText="{ResourceManager.getInstance().getString('label','proName')}" 					dataField="product" 					labelFunction="UtilDataGridColumnLabelFunction.getProductName"					editable="false" width="100" visible="{this.paramIn4visible4Product}" 					sortCompareFunction="sortCompareFunction4ProductName"/>
+		<mx:AdvancedDataGridColumn id="columnProductCharacterCode"			headerText="{ResourceManager.getInstance().getString('label','proCharCode')}" 		dataField="productCharacter" 			labelFunction="UtilDataGridColumnLabelFunction.getProductCharacterCode"			editable="false" width="100" visible="{this.paramIn4visible4ProductCharacter}" 			sortCompareFunction="sortCompareFunction4ProductCharacterCode"/>
+		<mx:AdvancedDataGridColumn id="columnProductCharacterName"			headerText="{ResourceManager.getInstance().getString('label','proCharName')}" 		dataField="productCharacter" 			labelFunction="UtilDataGridColumnLabelFunction.getProductCharacterName"			editable="false" width="100" visible="{this.paramIn4visible4ProductCharacter}" 			sortCompareFunction="sortCompareFunction4ProductCharacterName"/>
+		<mx:AdvancedDataGridColumn id="columnOrganizationCode"				headerText="{ResourceManager.getInstance().getString('label','orgCode')}" 			dataField="organization" 				labelFunction="UtilDataGridColumnLabelFunction.getOrganizationCode"				editable="false" width="100" visible="{this.paramIn4visible4Organization}" 				sortCompareFunction="sortCompareFunction4OrganizationCode"/>
+		<mx:AdvancedDataGridColumn id="columnOrganizationName"				headerText="{ResourceManager.getInstance().getString('label','orgName')}" 			dataField="organization" 				labelFunction="UtilDataGridColumnLabelFunction.getOrganizationName"				editable="false" width="100" visible="{this.paramIn4visible4Organization}"				sortCompareFunction="sortCompareFunction4OrganizationName"/>
+		<mx:AdvancedDataGridColumn id="columnOrganizationCharacterCode"		headerText="{ResourceManager.getInstance().getString('label','orgCharCode')}" 	dataField="organizationCharacter" 		labelFunction="UtilDataGridColumnLabelFunction.getOrganizationCharacterCode"	editable="false" width="100" visible="{this.paramIn4visible4OrganizationCharacter}" 	sortCompareFunction="sortCompareFunction4OrganizationCharacterCode"/>
+		<mx:AdvancedDataGridColumn id="columnOrganizationCharacterName"		headerText="{ResourceManager.getInstance().getString('label','orgCharName')}" 	dataField="organizationCharacter" 		labelFunction="UtilDataGridColumnLabelFunction.getOrganizationCharacterName"	editable="false" width="100" visible="{this.paramIn4visible4OrganizationCharacter}" 	sortCompareFunction="sortCompareFunction4OrganizationCharacterName"/>								
+		<mx:AdvancedDataGridColumn id="columnBizData"						headerText="{ResourceManager.getInstance().getString('label','busData')}" 						dataField="bizData" 																									editable="false" width="100" visible="true" 											sortCompareFunction="sortCompareFunction4BizData"/>		
+		
+		<mx:AdvancedDataGridColumn headerText="{ResourceManager.getInstance().getString('label','period')}"		dataField="period"			editable="false"/>
+		<mx:AdvancedDataGridColumn headerText="{ResourceManager.getInstance().getString('label','originalValue')}"	dataField="oldValue" 		editable="false"/>
+		<mx:AdvancedDataGridColumn headerText="{ResourceManager.getInstance().getString('label','cleanedValue')}"	dataField="newValue" 		editable="false"/>
+		<mx:AdvancedDataGridColumn headerText="{ResourceManager.getInstance().getString('label','cleanDesc')}" dataField="description" 	editable="true"/>
+	</mx:columns>	
+</mx:AdvancedDataGrid>

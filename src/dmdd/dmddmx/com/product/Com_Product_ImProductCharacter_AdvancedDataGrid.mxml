@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:DataGrid xmlns:fx="http://ns.adobe.com/mxml/2009" 
+					 xmlns:s="library://ns.adobe.com/flex/spark" 
+					 xmlns:mx="library://ns.adobe.com/flex/mx"
+					 creationComplete="creationCompleteHandler(event)"  horizontalScrollPolicy="on" styleName="adv1">
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+	</fx:Declarations>
+	<fx:Metadata>
+	</fx:Metadata>
+	<fx:Script>
+		<![CDATA[
+			import mx.events.FlexEvent;
+			import mx.resources.ResourceManager;
+			
+			//	描述    begin
+			//	描述    end
+			
+			//	0	输入参数    begin
+			//	0	输入参数    end
+			
+			//	1	输出参数    begin
+			//	1	输出参数    end
+			
+			//	2	本地变量    begin		
+			//	2	本地变量    end			
+			
+			//	3	公共方法    begin	
+			//	3	公共方法    end		
+			
+			//	4	初始化方法    begin		
+			protected function creationCompleteHandler(event:FlexEvent):void
+			{
+				// TODO Auto-generated method stub
+			}			
+			//	4	初始化方法    end				
+			
+			//	5	事件响应方法    begin
+			//	5	事件响应方法    end
+			
+			//	6	本地方法    begin			
+			//	6	本地方法   end					
+
+
+
+		]]>
+	</fx:Script>	
+	<mx:columns>		
+		<mx:DataGridColumn id="columnParentCode"			headerText="{ResourceManager.getInstance().getString('label','parentCharCode')}" 		dataField="parentCode"/>
+		<mx:DataGridColumn id="columnLayerValue"			headerText="{ResourceManager.getInstance().getString('label','layerValue')}" 		dataField="layerValue"/>
+
+		<mx:DataGridColumn id="columnCode"					headerText="{ResourceManager.getInstance().getString('label','code')}" 				dataField="code"/>
+		<mx:DataGridColumn id="columnName"					headerText="{ResourceManager.getInstance().getString('label','name')}" 				dataField="name"/>
+		<mx:DataGridColumn id="columnType"					headerText="{ResourceManager.getInstance().getString('label','charType')}" 				dataField="type"/>
+		<mx:DataGridColumn id="columnIsCatalog"				headerText="{ResourceManager.getInstance().getString('label','isCharGroup')}" 		dataField="isCatalog"/>
+		<mx:DataGridColumn id="columnDescription"			headerText="{ResourceManager.getInstance().getString('label','desc')}" 		dataField="description"/>
+		<mx:DataGridColumn id="columnComments"				headerText="{ResourceManager.getInstance().getString('label','remark')}" 			dataField="comments"/>
+
+		<mx:DataGridColumn id="columnImportResult"			headerText="{ResourceManager.getInstance().getString('label','impResult')}" 		dataField="importResult"	visible="false"/>
+				
+	</mx:columns>	
+</mx:DataGrid>

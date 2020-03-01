@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Module xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		   xmlns:s="library://ns.adobe.com/flex/spark" 
+		   xmlns:mx="library://ns.adobe.com/flex/mx" layout="vertical" width="100%" height="100%"
+		   creationComplete="creationCompleteHandler(event)">
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+	</fx:Declarations>
+	
+	<fx:Script>
+		<![CDATA[
+			import mx.events.FlexEvent;
+			//	描述    begin
+			//	描述    end
+			
+			//	0	输入参数    begin						
+			//	0	输入参数    end
+			
+			//	1	输出参数    begin
+			//	1	输出参数    end
+			
+			//	2	本地变量    begin			
+			//	2	本地变量    end			
+			
+			//	3	公共方法    begin			
+			//	3	公共方法    end		
+			
+			//	4	初始化方法    begin	
+			protected function creationCompleteHandler(event:FlexEvent):void
+			{
+				var a:String = 'test';
+				// TODO Auto-generated method stub
+			}			
+			//	4	初始化方法    end				
+			
+			//	5	事件响应方法    begin
+			//	5	事件响应方法    end
+			
+			//	6	本地方法    begin
+			//	6	本地方法   end			
+			
+		]]>
+	</fx:Script>
+	
+	<mx:TabBar dataProvider="{viewStack}"/> 
+	<mx:ViewStack id="viewStack" 
+				  borderStyle="solid" width="100%" height="100%"> 
+		
+		<mx:ModuleLoader url="dmdd/dmddmx/mod/maindata/bizdata/Mod_Maindata_BizData_BizDataSysDef.swf" applicationDomain="{ApplicationDomain.currentDomain}" 
+						 label="{resourceManager.getString('menu','sysPreDefinition')}" width="100%" height="100%">
+		</mx:ModuleLoader>			
+		<mx:ModuleLoader url="dmdd/dmddmx/mod/maindata/bizdata/Mod_Maindata_BizData_BizDataHisAdR.swf" applicationDomain="{ApplicationDomain.currentDomain}" 
+						 label="{resourceManager.getString('menu','historyCleanReason')}" width="100%" height="100%">
+		</mx:ModuleLoader>		
+		<mx:ModuleLoader url="dmdd/dmddmx/mod/maindata/bizdata/Mod_Maindata_BizData_BizDataFcHand.swf" applicationDomain="{ApplicationDomain.currentDomain}" 
+						 label="{resourceManager.getString('menu','judgeForecast')}" width="100%" height="100%">
+		</mx:ModuleLoader>
+		<mx:ModuleLoader url="dmdd/dmddmx/mod/maindata/bizdata/Mod_Maindata_BizData_BizDataFcComb.swf" applicationDomain="{ApplicationDomain.currentDomain}" 
+						 label="{resourceManager.getString('menu','combineForecast')}" width="100%" height="100%">
+		</mx:ModuleLoader>
+		<mx:ModuleLoader url="dmdd/dmddmx/mod/maindata/bizdata/Mod_Maindata_BizData_BizDataTimeHis.swf" applicationDomain="{ApplicationDomain.currentDomain}" 
+						 label="{resourceManager.getString('menu','corresponHistory')}" width="100%" height="100%">
+		</mx:ModuleLoader>
+		<mx:ModuleLoader url="dmdd/dmddmx/mod/maindata/bizdata/Mod_Maindata_BizData_BizDataTimeFc.swf" applicationDomain="{ApplicationDomain.currentDomain}" 
+						 label="{resourceManager.getString('menu','corresponForecast')}" width="100%" height="100%">
+		</mx:ModuleLoader>	
+		<mx:ModuleLoader url="dmdd/dmddmx/mod/maindata/bizdata/Mod_Maindata_BizData_BizDataMoney.swf" applicationDomain="{ApplicationDomain.currentDomain}" 
+						 label="{resourceManager.getString('menu','acountData')}" width="100%" height="100%">
+		</mx:ModuleLoader>	
+		<mx:ModuleLoader url="dmdd/dmddmx/mod/maindata/bizdata/Mod_Maindata_BizData_BizDataMoneyComb.swf" applicationDomain="{ApplicationDomain.currentDomain}" 
+						 label="{resourceManager.getString('menu','combineAccountData')}" width="100%" height="100%">
+		</mx:ModuleLoader>			
+		<mx:ModuleLoader url="dmdd/dmddmx/mod/maindata/bizdata/Mod_Maindata_BizData_BizDataKpi.swf" applicationDomain="{ApplicationDomain.currentDomain}" 
+						 label="{resourceManager.getString('menu','kpi')}" width="100%" height="100%">
+		</mx:ModuleLoader>
+		<mx:ModuleLoader url="dmdd/dmddmx/mod/maindata/bizdata/Mod_Maindata_BizData_ForecastAssessment.swf" applicationDomain="{ApplicationDomain.currentDomain}" 
+						 label="{resourceManager.getString('menu','versionForecast')}" width="100%" height="100%">
+		</mx:ModuleLoader>
+		<!--
+		<mx:ModuleLoader url="dmdd/dmddmx/mod/maindata/bizdata/Mod_Maindata_BizData_BizDataDC.swf" applicationDomain="{ApplicationDomain.currentDomain}" label="{resourceManager.getString('menu','replenishPlan')}" width="100%" height="100%">
+		</mx:ModuleLoader>
+		-->
+	</mx:ViewStack> 
+</mx:Module>

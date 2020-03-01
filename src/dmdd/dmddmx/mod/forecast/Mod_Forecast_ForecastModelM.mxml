@@ -1,0 +1,236 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Module xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		   xmlns:s="library://ns.adobe.com/flex/spark" 
+		   xmlns:mx="library://ns.adobe.com/flex/mx" layout="vertical" width="100%" height="100%" 
+		   paddingLeft="10" paddingRight="10" paddingBottom="2"
+		   creationComplete="creationCompleteHandler(event)"  
+		   xmlns:common="dmdd.dmddmx.com.common.*"
+		   xmlns:containers="aks.aksmx.containers.*" xmlns:controls="aks.aksmx.controls.*" 
+		   xmlns:forecast="dmdd.dmddmx.com.forecast.*">
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+		<s:RemoteObject endpoint="{ClientEnvironment.endpoint}" id="srvForecastModelM" destination="ForecastService">
+			<s:method name="getForecastModelMsStat" result="resultHandler4getForecastModelMsStat(event)" fault="faultHandler4getForecastModelMsStat(event)">
+			</s:method>			
+			<s:method name="getForecastModelMs" result="resultHandler4getForecastModelMs(event)" fault="faultHandler4getForecastModelMs(event)">
+			</s:method>		
+		</s:RemoteObject>		
+	</fx:Declarations>
+	<fx:Script>
+		<![CDATA[
+			import aks.aksas.utils.UtilUi;
+			
+			import com.cool.assets.CoolAssetsFile;
+			
+			import dmdd.dmddas.common.constant.FunPermiConst;
+			import dmdd.dmddas.common.constant.SkinConst;
+			import dmdd.dmddas.common.system.ClientEnvironment;
+			import dmdd.dmddas.common.utils.UtilExceptionLocale;
+			import dmdd.dmddas.dataaccess.bizobject.BForecastModelM;
+			import dmdd.dmddas.dataaccess.utils.UtilFactoryForecastModelM;
+			import dmdd.dmddmx.com.forecast.Com_Forecast_ForecastModelM_AU;
+			
+			import mx.collections.ArrayCollection;
+			import mx.controls.Alert;
+			import mx.events.CloseEvent;
+			import mx.events.FlexEvent;
+			import mx.events.ListEvent;
+			import mx.managers.PopUpManager;
+			import mx.rpc.events.FaultEvent;
+			import mx.rpc.events.ResultEvent;
+			
+			
+			//	描述    begin
+			//	描述    end
+			
+			//	0	输入参数    begin						
+			//	0	输入参数    end
+			
+			//	1	输出参数    begin
+			//	1	输出参数    end
+			
+			//	2	本地变量    begin	
+			[Bindable]
+			private var prvVar4dp4comAdgForecastModelM:ArrayCollection = new ArrayCollection();
+			
+			private var prvVar4sqlRestriction:String = null;	
+			
+			
+			private var prvVar4auWindow:Com_Forecast_ForecastModelM_AU = null;
+			
+			[Bindable]
+			private var prvVar4blFunPermission4query:Boolean = true;			
+			[Bindable]
+			private var prvVar4blFunPermission4manage:Boolean = true;
+			//	2	本地变量    end			
+			
+			//	3	公共方法    begin			
+			//	3	公共方法    end		
+			
+			//	4	初始化方法    begin	
+			protected function creationCompleteHandler(event:FlexEvent):void
+			{
+				prvVar4blFunPermission4manage = ClientEnvironment.checkIsPermission( FunPermiConst.FORECAST_FORECASTMODEL_MANAGE );
+				
+			}			
+			//	4	初始化方法    end				
+			
+			//	5	事件响应方法    begin		
+			private function callbackFunction4query4comQCond():void
+			{				
+				this.prvVar4sqlRestriction = this.comQCond.pubFun4getParamOut4sqlRestriction();
+				var blPageQuery:Boolean = this.comQCond.pubFun4getParamOut4blPageQuery();
+				
+				if( blPageQuery == true )
+				{	
+					UtilUi.pubFun4PopWaitWindow( this );
+					this.srvForecastModelM.getForecastModelMsStat( this.prvVar4sqlRestriction );	
+				}
+				else
+				{	
+					//	不分页查询
+					UtilUi.pubFun4PopWaitWindow( this );
+					this.srvForecastModelM.getForecastModelMs( this.prvVar4sqlRestriction, -1, ClientEnvironment.getSysParamPageSize() );
+				}								
+			}			
+			
+			//	分页查询相关		begin
+			private function faultHandler4getForecastModelMsStat(event:FaultEvent):void
+			{
+				UtilUi.pubFun4RemoveWaitWindow();
+				Alert.show( UtilExceptionLocale.getExceptionMessageLocaleByFaultEvent( event ), resourceManager.getString('alert','alt_title_warn') );
+			}	
+			
+			private function resultHandler4getForecastModelMsStat(event:ResultEvent):void 
+			{
+				//	初始化数据表格控制板
+				var rstSize:Number = Number(event.result);
+				this.comAksDataGridControlBar.pubFun4setResultParams( true, rstSize, ClientEnvironment.getSysParamPageSize() );
+				
+				//	去执行第一页查询
+				this.srvForecastModelM.getForecastModelMs( this.prvVar4sqlRestriction, 1, ClientEnvironment.getSysParamPageSize() );
+			}
+			
+			private function prvFun4pageQueryForecastModelMs( _pageIndex:int ):void
+			{
+				UtilUi.pubFun4PopWaitWindow( this );
+				this.srvForecastModelM.getForecastModelMs( this.prvVar4sqlRestriction, _pageIndex, ClientEnvironment.getSysParamPageSize() );					
+			}			
+			//	分页查询相关		end
+			
+			
+			private function faultHandler4getForecastModelMs(event:FaultEvent):void
+			{
+				UtilUi.pubFun4RemoveWaitWindow();
+				Alert.show( UtilExceptionLocale.getExceptionMessageLocaleByFaultEvent( event ), resourceManager.getString('alert','alt_title_warn') );
+			}	
+			
+			private function resultHandler4getForecastModelMs(event:ResultEvent):void 
+			{
+				this.prvVar4dp4comAdgForecastModelM = ArrayCollection(event.result);
+				
+				if( this.comQCond.pubFun4getParamOut4blPageQuery() == false )
+				{
+					//	不是分页查询，需要根据查询结果初始化数据表格控制板
+					this.comAksDataGridControlBar.pubFun4setResultParams( false, this.prvVar4dp4comAdgForecastModelM.length, this.prvVar4dp4comAdgForecastModelM.length );
+				}
+				
+				UtilUi.pubFun4RemoveWaitWindow();
+			}					
+			
+			
+			private function onUpd():void
+			{
+				var selectedForecastModelM:BForecastModelM = BForecastModelM( this.comAdgForecastModelM.selectedItem );
+				// 不必检查，这个方法被调用的前提已经保证 
+				
+				if( this.prvVar4auWindow == null )
+				{
+					this.prvVar4auWindow = Com_Forecast_ForecastModelM_AU(PopUpManager.createPopUp(this, Com_Forecast_ForecastModelM_AU, true));
+					this.prvVar4auWindow.pubFun4setParamIn4closeCallback( this, callbackFunction4auWinClose );	
+				}
+				else
+				{
+					PopUpManager.addPopUp( this.prvVar4auWindow, this, true );
+				}	
+				
+				this.prvVar4auWindow.title = resourceManager.getString('menu','editModel');
+				
+				// 这里的代码须如此：先准备好后再设置给 auWindow
+				// 如果直接设置一个新建对象给auWindow，然后再操作其准备其内容，则可能不能触发auWindow内部的相关绑定动作	
+	
+				var updForecastModelM:BForecastModelM = UtilFactoryForecastModelM.getNewInstance(selectedForecastModelM);
+				updForecastModelM.copyDeep( selectedForecastModelM );				
+			
+				this.prvVar4auWindow.pubFun4setParamIo4forecastModelM( updForecastModelM, UtilUi.AUWINDOW_USE_UPD );							 
+				
+			} 
+			
+			private function callbackFunction4auWinClose():void
+			{
+				if( this.prvVar4auWindow.pubFun4getParamOut4winCloseWay() == UtilUi.WINDOW_CLOSEWAY_OK )
+				{
+					var rstForecastModelM:BForecastModelM = this.prvVar4auWindow.pubFun4getParamIo4forecastModelM();
+					if( rstForecastModelM != null )
+					{
+						if( this.prvVar4auWindow.pubFun4getParamIo4winUse() == UtilUi.AUWINDOW_USE_UPD )
+						{
+							this.prvVar4dp4comAdgForecastModelM.setItemAt( rstForecastModelM, this.comAdgForecastModelM.selectedIndex );
+						}
+					}
+				}
+				//this.prvVar4auWindow = null;														
+			}			
+			
+			//	5	事件响应方法    end
+			
+			//	6	本地方法    begin
+			private function prvFun4getEnabled4BtnManage( _selectedItem:Object ):Boolean
+			{
+				// todo
+				if( _selectedItem == null )
+				{
+					return false;
+				}
+				
+				if( this.prvVar4blFunPermission4manage == false )
+				{
+					return false;
+				}
+				
+				return true;
+			}
+			//	6	本地方法   end	
+			
+			protected function comAdgForecastModelM_itemDoubleClickHandler(event:ListEvent):void
+			{
+				// TODO Auto-generated method stub
+				
+			}
+			
+		]]>
+	</fx:Script>
+
+	<forecast:Com_Forecast_ForecastModelM_QueryCond width="100%" id="comQCond" paramIn4queryCallback4thisObject="{this}" paramIn4queryCallback4function="{this.callbackFunction4query4comQCond}" paramIn4enabled="{this.prvVar4blFunPermission4query}">
+	</forecast:Com_Forecast_ForecastModelM_QueryCond>	
+	<mx:VDividedBox width="100%" height="100%">
+		<s:VGroup width="100%" height="100%">
+			<common:LabelBoundary paddingTop="5" labelText="{resourceManager.getString('menu','forecastModel')}" />
+
+			<containers:AksControlBar>
+				<s:Button label="{resourceManager.getString('button','edit')}"  icon="{CoolAssetsFile.editIcon}"  enabled="{this.prvFun4getEnabled4BtnManage(this.comAdgForecastModelM.selectedItem)}" click="onUpd()"/>
+				<controls:AksDataGridControlBar id="comAksDataGridControlBar" width="100%" paramIn4callback4thisObject="{this}" paramIn4callback4queryFunction="{this.prvFun4pageQueryForecastModelMs}" paramIn4dataGrid="{this.comAdgForecastModelM}">
+				</controls:AksDataGridControlBar>	
+			</containers:AksControlBar>
+			<forecast:Com_Forecast_ForecastModelM_AdvancedDataGrid width="100%" height="100%" id="comAdgForecastModelM" 
+					   itemDoubleClick="onUpd()" doubleClickEnabled="true" dataProvider="{this.prvVar4dp4comAdgForecastModelM}"/>
+		</s:VGroup>
+		<s:VGroup width="100%" height="100%">
+			<common:LabelBoundary paddingTop="5" labelText="{resourceManager.getString('menu','modelInfo')}" />
+
+			<forecast:Com_Forecast_ForecastModelM_Properties paramIo4forecastModelM="{BForecastModelM(this.comAdgForecastModelM.selectedItem)}" paramIn4editable="false" paramIn4blShowBaseInfo="false" width="100%" height="100%">
+			</forecast:Com_Forecast_ForecastModelM_Properties>
+		</s:VGroup>	
+		
+	</mx:VDividedBox>
+</mx:Module>

@@ -1,0 +1,51 @@
+
+report_row=Row Based Report
+report_column=Column Based Report
+report_weight=Weighted KPI Report
+report_statistics=Consolidation Report
+report_breakdown=Distribution Report
+report_expansion=Master-Detail Report
+report_historyforecast=History-Forecast Report
+
+btn_exportdata=Export
+btn_savedata=????
+btn_refreshchart=Refresh
+btn_viewdetail=Details
+btn_set_breakdown=Distribution Setting
+
+querycondition=Query
+reportdata_table=Report Data
+reportdata_chart=Report Chart
+reportdata_chartscaleline=Key Figure Line Chart
+reportdata_chartscalecolumn=Key Figure Bar Chart
+reportdata_chartkpiline=KPI Line Chart
+reportdata_chartkpicolumn=KPI Bar Chart
+
+expansion_set=Level Setting
+weight_set=Baseline Level Setting
+alert_title_hint=Alert
+
+alert_msg_bizdatanumover=Key Figure exceeds the maximum value!
+
+alert_msg_chartexceedmaxnum_scale=The number of lines included in chart has exceeded the maximum limit, only partial data can be displayed!
+alert_msg_chartexceedmaxnum_kpi=The number of lines included in chart has exceeded the maximum limit, only partial data can be displayed!
+alert_msg_notselectbasedata=Please select weighted by
+
+alert_msg_error_period=It cannot exceed 18 months!
+alert_msg_error_setbreakdown=Please set distribution rule!
+alert_msg_error_resetbreakdown=Distribution rule is not consistent, please reset!
+
+alert_msg_error_bizdata=Please select one history and forecast key figures.
+
+alert_msg_fail_forecastsetting=No forecasting strategy is found!
+alert_msg_multi_forecastsetting=Forecasting strategy is not consistent within selected scope!
+
+alert_msg_productlayer_error=Display level is higher than selected, please reset!
+alert_msg_productcharactertype_error=Display product chara is not consistent with selected, please reset!
+alert_msg_productcharacterlayer_error=Display product chara level is higher than selected, please reset!
+alert_msg_orgnizationlayer_error=Display salesorg chara level is higher than selected, please reset!
+alert_msg_orgniaztioncharactertype_error=Display salesorg chara is not consistent with selected, please reset!
+alert_msg_orgniaztioncharacterlayer_error=Display salesorg chara level is higher than selected, please reset!
+
+alert_msg_over_breakdownitem_max=Rules of proration exceeds 80£¡
+alert_msg_savedata_ok=Save successfully£¡

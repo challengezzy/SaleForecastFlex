@@ -1,0 +1,14 @@
+
+title=标题
+summary=摘要
+comments=备注
+content=内容
+
+alert_title_hint=提示
+alert_msg_titleisnull=标题不能为空
+
+btn_save=保存
+btn_cancel=取消
+
+
+

@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:TitleWindow xmlns:fx="http://ns.adobe.com/mxml/2009" 
+			   xmlns:s="library://ns.adobe.com/flex/spark" 
+			   xmlns:mx="library://ns.adobe.com/flex/mx" width="700" height="500">
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	
+	
+	<fx:Script>
+		<![CDATA[
+			import mx.collections.ArrayCollection;
+			import mx.events.IndexChangedEvent;
+			
+			[Bindable]
+			private var dp4chart4scale:ArrayCollection = new ArrayCollection();
+			
+			private var arr4displayName4chart4scale:ArrayCollection = new ArrayCollection();
+			private var arr4yField4chart4scale:ArrayCollection = new ArrayCollection();	
+			[Bindable]
+			private var arr4editableLines:ArrayCollection = new ArrayCollection();
+			
+			[Bindable]
+			private var dp4chart4kpi:ArrayCollection = new ArrayCollection();
+			
+			private var arr4displayName4chart4kpi:ArrayCollection = new ArrayCollection();
+			private var arr4yField4chart4kpi:ArrayCollection = new ArrayCollection();	
+			
+			[Bindable]
+			public var dp4chart4kpi:ArrayCollection = new ArrayCollection();
+			
+			protected function tabNav4chart_changeHandler(event:IndexChangedEvent):void
+			{
+				if( tabNav4chart.selectedChild == tab4aksLineChart4scale )
+				{
+					aksLineChart4scale.pubFun4setSeries( arr4displayName4chart4scale, arr4yField4chart4scale );
+				}
+				else if( tabNav4chart.selectedChild == tab4aksColumnChart4scale )
+				{
+					aksColunmnChart4scale.pubFun4setSeries( arr4displayName4chart4scale, arr4yField4chart4scale );
+				}
+				else if( tabNav4chart.selectedChild == tab4aksLineChart4kpi )
+				{
+					aksLineChart4kpi.pubFun4setSeries( arr4displayName4chart4kpi, arr4yField4chart4kpi );
+				}
+				else if( tabNav4chart.selectedChild == tab4aksColumnChart4kpi )
+				{
+					aksColunmnChart4kpi.pubFun4setSeries( arr4displayName4chart4kpi, arr4yField4chart4kpi );
+				}				
+			}	
+			
+		]]>
+	</fx:Script>
+	
+	<mx:TabNavigator width="100%" height="100%" id="tabNav4chart" change="tabNav4chart_changeHandler(event)">
+		<s:NavigatorContent label="{resourceManager.getString('menu','lineChart')}" width="100%" height="100%" id="tab4aksLineChart4scale">
+			<s:layout>
+				<s:VerticalLayout/>
+			</s:layout>
+			<charts:AksLineChart id="aksLineChart4scale" width="100%" height="100%" chartHeight="200" 
+								 paramIn4dp4lineChart="{dp4chart4scale}" paramIn4visible4legend="true" paramIn4arr4EditableLinesNumber="{arr4editableLines}" 
+								 paramIn4executeCallback4function="{callbackFunction4SetNewuiRowData}" paramIn4executeCallback4thisObject="{this}" 
+								 paramIn4arr4Editables="{arrEditPeriods}">
+			</charts:AksLineChart>					
+		</s:NavigatorContent>
+		<s:NavigatorContent label="{resourceManager.getString('menu','barChart')}" width="100%" height="100%" id="tab4aksColumnChart4scale" >
+			<s:layout>
+				<s:VerticalLayout/>
+			</s:layout>
+			<charts:AksColumnChart id="aksColunmnChart4scale" width="100%" height="100%"  chartHeight="200"
+								   paramIn4dp4columnChart="{dp4chart4scale}" paramIn4visible4legend="false">
+			</charts:AksColumnChart>					
+		</s:NavigatorContent>
+		<s:NavigatorContent label="{resourceManager.getString('menu','kpiLineChart')}" width="100%" height="100%" id="tab4aksLineChart4kpi">
+			<s:layout>
+				<s:VerticalLayout/>
+			</s:layout>
+			<charts:AksLineChart id="aksLineChart4kpi" width="100%" height="100%"  chartHeight="200"
+								 paramIn4dp4lineChart="{dp4chart4kpi}" paramIn4visible4legend="false">
+			</charts:AksLineChart>					
+		</s:NavigatorContent>
+		<s:NavigatorContent label="{resourceManager.getString('menu','kpiBarChart')}" width="100%" height="100%" id="tab4aksColumnChart4kpi" >
+			<s:layout>
+				<s:VerticalLayout/>
+			</s:layout>
+			<charts:AksColumnChart id="aksColunmnChart4kpi" width="100%" height="100%"  chartHeight="200"
+								   paramIn4dp4columnChart="{dp4chart4kpi}" paramIn4visible4legend="false">
+			</charts:AksColumnChart>					
+		</s:NavigatorContent>				
+	</mx:TabNavigator>
+</s:TitleWindow>

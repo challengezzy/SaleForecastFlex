@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Module xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		   xmlns:s="library://ns.adobe.com/flex/spark" 
+		   xmlns:mx="library://ns.adobe.com/flex/mx" layout="horizontal" width="100%" height="100%"
+		   creationComplete="creationCompleteHandler(event)">
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+	</fx:Declarations>
+	<fx:Metadata>
+		[ResourceBundle("mod_security")]
+	</fx:Metadata>
+	<fx:Script>
+		<![CDATA[
+			import dmdd.dmddas.common.constant.BizConst;
+			import dmdd.dmddas.common.system.ClientEnvironment;
+			
+			import mx.events.FlexEvent;
+			
+
+			//	描述    begin
+			//	描述    end
+			
+			//	0	输入参数    begin						
+			//	0	输入参数    end
+			
+			//	1	输出参数    begin
+			//	1	输出参数    end
+			
+			//	2	本地变量    begin			
+			//	2	本地变量    end			
+			
+			//	3	公共方法    begin			
+			//	3	公共方法    end		
+			
+			//	4	初始化方法    begin	
+			protected function creationCompleteHandler(event:FlexEvent):void
+			{
+				this.viewStack.removeAllElements();
+
+				
+				if( ClientEnvironment.checkIsPermission(BizConst.FUNPERMISSION_OPERATORUSER_QUERY) ||
+					ClientEnvironment.checkIsPermission(BizConst.FUNPERMISSION_OPERATORUSER_MANAGE) 
+				)
+				{
+					this.viewStack.addElement( this.modloader_operatoruser );					
+				}	
+				
+				if( ClientEnvironment.checkIsPermission(BizConst.FUNPERMISSION_OPERATORUSER_PASSWORD ) 
+				)
+				{
+					this.viewStack.addElement( this.modloader_changepassword );					
+				}	
+				if(ClientEnvironment.checkIsPermission(BizConst.FUNPERMISSION_OPERATORUSER_MANAGE))
+				{
+					this.viewStack.addElement(this.modloader_operatorusrproorg);
+				}
+				if(ClientEnvironment.checkIsPermission(BizConst.FUNPERMISSION_OPERATORUSER_INTERFACE) ||ClientEnvironment.checkIsPermission(BizConst.FUNPERMISSION_OPERATORUSER_INTERFACEPRICEDATA))
+				{
+					this.viewStack.addElement(this.modloader_interface);
+				}
+				if(ClientEnvironment.checkIsPermission(BizConst.FUNPERMISSION_SECURITY_INTERFACE_STANDARD) )
+				{
+					this.viewStack.addElement(this.modloader_interface_standard);
+				}
+				if(ClientEnvironment.checkIsPermission(BizConst.FUNPERMISSION_OPERATORUSER_SYSBAK) )
+				{
+					this.viewStack.addElement(this.modloader_sysbak);
+				}
+				if(ClientEnvironment.checkIsPermission(BizConst.FUNPERMISSION_SECURITY_MOBILE) )
+				{
+					this.viewStack.addElement(this.modloader_mobile);
+				}
+			}			
+			//	4	初始化方法    end				
+			
+			//	5	事件响应方法    begin
+			//	5	事件响应方法    end
+			
+			//	6	本地方法    begin
+			//	6	本地方法   end		
+
+		]]>
+	</fx:Script>
+	
+	
+	
+	<mx:TabBar dataProvider="{viewStack}" direction="vertical" width="150"/> 
+	
+	<mx:ViewStack id="viewStack" 
+				  borderStyle="solid" width="100%" height="100%"> 
+		
+	
+		<mx:ModuleLoader url="dmdd/dmddmx/mod/security/Mod_Security_OperatorUser.swf" id="modloader_operatoruser" applicationDomain="{ApplicationDomain.currentDomain}" 
+						 label="{resourceManager.getString('menu','userManage')}" width="100%" height="100%">
+		</mx:ModuleLoader>		
+		<mx:ModuleLoader url="dmdd/dmddmx/mod/security/Mod_Security_ChangePassword.swf" id="modloader_changepassword" applicationDomain="{ApplicationDomain.currentDomain}" 
+						 label="{resourceManager.getString('menu','changePsw')}" width="100%" height="100%">
+		</mx:ModuleLoader>			
+		<mx:ModuleLoader url="dmdd/dmddmx/mod/security/Mod_Securty_OperatorUserProOrg_Import.swf" id="modloader_operatorusrproorg"  applicationDomain="{ApplicationDomain.currentDomain}" 
+						 label="{resourceManager.getString('menu','userBusScopeImp')}" width="100%" height="100%"/>
+		<mx:ModuleLoader url="dmdd/dmddmx/mod/security/Mod_Security_Interface.swf" id="modloader_interface"  applicationDomain="{ApplicationDomain.currentDomain}" 
+						 label="{resourceManager.getString('menu','interfaceManage')}" width="100%" height="100%"/>
+		<mx:ModuleLoader url="dmdd/dmddmx/mod/security/Mod_Security_SysBak.swf" id="modloader_sysbak"  applicationDomain="{ApplicationDomain.currentDomain}" 
+						 label="{resourceManager.getString('menu','dataClear')}" width="100%" height="100%"/>
+		<mx:ModuleLoader url="dmdd/dmddmx/mod/security/standard/Mod_Security_Interface_Standard.swf" id="modloader_interface_standard"  applicationDomain="{ApplicationDomain.currentDomain}" 
+						 label="{resourceManager.getString('menu','standardInterfaceManage')}" width="100%" height="100%"/>
+		<mx:ModuleLoader url="dmdd/dmddmx/mod/mobile/Mod_Security_Mobile.swf" id="modloader_mobile"  applicationDomain="{ApplicationDomain.currentDomain}" 
+						 label="{resourceManager.getString('menu','mobileServerManage')}" width="100%" height="100%"/>
+	</mx:ViewStack>
+	
+</mx:Module>

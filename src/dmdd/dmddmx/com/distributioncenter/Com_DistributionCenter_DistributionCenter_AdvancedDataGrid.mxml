@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<components:AdvancedDataGrid4RightMenu xmlns:fx="http://ns.adobe.com/mxml/2009" 
+					 xmlns:s="library://ns.adobe.com/flex/spark" 
+					 xmlns:components="com.cool.components.*"
+					 xmlns:mx="library://ns.adobe.com/flex/mx" horizontalScrollPolicy="on" styleName="adv1">
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+	</fx:Declarations>
+	<fx:Script>
+		<![CDATA[
+			import com.siloon.plugin.rightClick.RightClickManager;
+			
+			import dmdd.dmddas.common.utils.UtilDataGridColumnLabelFunction;
+			
+			import mx.collections.ArrayCollection;
+			import mx.controls.Menu;
+			import mx.controls.listClasses.IListItemRenderer;
+			import mx.events.FlexEvent;
+			import mx.events.MenuEvent;
+			import mx.managers.PopUpManager;
+			import mx.resources.ResourceManager;
+			
+			//	描述    begin
+			//	描述    end
+			
+			//	0	输入参数    begin	
+			[Bindable]
+			public var paramIo4dp4adgDC:ArrayCollection = new ArrayCollection();	
+			
+			[Bindable]
+			public var paramIo4ShowOtherInfo:Boolean = false;
+			
+			//	0	输入参数    end
+			
+			//	1	输出参数    begin
+			//	1	输出参数    end
+			
+			//	2	本地变量    begin			
+			//	2	本地变量    end			
+			
+			//	3	公共方法    begin	
+			
+			//	3	公共方法    end		
+			
+			//	4	初始化方法    begin			
+			
+			//	4	初始化方法    end				
+			
+			//	5	事件响应方法    begin
+			
+			//	5	事件响应方法    end
+			
+			//	6	本地方法    begin
+			//	6	本地方法   end					
+			
+			
+		]]>
+	</fx:Script>
+	<components:dataProvider>
+		<mx:HierarchicalData source="{this.paramIo4dp4adgDC}" childrenField="subDCs">
+		</mx:HierarchicalData>		
+	</components:dataProvider>	
+	<components:columns>
+		<mx:AdvancedDataGridColumn width="180" headerText="{ResourceManager.getInstance().getString('label','code')}" 		dataField="code"/>
+		<mx:AdvancedDataGridColumn width="160" headerText="{ResourceManager.getInstance().getString('label','name')}" 		dataField="name"/>
+		<mx:AdvancedDataGridColumn width="100" headerText="{ResourceManager.getInstance().getString('label','dclayer')}" 			dataField="dclayer" />
+		<mx:AdvancedDataGridColumn width="100" headerText="{ResourceManager.getInstance().getString('label','iscatalog')}" 	dataField="iscatalog" 	labelFunction="UtilDataGridColumnLabelFunction.getGlobalYesNoLocale"/>
+		<mx:AdvancedDataGridColumn width="100" headerText="{ResourceManager.getInstance().getString('label','isvalid')}" 		dataField="isvalid" 	labelFunction="UtilDataGridColumnLabelFunction.getGlobalYesNoLocale"/>
+		<mx:AdvancedDataGridColumn width="140" headerText="{ResourceManager.getInstance().getString('label','detailaddress')}" 		dataField="detailaddress" visible="{this.paramIo4ShowOtherInfo}"/>
+		<mx:AdvancedDataGridColumn width="100" headerText="{ResourceManager.getInstance().getString('label','description')}" 		dataField="description" 	 visible="{this.paramIo4ShowOtherInfo}"/>
+		<mx:AdvancedDataGridColumn width="100" headerText="{ResourceManager.getInstance().getString('label','comments')}" 			dataField="comments"  visible="{this.paramIo4ShowOtherInfo}"/>
+	
+	</components:columns>	
+</components:AdvancedDataGrid4RightMenu>

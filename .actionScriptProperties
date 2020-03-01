@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<actionScriptProperties analytics="false" mainApplicationPath="dmddweb.mxml" projectUUID="d9e43e9a-2af6-4cce-86a5-f79a98773604" version="10">
+  <compiler additionalCompilerArguments="-services &quot;D:\tomcat\tomcat6_8585\webapps\SaleForecastWeb\WEB-INF\flex\services-config.xml&quot; -locale en_US zh_CN -source-path+=locale/{locale} -keep-all-type-selectors=true  -isolate-styles=false" autoRSLOrdering="true" copyDependentFiles="true" fteInMXComponents="false" generateAccessible="true" htmlExpressInstall="true" htmlGenerate="false" htmlHistoryManagement="true" htmlPlayerVersionCheck="true" includeNetmonSwc="false" outputFolderLocation="D:/tomcat/tomcat6_8585/webapps/SaleForecastWeb/SaleForecastFlex-debug" outputFolderPath="bin-debug" removeUnusedRSL="true" sourceFolderPath="src" strict="true" targetPlayerVersion="0.0.0" useApolloConfig="false" useDebugRSLSwfs="true" verifyDigests="true" warn="true">
+    <compilerSourcePath/>
+    <libraryPath defaultLinkType="0">
+      <libraryPathEntry kind="4" path="">
+        <excludedEntries>
+          <libraryPathEntry kind="3" linkType="1" path="${PROJECT_FRAMEWORKS}/libs/flex.swc" useDefaultLinkType="false"/>
+          <libraryPathEntry kind="3" linkType="1" path="${PROJECT_FRAMEWORKS}/libs/core.swc" useDefaultLinkType="false"/>
+        </excludedEntries>
+      </libraryPathEntry>
+      <libraryPathEntry kind="1" linkType="1" path="libs"/>
+    </libraryPath>
+    <sourceAttachmentPath/>
+  </compiler>
+  <theme themeIsDefault="false" themeIsSDK="true" themeLocation="${SDK_THEMES_DIR}/frameworks/themes/Halo"/>
+  <applications>
+    <application path="dmddweb.mxml"/>
+  </applications>
+  <modules>
+    <module application="src/dmddweb.mxml" destPath="dmdd/dmddmx/mod/invreport/Mod_InvReport_InventoryRisk_Summary.swf" optimize="true" sourcePath="src/dmdd/dmddmx/mod/invreport/Mod_InvReport_InventoryRisk_Summary.mxml"/>
+    <module application="src/dmddweb.mxml" destPath="dmdd/dmddmx/mod/invreport/Mod_InvReport_InventoryRisk.swf" optimize="true" sourcePath="src/dmdd/dmddmx/mod/invreport/Mod_InvReport_InventoryRisk.mxml"/>
+    <module application="src/dmddweb.mxml" destPath="dmdd/dmddmx/mod/invreport/Mod_InvReport_ForecastInventory.swf" optimize="true" sourcePath="src/dmdd/dmddmx/mod/invreport/Mod_InvReport_ForecastInventory.mxml"/>
+    <module application="src/dmddweb.mxml" destPath="dmdd/dmddmx/mod/maindata/organization/Mod_Maindata_Organization_Organization.swf" optimize="true" sourcePath="src/dmdd/dmddmx/mod/maindata/organization/Mod_Maindata_Organization_Organization.mxml"/>
+    <module application="src/dmddweb.mxml" destPath="dmdd/dmddmx/mod/forecast/Mod_Forecast_ForecastInst.swf" optimize="true" sourcePath="src/dmdd/dmddmx/mod/forecast/Mod_Forecast_ForecastInst.mxml"/>
+    <module application="src/dmddweb.mxml" destPath="dmdd/dmddmx/mod/inventory/Mod_Inventory_Popr_Import.swf" optimize="true" sourcePath="src/dmdd/dmddmx/mod/inventory/Mod_Inventory_Popr_Import.mxml"/>
+    <module application="src/dmddweb.mxml" destPath="dmdd/dmddmx/mod/inventory/Mod_Inventory_Popr_InQuery.swf" optimize="true" sourcePath="src/dmdd/dmddmx/mod/inventory/Mod_Inventory_Popr_InQuery.mxml"/>
+    <module application="src/dmddweb.mxml" destPath="dmdd/dmddmx/mod/inventory/Mod_Inventory_Popr_Query.swf" optimize="true" sourcePath="src/dmdd/dmddmx/mod/inventory/Mod_Inventory_Popr_Query.mxml"/>
+    <module application="src/dmddweb.mxml" destPath="dmdd/dmddmx/mod/maindata/bizdata/Mod_Maindata_BizData_BizDataFcHand.swf" optimize="false" sourcePath="src/dmdd/dmddmx/mod/maindata/bizdata/Mod_Maindata_BizData_BizDataFcHand.mxml"/>
+    <module application="src/dmddweb.mxml" destPath="dmdd/dmddmx/mod/replenish/Mod_Replenish_Import_TermEnd.swf" optimize="false" sourcePath="src/dmdd/dmddmx/mod/replenish/Mod_Replenish_Import_TermEnd.mxml"/>
+    <module application="src/dmddweb.mxml" destPath="dmdd/dmddmx/mod/security/Mod_Security_OperatorUser.swf" optimize="false" sourcePath="src/dmdd/dmddmx/mod/security/Mod_Security_OperatorUser.mxml"/>
+    <module application="src/dmddweb.mxml" destPath="dmdd/dmddmx/mod/replenish/Mod_Replenish_ReCompute.swf" optimize="false" sourcePath="src/dmdd/dmddmx/mod/replenish/Mod_Replenish_ReCompute.mxml"/>
+    <module application="src/dmddweb.mxml" destPath="dmdd/dmddmx/mod/forecast/Mod_Forecast_ForecastData_ForecastModel_Create.swf" optimize="false" sourcePath="src/dmdd/dmddmx/mod/forecast/Mod_Forecast_ForecastData_ForecastModel_Create.mxml"/>
+    <module application="src/dmddweb.mxml" destPath="dmdd/dmddmx/mod/replenish/Mod_Replenish_Ending_Inventory.swf" optimize="false" sourcePath="src/dmdd/dmddmx/mod/replenish/Mod_Replenish_Ending_Inventory.mxml"/>
+  </modules>
+  <buildCSSFiles/>
+  <flashCatalyst validateFlashCatalystCompatibility="false"/>
+</actionScriptProperties>

@@ -1,0 +1,553 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Module xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		   xmlns:s="library://ns.adobe.com/flex/spark" 
+		   xmlns:mx="library://ns.adobe.com/flex/mx" layout="vertical" width="100%" height="100%"
+		   paddingLeft="10" paddingRight="10"
+		   creationComplete="creationCompleteHandler(event)"  
+		   xmlns:containers="aks.aksmx.containers.*" xmlns:controls="aks.aksmx.controls.*" 
+		   xmlns:forecast="dmdd.dmddmx.com.forecast.*" xmlns:common="dmdd.dmddmx.com.common.*" xmlns:buttons="com.cool.buttons.*">
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+		<s:RemoteObject endpoint="{ClientEnvironment.endpoint}" id="srvForecast" destination="ForecastService">
+			<s:method name="getForecastInstsStat" result="resultHandler4getForecastInstsStat(event)" fault="faultHandler4getForecastInstsStat(event)">
+			</s:method>			
+			<s:method name="getForecastInsts" result="resultHandler4getForecastInsts(event)" fault="faultHandler4getForecastInsts(event)">
+			</s:method>
+			<s:method name="delForecastInst" result="resultHandler4delForecastInst(event)" fault="faultHandler4delForecastInst(event)">
+			</s:method>	
+			<s:method name="getForecastInst" result="resultHandler4getForecastInst(event)" fault="faultHandler4getForecastInst(event)">
+			</s:method>
+			<s:method name="dealForecastInst" result="resultHandler4dealForecastInst(event)" fault="faultHandler4dealForecastInst(event)">
+			</s:method>
+		</s:RemoteObject>
+		
+		<s:RemoteObject endpoint="{ClientEnvironment.endpoint}" id="srvMainData" destination="UIMainDataService">		
+			<s:method name="refreshAmountHistoryData" result="resultHandler4RefreshData(event)" fault="faultHandler4dealForecastInst(event)">
+			</s:method>
+			<s:method name="refreshPeriodVersion" result="resultHandler4RefreshData(event)" fault="faultHandler4dealForecastInst(event)">
+			</s:method>
+		</s:RemoteObject>
+		
+	</fx:Declarations>
+	<fx:Script>
+		<![CDATA[
+			import aks.aksas.utils.UtilUi;
+			
+			import com.cool.assets.CoolAssetsFile;
+			
+			import dmdd.dmddas.common.constant.BizConst;
+			import dmdd.dmddas.common.constant.FunPermiConst;
+			import dmdd.dmddas.common.constant.SkinConst;
+			import dmdd.dmddas.common.system.ClientEnvironment;
+			import dmdd.dmddas.common.utils.UtilExceptionLocale;
+			import dmdd.dmddas.dataaccess.bizobject.BForecastInst;
+			import dmdd.dmddmx.com.forecast.Com_Forecast_ForecastInst_AU;
+			
+			import mx.collections.ArrayCollection;
+			import mx.controls.Alert;
+			import mx.events.CloseEvent;
+			import mx.events.FlexEvent;
+			import mx.events.ListEvent;
+			import mx.managers.PopUpManager;
+			import mx.rpc.events.FaultEvent;
+			import mx.rpc.events.ResultEvent;
+			
+			
+			//	描述    begin
+			//	描述    end
+			
+			//	0	输入参数    begin						
+			//	0	输入参数    end
+			
+			//	1	输出参数    begin
+			//	1	输出参数    end
+			
+			//	2	本地变量    begin	
+			[Bindable]
+			private var prvVar4dp4comAdgForecastInst:ArrayCollection = new ArrayCollection();
+			
+			private var prvVar4sqlRestriction:String = null;	
+			
+			
+			private var prvVar4auWindow:Com_Forecast_ForecastInst_AU = null;
+			
+			
+			[Bindable]
+			private var prvVar4blFunPermission4query:Boolean = true;			
+			[Bindable]
+			private var prvVar4blFunPermission4manage:Boolean = true;
+			
+			[Bindable]
+			private var prvVar4selectedNum:int = -1;
+			
+			private var forecastInsEditable:Boolean = false;
+			
+			//当前期间
+			[Bindable]
+			private var curPeriod:int = ClientEnvironment.getSysPeriod().compilePeriod;
+			
+			//	2	本地变量    end			
+			
+			//	3	公共方法    begin			
+			//	3	公共方法    end		
+			
+			//	4	初始化方法    begin	
+			protected function creationCompleteHandler(event:FlexEvent):void
+			{
+				prvVar4blFunPermission4manage = ClientEnvironment.checkIsPermission( FunPermiConst.FORECAST_FORECASTINST_MANAGE );
+			}			
+			//	4	初始化方法    end				
+			
+			//	5	事件响应方法    begin		
+			private function callbackFunction4query4comQCond():void
+			{				
+				this.prvVar4sqlRestriction = this.comQCond.pubFun4getParamOut4sqlRestriction();
+				var blPageQuery:Boolean = this.comQCond.pubFun4getParamOut4blPageQuery();
+				
+				if( blPageQuery == true )
+				{	
+					UtilUi.pubFun4PopWaitWindow( this );
+					this.srvForecast.getForecastInstsStat( this.prvVar4sqlRestriction );	
+				}
+				else
+				{	
+					//	不分页查询
+					UtilUi.pubFun4PopWaitWindow( this );
+					this.srvForecast.getForecastInsts( this.prvVar4sqlRestriction, true, -1, ClientEnvironment.getSysParamPageSize() );
+				}								
+			}			
+			
+			//	分页查询相关		begin
+			private function faultHandler4getForecastInstsStat(event:FaultEvent):void
+			{
+				UtilUi.pubFun4RemoveWaitWindow();
+				Alert.show( UtilExceptionLocale.getExceptionMessageLocaleByFaultEvent( event ), resourceManager.getString('alert','alt_title_warn') );
+			}	
+			
+			private function resultHandler4getForecastInstsStat(event:ResultEvent):void 
+			{
+				//	初始化数据表格控制板
+				var rstSize:Number = Number(event.result);
+				this.comAksDataGridControlBar.pubFun4setResultParams( true, rstSize, ClientEnvironment.getSysParamPageSize() );
+				
+				//	去执行第一页查询
+				this.srvForecast.getForecastInsts( this.prvVar4sqlRestriction, true, 1, ClientEnvironment.getSysParamPageSize() );
+			}
+			
+			private function prvFun4pageQueryForecastInsts( _pageIndex:int ):void
+			{
+				UtilUi.pubFun4PopWaitWindow( this );
+				this.srvForecast.getForecastInsts( this.prvVar4sqlRestriction, true, _pageIndex, ClientEnvironment.getSysParamPageSize() );					
+			}			
+			//	分页查询相关		end
+			
+			
+			private function faultHandler4getForecastInsts(event:FaultEvent):void
+			{
+				UtilUi.pubFun4RemoveWaitWindow();
+				Alert.show( UtilExceptionLocale.getExceptionMessageLocaleByFaultEvent( event ), resourceManager.getString('alert','alt_title_warn') );
+			}	
+			
+			private function resultHandler4getForecastInsts(event:ResultEvent):void 
+			{
+				this.prvVar4dp4comAdgForecastInst = ArrayCollection(event.result);
+				
+				if( this.comQCond.pubFun4getParamOut4blPageQuery() == false )
+				{
+					//	不是分页查询，需要根据查询结果初始化数据表格控制板
+					this.comAksDataGridControlBar.pubFun4setResultParams( false, this.prvVar4dp4comAdgForecastInst.length, this.prvVar4dp4comAdgForecastInst.length );
+				}
+				
+				UtilUi.pubFun4RemoveWaitWindow();
+			}					
+			
+			
+			private function onNew():void
+			{
+				if( this.prvVar4auWindow == null )
+				{
+					this.prvVar4auWindow = new Com_Forecast_ForecastInst_AU();
+					this.prvVar4auWindow.pubFun4setParamIn4closeCallback( this, callbackFunction4auWinClose );
+				}
+				
+				PopUpManager.addPopUp( this.prvVar4auWindow, ClientEnvironment.modWork, true );
+				PopUpManager.centerPopUp(prvVar4auWindow);
+				
+				prvVar4auWindow.forecastInsEditable = true;
+				this.prvVar4auWindow.title = resourceManager.getString('menu','newForecastStrategy');
+				
+				// 这里的代码须如此：先准备好后再设置给 auWindow
+				// 如果直接设置一个新建对象给auWindow，然后再操作其准备其内容，则可能不能触发auWindow内部的相关绑定动作	
+				var newForecastInst:BForecastInst = new BForecastInst();	
+				
+				newForecastInst.fcPeriodNum = BizConst.FORECAST_FCPERIODNUM_24;
+				newForecastInst.fzPeriodNum = BizConst.FORECAST_FZPERIODNUM_0;
+				newForecastInst.isValid = BizConst.GLOBAL_YESNO_YES;
+				newForecastInst.nextFcPeriodNum = BizConst.FORECAST_FCPERIODNUM_24;
+				newForecastInst.nextFzPeriodNum = BizConst.FORECAST_FZPERIODNUM_0;
+				newForecastInst.nextIsValid = BizConst.GLOBAL_YESNO_YES;
+				
+				newForecastInst.runProductLayer = ClientEnvironment.getProductLayerWithMinValue();
+				newForecastInst.runOrganizationLayer = ClientEnvironment.getOrganizationLayerWithMinValue();
+				
+				newForecastInst.distributeRefFormula = BizConst.FORECAST_DISTRIBUTEREFFORMULA_AVERAGE;
+				newForecastInst.decomposeFormula = BizConst.FORECAST_DISTRIBUTEREFFORMULA_AVERAGE;
+				newForecastInst.distributeRefPeriodNum = 6;
+				newForecastInst.errorThreshold = 40;
+				
+				newForecastInst.isRunned = BizConst.GLOBAL_YESNO_NO;
+								
+				this.prvVar4auWindow.pubFun4setParamIo4forecastInst( newForecastInst, UtilUi.AUWINDOW_USE_NEW );								
+			} 
+			
+			private function onUpd():void
+			{
+				var selectedForecastInst:BForecastInst = BForecastInst( this.comAdgForecastInst.selectedItem );
+				// 不必检查，这个方法被调用的前提已经保证 
+				
+				if( this.prvVar4auWindow == null )
+				{
+					this.prvVar4auWindow = new Com_Forecast_ForecastInst_AU();
+					this.prvVar4auWindow.pubFun4setParamIn4closeCallback( this, callbackFunction4auWinClose );	
+				}
+				
+				PopUpManager.addPopUp( this.prvVar4auWindow, ClientEnvironment.modWork, true );
+				PopUpManager.centerPopUp(prvVar4auWindow);
+				
+				prvVar4auWindow.forecastInsEditable = true;
+				this.prvVar4auWindow.title = resourceManager.getString('menu','editForecastStrategy');
+				
+				// 这里的代码须如此：先准备好后再设置给 auWindow
+				// 如果直接设置一个新建对象给auWindow，然后再操作其准备其内容，则可能不能触发auWindow内部的相关绑定动作	
+				var updForecastInst:BForecastInst = new BForecastInst();	
+				updForecastInst.copyDeep( selectedForecastInst );			
+				this.prvVar4auWindow.pubFun4setParamIo4forecastInst( updForecastInst, UtilUi.AUWINDOW_USE_UPD );							 
+				
+			}
+			
+			private function onView():void{
+				var selectedForecastInst:BForecastInst = BForecastInst( this.comAdgForecastInst.selectedItem );
+				// 不必检查，这个方法被调用的前提已经保证 
+				
+				if( this.prvVar4auWindow == null )
+				{
+					this.prvVar4auWindow = new Com_Forecast_ForecastInst_AU();
+					this.prvVar4auWindow.pubFun4setParamIn4closeCallback( this, callbackFunction4auWinClose );	
+				}
+				
+				PopUpManager.addPopUp( this.prvVar4auWindow, ClientEnvironment.modWork, true );
+				PopUpManager.centerPopUp(prvVar4auWindow);
+				
+				prvVar4auWindow.forecastInsEditable = false;
+				this.prvVar4auWindow.title = resourceManager.getString('menu','forecastStrategyDetail');
+				
+				// 这里的代码须如此：先准备好后再设置给 auWindow
+				// 如果直接设置一个新建对象给auWindow，然后再操作其准备其内容，则可能不能触发auWindow内部的相关绑定动作	
+				var updForecastInst:BForecastInst = new BForecastInst();	
+				updForecastInst.copyDeep( selectedForecastInst );			
+				this.prvVar4auWindow.pubFun4setParamIo4forecastInst( updForecastInst, UtilUi.AUWINDOW_USE_UPD );
+			}
+			
+			private function callbackFunction4auWinClose():void
+			{
+				if( this.prvVar4auWindow.pubFun4getParamOut4winCloseWay() == UtilUi.WINDOW_CLOSEWAY_OK )
+				{
+					var rstForecastInst:BForecastInst = this.prvVar4auWindow.pubFun4getParamIo4forecastInst();
+					if( rstForecastInst != null )
+					{
+						if( this.prvVar4auWindow.pubFun4getParamIo4winUse() == UtilUi.AUWINDOW_USE_NEW )
+						{
+							if( this.prvVar4dp4comAdgForecastInst == null )
+							{
+								this.prvVar4dp4comAdgForecastInst = new ArrayCollection();
+							}
+							this.prvVar4dp4comAdgForecastInst.addItemAt( rstForecastInst, 0 );							
+						}
+						else if( this.prvVar4auWindow.pubFun4getParamIo4winUse() == UtilUi.AUWINDOW_USE_UPD )
+						{
+							this.prvVar4dp4comAdgForecastInst.setItemAt( rstForecastInst, this.comAdgForecastInst.selectedIndex );
+						}
+						var alert_title_hint:String = resourceManager.getString('alert','alert_title_hint');
+						var alert_msg:String =resourceManager.getString('alert','alert_msg_succeed');
+						Alert.show(alert_msg, alert_title_hint);
+					}
+				}
+				//this.prvVar4auWindow = null;														
+			}			
+			
+			
+			private function onDel():void
+			{
+				var alert_title_hint:String = resourceManager.getString('alert','alert_title_hint');
+				var alert_msg_deleteconfirm:String = resourceManager.getString('alert','alert_msg_deleteconfirm4');
+				
+				Alert.show( alert_msg_deleteconfirm, alert_title_hint, Alert.OK | Alert.CANCEL, this, deleteConfirmHandler, null, Alert.OK );
+				
+			}				
+			
+			private function deleteConfirmHandler(event:CloseEvent):void
+			{
+				if( event.detail == Alert.OK )
+				{
+					// 相关检查都已在 prvFun4getEnabled4BtnDel中执行，此处不再检查    begin
+					var selectedForecastInst:BForecastInst = BForecastInst(this.comAdgForecastInst.selectedItem);
+					// 相关检查都已在 prvFun4getEnabled4BtnDel中执行，此处不再检查    end					
+					UtilUi.pubFun4PopWaitWindow( this );
+					this.srvForecast.delForecastInst( selectedForecastInst );										
+				}
+			}	
+			
+			private function faultHandler4delForecastInst(event:FaultEvent):void
+			{
+				UtilUi.pubFun4RemoveWaitWindow();
+				Alert.show( UtilExceptionLocale.getExceptionMessageLocaleByFaultEvent( event ), resourceManager.getString('alert','alt_title_warn') );
+			}	
+			
+			private function resultHandler4delForecastInst(event:ResultEvent):void 
+			{
+				UtilUi.pubFun4RemoveWaitWindow();
+				var alert_title_hint:String = resourceManager.getString('alert','alert_title_hint');
+				var alert_msg:String = null;
+				
+				var blSucceed:Boolean = Boolean(event.result);
+				if( blSucceed == true )
+				{
+					alert_msg = resourceManager.getString('alert','alert_msg_succeed');
+					Alert.show(alert_msg, alert_title_hint);
+					this.prvVar4dp4comAdgForecastInst.removeItemAt( this.comAdgForecastInst.selectedIndex );					
+				}
+				else
+				{
+					alert_msg = resourceManager.getString('alert','alert_msg_fail');
+					Alert.show(alert_msg, alert_title_hint);
+				}				
+			}		
+			
+			private function onDeal():void
+			{
+				var alert_title_hint:String = resourceManager.getString('alert','alert_title_hint');
+				var alert_msg_deleteconfirm:String = resourceManager.getString('alert','alert_msg_dealconfirm10');
+				
+				Alert.show( alert_msg_deleteconfirm, alert_title_hint, Alert.OK | Alert.CANCEL, this, dealConfirmHandler, null, Alert.OK );
+				
+			}				
+			
+			private function dealConfirmHandler(event:CloseEvent):void
+			{
+				if( event.detail == Alert.OK )
+				{
+					UtilUi.pubFun4PopWaitWindow( this );
+					this.srvForecast.dealForecastInst(  );										
+				}
+			}
+			
+			private function refreshFcDataAmount():void
+			{
+				var alert_title_hint:String = resourceManager.getString('alert','alert_title_hint');
+				var alert_msg_deleteconfirm:String = resourceManager.getString('alert','alert_msg_dealconfirm10');
+				Alert.show( alert_msg_deleteconfirm, alert_title_hint, Alert.OK | Alert.CANCEL, this, refreshFcAmountConfirmHandler, null, Alert.OK );
+				
+			}
+			
+			private function refreshFcAmountConfirmHandler(event:CloseEvent):void
+			{
+				//刷新套装的预测折合数据，非常耗时，慎用！！！！
+				if( event.detail == Alert.OK )
+				{
+					UtilUi.pubFun4PopWaitWindow( this );
+					this.srvMainData.refreshAmountForecastData(  );										
+				}
+			}
+			
+			private function refreshPeriodVersion():void
+			{
+				var alert_title_hint:String = resourceManager.getString('alert','alert_title_hint');
+				var alert_msg_deleteconfirm:String = resourceManager.getString('alert','alert_msg_dealconfirm10');
+				Alert.show( alert_msg_deleteconfirm, alert_title_hint, Alert.OK | Alert.CANCEL, this, refreshPeriodVersionConfirmHandler, null, Alert.OK );
+				
+			}
+			
+			private function refreshPeriodVersionConfirmHandler(event:CloseEvent):void
+			{
+				//刷新套装的历史折合数据，非常耗时，慎用！！！！
+				if( event.detail == Alert.OK )
+				{
+					UtilUi.pubFun4PopWaitWindow( this );
+					this.srvMainData.refreshPeriodVersion(curPeriod);										
+				}
+			}
+			
+			private function faultHandler4dealForecastInst(event:FaultEvent):void
+			{
+				UtilUi.pubFun4RemoveWaitWindow();
+				Alert.show( UtilExceptionLocale.getExceptionMessageLocaleByFaultEvent( event ), resourceManager.getString('alert','alt_title_warn') );
+			}	
+			
+			private function resultHandler4dealForecastInst(event:ResultEvent):void 
+			{
+				UtilUi.pubFun4RemoveWaitWindow();
+				var alert_title_hint:String = resourceManager.getString('alert','alert_title_hint');
+				var alert_msg:String = null;
+				
+				var blSucceed:Boolean = Boolean(event.result);
+				if( blSucceed == true )
+				{
+					alert_msg = resourceManager.getString('alert','alert_msg_succeed');
+					Alert.show(alert_msg, alert_title_hint);
+										
+				}
+				else
+				{
+					alert_msg = resourceManager.getString('alert','alert_msg_fail');
+					Alert.show(alert_msg, alert_title_hint);
+				}		
+			}
+			
+			//刷新成功的提示
+			private function resultHandler4RefreshData(event:ResultEvent):void 
+			{
+				UtilUi.pubFun4RemoveWaitWindow();
+				var alert_title_hint:String = resourceManager.getString('alert','alert_title_hint');
+				var alert_msg:String = resourceManager.getString('alert','alert_msg_succeed');
+				Alert.show(alert_msg, alert_title_hint);
+				
+			}
+			
+			protected function comAdgForecastInst_changeHandler(event:ListEvent):void
+			{
+				if(this.comAdgForecastInst.selectedIndex>-1)
+				{
+					var forecastinst:BForecastInst = BForecastInst(this.comAdgForecastInst.selectedItem);
+					this.prvVar4selectedNum = this.comAdgForecastInst.selectedIndex;
+					if(forecastinst.isGetDetail == false)
+					{
+						this.srvForecast.getForecastInst(forecastinst.id);
+						UtilUi.pubFun4PopWaitWindow(this);
+					}
+				}
+			}
+
+			
+			private function faultHandler4getForecastInst(event:FaultEvent):void
+			{
+				UtilUi.pubFun4RemoveWaitWindow();
+				Alert.show( UtilExceptionLocale.getExceptionMessageLocaleByFaultEvent( event ), resourceManager.getString('alert','alt_title_warn') );
+			}	
+			
+			private function resultHandler4getForecastInst(event:ResultEvent):void 
+			{
+				UtilUi.pubFun4RemoveWaitWindow();
+				var selectedForecastInst:BForecastInst = BForecastInst(event.result);
+				selectedForecastInst.isGetDetail = true;
+				this.prvVar4dp4comAdgForecastInst.removeItemAt(this.prvVar4selectedNum);
+				this.prvVar4dp4comAdgForecastInst.addItemAt(selectedForecastInst,this.prvVar4selectedNum);
+				this.comAdgForecastInst.selectedItem = selectedForecastInst;
+			}
+			//	5	事件响应方法    end
+			
+			//	6	本地方法    begin
+			private function prvFun4getEnabled4BtnManage( _selectedItem:Object ):Boolean
+			{
+				// todo
+				if( _selectedItem == null )
+				{
+					return false;
+				}
+				
+				if( this.prvVar4blFunPermission4manage == false )
+				{
+					return false;
+				}
+				
+				return true;
+			}
+			
+			private function prvFun4getEnabled4BtnDel( _selectedItem:Object ):Boolean
+			{
+				if( _selectedItem == null )
+				{
+					return false;
+				}
+				
+				if( this.prvVar4blFunPermission4manage == false )
+				{
+					return false;
+				}
+				
+				var selectedForecastInst:BForecastInst = BForecastInst(_selectedItem);
+				if( selectedForecastInst.isValid == BizConst.GLOBAL_YESNO_YES || selectedForecastInst.nextIsValid == BizConst.GLOBAL_YESNO_YES )
+				{
+					return false;
+				}
+				
+				return true;
+			}			
+			//	6	本地方法   end		
+		]]>
+	</fx:Script>
+	
+	<forecast:Com_Forecast_ForecastInst_QueryCond id="comQCond" width="100%" height="22" paramIn4queryCallback4thisObject="{this}" 
+						paramIn4queryCallback4function="{this.callbackFunction4query4comQCond}" paramIn4enabled="{this.prvVar4blFunPermission4query}">
+	</forecast:Com_Forecast_ForecastInst_QueryCond>	
+	
+	<common:LabelBoundary labelText="{resourceManager.getString('menu','forecastStrategy')}" />
+	<containers:AksControlBar>
+		<buttons:ButtonNew enabled="{this.prvVar4blFunPermission4manage}" click="onNew()" />
+		<buttons:ButtonEdit enabled="{this.prvFun4getEnabled4BtnManage(this.comAdgForecastInst.selectedItem)}" click="onUpd()"/>
+		<buttons:ButtonDelete  enabled="{this.prvFun4getEnabled4BtnDel(this.comAdgForecastInst.selectedItem)}" click="onDel()"/>
+		<buttons:ButtonView enabled="{this.prvFun4getEnabled4BtnManage(this.comAdgForecastInst.selectedItem)}" click="onView()" />
+		<s:Button label="{resourceManager.getString('button','dimLinked')}"  click="onDeal()" icon="{CoolAssetsFile.refresh3Icon}"/>
+		<s:Button label="{resourceManager.getString('button','refreshFcDataAmount')}"  click="refreshFcDataAmount()" icon="{CoolAssetsFile.refresh3Icon}" color="red"/>
+		<!--
+		<s:Button label="{resourceManager.getString('button','refreshAmount')}"  click="refreshHisDataAmount()" icon="{CoolAssetsFile.refresh3Icon}" color="red"/>
+		-->
+		<s:Button label="{resourceManager.getString('label','refreshPeriodVersion')}"  click="refreshPeriodVersion()" icon="{CoolAssetsFile.refresh3Icon}" color="red"/>
+		<controls:AksDataGridControlBar id="comAksDataGridControlBar" width="100%" paramIn4callback4thisObject="{this}"
+								paramIn4callback4queryFunction="{this.prvFun4pageQueryForecastInsts}" paramIn4dataGrid="{this.comAdgForecastInst}">
+		</controls:AksDataGridControlBar>
+	</containers:AksControlBar>
+	<forecast:Com_Forecast_ForecastInst_AdvancedDataGrid id="comAdgForecastInst" width="100%" height="100%" dataProvider="{this.prvVar4dp4comAdgForecastInst}" 
+														 paramIn4visible4IsCheckedColumn="false" doubleClickEnabled="true" itemDoubleClick="onUpd()"
+														 change="comAdgForecastInst_changeHandler(event)"/>			
+	
+	<!--
+	<common:LabelBoundary labelText="{resourceManager.getString('menu','forecastStrategyDetail')}" />
+	
+	<s:VGroup width="100%" height="100%"  paddingBottom="3">
+		<mx:TabNavigator width="100%" height="340">
+			<s:NavigatorContent label="{resourceManager.getString('menu','generalInfo')}" width="100%" height="100%">
+				<s:layout>
+					<s:VerticalLayout/>
+				</s:layout>
+				<forecast:Com_Forecast_ForecastInst_Properties paramIn4editable="false" paramIo4forecastInst="{BForecastInst(this.comAdgForecastInst.selectedItem)}" width="100%" height="100%">
+				</forecast:Com_Forecast_ForecastInst_Properties>
+			</s:NavigatorContent>
+			<s:NavigatorContent label="{resourceManager.getString('menu','forecastScope')}" width="100%" height="100%">
+				<s:layout>
+					<s:HorizontalLayout/>
+				</s:layout>
+				<s:Panel width="50%" height="100%" title="{resourceManager.getString('menu','currentForecastScope')}">
+					<s:layout>
+						<s:VerticalLayout/>
+					</s:layout>
+					<forecast:Com_Forecast_ForecastInstProOrg_AdvancedDataGrid id="comAdgForecastInstProOrg" dataProvider="{BForecastInst(this.comAdgForecastInst.selectedItem).forecastInstProOrgs}" width="100%" height="100%"/>
+				</s:Panel>
+				<s:Panel width="50%" height="100%" title="{resourceManager.getString('menu','nextForecastScope')}">
+					<s:layout>
+						<s:VerticalLayout/>
+					</s:layout>
+					<forecast:Com_Forecast_ForecastInstNextProOrg_AdvancedDataGrid id="comAdgForecastInstNextProOrg" dataProvider="{BForecastInst(this.comAdgForecastInst.selectedItem).forecastInstNextProOrgs}" width="100%" height="100%"/>
+				</s:Panel>
+			</s:NavigatorContent>		
+			
+			<s:NavigatorContent label="{resourceManager.getString('menu','forecastModel')}" width="100%" height="100%">
+				<s:layout>
+					<s:VerticalLayout/>
+				</s:layout>
+				<forecast:Com_Forecast_ForecastModelM_Properties id="comForecastModelMProperties" paramIn4blShowBaseInfo="true" paramIn4editable="false" paramIo4forecastModelM="{BForecastInst(this.comAdgForecastInst.selectedItem).mappingFcModel}" width="100%" height="100%"/>
+				
+			</s:NavigatorContent>
+		</mx:TabNavigator>
+	</s:VGroup>
+	-->
+</mx:Module>

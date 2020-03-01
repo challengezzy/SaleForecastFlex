@@ -1,0 +1,178 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:TitleWindow xmlns:fx="http://ns.adobe.com/mxml/2009" 
+			   xmlns:s="library://ns.adobe.com/flex/spark" 
+			   xmlns:mx="library://ns.adobe.com/flex/mx" width="800" height="500" close="onCancel()"
+			   creationComplete="creationCompleteHandler(event)" 
+			   xmlns:containers="aks.aksmx.containers.*" xmlns:organization="dmdd.dmddmx.com.organization.*" xmlns:distributioncenter="dmdd.dmddmx.com.distributioncenter.*">
+	<s:layout>
+		<s:VerticalLayout/>
+	</s:layout>
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+		<s:RemoteObject endpoint="{ClientEnvironment.endpoint}" id="dcService" destination="DistributionCenterService">			
+			<s:method name="getRootDC" result="resultHandler4getRootDC(event)" fault="faultHandler4getRootDC(event)">
+			</s:method>
+		</s:RemoteObject>		
+	</fx:Declarations>
+	<fx:Metadata>
+		[ResourceBundle("mod_maindata_distributioncenter")]
+	</fx:Metadata>	
+	<fx:Script>
+		<![CDATA[
+			import aks.aksas.utils.UtilUi;
+			
+			import dmdd.dmddas.common.constant.SysConst;
+			import dmdd.dmddas.common.constant.UIConst;
+			import dmdd.dmddas.common.system.ClientEnvironment;
+			import dmdd.dmddas.common.utils.UtilDataGridColumnLabelFunction;
+			import dmdd.dmddas.common.utils.UtilExceptionLocale;
+			import dmdd.dmddas.dataaccess.bizobject.BDistributionCenter;
+			
+			import mx.collections.ArrayCollection;
+			import mx.controls.Alert;
+			import mx.events.FlexEvent;
+			import mx.managers.PopUpManager;
+			import mx.rpc.events.FaultEvent;
+			import mx.rpc.events.ResultEvent;
+			
+			//	描述		begin
+			//	描述		end
+			
+			//	0	输入参数    begin	
+			private var paramIn4closeCallback4thisObject:Object = null;
+			private var paramIn4closeCallback4function:Function = null;				
+			//	0	输入参数    end
+			
+			//	1	输出参数    begin
+			private var paramOut4selectedDC:BDistributionCenter = null;	
+			
+			private var paramOut4winCloseWay:int = UtilUi.WINDOW_CLOSEWAY_CANCEL;		
+			//	1	输出参数    end
+			
+			//	2	本地变量    begin																	
+			//	2	本地变量    end			
+			
+			//	3	公共方法    begin	
+			//	关闭回调函数参数													
+			public function pubFun4setParamIn4closeCallback( _thisObject:Object, _function:Function ):void
+			{
+				this.paramIn4closeCallback4thisObject = _thisObject;
+				this.paramIn4closeCallback4function = _function;	
+			}
+			//	关闭方式参数
+			public function pubFun4getParamOut4winCloseWay():int
+			{
+				return this.paramOut4winCloseWay;
+			}				
+			//	关闭窗口
+			private function prvFun4close():void
+			{
+				PopUpManager.removePopUp( this );						
+				this.paramIn4closeCallback4function.call( this.paramIn4closeCallback4thisObject );				
+			}							
+			
+			
+			//	处理对象参数
+			public function pubFun4getParamOut4selectedDC():BDistributionCenter
+			{
+				return this.paramOut4selectedDC;
+			}										
+			//	3	公共方法    end		
+			
+			//	4	初始化方法    begin			
+			protected function creationCompleteHandler(event:FlexEvent):void
+			{
+				this.title = resourceManager.getString('mod_maindata_distributioncenter','choosertitle');	
+				this.x = 100;
+				this.y = 50;		
+			}				
+			
+			//	4	初始化方法    end				
+			
+			//	5	事件响应方法    begin	
+			private function onQuery():void
+			{
+				UtilUi.pubFun4PopWaitWindow( this );
+				this.dcService.getRootDC();	
+			}
+			
+			
+			private function faultHandler4getRootDC(event:FaultEvent):void
+			{
+				UtilUi.pubFun4RemoveWaitWindow();
+				Alert.show( UtilExceptionLocale.getExceptionMessageLocaleByFaultEvent( event ), resourceManager.getString('main','alt_title_warn') );
+			}	
+			
+			private function resultHandler4getRootDC(event:ResultEvent):void 
+			{
+				var dcTreeRoot:BDistributionCenter = BDistributionCenter(event.result);
+				
+				ClientEnvironment.setDCTreeRoot( dcTreeRoot );
+				
+				UtilUi.pubFun4RemoveWaitWindow();
+			}		
+			
+			private function onExpandAll():void
+			{
+				this.comAdgDC.expandAll();
+			}		
+			
+			private function onCollapseAll():void
+			{
+				this.comAdgDC.collapseAll();
+			}				
+			
+			
+			private function onOk():void
+			{
+				this.paramOut4selectedDC = BDistributionCenter( this.comAdgDC.selectedItem );
+				
+				this.paramOut4winCloseWay = UtilUi.WINDOW_CLOSEWAY_OK;
+				this.prvFun4close();
+			}	
+			
+			private function onCancel():void
+			{	
+				this.paramOut4winCloseWay = UtilUi.WINDOW_CLOSEWAY_CANCEL;
+				this.prvFun4close();
+			}		
+			//	5	事件响应方法    end
+			
+			//	6	本地方法    begin
+			//	6	本地方法   end				
+			
+		]]>
+	</fx:Script>
+	<!--
+	<s:controlBarLayout>
+	<s:HorizontalLayout horizontalAlign="center">
+	</s:HorizontalLayout>
+	</s:controlBarLayout>
+	<s:controlBarContent>
+	<s:Button label="{resourceManager.getString('mod_maindata_distributioncenter','btn_ok')}" enabled="{this.comAdgOrganization.selectedItem}" click="onOk()"/>
+	<s:Button label="{resourceManager.getString('mod_maindata_distributioncenter','btn_cancel')}" click="onCancel()"/>
+	</s:controlBarContent>	
+	-->
+	<mx:VDividedBox width="100%" height="100%">
+		<s:Panel width="100%" height="60%" minHeight="30" title="{resourceManager.getString('mod_maindata_distributioncenter','distributioncenter')}">
+			<s:layout>
+				<s:VerticalLayout/>
+			</s:layout>
+			<containers:AksControlBar>
+				<s:Button label="{resourceManager.getString('mod_maindata_distributioncenter','btn_query')}" click="onQuery()"/>
+				<s:Button label="{resourceManager.getString('mod_maindata_distributioncenter','btn_expandall')}" click="onExpandAll()"/>
+				<s:Button label="{resourceManager.getString('mod_maindata_distributioncenter','btn_collapseall')}" click="onCollapseAll()"/>				
+			</containers:AksControlBar>
+			<distributioncenter:Com_DistributionCenter_DistributionCenter_AdvancedDataGrid paramIo4dp4adgDC="{ClientEnvironment.getDCTreeRootArr()}" width="100%" height="100%" id="comAdgDC"/>
+		</s:Panel>	
+		
+	</mx:VDividedBox>	
+	<s:BorderContainer width="100%" height="25" borderColor="#E4ECF7">
+		<s:layout>
+			<s:HorizontalLayout horizontalAlign="center"/>
+		</s:layout>
+		<s:Button label="{resourceManager.getString('mod_maindata_distributioncenter','btn_ok')}" enabled="{this.comAdgDC.selectedItems.pop()}" click="onOk()"/>
+		<s:Button label="{resourceManager.getString('mod_maindata_distributioncenter','btn_cancel')}" click="onCancel()"/>
+	</s:BorderContainer>
+</s:TitleWindow>
+

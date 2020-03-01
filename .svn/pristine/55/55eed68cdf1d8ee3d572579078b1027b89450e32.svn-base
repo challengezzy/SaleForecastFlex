@@ -1,0 +1,12 @@
+﻿
+choosertitle=选择用户
+operatoruserlist=用户
+operatoruserdetail=用户详情
+operatoruser=基本信息
+operatoruser_funpermission=功能权限
+operatoruser_bizdata=业务数据权限
+operatoruser_proorg=业务范围权限
+
+
+btn_ok=确定
+btn_cancel=取消

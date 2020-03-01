@@ -1,0 +1,534 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:TitleWindow xmlns:fx="http://ns.adobe.com/mxml/2009" 
+			   xmlns:s="library://ns.adobe.com/flex/spark" 
+			   xmlns:mx="library://ns.adobe.com/flex/mx" width="900" height="580" close="onCancel()"
+			  creationComplete="titlewindow1_creationCompleteHandler(event)"
+			   xmlns:containers="aks.aksmx.containers.*" 
+			   xmlns:proorg="dmdd.dmddmx.com.proorg.*" 
+			   xmlns:bizdata="dmdd.dmddmx.com.bizdata.*" xmlns:period="dmdd.dmddmx.com.period.*" xmlns:security="dmdd.dmddmx.com.security.*" xmlns:common="dmdd.dmddmx.com.common.*" xmlns:buttons="com.cool.buttons.*">
+	<s:layout>
+		<s:VerticalLayout paddingLeft="10" paddingRight="10" paddingTop="10" paddingBottom="10"/>
+	</s:layout>
+	<fx:Declarations>
+		<s:RemoteObject endpoint="{ClientEnvironment.endpoint}" id="srvUi" destination="UiService">
+			<s:method name="newUiPopbScope" result="resultHandler4saveUiPopbScope(event)" fault="faultHandler4saveUiPopbScope(event)">
+			</s:method>
+			<s:method name="upUiPopbScope" result="resultHandler4saveUiPopbScope(event)" fault="faultHandler4saveUiPopbScope(event)">
+			</s:method>
+		</s:RemoteObject>		
+	</fx:Declarations>
+	<fx:Metadata>
+		[ResourceBundle("mod_mobile")]
+	</fx:Metadata>
+	<fx:Script>
+		<![CDATA[
+			import aks.aksas.collections.HashMap;
+			import aks.aksas.utils.UtilArrayCollection;
+			import aks.aksas.utils.UtilUi;
+			
+			import com.cool.assets.CoolAssetsFile;
+			
+			import dmdd.dmddas.common.constant.BizConst;
+			import dmdd.dmddas.common.system.ClientEnvironment;
+			import dmdd.dmddas.common.utils.UtilExceptionLocale;
+			import dmdd.dmddas.common.utils.UtilProOrg;
+			import dmdd.dmddas.dataaccess.aidobject.ABProOrg;
+			import dmdd.dmddas.dataaccess.bizobject.BBizData;
+			import dmdd.dmddas.dataaccess.bizobject.BUiPopbScope;
+			import dmdd.dmddas.dataaccess.bizobject.BUiPopbScopeBizData;
+			import dmdd.dmddas.dataaccess.bizobject.BUiPopbScopeProOrg;
+			import dmdd.dmddmx.com.bizdata.Com_BizData_BizData_Chooser;
+			import dmdd.dmddmx.com.security.Com_Security_ProOrg_Chooser;
+			
+			import mx.collections.ArrayCollection;
+			import mx.controls.Alert;
+			import mx.events.FlexEvent;
+			import mx.managers.PopUpManager;
+			import mx.rpc.events.FaultEvent;
+			import mx.rpc.events.ResultEvent;
+			import mx.utils.StringUtil;
+			
+			[Bindable]
+			private var prvVar4dp4comAdgProOrg:ArrayCollection = new ArrayCollection();
+			[Bindable]
+			private var prvVar4dp4comAdgBizData:ArrayCollection = new ArrayCollection();
+			
+			private var prvVar4chooserWindow_proOrg:Com_Security_ProOrg_Chooser = null;
+			private var prvVar4chooserWindow_bizData:Com_BizData_BizData_Chooser = null;
+			
+			private var paramOut4winCloseWay:int = UtilUi.WINDOW_CLOSEWAY_CANCEL;	
+			
+			private var paramIn4closeCallback4thisObject:Object = null;
+			private var paramIn4closeCallback4function:Function = null;
+			
+			[Bindable]
+			public var paramIn4arrDictBizDataType:ArrayCollection = new ArrayCollection();		
+			
+			[Bindable]
+			public var paramIn4uiCode:String = null;
+			
+			[Bindable]
+			public var paramIn4blOnlyIsManagingBizData:Boolean = false;
+			
+			public var paramIn4blAllowMultipleSelectionBizData:Boolean = true;
+			
+			
+			
+			public var paramIo4winUse:int = UtilUi.AUWINDOW_USE_NEW;
+			
+			[Bindable]
+			public var paramIo4uiPopbScope:BUiPopbScope = null;	
+			
+			
+			public function pubFun4setParamIn4closeCallback( _thisObject:Object, _function:Function ):void
+			{
+				this.paramIn4closeCallback4thisObject = _thisObject;
+				this.paramIn4closeCallback4function = _function;	
+			}
+			//	关闭方式参数
+			public function pubFun4getParamOut4winCloseWay():int
+			{
+				return this.paramOut4winCloseWay;
+			}				
+			//	关闭窗口
+			private function prvFun4close():void
+			{
+				PopUpManager.removePopUp( this );						
+				this.paramIn4closeCallback4function.call( this.paramIn4closeCallback4thisObject );				
+			}
+			
+			public function pub4Fun4setParam4ProOrg(_arr:ArrayCollection):void
+			{
+				this.prvVar4dp4comAdgProOrg = new ArrayCollection();
+				var proorg:ABProOrg = null;
+				for each(var obj:BUiPopbScopeProOrg  in _arr)
+				{
+					proorg = new ABProOrg();
+					proorg.organization = obj.organization;
+					proorg.product = obj.product;
+					this.prvVar4dp4comAdgProOrg.addItem(proorg);
+				}
+				
+			}
+			
+			public function pub4Fun4setParam4BizData(_arr:ArrayCollection):void
+			{
+				this.prvVar4dp4comAdgBizData = new ArrayCollection();
+				for each(var obj:BUiPopbScopeBizData  in _arr)
+				{
+					this.prvVar4dp4comAdgBizData.addItem(obj.bizData);
+				}
+			}
+			
+			private function onAddProOrg():void
+			{
+				if( this.prvVar4chooserWindow_proOrg == null )
+				{
+					prvVar4chooserWindow_proOrg = new Com_Security_ProOrg_Chooser();
+					this.prvVar4chooserWindow_proOrg.pubFun4setParamIn4closeCallback( this, callbackFunction4ChooserWinClose_proOrg );	
+				}
+				PopUpManager.addPopUp( this.prvVar4chooserWindow_proOrg,  ClientEnvironment.modWork, true );
+				PopUpManager.centerPopUp(prvVar4chooserWindow_proOrg);								
+			}	
+			
+			private function callbackFunction4ChooserWinClose_proOrg():void
+			{
+				if( this.prvVar4chooserWindow_proOrg.pubFun4getParamOut4winCloseWay() == UtilUi.WINDOW_CLOSEWAY_OK )
+				{
+					var arrSelectedProOrg:ArrayCollection = this.prvVar4chooserWindow_proOrg.pubFun4getParamOut4selectedProOrgs();
+					
+					if( arrSelectedProOrg != null && arrSelectedProOrg.length > 0 )
+					{
+						this.prvVar4dp4comAdgProOrg = UtilProOrg.getUnion4arrProOrg( this.prvVar4dp4comAdgProOrg, arrSelectedProOrg );
+					}
+				}
+				//this.prvVar4auWindow = null;														
+			}	
+			
+			
+			private function onDelProOrg():void
+			{
+				var arr4remove:ArrayCollection = new ArrayCollection( this.comAdgProOrg.selectedItems );
+				this.prvVar4dp4comAdgProOrg = UtilArrayCollection.removeItems( this.prvVar4dp4comAdgProOrg, arr4remove );					
+			}	
+			
+			private function onAddBizData():void
+			{
+				if( this.prvVar4chooserWindow_bizData == null )
+				{
+					prvVar4chooserWindow_bizData = new Com_BizData_BizData_Chooser();
+					this.prvVar4chooserWindow_bizData.allowMultipleSelection = this.paramIn4blAllowMultipleSelectionBizData;
+					this.prvVar4chooserWindow_bizData.pubFun4setParamIn4closeCallback( this, callbackFunction4ChooserWinClose_bizData );
+					this.prvVar4chooserWindow_bizData.pubFun4setParamIn4arrDictBizDataType( this.paramIn4arrDictBizDataType );
+					this.prvVar4chooserWindow_bizData.pubFun4setParamIn4blConstrainedByPermission( true );
+					this.prvVar4chooserWindow_bizData.pubFun4setParamIn4blOnlyIsManaging( this.paramIn4blOnlyIsManagingBizData );
+				}
+				PopUpManager.addPopUp( this.prvVar4chooserWindow_bizData,  ClientEnvironment.modWork, true );
+				PopUpManager.centerPopUp(prvVar4chooserWindow_bizData);
+				
+			}	
+			
+			private function callbackFunction4ChooserWinClose_bizData():void
+			{
+				if( this.prvVar4chooserWindow_bizData.pubFun4getParamOut4winCloseWay() == UtilUi.WINDOW_CLOSEWAY_OK )
+				{
+					if( this.paramIn4blAllowMultipleSelectionBizData == false )
+					{
+						var selectedBizData:BBizData = this.prvVar4chooserWindow_bizData.pubFun4getParamOut4selectedBizData();
+						if( selectedBizData != null )
+						{
+							this.prvVar4dp4comAdgBizData = new ArrayCollection();
+							this.prvVar4dp4comAdgBizData.addItem( selectedBizData );
+						}
+					}
+					else
+					{
+						var arrSelectedBizData:ArrayCollection = this.prvVar4chooserWindow_bizData.pubFun4getParamOut4selectedBizDatas();
+						
+						if( arrSelectedBizData != null && arrSelectedBizData.length > 0 )
+						{
+							var i:int;
+							var bizData:BBizData = null;
+							
+							var hamp_bizData:HashMap = new HashMap();
+							if( this.prvVar4dp4comAdgBizData != null )
+							{
+								for( i=0; i<this.prvVar4dp4comAdgBizData.length; i=i+1 )
+								{
+									bizData = BBizData(this.prvVar4dp4comAdgBizData.getItemAt(i)) ;
+									hamp_bizData.put( "" + bizData.id, bizData );
+								}							
+							}
+							else
+							{
+								this.prvVar4dp4comAdgBizData = new ArrayCollection();
+							}
+							for( i=0; i<arrSelectedBizData.length; i=i+1 )
+							{
+								bizData = BBizData(arrSelectedBizData.getItemAt(i)) ;
+								if( hamp_bizData.getValue( "" + bizData.id ) == null )
+								{
+									this.prvVar4dp4comAdgBizData.addItem( bizData );
+								}
+							}
+						}						
+					}
+				}
+				//this.prvVar4auWindow = null;		
+				
+			}	
+			//	分页查询相关		begin
+			private function faultHandler4newUiPopbScope(event:FaultEvent):void
+			{
+				UtilUi.pubFun4RemoveWaitWindow();
+				
+			}	
+			
+			private function resultHandler4newUiPopbScope(event:ResultEvent):void 
+			{
+			
+			}
+			
+			private function onDelBizData():void
+			{
+				var arr4remove:ArrayCollection = new ArrayCollection( this.comAdgBizData.selectedItems );
+				this.prvVar4dp4comAdgBizData = UtilArrayCollection.removeItems( this.prvVar4dp4comAdgBizData, arr4remove );					
+			}	
+			
+			
+			private function onOK():void
+			{				
+				
+				//	检查合法性	begin
+				var alert_title_hint:String = resourceManager.getString('mod_mobile','alert_title_hint');
+				var alert_msg:String = "";
+				if( this.prvVar4dp4comAdgProOrg == null || this.prvVar4dp4comAdgProOrg.length == 0 )
+				{
+					UtilUi.pubFun4RemoveWaitWindow();
+					
+					alert_msg = resourceManager.getString('mod_mobile','alter_msg_proorgisnull');
+					Alert.show( alert_msg, alert_title_hint);
+					return;					
+				}
+				
+				if( this.prvVar4dp4comAdgBizData == null || this.prvVar4dp4comAdgBizData.length == 0 )
+				{
+					UtilUi.pubFun4RemoveWaitWindow();
+					
+					alert_msg = resourceManager.getString('mod_mobile','alter_msg_bizdataisnull');
+					Alert.show( alert_msg, alert_title_hint);
+					return;					
+				}			
+				
+				
+				var newUiPopbScope:BUiPopbScope = new BUiPopbScope();
+				newUiPopbScope.operatorUser = ClientEnvironment.getOperatorUser();
+				newUiPopbScope.uiCode = this.paramIn4uiCode;
+				
+				var i:int;
+				var proOrg:ABProOrg = null;
+				var uiPopbScopeProOrg:BUiPopbScopeProOrg = null;
+				//	ProOrg		begin
+				newUiPopbScope.uiPopbScopeProOrgs = new ArrayCollection();
+				for( i=0; i<this.prvVar4dp4comAdgProOrg.length; i=i+1 )
+				{
+					proOrg = ABProOrg(this.prvVar4dp4comAdgProOrg.getItemAt(i));
+					
+					uiPopbScopeProOrg = new BUiPopbScopeProOrg();
+					uiPopbScopeProOrg.product = proOrg.product;
+					uiPopbScopeProOrg.organization = proOrg.organization;
+					uiPopbScopeProOrg.uiPopbScope = newUiPopbScope;
+					newUiPopbScope.uiPopbScopeProOrgs.addItem( uiPopbScopeProOrg );
+				}
+				//	ProOrg		end
+				
+				var bizData:BBizData = null;
+				var uiPopbScopeBizData:BUiPopbScopeBizData = null;
+				//	BizData		begin
+				newUiPopbScope.uiPopbScopeBizDatas = new ArrayCollection();
+				for( i=0; i<this.prvVar4dp4comAdgBizData.length; i=i+1 )
+				{
+					bizData = BBizData(this.prvVar4dp4comAdgBizData.getItemAt(i));
+					
+					uiPopbScopeBizData = new BUiPopbScopeBizData();
+					uiPopbScopeBizData.bizData = bizData;
+					uiPopbScopeBizData.uiPopbScope = newUiPopbScope;
+					newUiPopbScope.uiPopbScopeBizDatas.addItem( uiPopbScopeBizData );
+				}				
+				//	BizData		end
+				
+				//	显示控制		begin
+				
+				newUiPopbScope.isDisplayControl = BizConst.GLOBAL_YESNO_YES;
+				this.comProOrgDisplayOption.pubFun4checkDisplayOption();
+				if( this.comProOrgDisplayOption.pubFun4getParamIo4blDisplayProduct() == true )
+				{
+					newUiPopbScope.isShowProduct = BizConst.GLOBAL_YESNO_YES;
+				}
+				else
+				{
+					newUiPopbScope.isShowProduct = BizConst.GLOBAL_YESNO_NO;
+				}
+				newUiPopbScope.productLayer = this.comProOrgDisplayOption.pubFun4getParamIo4productLayer();
+				if( this.comProOrgDisplayOption.pubFun4getParamIo4blDisplayProductCharacter() == true )
+				{
+					newUiPopbScope.isShowProductCharacter = BizConst.GLOBAL_YESNO_YES;
+				}
+				else
+				{
+					newUiPopbScope.isShowProductCharacter = BizConst.GLOBAL_YESNO_NO;
+				}
+				newUiPopbScope.productCharacterLayer = this.comProOrgDisplayOption.pubFun4getParamIo4productCharacterLayer();
+				newUiPopbScope.productCharacterType = this.comProOrgDisplayOption.pubFun4getParamIo4productCharacterType();
+				
+				if( this.comProOrgDisplayOption.pubFun4getParamIo4blDisplayOrganization() == true )
+				{
+					newUiPopbScope.isShowOrganization = BizConst.GLOBAL_YESNO_YES;
+				}
+				else
+				{
+					newUiPopbScope.isShowOrganization = BizConst.GLOBAL_YESNO_NO;
+				}
+				newUiPopbScope.organizationLayer = this.comProOrgDisplayOption.pubFun4getParamIo4organizationLayer();
+				if( this.comProOrgDisplayOption.pubFun4getParamIo4blDisplayOrganizationCharacter() == true )
+				{
+					newUiPopbScope.isShowOrganizationCharacter = BizConst.GLOBAL_YESNO_YES;
+				}
+				else
+				{
+					newUiPopbScope.isShowOrganizationCharacter = BizConst.GLOBAL_YESNO_NO;
+				}
+				newUiPopbScope.organizationCharacterLayer = this.comProOrgDisplayOption.pubFun4getParamIo4organizationCharacterLayer();
+				newUiPopbScope.organizationCharacterType = this.comProOrgDisplayOption.pubFun4getParamIo4organizationCharacterType();					
+				
+				//	显示控制		end
+				
+				//	期间控制 		begin
+				
+				newUiPopbScope.isPeriodControl = BizConst.GLOBAL_YESNO_NO;
+				
+				newUiPopbScope.periodOffsetBegin = 0;
+				newUiPopbScope.periodOffsetEnd = 0;					
+				
+				//	期间控制 		end
+				
+				
+				newUiPopbScope.code = StringUtil.trim( this.txtCode.text ); 
+				newUiPopbScope.name = StringUtil.trim( this.txtName.text );
+				newUiPopbScope.description = StringUtil.trim( this.txtDescription.text );
+				newUiPopbScope.comments = StringUtil.trim( this.txtComments.text );
+				
+				if( newUiPopbScope.code == null || newUiPopbScope.code == "" )
+				{
+					alert_msg = resourceManager.getString('mod_mobile','alert_msg_codeisnull');
+					Alert.show( alert_msg, alert_title_hint );
+					return ;					
+				}
+				
+				if( newUiPopbScope.name == null || newUiPopbScope.name == "" )
+				{
+					alert_msg = resourceManager.getString('mod_mobile','alert_msg_nameisnull');
+					Alert.show( alert_msg, alert_title_hint );
+					return ;					
+				}			
+				
+				
+				UtilUi.pubFun4PopWaitWindow( this );
+				if( this.paramIo4winUse == UtilUi.AUWINDOW_USE_NEW )
+				{
+					this.srvUi.newUiPopbScope( newUiPopbScope );
+				}
+				else if(this.paramIo4winUse == UtilUi.AUWINDOW_USE_UPD)
+				{
+					this.srvUi.upUiPopbScope( this.paramIo4uiPopbScope,newUiPopbScope );
+				}
+				else
+				{
+					Alert.show( '意外情形，请联系技术支持人员', '提示' );	
+				}
+				
+				
+				
+//				
+//				if( this.prvVar4auWindow == null )
+//				{
+//					prvVar4auWindow = new mod_mobile();
+//					PopUpManager.addPopUp( this.prvVar4auWindow, ClientEnvironment.modWork, true );
+//					PopUpManager.centerPopUp(prvVar4auWindow);
+//					//this.prvVar4auWindow = mod_mobile(PopUpManager.createPopUp(this, mod_mobile, true));
+//					this.prvVar4auWindow.pubFun4setParamIn4closeCallback( this, callbackFunction4auWinClose );
+//				}
+//				else
+//				{
+//					PopUpManager.addPopUp( this.prvVar4auWindow, this, true );
+//				}	
+//				
+//				// 这里的代码须如此：先准备好后再设置给 auWindow
+//				// 如果直接设置一个新建对象给auWindow，然后再操作其准备其内容，则可能不能触发auWindow内部的相关绑定动作					
+//				this.prvVar4auWindow.pubFun4setParamIo4uiPopbScope( newUiPopbScope, UtilUi.AUWINDOW_USE_NEW );		
+//				
+//				
+			}	
+			
+			private function faultHandler4saveUiPopbScope(event:FaultEvent):void
+			{
+				UtilUi.pubFun4RemoveWaitWindow();
+				Alert.show( UtilExceptionLocale.getExceptionMessageLocaleByFaultEvent( event ), resourceManager.getString('main','alt_title_warn') );
+			}	
+			
+			private function resultHandler4saveUiPopbScope(event:ResultEvent):void 
+			{				
+				this.paramIo4uiPopbScope = BUiPopbScope(event.result);	
+				UtilUi.pubFun4RemoveWaitWindow();
+				
+				var alert_title_hint:String = resourceManager.getString('mod_mobile','alert_title_hint');
+				var alert_msg:String = "";
+				alert_msg = resourceManager.getString('mod_mobile','alter_msg_savesucceed');
+				Alert.show( alert_msg, alert_title_hint);
+				this.paramOut4winCloseWay = UtilUi.WINDOW_CLOSEWAY_OK;
+				this.prvFun4close();
+			}
+			
+			
+			
+			private function onCancel():void
+			{	
+				this.paramOut4winCloseWay = UtilUi.WINDOW_CLOSEWAY_CANCEL;
+				this.prvFun4close();
+			}					
+			
+			protected function titlewindow1_creationCompleteHandler(event:FlexEvent):void
+			{
+//				this.x = 100;
+//				this.y = 50;	
+				
+			}
+			
+		]]>
+	</fx:Script>
+	
+	<s:BorderContainer width="100%" height="100%" id="bCMain">
+		<s:layout>
+			<s:VerticalLayout/>
+		</s:layout>
+		<mx:Grid width="100%">
+			<mx:GridRow width="100%" height="100%" verticalAlign="middle">
+				<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+					<s:Label text="{resourceManager.getString('mod_mobile','code')}"/>
+				</mx:GridItem>
+				<mx:GridItem width="100%" height="100%" verticalAlign="middle">
+					<mx:TextInput width="300" text="{this.paramIo4uiPopbScope.code}" maxChars="255" id="txtCode"/>
+				</mx:GridItem>
+			</mx:GridRow>
+			<mx:GridRow  width="100%" height="100%" verticalAlign="middle">
+				<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+					<s:Label text="{resourceManager.getString('mod_mobile','name')}"/>
+				</mx:GridItem>
+				<mx:GridItem width="100%" height="100%" verticalAlign="middle">
+					<mx:TextInput width="300" text="{this.paramIo4uiPopbScope.name}" maxChars="255" id="txtName"/>
+				</mx:GridItem>
+			</mx:GridRow>
+			<mx:GridRow width="100%" height="100%" verticalAlign="middle">
+				<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+					<s:Label text="{resourceManager.getString('mod_mobile','description')}"/>
+				</mx:GridItem>
+				<mx:GridItem width="100%" height="100%" verticalAlign="middle">
+					<mx:TextInput width="350" maxChars="255" text="{this.paramIo4uiPopbScope.description}" id="txtDescription"/>
+				</mx:GridItem>
+			</mx:GridRow>
+			<mx:GridRow width="100%" height="100%" verticalAlign="middle">
+				<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+					<s:Label text="{resourceManager.getString('mod_mobile','comments')}"/>
+				</mx:GridItem>
+				<mx:GridItem width="100%" height="100%" verticalAlign="middle">
+					<mx:TextInput width="350" maxChars="255" text="{this.paramIo4uiPopbScope.comments}" id="txtComments"/>
+				</mx:GridItem>
+			</mx:GridRow>				
+		</mx:Grid>	
+		
+		<common:LabelBoundary labelText="{resourceManager.getString('menu','condDetail')}" />
+		
+		<s:BorderContainer width="100%" height="100%">
+			<s:layout>
+				<s:HorizontalLayout/>
+			</s:layout>
+			
+			<s:Group width="50%" height="100%">
+				<s:layout>
+					<s:VerticalLayout/>
+				</s:layout>
+				<containers:AksControlBar  borderColor="#ACC6DD">
+					<s:Button label="{resourceManager.getString('mod_mobile','btn_add')}" id="btnAddProOrg" 
+							  click="onAddProOrg()" icon="{CoolAssetsFile.addIcon}"  />
+					<s:Button label="{resourceManager.getString('mod_mobile','btn_del')}" id="btnDelProOrg" icon="{CoolAssetsFile.minus2Icon}"
+							  click="onDelProOrg()" enabled="{new ArrayCollection(this.comAdgProOrg.selectedItems).length>0}"/>				
+				</containers:AksControlBar>
+				<proorg:Com_ProOrg_ProOrg_AdvancedDataGrid id="comAdgProOrg" dataProvider="{this.prvVar4dp4comAdgProOrg}" allowMultipleSelection="true" width="100%" height="100%"/>
+			</s:Group>
+			<s:Group width="50%" height="100%">
+				<s:layout>
+					<s:VerticalLayout/>
+				</s:layout>
+				<containers:AksControlBar borderColor="#ACC6DD">
+					<s:Button label="{resourceManager.getString('mod_mobile','btn_add')}" 
+							  click="onAddBizData()" icon="{CoolAssetsFile.addIcon}" />
+					<s:Button label="{resourceManager.getString('mod_mobile','btn_del')}" click="onDelBizData()" icon="{CoolAssetsFile.minus2Icon}"
+							  enabled="{new ArrayCollection(this.comAdgBizData.selectedItems).length>0}"/>				
+					
+				</containers:AksControlBar >
+				<bizdata:Com_BizData_BizData_AdvancedDataGrid id="comAdgBizData" dataProvider="{this.prvVar4dp4comAdgBizData}" allowMultipleSelection="true" width="100%" height="100%"/>
+			</s:Group>
+		</s:BorderContainer>
+		<proorg:Com_ProOrg_ProOrg_DisplayOption width="100%" id="comProOrgDisplayOption" >
+		</proorg:Com_ProOrg_ProOrg_DisplayOption>
+		
+		<mx:HRule width="100%" />
+		<s:BorderContainer width="100%" height="25" borderColor="#E4ECF7">
+			<s:layout>
+				<s:HorizontalLayout horizontalAlign="center"/>
+			</s:layout>
+			<buttons:ButtonOk click="onOK()"  />
+			<buttons:ButtonCancel click="onCancel()" />
+		</s:BorderContainer>
+	</s:BorderContainer>
+</s:TitleWindow>

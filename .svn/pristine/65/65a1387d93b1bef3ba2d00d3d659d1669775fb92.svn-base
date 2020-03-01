@@ -1,0 +1,42 @@
+﻿
+lbl_welcome=Demand Driven Forecasting
+lkbtn_help=Help
+lkbtn_quit=Logoff
+
+text_wait=Loading data, please wait......
+
+heading=Welcome
+language=Language
+user=User ID
+password=Password
+listoptions=Sever List
+btn_login=Logon
+btn_clear=Cancel
+btn_option=Sever Configure
+
+savePassword=Save Password
+autoLogin=Auto Logon
+
+copyrightInfo=©Demand Driven Information Technology Co.,Ltd.
+
+alt_title_hint=Alert
+alt_msg_inputloginname=Please enter your user ID and password!
+alt_msg_loginfail=User ID or password is not correct,please try again!
+
+alt_msg_fail4getsystemstatus=System status cannot be updated, please contact system admin!
+
+alt_msg_fail4loadclientenvironmentdatas=Initialization fails, please contact your system administrator!
+
+alt_msg_systemstatus_exception_start=Server cannot be started! Logon is not allowed! Please contact system admin!
+alt_msg_systemstatus_exception_rollingperiod=Period rolling has an exception! You have no access to this functionality! Please logon once period rolling is done!
+alt_msg_systemstatus_rollingperiod=Period rolling is running! Logon is not allowed! Please logon once period rolling is done!
+alt_msg_systemstatus_exception_rollingperiod=Statistic forecasting is running！Please wait till the task is finished!
+alt_msg_systemstatus_runningforecast=Statistical forecasting is running! Please logon later on!
+
+alt_msg_user_expire=User is expired! Please log off and contact system admin!
+alt_msg_password_expire=Password is expired! Please log off and contact system admin!
+
+alt_msg_quitconfirm=Do you confirm to log off?
+
+alt_title_warn=Alert
+

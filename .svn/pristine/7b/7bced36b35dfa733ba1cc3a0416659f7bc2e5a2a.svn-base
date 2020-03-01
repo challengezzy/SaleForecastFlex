@@ -1,0 +1,450 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:VBox xmlns:fx="http://ns.adobe.com/mxml/2009" 
+				   xmlns:s="library://ns.adobe.com/flex/spark"
+				   xmlns:mx="library://ns.adobe.com/flex/mx" width="100%" height="100%"
+				   verticalGap="0" backgroundColor="#FFFFFF"
+				   verticalAlign="middle" horizontalAlign="center"
+				   initialize="initializeHandler(event)"
+				   creationComplete="creationCompleteHandler(event)"
+				   xmlns:containers="aks.aksmx.containers.*" xmlns:homepage="dmdd.dmddmx.mod.homepage.*" xmlns:ns="http://code.google.com/p/flexlib/">
+	<fx:Declarations>
+		<s:RemoteObject endpoint="{ClientEnvironment.endpoint}" id="srvSecurity" destination="SecurityService" showBusyCursor="true">
+			<s:method name="doLogout" result="resultHandler4doLogout(event)" fault="faultHandler4doLogout(event)">
+			</s:method>
+		</s:RemoteObject>
+	</fx:Declarations>
+	<fx:Metadata>
+	</fx:Metadata>		
+	<fx:Script>
+		<![CDATA[
+			import aks.aksas.controls.AksOptions;
+			import aks.aksas.utils.UtilUi;
+			import aks.aksmx.controls.AksWindowWait4LoadMainData;
+			
+			import com.cool.assets.CoolAssetsFile;
+			import com.cool.collections.HashMap;
+			import com.cool.utils.AlertUtil;
+			import com.cool.utils.MemoryUtil;
+			import com.cool.utils.MetadataTempletUtil;
+			import com.cool.vo.MetadataTempletVO;
+			import com.siloon.plugin.rightClick.RightClickManager;
+			
+			import dmdd.dmddas.common.constant.BizConst;
+			import dmdd.dmddas.common.constant.SysConst;
+			import dmdd.dmddas.common.system.ClientEnvironment;
+			import dmdd.dmddas.common.system.MenuItemVo;
+			import dmdd.dmddas.common.utils.UtilExceptionLocale;
+			import dmdd.dmddas.common.utils.UtilFunPermission;
+			import dmdd.dmddas.dataaccess.bizobject.BDistributionCenter;
+			import dmdd.dmddas.dataaccess.bizobject.BOperatorUser;
+			import dmdd.dmddas.dataaccess.bizobject.BOrganization;
+			import dmdd.dmddas.dataaccess.bizobject.BOrganizationCharacter;
+			import dmdd.dmddas.dataaccess.bizobject.BProduct;
+			import dmdd.dmddas.dataaccess.bizobject.BProductCharacter;
+			import dmdd.dmddas.dataaccess.bizobject.BSysPeriod;
+			
+			import flexlib.controls.tabBarClasses.SuperTab;
+			import flexlib.events.SuperTabEvent;
+			
+			import mx.collections.ArrayCollection;
+			import mx.collections.XMLListCollection;
+			import mx.controls.Alert;
+			import mx.core.Application;
+			import mx.core.Container;
+			import mx.core.INavigatorContent;
+			import mx.core.UIComponent;
+			import mx.events.CloseEvent;
+			import mx.events.FlexEvent;
+			import mx.events.MenuEvent;
+			import mx.managers.PopUpManager;
+			import mx.modules.Module;
+			import mx.modules.ModuleLoader;
+			import mx.resources.ResourceManager;
+			import mx.rpc.events.FaultEvent;
+			import mx.rpc.events.ResultEvent;
+			
+			import spark.components.TitleWindow;
+			//	描述    begin
+			//	描述    end
+			
+			//	0	输入参数    begin
+			
+			public var onLogoutFunction:Function;
+			
+			[Bindable]
+			public var dp4Locales:ArrayCollection;
+			//	0	输入参数    end
+			
+			//	1	输出参数    begin
+			//	1	输出参数    end
+			
+			//	2	本地变量    begin		
+			private var isCreateCompleted:Boolean = false;
+			
+			[Bindable]
+			private var verinfo:String="";
+			[Bindable]
+			private var date_:Date = new Date();
+			
+			private var prvVar4WaitWindow:AksWindowWait4LoadMainData;
+			
+			/** 所有非目录菜单项 */
+			private var menuMap:HashMap = new HashMap;
+			private var openedMenuMap:Object = new Object();
+			
+			[Bindable]
+			private var arrMenuItem:ArrayCollection = null;
+			
+			//	2	本地变量    end			
+			
+			//	3	公共方法    begin			
+			//	3	公共方法    end		
+			
+			//	4	初始化方法    begin	
+			protected function initializeHandler(event:FlexEvent):void
+			{
+				
+			}
+			
+			protected function creationCompleteHandler(event:FlexEvent):void
+			{
+				RightClickManager.regist();
+				isCreateCompleted = true;
+				initWorkFrame();
+			}
+			
+			public function initWorkFrame():void{
+				//重新登录时使用
+				if(isCreateCompleted == false)
+					return;
+				
+				if( ClientEnvironment.locale ==SysConst.LOCALE_EN )
+				{
+					//comboBox4Locale.selectedIndex = 1;
+					menuBar.labelField = "nameen";
+				}else{
+					//comboBox4Locale.selectedIndex =0;
+					menuBar.labelField = "namecn";
+				}
+				
+				//欢迎语
+				lbl_loginInfo.text = ResourceManager.getInstance().getString('main','heading') + " "
+					+ClientEnvironment.getOperatorUser().userName +" " + date_.getFullYear() + "-" +(date_.getMonth()+1)+"-"+date_.getDate();
+				
+				UtilFunPermission.initMenuXml();
+				arrMenuItem = UtilFunPermission.getUserMenuTree();
+				
+				menuMap = UtilFunPermission.userMenuMap;
+				menuBar.dataProvider = arrMenuItem;
+				menuBar.validateNow();
+				
+				//打开欢迎界面,如果有此菜单权限的话
+				var welcomMenu:String = "workIndex";
+				if(menuMap.getValue(welcomMenu) != null){
+					openedMenuByCode(welcomMenu); 
+				}
+			}
+			
+			protected function menuBar_itemClickHandler(event:MenuEvent):void
+			{
+				// 获取选择的菜单项：
+				var menuItem:MenuItemVo = MenuItemVo(event.item);
+				// 输出信息：
+				//menuLbl.text = "所选择菜单项：" + menuItem.namecn + ", 位置：" + event.index + ";";
+				
+				if(menuItem.url == null || menuItem.url == ""){
+					AlertUtil.show("试图打开的菜单项没有设定内容",AlertUtil.MESSAGE_ERROR);
+					return;
+				}
+				
+				openedMenuByCode(menuItem.code);
+			}
+			
+			private function openedMenuByCode(menuCode:String):void{
+				
+				var menuItem:MenuItemVo = menuMap.getValue(menuCode);
+				
+				if(menuItem == null){
+					AlertUtil.show("试图打开的菜单项["+menuCode+"]不存在",AlertUtil.MESSAGE_ERROR);
+					return;
+				}
+				
+				var menuLoader:ModuleLoader = new ModuleLoader();
+				menuLoader.applicationDomain = ApplicationDomain.currentDomain;
+				menuLoader.url = menuItem.url;
+				
+				if(ClientEnvironment.locale == SysConst.LOCALE_EN ){
+					menuLoader.label = menuItem.nameen; 
+				}else{
+					menuLoader.label = menuItem.namecn;//中文
+				}
+				
+				
+				//menuLoader.icon = imgCls4opened;
+				menuLoader.setStyle("closable", true);
+				
+				openMenuFrame(menuItem.code,menuLoader,true);
+			}
+			
+			//	4	初始化方法    end				
+			
+			//	5	事件响应方法    begin	
+			
+			//打开一个菜单
+			private function openMenuFrame(menuCode:String,frame:UIComponent,showIt:Boolean=true):void{
+				if( openedMenuMap[menuCode] == null){
+					
+					superNav.addChild(frame);
+					openedMenuMap[menuCode] = frame;
+				}
+				
+				var curIndex:int = superNav.getChildIndex( openedMenuMap[menuCode] );
+				
+				//定位到新打开的菜单
+				if(showIt){
+					superNav.selectedIndex = curIndex;
+					//superNav.selectedChild = openedMenuMap[menuCode] as Container;
+				}
+			}
+			
+			protected function tabCloseHandler(event:SuperTabEvent):void
+			{
+				var index:Number = event.tabIndex;
+				var frame:Container = Container(superNav.getChildAt(index));
+				
+				if(frame == null)//没有打开过
+					return;
+				
+				//释放内存
+				var menuCode:String = getMenuCodeByFrame(frame);
+				openedMenuMap[menuCode] = null;
+				if(frame is ModuleLoader){
+					ModuleLoader(frame).unloadModule();
+					MemoryUtil.forceGC();
+				}
+				
+			}
+			
+			private function getMenuCodeByFrame(frame:Container):String{
+				for(var menuCode:String in openedMenuMap){
+					if(openedMenuMap[menuCode] == frame){
+						return menuCode;
+					}
+				}
+				return null;
+			}
+			
+			//	5	事件响应方法    end
+			
+			//	6	本地方法    begin
+			//	6	本地方法   end			
+			
+			private function onChange4comboBox4Locale():void
+			{
+				if( comboBox4Locale.selectedIndex == 0 )
+				{
+					resourceManager.localeChain = [ SysConst.LOCALE_ZH ];
+					ClientEnvironment.locale = SysConst.LOCALE_ZH;
+					
+					menuBar.labelField = "namecn";
+					
+				}
+				else if( comboBox4Locale.selectedIndex == 1 )
+				{
+					resourceManager.localeChain = [ SysConst.LOCALE_EN ];
+					ClientEnvironment.locale = SysConst.LOCALE_EN;
+					
+					menuBar.labelField = "nameen";
+				}
+				
+				menuBar.dataProvider = arrMenuItem;
+				menuBar.validateNow();
+			}
+			
+			
+			protected function onHelpClickHandler(event:MouseEvent):void
+			{
+				//var url:String = "http://"+AksOptions.serverName+":"+AksOptions.serverPort+"/"+AksOptions.contextRoot+"/web/help/index.html";
+				var url:String = ClientEnvironment.webroot + "/web/help/index.html";
+				var urlReq:URLRequest = new URLRequest(url); 
+				navigateToURL(urlReq);
+			}
+			
+			protected function onClosingHandler(event:Event):void
+			{
+				//退出登录响应方法
+				var alert_title_hint:String = resourceManager.getString('alert','alt_title_hint');
+				var alert_msg_quitconfirm:String = resourceManager.getString('alert','alt_msg_quitconfirm');
+				
+				event.preventDefault();
+				
+				AlertUtil.show(alert_msg_quitconfirm,AlertUtil.MESSAGE_CONFIRM,"",this,quitConfirmHandler);
+				//Alert.show( alert_msg_quitconfirm, alert_title_hint, Alert.OK | Alert.CANCEL, this, quitConfirmHandler, null, Alert.OK );								
+				
+			}				
+			
+			private function quitConfirmHandler(event:CloseEvent):void
+			{
+				if( event.detail == Alert.YES )
+				{
+					//	已经确认过，注销用户并关闭程序
+					if( ClientEnvironment.getOperatorUser() != null )
+					{
+						srvSecurity.doLogout( ClientEnvironment.getOperatorUser().loginName );
+					}
+				}
+			}
+			
+			private function closeIE():void{
+				var request:URLRequest = new URLRequest("javascript:window.close()");
+				navigateToURL(request,"_self");
+			}
+			
+			//增加了退出时的返回验证
+			private function faultHandler4doLogout(event:FaultEvent):void
+			{				
+				Alert.show( UtilExceptionLocale.getExceptionMessageLocaleByFaultEvent( event ), resourceManager.getString('alert','alt_title_warn') );
+			}	
+			
+			private function resultHandler4doLogout(event:ResultEvent):void 
+			{
+				//关闭所有已打开的菜单
+				for(var menuCode:String in openedMenuMap){
+					var frame:ModuleLoader = openedMenuMap[menuCode] as ModuleLoader;
+					
+					if(frame != null){
+						ModuleLoader(frame).unloadModule();
+						MemoryUtil.forceGC();
+					}
+					frame = null;
+					openedMenuMap[menuCode] = null;
+				}
+				superNav.removeAllChildren();
+				openedMenuMap = new Object();
+				
+				//closeIE();
+				if(onLogoutFunction != null){
+					onLogoutFunction();
+				}
+			}
+			
+			private function fullScreenHandler():void{
+				
+				if(stage.displayState==StageDisplayState.NORMAL){
+					stage.displayState=StageDisplayState.FULL_SCREEN;
+				}else{
+					stage.displayState=StageDisplayState.NORMAL; 
+				} 
+			}
+			
+			
+		]]>
+	</fx:Script>
+	
+	<fx:Style>
+		@namespace s "library://ns.adobe.com/flex/spark";
+		@namespace mx "library://ns.adobe.com/flex/mx";
+		@namespace containers "aks.aksmx.containers.*";
+		@namespace homepage "dmdd.dmddmx.mod.homepage.*";
+		@namespace ns "http://code.google.com/p/flexlib/";
+		
+		.workBackgroupStyle{
+			backgroundColor: #D5A47A;
+		}
+		
+		.menuTabNavStyle {
+			borderStyle: solid;
+			borderColor: #93B2D0;
+			tabHeight: 25;
+			backgroundAlpha: 1;
+			borderThickness: 1;
+			tabStyleName: "myTabs1";
+			firstTabStyleName: "myTabs1";
+			lastTabStyleName: "myTabs1";
+			selectedTabTextStyleName: "mySelectedTabs1";
+			backgroundColor: #E4ECF7;
+			backgroundAlpha: 1;
+			fontWeight: normal;
+		}
+		
+		
+		.myTabs1 {
+			cornerRadius: 2;
+			highlightAlphas: 0, 0;
+			fillAlphas: 0,0,0,0;
+			fillColors: #7AA4D5, #7AA4D5;
+			
+			borderAlpha:0;
+			borderColor: #7AA4D5;
+			borderThicknessTop:0;
+			borderThicknessBottom:0;
+			borderThicknessLeft:0;
+			borderThicknessRight:0;
+			
+			color: #304E6C;
+			textRollOverColor: #FFFFFF;
+			backgroundAlpha : 0;
+			backgroundColor: #7AA4D5;
+			fontWeight :normal;
+		}
+		
+		.mySelectedTabs1 {
+			highlightAlphas: 0, 0;
+			fillAlphas: 0,0,0,0;
+			fillColors: #C1D7EA, #C1D7EA;
+			color: #FFFFFF;
+			textRollOverColor: #FFFFFF;
+			backgroundColor: #8CB1DA;
+			fontWeight: bold;
+		}
+		
+	</fx:Style>
+	
+	<containers:AksControlBar width="100%" height="70" borderVisible="false">
+		<containers:backgroundFill> 
+			<s:SolidColor color="#F5F4F4" alpha="1"/> 
+		</containers:backgroundFill>
+		<containers:layout>
+			<s:HorizontalLayout paddingLeft="40" paddingRight="40" paddingBottom="3" paddingTop="3" />
+		</containers:layout>
+		<s:VGroup width="100%" height="100%" gap="0" paddingLeft="0">
+			<s:HGroup width="100%" height="30" verticalAlign="middle" paddingLeft="25" paddingRight="25">
+				<s:Label id="lbl_loginInfo" textAlign="center">
+					<!--<s:text>{resourceManager.getString('main','heading')} {ClientEnvironment.getOperatorUser().userName} {date_.getFullYear()}-{(date_.getMonth()+1)}-{date_.getDate()}</s:text> -->
+				</s:Label>
+				<mx:Spacer width="100%"/>
+				<mx:FormItem label="语言(Language)" visible="false">
+					<s:ComboBox id="comboBox4Locale" dataProvider="{dp4Locales}" change="onChange4comboBox4Locale()" width="70">				
+					</s:ComboBox>
+				</mx:FormItem>
+				<mx:LinkButton icon="{CoolAssetsFile.helpIcon}" toolTip="{resourceManager.getString('main','lkbtn_help')}" id="lkbtn_help" click="onHelpClickHandler(event)"/> 	
+				<mx:LinkButton icon="{CoolAssetsFile.exitIcon}" toolTip="{resourceManager.getString('main','lkbtn_quit')}" id="lkbtn_quit" click="onClosingHandler(event)"/>
+			</s:HGroup>
+			<mx:MenuBar height="30" width="100%" id="menuBar" labelField="namecn" minWidth="100" tabFocusEnabled="false"
+							iconField="icon" itemClick="menuBar_itemClickHandler(event)"/>
+		</s:VGroup>
+		<s:Image height="60" source="@Embed(source='/dmdd/dmddassets/icons/logo_work.png')" fillMode="scale"
+				 toolTip="{verinfo}" buttonMode="true" click="fullScreenHandler()"/>		
+		
+	</containers:AksControlBar>
+	<mx:HBox id="toolBox" width="100%" height="0" backgroundAlpha="1" backgroundColor="#F5F4F4">
+		
+	</mx:HBox>
+	
+	<containers:AksControlBar width="100%" height="100%" styleName="workBackgroupStyle">
+		<containers:backgroundFill> 
+			<s:SolidColor color="#7AA4D5" alpha="0.9"/> 
+		</containers:backgroundFill>
+		<containers:layout>
+			<s:HorizontalLayout paddingTop="0" paddingBottom="3" />
+		</containers:layout>
+		<s:VGroup width="100%" height="100%" paddingLeft="25" paddingRight="25">
+			<!-- scrollSpeed="25" -->
+			<ns:SuperTabNavigator id="superNav" width="100%" height="100%" styleName="menuTabNavStyle"
+								  stopScrollingEvent="{MouseEvent.MOUSE_OUT}" startScrollingEvent="{MouseEvent.MOUSE_OVER}"
+								  tabClose="tabCloseHandler(event)" tabHeight="30"
+								  closePolicy="{SuperTab.CLOSE_ROLLOVER}" />
+		</s:VGroup>
+	</containers:AksControlBar>
+	
+</mx:VBox>	

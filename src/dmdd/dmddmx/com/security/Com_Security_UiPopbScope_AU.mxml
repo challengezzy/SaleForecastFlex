@@ -1,0 +1,238 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:TitleWindow xmlns:fx="http://ns.adobe.com/mxml/2009" 
+			   xmlns:s="library://ns.adobe.com/flex/spark" 
+			   xmlns:mx="library://ns.adobe.com/flex/mx" width="600" height="320" close="onCancel()"
+			   creationComplete="creationCompleteHandler(event)" xmlns:buttons="com.cool.buttons.*">
+	<s:layout>
+		<s:VerticalLayout paddingLeft="20" paddingRight="20" paddingTop="10" paddingBottom="10"/>
+	</s:layout>
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+		<s:RemoteObject endpoint="{ClientEnvironment.endpoint}" id="srvUi" destination="UiService">
+			<s:method name="newUiPopbScope" result="resultHandler4saveUiPopbScope(event)" fault="faultHandler4saveUiPopbScope(event)">
+			</s:method>
+			<s:method name="upUiPopbScope" result="resultHandler4saveUiPopbScope(event)" fault="faultHandler4saveUiPopbScope(event)">
+			</s:method>
+		</s:RemoteObject>		
+	</fx:Declarations>
+	
+	<fx:Metadata>
+		[ResourceBundle("com_security_uipopbscope_au")]
+	</fx:Metadata>
+	
+	<fx:Script>
+		<![CDATA[
+			import aks.aksas.utils.UtilUi;
+			
+			import dmdd.dmddas.common.constant.BizConst;
+			import dmdd.dmddas.common.constant.UIConst;
+			import dmdd.dmddas.common.system.ClientEnvironment;
+			import dmdd.dmddas.common.utils.UtilExceptionLocale;
+			import dmdd.dmddas.dataaccess.bizobject.BUiPopbScope;
+			
+			import mx.collections.ArrayCollection;
+			import mx.controls.Alert;
+			import mx.events.FlexEvent;
+			import mx.managers.PopUpManager;
+			import mx.rpc.events.FaultEvent;
+			import mx.rpc.events.ResultEvent;
+			import mx.utils.StringUtil;
+			//	描述		begin
+			//	描述		end
+			
+			//	0	输入参数    begin		
+			private var paramIn4closeCallback4thisObject:Object = null;
+			private var paramIn4closeCallback4function:Function = null;
+			
+			private var paramIo4winUse:int = UtilUi.AUWINDOW_USE_NEW;
+			
+			[Bindable]
+			private var paramIo4uiPopbScope:BUiPopbScope = null;							
+			//	0	输入参数    end
+			
+			//	1	输出参数    begin
+			private var paramOut4winCloseWay:int = UtilUi.WINDOW_CLOSEWAY_CANCEL;
+			
+			//	1	输出参数    end
+			
+			//	2	本地变量    begin
+			//	2	本地变量    end			
+			
+			//	3	公共方法    begin	
+			//	构造函数
+			public function pubFun4constructor( _paramIo4uiPopbScope:BUiPopbScope, _paramIo4winUse:int, _paramIn4closeCallback4thisObject:Object, _paramIn4closeCallback4function:Function ):void
+			{
+				this.pubFun4setParamIo4uiPopbScope( _paramIo4uiPopbScope, _paramIo4winUse );
+				this.pubFun4setParamIn4closeCallback( _paramIn4closeCallback4thisObject, _paramIn4closeCallback4function );
+			}	
+			
+			//	关闭回调函数参数													
+			public function pubFun4setParamIn4closeCallback( _thisObject:Object, _function:Function ):void
+			{
+				this.paramIn4closeCallback4thisObject = _thisObject;
+				this.paramIn4closeCallback4function = _function;	
+			}
+			//	关闭方式参数
+			public function pubFun4getParamOut4winCloseWay():int
+			{
+				return this.paramOut4winCloseWay;
+			}
+			//	关闭窗口
+			private function prvFun4close():void
+			{
+				PopUpManager.removePopUp( this );						
+				this.paramIn4closeCallback4function.call( this.paramIn4closeCallback4thisObject );				
+			}				
+			
+			//	界面用途参数
+			public function pubFun4getParamIo4winUse():int
+			{
+				return this.paramIo4winUse;
+			}			
+			
+			
+			//	处理对象参数
+			/**
+			 * _paramIo4uiPopbScope:BUiPopbScope	处理对象
+			 * _paramIo4winUse:int	处理动作
+			 */ 			
+			public function pubFun4setParamIo4uiPopbScope( _paramIo4uiPopbScope:BUiPopbScope, _paramIo4winUse:int ):void
+			{
+				this.paramIo4uiPopbScope = _paramIo4uiPopbScope;
+				this.paramIo4winUse = _paramIo4winUse;
+			}
+			public function pubFun4getParamIo4uiPopbScope():BUiPopbScope
+			{
+				return this.paramIo4uiPopbScope;
+			}				
+			//	3	公共方法    end		
+			
+			//	4	初始化方法    begin			
+			private function creationCompleteHandler(event:FlexEvent):void
+			{
+				this.title = resourceManager.getString('com_security_uipopbscope_au','title');			
+				
+				this.x = 100;
+				this.y = 50;
+			}						
+			//	4	初始化方法    end				
+			
+			//	5	事件响应方法    begin			
+			private function onSave():void
+			{				
+				if( this.prvFun4prepare4save() == true )
+				{
+					UtilUi.pubFun4PopWaitWindow( this );
+					if( paramIo4winUse == UtilUi.AUWINDOW_USE_NEW ){
+						
+						srvUi.newUiPopbScope( paramIo4uiPopbScope );
+					}else if( paramIo4winUse == UtilUi.AUWINDOW_USE_UPD ){
+						
+						srvUi.upUiPopbScope( paramIo4uiPopbScope );
+					}else{
+						Alert.show( '意外情形，请联系技术支持人员', '提示' );	
+					}
+				}
+			}
+			
+			/** 查询条件更新 */
+			public function onUpdateUiPopScope(uiPopScope:BUiPopbScope):void{
+				
+				srvUi.upUiPopbScope( uiPopScope ,uiPopScope);
+			}
+			
+			private function faultHandler4saveUiPopbScope(event:FaultEvent):void
+			{
+				UtilUi.pubFun4RemoveWaitWindow();
+				Alert.show( UtilExceptionLocale.getExceptionMessageLocaleByFaultEvent( event ), resourceManager.getString('main','alt_title_warn') );
+			}	
+			
+			private function resultHandler4saveUiPopbScope(event:ResultEvent):void 
+			{				
+				this.paramIo4uiPopbScope = BUiPopbScope(event.result);	
+				UtilUi.pubFun4RemoveWaitWindow();
+				
+				this.paramOut4winCloseWay = UtilUi.WINDOW_CLOSEWAY_OK;
+				this.prvFun4close();
+			}				
+			
+			private function onCancel():void
+			{
+				this.paramOut4winCloseWay = UtilUi.WINDOW_CLOSEWAY_CANCEL;
+				this.prvFun4close();
+			}	
+			
+			//	5	事件响应方法    end
+			
+			//	6	本地方法    begin
+			private function prvFun4prepare4save():Boolean
+			{
+				var alert_title_hint:String = resourceManager.getString('com_security_uipopbscope_au','alert_title_hint');
+				var alert_msg:String = "";
+				
+				this.paramIo4uiPopbScope.code = StringUtil.trim( this.txtCode.text ); 
+				this.paramIo4uiPopbScope.name = StringUtil.trim( this.txtName.text );
+				this.paramIo4uiPopbScope.description = StringUtil.trim( this.txtDescription.text );
+				this.paramIo4uiPopbScope.comments = StringUtil.trim( this.txtComments.text );
+				
+				if( this.paramIo4uiPopbScope.code == null || this.paramIo4uiPopbScope.code == "" )
+				{
+					alert_msg = resourceManager.getString('com_security_uipopbscope_au','alert_msg_codeisnull');
+					Alert.show( alert_msg, alert_title_hint );
+					return false;					
+				}
+				
+				if( this.paramIo4uiPopbScope.name == null || this.paramIo4uiPopbScope.name == "" )
+				{
+					alert_msg = resourceManager.getString('com_security_uipopbscope_au','alert_msg_nameisnull');
+					Alert.show( alert_msg, alert_title_hint );
+					return false;					
+				}				
+				
+				
+				return true;
+			}							
+			//	6	本地方法   end						
+			
+			
+		]]>
+	</fx:Script>
+	<mx:Grid width="100%">
+		<mx:GridRow width="100%" height="100%" verticalAlign="middle">
+			<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+				<s:Label text="{resourceManager.getString('com_security_uipopbscope_au','code')}"/>
+			</mx:GridItem>
+			<mx:GridItem width="100%" height="100%" verticalAlign="middle">
+				<mx:TextInput width="100%" text="{this.paramIo4uiPopbScope.code}" maxChars="255" id="txtCode"/>
+			</mx:GridItem>
+			<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+			</mx:GridItem>
+			<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+				<s:Label text="{resourceManager.getString('com_security_uipopbscope_au','name')}"/>
+			</mx:GridItem>
+			<mx:GridItem width="100%" height="100%" verticalAlign="middle">
+				<mx:TextInput width="100%" text="{this.paramIo4uiPopbScope.name}" maxChars="255" id="txtName"/>
+			</mx:GridItem>
+		</mx:GridRow>
+		<mx:GridRow width="100%" height="100%" verticalAlign="middle">
+			<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+				<s:Label text="{resourceManager.getString('com_security_uipopbscope_au','description')}"/>
+			</mx:GridItem>
+			<mx:GridItem width="100%" height="100%" verticalAlign="middle" colSpan="4">
+				<mx:TextArea width="100%" height="70" maxChars="255" text="{this.paramIo4uiPopbScope.description}" id="txtDescription"/>
+			</mx:GridItem>
+		</mx:GridRow>
+		<mx:GridRow width="100%" height="100%" verticalAlign="middle">
+			<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+				<s:Label text="{resourceManager.getString('com_security_uipopbscope_au','comments')}"/>
+			</mx:GridItem>
+			<mx:GridItem width="100%" height="100%" verticalAlign="middle" colSpan="4">
+				<mx:TextArea width="100%" height="100" maxChars="255" text="{this.paramIo4uiPopbScope.comments}" id="txtComments"/>
+			</mx:GridItem>
+		</mx:GridRow>				
+	</mx:Grid>
+	<s:HGroup width="100%">
+		<buttons:ButtonSave click="onSave()"/>
+		<buttons:ButtonCancel click="onCancel()"/>
+	</s:HGroup>
+</s:TitleWindow>

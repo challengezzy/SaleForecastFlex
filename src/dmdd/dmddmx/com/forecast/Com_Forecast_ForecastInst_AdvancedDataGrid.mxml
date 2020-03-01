@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:DataGrid xmlns:fx="http://ns.adobe.com/mxml/2009" 
+					 xmlns:s="library://ns.adobe.com/flex/spark" 
+					 xmlns:mx="library://ns.adobe.com/flex/mx"
+					 creationComplete="creationCompleteHandler(event)"  horizontalScrollPolicy="on" styleName="dg1">
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+	</fx:Declarations>
+
+	<fx:Script>
+		<![CDATA[
+			import dmdd.dmddas.common.utils.UtilDataGridColumnLabelFunction;
+			
+			import mx.events.FlexEvent;
+			import mx.resources.ResourceManager;
+			
+			//	描述    begin
+			//	描述    end
+			
+			//	0	输入参数    begin			
+			[Bindable]			
+			public var paramIn4visible4IsCheckedColumn:Boolean = false;				
+			//	0	输入参数    end
+			
+			//	1	输出参数    begin
+			//	1	输出参数    end
+			
+			//	2	本地变量    begin			
+			//	2	本地变量    end			
+			
+			//	3	公共方法    begin			
+			//	3	公共方法    end		
+			
+			//	4	初始化方法    begin	
+			protected function creationCompleteHandler(event:FlexEvent):void
+			{
+				// TODO Auto-generated method stub
+			}				
+			//	4	初始化方法    end				
+			
+			//	5	事件响应方法    begin
+			//	5	事件响应方法    end
+			
+			//	6	本地方法    begin			
+			//	6	本地方法   end				
+		]]>
+	</fx:Script>
+	<mx:columns>		
+		<mx:DataGridColumn headerText="{ResourceManager.getInstance().getString('label','run')}" dataField="isChecked" visible="{this.paramIn4visible4IsCheckedColumn}" textAlign="center" itemRenderer="mx.controls.CheckBox" rendererIsEditor="true" editorDataField="selected"/>	
+		<mx:DataGridColumn headerText="{ResourceManager.getInstance().getString('label','code')}"	dataField="code" 					editable="false"/>
+		<mx:DataGridColumn headerText="{ResourceManager.getInstance().getString('label','name')}" width="120"	dataField="name" 					editable="false"/>
+		<mx:DataGridColumn headerText="{ResourceManager.getInstance().getString('label','forecastPeriod')}" width="70" dataField="fcPeriodNum" 			editable="false"/>
+		<mx:DataGridColumn headerText="{ResourceManager.getInstance().getString('label','frozenPeriod')}" width="70" dataField="fzPeriodNum" 			editable="false"/>
+		<mx:DataGridColumn headerText="{ResourceManager.getInstance().getString('label','errorThreshould')}" width="70" dataField="errorThreshold" 			editable="false"/>
+		<mx:DataGridColumn headerText="{ResourceManager.getInstance().getString('label','modelLastRunTime')}" width="143"	dataField="mappingFcModelRunTime" 	editable="false" 	labelFunction="UtilDataGridColumnLabelFunction.getDateTimeStr"/>
+		<mx:DataGridColumn headerText="{ResourceManager.getInstance().getString('label','runLayerPro')}"			dataField="runProductLayer" 		editable="false"/>
+		<mx:DataGridColumn headerText="{ResourceManager.getInstance().getString('label','runLayerOrg')}"	dataField="runOrganizationLayer" 	editable="false"/>
+		<mx:DataGridColumn headerText="{ResourceManager.getInstance().getString('label','finalForecastData')}"			dataField="finalFcBizData" 			editable="false"/>
+		<mx:DataGridColumn headerText="{ResourceManager.getInstance().getString('label','decomposRule')}"	dataField="distributeRefFormula" 	editable="false"	labelFunction="UtilDataGridColumnLabelFunction.getForecastDistributeRefFormulaLocale"/>
+		
+		<mx:DataGridColumn headerText="{ResourceManager.getInstance().getString('label','decomposFormula')}"	dataField="decomposeFormula" 	editable="false"	labelFunction="UtilDataGridColumnLabelFunction.getForecastDecomposeFormulaLocale"/>
+		
+		<mx:DataGridColumn headerText="{ResourceManager.getInstance().getString('label','decomposOnBusData')}"	dataField="distributeRefBizData" 	editable="false"/>
+		<mx:DataGridColumn headerText="{ResourceManager.getInstance().getString('label','decomposOnPeriodNum')}"	dataField="distributeRefPeriodNum" 	editable="false"/>
+		<mx:DataGridColumn headerText="{ResourceManager.getInstance().getString('label','isValid')}"					dataField="isValid" 				editable="false"	labelFunction="UtilDataGridColumnLabelFunction.getGlobalYesNoLocale"/>		
+	</mx:columns>
+</mx:DataGrid>

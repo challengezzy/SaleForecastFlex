@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:BorderContainer xmlns:fx="http://ns.adobe.com/mxml/2009" 
+				   xmlns:s="library://ns.adobe.com/flex/spark" 
+				   xmlns:mx="library://ns.adobe.com/flex/mx" height="80" width="100%"
+				   creationComplete="creationCompleteHandler(event)" xmlns:bizdata="dmdd.dmddmx.com.bizdata.*">
+	<s:layout>
+		<s:VerticalLayout />
+	</s:layout>
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+		<mx:NumberValidator id="numberValidator4PercentValue" source="{this.txtPercentValue}" property="text" allowNegative="false" 
+							negativeError="{resourceManager.getString('alert','alert_msg_percentvalue9')}" 
+							invalidCharError="{resourceManager.getString('alert','alert_msg_percentvalue9')}" 
+							lowerThanMinError="{resourceManager.getString('alert','alert_msg_percentvalue9')}"    
+							minValue="0.0" domain="real" 
+							trigger="{this.txtPercentValue}" triggerEvent="change">
+		</mx:NumberValidator>			
+	</fx:Declarations>
+
+	<fx:Script>
+		<![CDATA[
+			import dmdd.dmddas.common.system.ClientEnvironment;
+			import dmdd.dmddas.dataaccess.bizobject.BForecastModelMTPly;
+			
+			import mx.controls.Alert;
+			import mx.events.FlexEvent;
+			import mx.utils.StringUtil;
+
+			//	描述    begin
+			//	描述    end
+			
+			//	0	输入参数    begin		
+			[Bindable]
+			public var paramIo4forecastModelMTPly:BForecastModelMTPly = null;
+			
+			[Bindable]
+			public var paramIn4editable:Boolean = false;				
+			//	0	输入参数    end
+			
+			//	1	输出参数    begin
+			[Bindable]
+			public var paramOut4historyDependPeriodNum:int = ClientEnvironment.getSysPeriod().periodNumPerYear;	//	本模型中，此值为定值，不变		
+			//	1	输出参数    end
+
+			//	2	本地变量    begin									
+			//	2	本地变量    end			
+			
+			//	3	公共方法    begin	
+			public function pubFun4prepare4save():Boolean
+			{
+				this.paramIo4forecastModelMTPly.percentValue = Number( StringUtil.trim(this.txtPercentValue.text) );
+				
+				var alert_title_hint:String = resourceManager.getString('alert','alert_title_hint')
+				var alert_msg:String = "";
+				
+				if( this.numberValidator4PercentValue.validate(this.txtPercentValue.text).results != null )
+				{
+					alert_msg = resourceManager.getString('alert','alert_msg_percentvalue9');
+					Alert.show( alert_msg, alert_title_hint );
+					return false;
+				}
+				
+				return true;											
+			}				
+			//	3	公共方法    end		
+			
+			//	4	初始化方法    begin	
+			protected function creationCompleteHandler(event:FlexEvent):void
+			{
+			}			
+			//	4	初始化方法    end				
+			
+			//	5	事件响应方法    begin
+		
+			//	5	事件响应方法    end
+			
+			//	6	本地方法    begin
+		
+			//	6	本地方法   end				
+
+
+
+		]]>
+	</fx:Script>
+
+	<mx:Grid width="100%" height="100%">
+		<mx:GridRow width="100%" height="100%" verticalAlign="middle">
+			<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+				<s:Label text="{resourceManager.getString('note','modelPara')}" fontWeight="bold"/>
+			</mx:GridItem>
+		</mx:GridRow>
+		<mx:GridRow width="100%" height="100%" verticalAlign="middle">
+			<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+				<s:Label text="{resourceManager.getString('note','percentValue')}"/>
+			</mx:GridItem>
+			<mx:GridItem width="100%" height="100%" verticalAlign="middle">
+				<s:TextInput width="100%" id="txtPercentValue" maxChars="20" enabled="{this.paramIn4editable}" text="{this.paramIo4forecastModelMTPly.percentValue}"/>
+			</mx:GridItem>
+			<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+			</mx:GridItem>
+			<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+			</mx:GridItem>
+			<mx:GridItem width="100%" height="100%" verticalAlign="middle">
+			</mx:GridItem>
+			<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+			</mx:GridItem>
+			<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+			</mx:GridItem>
+			<mx:GridItem width="100%" height="100%" verticalAlign="middle">
+			</mx:GridItem>
+		</mx:GridRow>		
+	</mx:Grid>
+</s:BorderContainer>

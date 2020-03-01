@@ -1,0 +1,227 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:BorderContainer xmlns:fx="http://ns.adobe.com/mxml/2009" 
+				   xmlns:s="library://ns.adobe.com/flex/spark" 
+				   xmlns:mx="library://ns.adobe.com/flex/mx" height="260" width="100%"
+				   creationComplete="creationCompleteHandler(event)" 
+				   xmlns:bizdata="dmdd.dmddmx.com.bizdata.*" 
+				   xmlns:containers="aks.aksmx.containers.*" xmlns:forecast="dmdd.dmddmx.com.forecast.*">
+	<s:layout>
+		<s:VerticalLayout paddingLeft="10" paddingRight="10" paddingTop="10" paddingBottom="10"/>
+	</s:layout>
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+		<mx:NumberValidator id="numberValidator4OffsetPeriodNum" source="{this.txtOffsetPeriodNum}" property="text" allowNegative="false" 
+							negativeError="{resourceManager.getString('alert','alert_msg_offsetperiodnum_1_249')}" 
+							invalidCharError="{resourceManager.getString('alert','alert_msg_offsetperiodnum_1_249')}" 
+							lowerThanMinError="{resourceManager.getString('alert','alert_msg_offsetperiodnum_1_249')}" 
+							exceedsMaxError="{resourceManager.getString('alert','alert_msg_offsetperiodnum_1_249')}"   
+							minValue="1" maxValue="24" domain="int" 
+							trigger="{this.txtOffsetPeriodNum}" triggerEvent="change">
+		</mx:NumberValidator>			
+	</fx:Declarations>
+	<fx:Script>
+		<![CDATA[
+			import aks.aksas.utils.UtilArrayCollection;
+			import aks.aksas.utils.UtilUi;
+			
+			import dmdd.dmddas.common.utils.UtilProOrg;
+			import dmdd.dmddas.dataaccess.aidobject.ABProOrg;
+			import dmdd.dmddas.dataaccess.bizobject.BForecastModelMAAnalog;
+			import dmdd.dmddas.dataaccess.bizobject.BForecastModelMAAnalogItem;
+			import dmdd.dmddmx.com.proorg.Com_ProOrg_ProOrg_Chooser;
+			
+			import mx.collections.ArrayCollection;
+			import mx.controls.Alert;
+			import mx.events.FlexEvent;
+			import mx.managers.PopUpManager;
+			import mx.utils.StringUtil;
+
+			//	描述    begin
+			//	描述    end
+			
+			//	0	输入参数    begin		
+			[Bindable]
+			public var paramIo4forecastModelMAAnalog:BForecastModelMAAnalog = null;
+			
+			[Bindable]
+			public var paramIn4editable:Boolean = false;				
+			//	0	输入参数    end
+			
+			//	1	输出参数    begin
+			[Bindable]
+			public var paramOut4historyDependPeriodNum:int = 1;			
+			//	1	输出参数    end
+
+			//	2	本地变量    begin				
+			private var prvVar4chooserWindow_proOrg:Com_ProOrg_ProOrg_Chooser = null;
+			//	2	本地变量    end			
+			
+			//	3	公共方法    begin	
+			public function pubFun4prepare4save():Boolean
+			{
+				var alert_title_hint:String = resourceManager.getString('alert','alert_title_hint')
+				var alert_msg:String = "";
+				
+				this.paramIo4forecastModelMAAnalog.offsetPeriodNum = Number( StringUtil.trim(this.txtOffsetPeriodNum.text) );
+				
+				if( this.numberValidator4OffsetPeriodNum.validate(this.txtOffsetPeriodNum.text).results != null )
+				{
+					alert_msg = resourceManager.getString('alert','alert_msg_offsetperiodnum_1_249');
+					Alert.show( alert_msg, alert_title_hint );
+					return false;
+				}			
+				
+				if( this.paramIo4forecastModelMAAnalog.forecastModelMAAnalogItems == null || this.paramIo4forecastModelMAAnalog.forecastModelMAAnalogItems.length <= 0 )
+				{
+					alert_msg = resourceManager.getString('alert','alert_msg_analogitem_null9');
+					Alert.show( alert_msg, alert_title_hint );
+					return false;					
+				}
+				
+				
+				return true;										
+			}				
+			//	3	公共方法    end		
+			
+			//	4	初始化方法    begin	
+			protected function creationCompleteHandler(event:FlexEvent):void
+			{
+				if( this.paramIn4editable == false )
+				{
+					this.removeElement( this.aksControlBar );
+				}				
+			}			
+			//	4	初始化方法    end				
+			
+			//	5	事件响应方法    begin
+			private function onAdd():void
+			{
+				if( this.prvVar4chooserWindow_proOrg == null )
+				{
+					this.prvVar4chooserWindow_proOrg = Com_ProOrg_ProOrg_Chooser(PopUpManager.createPopUp(this, Com_ProOrg_ProOrg_Chooser, true));
+					this.prvVar4chooserWindow_proOrg.comAdgProOrg.allowMultipleSelection = true;
+					this.prvVar4chooserWindow_proOrg.pubFun4setParamIn4closeCallback( this, callbackFunction4ChooserWinClose_proOrg );	
+				}
+				else
+				{
+					PopUpManager.addPopUp( this.prvVar4chooserWindow_proOrg, this, true );
+				}									
+			}	
+			
+			private function callbackFunction4ChooserWinClose_proOrg():void
+			{
+				if( this.prvVar4chooserWindow_proOrg.pubFun4getParamOut4winCloseWay() == UtilUi.WINDOW_CLOSEWAY_OK )
+				{
+					var arrSelectedProOrg:ArrayCollection = this.prvVar4chooserWindow_proOrg.pubFun4getParamOut4selectedProOrgs();
+					
+					//	由于新加入的ProOrg与原来的ProOrg的范围可能相交，所以需要重新计算范围，保证范围是不想交的
+					//	所以，每次有新范围选入的时候，都把权重系数重置为1
+					
+					var i:int;
+					var proOrg:ABProOrg = null;
+					var forecastModelMAAnalogItem:BForecastModelMAAnalogItem = null;
+					var arrOldProOrg:ArrayCollection = new ArrayCollection();
+					var arrNewProOrg:ArrayCollection = new ArrayCollection();
+					
+					if( arrSelectedProOrg != null && arrSelectedProOrg.length > 0 )
+					{
+						if( this.paramIo4forecastModelMAAnalog.forecastModelMAAnalogItems != null )
+						{
+							//	把原来的参照项的ProOrg都取出来
+							for( i=0; i<this.paramIo4forecastModelMAAnalog.forecastModelMAAnalogItems.length; i=i+1 )
+							{
+								forecastModelMAAnalogItem = BForecastModelMAAnalogItem( this.paramIo4forecastModelMAAnalog.forecastModelMAAnalogItems.getItemAt(i) );
+								
+								proOrg = new ABProOrg();
+								proOrg.product = forecastModelMAAnalogItem.product;
+								proOrg.organization = forecastModelMAAnalogItem.organization;
+								
+								arrOldProOrg.addItem( proOrg );
+							}
+						}
+						
+						arrNewProOrg = UtilProOrg.getUnion4arrProOrg( arrOldProOrg, arrSelectedProOrg );
+						
+						this.paramIo4forecastModelMAAnalog.forecastModelMAAnalogItems = new ArrayCollection();
+						for( i=0; i<arrNewProOrg.length; i=i+1 )
+						{
+							proOrg = ABProOrg( arrNewProOrg.getItemAt(i) );
+							
+							forecastModelMAAnalogItem = new BForecastModelMAAnalogItem();
+							forecastModelMAAnalogItem.product = proOrg.product;
+							forecastModelMAAnalogItem.organization = proOrg.organization;
+							forecastModelMAAnalogItem.coefficient = 1.0;
+							
+							this.paramIo4forecastModelMAAnalog.forecastModelMAAnalogItems.addItem( forecastModelMAAnalogItem );
+						}
+					}
+				}
+				//this.prvVar4auWindow = null;														
+			}	
+			
+			
+			private function onDel():void
+			{
+				var arr4remove:ArrayCollection = new ArrayCollection( this.comAdgForecastModelMAAnalogItem.selectedItems );
+				this.paramIo4forecastModelMAAnalog.forecastModelMAAnalogItems = UtilArrayCollection.removeItems( this.paramIo4forecastModelMAAnalog.forecastModelMAAnalogItems, arr4remove );					
+			}	
+					
+		
+			
+			protected function onChange4historyDependPeriodNum( txt:String ):Boolean
+			{
+				// TODO Auto-generated method stub
+				if( this.numberValidator4OffsetPeriodNum.validate(this.txtOffsetPeriodNum.text).results != null )
+				{
+					return false;
+				}
+				
+				this.paramOut4historyDependPeriodNum = Number( StringUtil.trim(this.txtOffsetPeriodNum.text) );
+				return false;
+			}			
+			//	5	事件响应方法    end
+			
+			//	6	本地方法    begin
+		
+			//	6	本地方法   end				
+
+
+
+		]]>
+	</fx:Script>
+	
+	<mx:Grid width="100%" height="60">
+		<mx:GridRow width="100%" height="100%" verticalAlign="middle">
+			<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+				<s:Label text="{resourceManager.getString('note','modelPara')}" fontWeight="bold"/>
+			</mx:GridItem>
+		</mx:GridRow>
+		<mx:GridRow width="100%" height="100%" verticalAlign="middle">
+			<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+				<s:Label text="{resourceManager.getString('note','offsetPriodN')}"/>
+			</mx:GridItem>
+			<mx:GridItem width="100%" height="100%" verticalAlign="middle">
+				<mx:TextInput width="100%" id="txtOffsetPeriodNum" maxChars="20" enabled="{this.paramIn4editable}" text="{this.paramIo4forecastModelMAAnalog.offsetPeriodNum}"/>
+				<s:Button width="0" visible="false" enabled="{this.onChange4historyDependPeriodNum(this.txtOffsetPeriodNum.text)}"/>
+			</mx:GridItem>
+			<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+			</mx:GridItem>
+			<mx:GridItem width="100%" height="100%" verticalAlign="middle">
+			</mx:GridItem>
+			<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+			</mx:GridItem>
+			<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+			</mx:GridItem>
+			<mx:GridItem width="100%" height="100%" verticalAlign="middle">
+			</mx:GridItem>
+		</mx:GridRow>		
+	</mx:Grid>	
+	<containers:AksControlBar width="100%" id="aksControlBar">
+		<s:Button label="{resourceManager.getString('button','add')}" id="btnAdd" click="onAdd()"/>
+		<s:Button label="{resourceManager.getString('button','del')}" id="btnDel" enabled="{new ArrayCollection(this.comAdgForecastModelMAAnalogItem.selectedItems).length>0}" click="onDel()"/>						
+	</containers:AksControlBar>
+	
+	<forecast:Com_Forecast_ForecastModelM_ForecastModelMAAnalogItem_AdvancedDataGrid id="comAdgForecastModelMAAnalogItem" dataProvider="{this.paramIo4forecastModelMAAnalog.forecastModelMAAnalogItems}" editable="{this.paramIn4editable}" width="100%" height="100%" >
+	</forecast:Com_Forecast_ForecastModelM_ForecastModelMAAnalogItem_AdvancedDataGrid>
+
+</s:BorderContainer>

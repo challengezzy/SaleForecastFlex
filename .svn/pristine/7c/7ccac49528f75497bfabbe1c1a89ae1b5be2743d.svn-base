@@ -1,0 +1,211 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:TitleWindow xmlns:fx="http://ns.adobe.com/mxml/2009" 
+			   xmlns:s="library://ns.adobe.com/flex/spark" 
+			   xmlns:mx="library://ns.adobe.com/flex/mx" width="800" height="600" close="onCancel()"
+			   creationComplete="creationCompleteHandler(event)" 
+			   xmlns:controls="aks.aksmx.controls.*" xmlns:containers="aks.aksmx.containers.*" 
+			   xmlns:unit="dmdd.dmddmx.com.unit.*" xmlns:common="dmdd.dmddmx.com.common.*" >
+	<s:layout>
+		<s:VerticalLayout/>
+	</s:layout>
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+		<s:RemoteObject endpoint="{ClientEnvironment.endpoint}" id="srvUnit" destination="UnitService">
+			<s:method name="getUnitGroupsStat" result="resultHandler4getUnitGroupsStat(event)" fault="faultHandler4getUnitGroupsStat(event)">
+			</s:method>			
+			<s:method name="getUnitGroups" result="resultHandler4getUnitGroups(event)" fault="faultHandler4getUnitGroups(event)">
+			</s:method>
+		</s:RemoteObject>		
+	</fx:Declarations>
+
+	<fx:Script>
+		<![CDATA[
+			import aks.aksas.utils.UtilUi;
+			
+			import dmdd.dmddas.common.constant.SysConst;
+			import dmdd.dmddas.common.constant.UIConst;
+			import dmdd.dmddas.common.system.ClientEnvironment;
+			import dmdd.dmddas.common.utils.UtilExceptionLocale;
+			import dmdd.dmddas.dataaccess.bizobject.BUnitGroup;
+			
+			import mx.collections.ArrayCollection;
+			import mx.controls.Alert;
+			import mx.events.FlexEvent;
+			import mx.managers.PopUpManager;
+			import mx.rpc.events.FaultEvent;
+			import mx.rpc.events.ResultEvent;
+			
+			//	描述		begin
+			//	描述		end
+			
+			//	0	输入参数    begin	
+			private var paramIn4closeCallback4thisObject:Object = null;
+			private var paramIn4closeCallback4function:Function = null;				
+			//	0	输入参数    end
+			
+			//	1	输出参数    begin
+			private var paramOut4selectedUnitGroup:BUnitGroup = null;	
+			
+			private var paramOut4winCloseWay:int = UtilUi.WINDOW_CLOSEWAY_CANCEL;		
+			//	1	输出参数    end
+			
+			//	2	本地变量    begin				
+			[Bindable]
+			private var prvVar4dp4comAdgUnitGroup:ArrayCollection = new ArrayCollection();
+			
+			private var prvVar4sqlRestriction:String = null;										
+			//	2	本地变量    end			
+			
+			//	3	公共方法    begin	
+			//	关闭回调函数参数													
+			public function pubFun4setParamIn4closeCallback( _thisObject:Object, _function:Function ):void
+			{
+				this.paramIn4closeCallback4thisObject = _thisObject;
+				this.paramIn4closeCallback4function = _function;	
+			}
+			//	关闭方式参数
+			public function pubFun4getParamOut4winCloseWay():int
+			{
+				return this.paramOut4winCloseWay;
+			}				
+			//	关闭窗口
+			private function prvFun4close():void
+			{
+				PopUpManager.removePopUp( this );						
+				this.paramIn4closeCallback4function.call( this.paramIn4closeCallback4thisObject );				
+			}							
+			
+			
+			//	处理对象参数
+			public function pubFun4getParamOut4selectedUnitGroup():BUnitGroup
+			{
+				return this.paramOut4selectedUnitGroup;
+			}										
+			//	3	公共方法    end		
+			
+			//	4	初始化方法    begin			
+			protected function creationCompleteHandler(event:FlexEvent):void
+			{
+				this.title = resourceManager.getString('menu','selectUnitGroup');	
+				this.x = 100;
+				this.y = 50;
+				
+				//界面打开后自动查询 zhangzy 20131122
+				callbackFunction4query4comQCond();
+			}				
+					
+			//	4	初始化方法    end				
+			
+			//	5	事件响应方法    begin	
+			private function callbackFunction4query4comQCond():void
+			{				
+				this.prvVar4sqlRestriction = this.comQCond.pubFun4getParamOut4sqlRestriction();
+				var blPageQuery:Boolean = this.comQCond.pubFun4getParamOut4blPageQuery();
+				
+				if( blPageQuery == true )
+				{	
+					UtilUi.pubFun4PopWaitWindow( this );
+					this.srvUnit.getUnitGroupsStat( this.prvVar4sqlRestriction );	
+				}
+				else
+				{	
+					//	不分页查询
+					UtilUi.pubFun4PopWaitWindow( this );
+					this.srvUnit.getUnitGroups( this.prvVar4sqlRestriction, true, -1, ClientEnvironment.getSysParamPageSize() );
+				}								
+			}			
+			
+			//	分页查询相关		begin
+			private function faultHandler4getUnitGroupsStat(event:FaultEvent):void
+			{
+				UtilUi.pubFun4RemoveWaitWindow();
+				Alert.show( UtilExceptionLocale.getExceptionMessageLocaleByFaultEvent( event ), resourceManager.getString('alert','alt_title_warn') );
+			}	
+			
+			private function resultHandler4getUnitGroupsStat(event:ResultEvent):void 
+			{
+				//	初始化数据表格控制板
+				var rstSize:Number = Number(event.result);
+				this.comAksDataGridControlBar.pubFun4setResultParams( true, rstSize, ClientEnvironment.getSysParamPageSize() );
+				
+				//	去执行第一页查询
+				this.srvUnit.getUnitGroups( this.prvVar4sqlRestriction, true, 1, ClientEnvironment.getSysParamPageSize() );
+			}
+			
+			private function prvFun4pageQueryUnitGroups( _pageIndex:int ):void
+			{
+				UtilUi.pubFun4PopWaitWindow( this );
+				this.srvUnit.getUnitGroups( this.prvVar4sqlRestriction, true, _pageIndex, ClientEnvironment.getSysParamPageSize() );					
+			}			
+			//	分页查询相关		end
+			
+			
+			private function faultHandler4getUnitGroups(event:FaultEvent):void
+			{
+				UtilUi.pubFun4RemoveWaitWindow();
+				Alert.show( UtilExceptionLocale.getExceptionMessageLocaleByFaultEvent( event ), resourceManager.getString('alert','alt_title_warn') );
+			}	
+			
+			private function resultHandler4getUnitGroups(event:ResultEvent):void 
+			{
+				this.prvVar4dp4comAdgUnitGroup = ArrayCollection(event.result);
+				
+				if( this.comQCond.pubFun4getParamOut4blPageQuery() == false )
+				{
+					//	不是分页查询，需要根据查询结果初始化数据表格控制板
+					this.comAksDataGridControlBar.pubFun4setResultParams( false, this.prvVar4dp4comAdgUnitGroup.length, this.prvVar4dp4comAdgUnitGroup.length );
+				}
+				
+				UtilUi.pubFun4RemoveWaitWindow();
+			}					
+			
+			
+			
+			private function onOk():void
+			{
+				this.paramOut4selectedUnitGroup = BUnitGroup( this.comAdgUnitGroup.selectedItem );
+				
+				this.paramOut4winCloseWay = UtilUi.WINDOW_CLOSEWAY_OK;
+				this.prvFun4close();
+			}	
+			
+			private function onCancel():void
+			{	
+				this.paramOut4winCloseWay = UtilUi.WINDOW_CLOSEWAY_CANCEL;
+				this.prvFun4close();
+			}		
+			//	5	事件响应方法    end
+			
+			//	6	本地方法    begin
+			//	6	本地方法   end				
+
+
+
+		]]>
+	</fx:Script>	
+	<unit:Com_Unit_UnitGroup_QueryCond id="comQCond" paramIn4queryCallback4thisObject="{this}" paramIn4queryCallback4function="{this.callbackFunction4query4comQCond}">
+	</unit:Com_Unit_UnitGroup_QueryCond>
+
+	<mx:VDividedBox width="100%" height="100%">
+		<s:VGroup width="100%" height="60%" minHeight="100" >
+			<common:LabelBoundary labelText="{resourceManager.getString('menu','unitGroup')}" />
+			<controls:AksDataGridControlBar id="comAksDataGridControlBar" paramIn4callback4thisObject="{this}" paramIn4callback4queryFunction="{this.prvFun4pageQueryUnitGroups}" paramIn4dataGrid="{this.comAdgUnitGroup}">
+			</controls:AksDataGridControlBar>
+			<unit:Com_Unit_UnitGroup_AdvancedDataGrid id="comAdgUnitGroup" dataProvider="{this.prvVar4dp4comAdgUnitGroup}" width="100%" height="100%"/>
+		</s:VGroup>
+
+		<s:VGroup width="100%" height="40%" minHeight="50">
+			<common:LabelBoundary labelText="{resourceManager.getString('menu','unit')}" />
+			<unit:Com_Unit_Unit_AdvancedDataGrid width="100%" height="100%" dataProvider="{BUnitGroup(this.comAdgUnitGroup.selectedItem).units}"/>
+		</s:VGroup>		
+		
+	</mx:VDividedBox>
+	<s:BorderContainer width="100%" height="25" borderColor="#E4ECF7">
+		<s:layout>
+			<s:HorizontalLayout horizontalAlign="center"/>
+		</s:layout>
+		<s:Button label="{resourceManager.getString('button','ok')}" enabled="{this.comAdgUnitGroup.selectedItems.pop()}" click="onOk()"/>
+		<s:Button label="{resourceManager.getString('button','cancel')}" click="onCancel()"/>
+	</s:BorderContainer>
+</s:TitleWindow>
+

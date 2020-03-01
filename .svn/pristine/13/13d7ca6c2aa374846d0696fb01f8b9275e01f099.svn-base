@@ -1,0 +1,364 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Module xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		   xmlns:s="library://ns.adobe.com/flex/spark" 
+		   xmlns:mx="library://ns.adobe.com/flex/mx" layout="vertical" width="100%" height="100%" 
+		   paddingLeft="10" paddingRight="10"
+		   creationComplete="creationCompleteHandler(event)"  xmlns:security="dmdd.dmddmx.com.security.*"
+		   xmlns:containers="aks.aksmx.containers.*" xmlns:controls="aks.aksmx.controls.*"  xmlns:product="dmdd.dmddmx.com.product.*" 
+		   xmlns:conversion="dmdd.dmddmx.com.conversion.*" xmlns:common="dmdd.dmddmx.com.common.*" xmlns:buttons="com.cool.buttons.*">
+	<fx:Declarations>
+		<s:RemoteObject endpoint="{ClientEnvironment.endpoint}" id="srvConversionType" destination="ConversionService">
+			<s:method name="getConversionSetStat" result="resultHandler4getConversionSetStat(event)" fault="faultHandler4getConversionSetStat(event)">
+			</s:method>			
+			<s:method name="getConversoinSets" result="resultHandler4getConversoinSets(event)" fault="faultHandler4getConversoinSets(event)">
+			</s:method>
+			<s:method name="deleteConversionSet" result="resultHandler4deleteConversionSet(event)" fault="faultHandler4deleteConversionSet(event)">
+			</s:method>			
+		</s:RemoteObject>
+	</fx:Declarations>
+	<fx:Metadata>
+		[ResourceBundle("mod_conversion")]
+	</fx:Metadata>
+	<fx:Script>
+		<![CDATA[
+			import aks.aksas.utils.UtilArrayCollection;
+			import aks.aksas.utils.UtilUi;
+			
+			import com.cool.assets.CoolAssetsFile;
+			
+			import dmdd.dmddas.common.constant.BizConst;
+			import dmdd.dmddas.common.constant.UIConst;
+			import dmdd.dmddas.common.system.ClientEnvironment;
+			import dmdd.dmddas.common.utils.UtilExceptionLocale;
+			import dmdd.dmddas.common.utils.UtilProOrg;
+			import dmdd.dmddas.common.utils.UtilProduct;
+			import dmdd.dmddas.dataaccess.aidobject.ABProOrg;
+			import dmdd.dmddas.dataaccess.bizobject.BConversionSet;
+			import dmdd.dmddas.dataaccess.bizobject.BProduct;
+			import dmdd.dmddas.dataaccess.bizobject.BUnit;
+			import dmdd.dmddas.dataaccess.bizobject.BUnitGroup;
+			import dmdd.dmddmx.com.product.Com_Product_Product_Chooser;
+			import dmdd.dmddmx.com.security.Com_Security_ProOrg_Chooser;
+			import dmdd.dmddmx.com.security.Com_Security_UiPopbScope_AU;
+			
+			import mx.collections.ArrayCollection;
+			import mx.controls.Alert;
+			import mx.events.FlexEvent;
+			import mx.managers.PopUpManager;
+			import mx.rpc.events.FaultEvent;
+			import mx.rpc.events.ResultEvent;
+			
+			
+			
+			//	描述    begin
+			//	描述    end
+			
+			//	0	输入参数    begin						
+			//	0	输入参数    end
+			
+			//	1	输出参数    begin
+			//	1	输出参数    end
+			
+			//	2	本地变量    begin	
+			[Bindable]
+			public var paramIn4uiCode:String = null;
+			[Bindable]
+			private var prvVar4dp4qcondComAdgProduct:ArrayCollection = new ArrayCollection();
+			private var prvVar4auWindow:Com_Security_UiPopbScope_AU = null;
+			private var prvVar4chooserWindow_product:Com_Product_Product_Chooser = null;
+			private var prvVar4sqlRestriction:String = "0=1";
+			private var prvVar4blPageQuery:Boolean = true;
+			[Bindable]
+			private var prvVar4unitGroup:BUnitGroup = null;
+			[Bindable]
+			private var prvVar4unit:BUnit = null;
+			
+			private var arrDetailProduct:ArrayCollection = null;
+			
+			[Bindable]
+			private var prvVar4dp4comAdgConversionSet:ArrayCollection = new ArrayCollection();
+			//	2	本地变量    end			
+			
+			//	3	公共方法    begin			
+			//	3	公共方法    end		
+			
+			//	4	初始化方法    begin	
+			protected function creationCompleteHandler(event:FlexEvent):void
+			{
+				this.paramIn4uiCode = UIConst.UICODE_CONVERSION_CONVERSIONSET;
+			}			
+			//	4	初始化方法    end				
+			
+			//	5	事件响应方法    begin
+			private function onQuery():void
+			{
+				UtilUi.pubFun4PopWaitWindow( this );
+				
+				//	初步检查	begin
+				var alert_title_hint:String = resourceManager.getString('mod_conversion','alert_title_hint');
+				var alert_msg:String = "";
+				if( this.prvVar4dp4qcondComAdgProduct == null || this.prvVar4dp4qcondComAdgProduct.length == 0 )
+				{
+					UtilUi.pubFun4RemoveWaitWindow();
+					
+					alert_msg = resourceManager.getString('mod_conversion','alter_msg_proorgisnull');
+					Alert.show( alert_msg, alert_title_hint);
+					return;					
+				}
+	
+				//	初步检查	end
+				
+				//	求明细业务范围，并检查单位组		begin
+				//	如果单位检查可以更改算法，这里可以不必到明细， 但因为要计算默认显示单位，所以，还是要打碎到明细才行
+				var i:int;
+				this.arrDetailProduct = new ArrayCollection();
+				var product:BProduct ;
+				for(i=0;i<this.prvVar4dp4qcondComAdgProduct.length;i++)
+				{
+					product = BProduct(this.prvVar4dp4qcondComAdgProduct.getItemAt(i));
+					this.arrDetailProduct.addAll(UtilProduct.getDetailProducts(product));
+				}
+				
+				if( arrDetailProduct == null || arrDetailProduct.length <= 0)
+				{
+					UtilUi.pubFun4RemoveWaitWindow();
+					alert_msg = resourceManager.getString('mod_conversion','alter_msg_detailproorgisnull');
+					Alert.show( alert_msg, alert_title_hint);
+					return;						
+				}
+				
+				
+				var detailProduct:BProduct = null;
+				var baseUnit:BUnit = null;
+				var nonBaseUnit:BUnit = null;		
+				var num4NonBaseUnit:int = 0;
+				
+				this.prvVar4unitGroup = null;
+				this.prvVar4unit = null;
+				
+				for( i=0; i<arrDetailProduct.length; i=i+1 )
+				{
+					detailProduct = BProduct( arrDetailProduct.getItemAt(i) );
+					
+					//	单位组	begin
+					if( detailProduct.unitGroup == null )
+					{
+						UtilUi.pubFun4RemoveWaitWindow();
+						alert_msg = resourceManager.getString('mod_conversion','alter_msg_unitgroupisnull');
+						Alert.show( alert_msg, alert_title_hint);
+						return;							
+					}
+					if( this.prvVar4unitGroup == null )
+					{
+						this.prvVar4unitGroup = detailProduct.unitGroup;
+						baseUnit = this.prvVar4unitGroup.getBaseUnit();
+					}
+					else if( detailProduct.unitGroup.id != this.prvVar4unitGroup.id )
+					{
+						UtilUi.pubFun4RemoveWaitWindow();
+						alert_msg = resourceManager.getString('mod_conversion','alter_msg_multiunitgroup');
+						Alert.show( alert_msg, alert_title_hint);
+						return;									
+					}
+					if( detailProduct.unit.isBase == BizConst.GLOBAL_YESNO_NO )
+					{
+						if( nonBaseUnit == null )
+						{
+							nonBaseUnit = detailProduct.unit;
+							num4NonBaseUnit = 1;								
+						}
+						else
+						{
+							if( detailProduct.unit.id != nonBaseUnit.id )
+							{
+								num4NonBaseUnit = 2;	//	just means multiple									
+							}
+						}
+					}
+					//	单位组	end	
+				}
+				
+				if( num4NonBaseUnit == 1 )
+				{
+					this.prvVar4unit = nonBaseUnit;
+				}
+				else
+				{
+					this.prvVar4unit = baseUnit;
+				}		
+				
+				//	分页查询	begin
+				this.prvVar4blPageQuery = this.qcondChkBoxPageQuery.selected;
+				//	分页查询	end
+				
+				//	查询条件	begin
+				
+				//	查询条件	end
+				
+				UtilUi.pubFun4RemoveWaitWindow();
+				
+				if( this.prvVar4blPageQuery == true )
+				{	
+					UtilUi.pubFun4PopWaitWindow( this );
+					this.srvConversionType.getConversionSetStat( arrDetailProduct);	
+				}
+				else
+				{	
+					//	不分页查询
+					UtilUi.pubFun4PopWaitWindow( this );
+					this.srvConversionType.getConversoinSets(arrDetailProduct ,-1, ClientEnvironment.getSysParamPageSize());
+				}							
+			}			
+			
+			//	分页查询相关		begin
+			private function faultHandler4getConversionSetStat(event:FaultEvent):void
+			{
+				UtilUi.pubFun4RemoveWaitWindow();
+				Alert.show( UtilExceptionLocale.getExceptionMessageLocaleByFaultEvent( event ), resourceManager.getString('main','alt_title_warn') );
+			}	
+			
+			private function resultHandler4getConversionSetStat(event:ResultEvent):void 
+			{
+				//	初始化数据表格控制板
+				var rstSize:Number = Number(event.result);
+				this.comAksDataGridControlBar.pubFun4setResultParams( true, rstSize, ClientEnvironment.getSysParamPageSize() );
+				
+				//	去执行第一页查询
+				this.srvConversionType.getConversoinSets(arrDetailProduct,1, ClientEnvironment.getSysParamPageSize());
+			}
+			
+			private function prvFun4pageQueryConversionSets( _pageIndex:int ):void
+			{
+				UtilUi.pubFun4PopWaitWindow( this );
+				
+				this.srvConversionType.getConversoinSets( arrDetailProduct,_pageIndex, ClientEnvironment.getSysParamPageSize());					
+			}			
+			//	分页查询相关		end
+			
+			
+			private function faultHandler4getConversoinSets(event:FaultEvent):void
+			{
+				UtilUi.pubFun4RemoveWaitWindow();
+				Alert.show( UtilExceptionLocale.getExceptionMessageLocaleByFaultEvent( event ), resourceManager.getString('main','alt_title_warn') );
+			}	
+			
+			private function resultHandler4getConversoinSets(event:ResultEvent):void 
+			{
+				var arr4ConversionSet:ArrayCollection = ArrayCollection(event.result);
+				this.prvVar4dp4comAdgConversionSet = new ArrayCollection();
+				var conversionSet:BConversionSet ;
+				for(var i:int =0;i<arr4ConversionSet.length;i++)
+				{
+					conversionSet = BConversionSet(arr4ConversionSet.getItemAt(i));
+					this.prvVar4dp4comAdgConversionSet.addItem(conversionSet);
+				}
+				
+				if( this.prvVar4blPageQuery == false )
+				{
+					//	不是分页查询，需要根据查询结果初始化数据表格控制板
+					this.comAksDataGridControlBar.pubFun4setResultParams( false, this.prvVar4dp4comAdgConversionSet.length, this.prvVar4dp4comAdgConversionSet.length );
+				}
+				
+				UtilUi.pubFun4RemoveWaitWindow();
+			}			
+			
+			private function onDel():void
+			{
+				if(this.comAdgConversionSet.selectedItems ==null ||this.comAdgConversionSet.selectedItems.length<0)
+				{
+					return ;
+				}
+				var arr4ConversionSet:ArrayCollection = new ArrayCollection(this.comAdgConversionSet.selectedItems);
+				var arr4del:ArrayCollection =new ArrayCollection();
+				var conversionSet:BConversionSet ;
+				for(var i:int =0;i<arr4ConversionSet.length;i++)
+				{
+					conversionSet = BConversionSet(arr4ConversionSet.getItemAt(i));
+					arr4del.addItem(conversionSet);
+				}
+				this.srvConversionType.deleteConversionSet(arr4del);
+			}
+			private function faultHandler4deleteConversionSet(event:FaultEvent):void
+			{
+				UtilUi.pubFun4RemoveWaitWindow();
+				Alert.show( UtilExceptionLocale.getExceptionMessageLocaleByFaultEvent( event ), resourceManager.getString('main','alt_title_warn') );
+			}	
+			
+			private function resultHandler4deleteConversionSet(event:ResultEvent):void 
+			{
+				var alert_title_hint:String = resourceManager.getString('mod_conversion','alert_title_hint');
+				var alert_msg:String = null;
+				
+				alert_msg = resourceManager.getString('mod_conversion','alert_msg_succeed');
+				Alert.show(alert_msg, alert_title_hint);
+				UtilArrayCollection.removeSelectedItems(this.prvVar4dp4comAdgConversionSet,this.comAdgConversionSet.selectedItems);
+			}		
+			
+			private function onAddProduct():void
+			{
+				if( this.prvVar4chooserWindow_product == null )
+				{
+					this.prvVar4chooserWindow_product = Com_Product_Product_Chooser(PopUpManager.createPopUp(this, Com_Product_Product_Chooser, true));
+					
+					this.prvVar4chooserWindow_product.pubFun4setParamIn4closeCallback( this, callbackFunction4ChooserWinClose_proOrg );	
+				}
+				else
+				{
+					PopUpManager.addPopUp( this.prvVar4chooserWindow_product, this, true );
+				}									
+			}	
+			
+			private function callbackFunction4ChooserWinClose_proOrg():void
+			{
+				if( this.prvVar4chooserWindow_product.pubFun4getParamOut4winCloseWay() == UtilUi.WINDOW_CLOSEWAY_OK )
+				{
+					var arrSelectedProduct:BProduct = this.prvVar4chooserWindow_product.pubFun4getParamOut4selectedProduct();
+					
+					if( arrSelectedProduct != null )
+					{
+						this.prvVar4dp4qcondComAdgProduct = UtilProduct.getUnion4arrProduct( this.prvVar4dp4qcondComAdgProduct, arrSelectedProduct );
+					}
+				}
+				//this.prvVar4auWindow = null;														
+			}	
+			
+			
+			private function onDelProduct():void
+			{
+				var arr4remove:ArrayCollection = new ArrayCollection( this.qcondComAdgProduct.selectedItems );
+				this.prvVar4dp4qcondComAdgProduct = UtilArrayCollection.removeItems( this.prvVar4dp4qcondComAdgProduct, arr4remove );					
+			}	
+			//	5	事件响应方法    end
+			
+			//	6	本地方法    begin
+			
+			//	6	本地方法   end	
+			
+		]]>
+	</fx:Script>
+	<common:LabelBoundary labelText="{resourceManager.getString('mod_conversion','querycondition')}"/>
+	<mx:VBox width="100%" height="100%" paddingBottom="3">
+		<product:Com_Product_Product_AdvancedDataGrid id="qcondComAdgProduct" dataProvider="{this.prvVar4dp4qcondComAdgProduct}" 
+													  allowMultipleSelection="true" width="100%" height="100%" minWidth="160"/>
+		<s:HGroup width="100%" >
+			<s:Button label="{resourceManager.getString('mod_conversion','btn_add')}" id="btnAddProOrg" click="onAddProduct()" icon="{CoolAssetsFile.addIcon}"/>
+			<s:Button label="{resourceManager.getString('mod_conversion','btn_del')}" id="btnDelProOrg" click="onDelProduct()" icon="{CoolAssetsFile.minus2Icon}"
+					  enabled="{this.qcondComAdgProduct.selectedItems.pop()}"/>				
+			<s:Spacer width="200" />
+			<s:CheckBox label="{resourceManager.getString('mod_conversion','chkbox_pagequery')}" id="qcondChkBoxPageQuery"/>
+			<buttons:ButtonQuery  id="btnQuery" click="onQuery()" />
+		</s:HGroup>
+	</mx:VBox>
+	<common:LabelBoundary labelText="{resourceManager.getString('mod_conversion','conversiontype')}" />
+	<mx:VBox width="100%" height="100%">
+		<s:HGroup width="100%">
+			<s:Button label="{resourceManager.getString('mod_conversion','btn_del')}"  click="onDel()" icon="{CoolAssetsFile.deleteIcon}"/>	
+			<controls:AksDataGridControlBar id="comAksDataGridControlBar" paramIn4enabled4BtnSetColumns="true" paramIn4dataGrid="{this.comAdgConversionSet}" paramIn4callback4thisObject="{this}" paramIn4callback4queryFunction="{this.prvFun4pageQueryConversionSets}">
+			</controls:AksDataGridControlBar>
+		</s:HGroup>
+		<conversion:Com_Conversion_ConversionSet_AdvancedDataGrid id="comAdgConversionSet" 
+								dataProvider="{this.prvVar4dp4comAdgConversionSet}"  width="100%" height="100%" allowMultipleSelection="true"/>
+			
+	</mx:VBox>
+	
+</mx:Module>

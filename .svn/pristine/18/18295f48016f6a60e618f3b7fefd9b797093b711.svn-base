@@ -1,0 +1,702 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:TitleWindow xmlns:fx="http://ns.adobe.com/mxml/2009" 
+			   xmlns:s="library://ns.adobe.com/flex/spark" 
+			   xmlns:mx="library://ns.adobe.com/flex/mx" width="800" height="500"  close="onCancel()"
+			   creationComplete="creationCompleteHandler(event)" xmlns:forecast="dmdd.dmddmx.com.forecast.*" xmlns:buttons="com.cool.buttons.*">
+	<s:layout>
+		<s:VerticalLayout paddingLeft="10" paddingRight="10" paddingBottom="3"/>
+	</s:layout>
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+	</fx:Declarations>
+	<fx:Script>
+		<![CDATA[
+			import aks.aksas.utils.UtilUi;
+			
+			import dmdd.dmddas.common.constant.BizConst;
+			import dmdd.dmddas.dataaccess.bizobject.BForecastModelM;
+			import dmdd.dmddas.dataaccess.bizobject.BForecastModelMAAnalog;
+			import dmdd.dmddas.dataaccess.bizobject.BForecastModelMLEs;
+			import dmdd.dmddas.dataaccess.bizobject.BForecastModelMLEso;
+			import dmdd.dmddas.dataaccess.bizobject.BForecastModelMLMa;
+			import dmdd.dmddas.dataaccess.bizobject.BForecastModelMLWma;
+			import dmdd.dmddas.dataaccess.bizobject.BForecastModelMSLEs;
+			import dmdd.dmddas.dataaccess.bizobject.BForecastModelMSLEso;
+			import dmdd.dmddas.dataaccess.bizobject.BForecastModelMSLMa;
+			import dmdd.dmddas.dataaccess.bizobject.BForecastModelMSLWma;
+			import dmdd.dmddas.dataaccess.bizobject.BForecastModelMSTCply;
+			import dmdd.dmddas.dataaccess.bizobject.BForecastModelMSTEsa;
+			import dmdd.dmddas.dataaccess.bizobject.BForecastModelMSTEsao;
+			import dmdd.dmddas.dataaccess.bizobject.BForecastModelMSTEsm;
+			import dmdd.dmddas.dataaccess.bizobject.BForecastModelMSTEsmo;
+			import dmdd.dmddas.dataaccess.bizobject.BForecastModelMSTLa;
+			import dmdd.dmddas.dataaccess.bizobject.BForecastModelMSTPly;
+			import dmdd.dmddas.dataaccess.bizobject.BForecastModelMTCply;
+			import dmdd.dmddas.dataaccess.bizobject.BForecastModelMTEs;
+			import dmdd.dmddas.dataaccess.bizobject.BForecastModelMTEso;
+			import dmdd.dmddas.dataaccess.bizobject.BForecastModelMTLa;
+			import dmdd.dmddas.dataaccess.bizobject.BForecastModelMTPly;
+			
+			import mx.binding.utils.BindingUtils;
+			import mx.events.FlexEvent;
+			import mx.managers.PopUpManager;
+			
+			//	描述    begin
+			//	描述    end
+			
+			//	0	输入参数    begin		
+			[Bindable]
+			public var paramIo4forecastModelM:BForecastModelM = null;
+			
+			[Bindable]
+			public var paramIn4editable:Boolean = true;			
+			
+			public var paramIn4blShowBaseInfo:Boolean = true;		
+			
+			private var paramOut4winCloseWay:int = UtilUi.WINDOW_CLOSEWAY_CANCEL;
+			//	0	输入参数    end
+			
+			//	1	输出参数    begin
+			//	1	输出参数    end
+			
+			//	2	本地变量    begin
+			private var comForecastModelMPropertiesLMa:Com_Forecast_ForecastModelM_Properties_LMa = null;
+			private var comForecastModelMPropertiesLWma:Com_Forecast_ForecastModelM_Properties_LWma = null;
+			private var comForecastModelMPropertiesLEs:Com_Forecast_ForecastModelM_Properties_LEs = null;
+			private var comForecastModelMPropertiesLEso:Com_Forecast_ForecastModelM_Properties_LEso = null;
+			
+			private var comForecastModelMPropertiesTPly:Com_Forecast_ForecastModelM_Properties_TPly = null;
+			private var comForecastModelMPropertiesTCply:Com_Forecast_ForecastModelM_Properties_TCply = null;
+			private var comForecastModelMPropertiesTEs:Com_Forecast_ForecastModelM_Properties_TEs = null;
+			private var comForecastModelMPropertiesTEso:Com_Forecast_ForecastModelM_Properties_TEso = null;
+			private var comForecastModelMPropertiesTLa:Com_Forecast_ForecastModelM_Properties_TLa = null;
+			
+			private var comForecastModelMPropertiesSLMa:Com_Forecast_ForecastModelM_Properties_SLMa = null;
+			private var comForecastModelMPropertiesSLWma:Com_Forecast_ForecastModelM_Properties_SLWma = null;
+			private var comForecastModelMPropertiesSLEs:Com_Forecast_ForecastModelM_Properties_SLEs = null;
+			private var comForecastModelMPropertiesSLEso:Com_Forecast_ForecastModelM_Properties_SLEso = null;
+			
+			private var comForecastModelMPropertiesSTPly:Com_Forecast_ForecastModelM_Properties_STPly = null;
+			private var comForecastModelMPropertiesSTCply:Com_Forecast_ForecastModelM_Properties_STCply = null;			
+			private var comForecastModelMPropertiesSTEsa:Com_Forecast_ForecastModelM_Properties_STEsa = null;
+			private var comForecastModelMPropertiesSTEsao:Com_Forecast_ForecastModelM_Properties_STEsao = null;
+			private var comForecastModelMPropertiesSTEsm:Com_Forecast_ForecastModelM_Properties_STEsm = null;
+			private var comForecastModelMPropertiesSTEsmo:Com_Forecast_ForecastModelM_Properties_STEsmo = null;
+			private var comForecastModelMPropertiesSTLa:Com_Forecast_ForecastModelM_Properties_STLa = null;
+			
+			private var comForecastModelMPropertiesAAnalog:Com_Forecast_ForecastModelM_Properties_AAnalog = null;
+			//	2	本地变量    end			
+			
+			//	3	公共方法    begin	
+			//	关闭窗口
+			private function prvFun4close():void
+			{
+				PopUpManager.removePopUp( this );								
+			}
+			
+			public function pubFun4prepare4save():Boolean
+			{
+				//	baseInfo	begin
+				if( this.paramIn4blShowBaseInfo == true )
+				{
+					if( this.comForecastModelMPropertiesBaseInfo.pubFun4prepare4save() == false )
+					{
+						return false;
+					}					
+				}
+				//	baseInfo	end
+				
+				//	commonPara	begin
+				if( this.comForecastModelMPropertiesCommonPara.pubFun4prepare4save() == false )
+				{
+					return false;
+				}
+				//	commonPara	end
+				
+				if( this.comForecastModelMPropertiesLMa != null )
+				{
+					if( this.comForecastModelMPropertiesLMa.pubFun4prepare4save() == false )
+					{
+						return false;
+					}
+				}				
+				if( this.comForecastModelMPropertiesLWma != null )
+				{
+					if( this.comForecastModelMPropertiesLWma.pubFun4prepare4save() == false )
+					{
+						return false;
+					}
+				}			
+				if( this.comForecastModelMPropertiesLEs != null )
+				{
+					if( this.comForecastModelMPropertiesLEs.pubFun4prepare4save() == false )
+					{
+						return false;
+					}
+				}	
+				if( this.comForecastModelMPropertiesLEso != null )
+				{
+					if( this.comForecastModelMPropertiesLEso.pubFun4prepare4save() == false )
+					{
+						return false;
+					}
+				}							
+				
+				if( this.comForecastModelMPropertiesTPly != null )
+				{
+					if( this.comForecastModelMPropertiesTPly.pubFun4prepare4save() == false )
+					{
+						return false;
+					}
+				}	
+				if( this.comForecastModelMPropertiesTCply != null )
+				{
+					if( this.comForecastModelMPropertiesTCply.pubFun4prepare4save() == false )
+					{
+						return false;
+					}
+				}	
+				if( this.comForecastModelMPropertiesTEs != null )
+				{
+					if( this.comForecastModelMPropertiesTEs.pubFun4prepare4save() == false )
+					{
+						return false;
+					}
+				}		
+				if( this.comForecastModelMPropertiesTEso != null )
+				{
+					if( this.comForecastModelMPropertiesTEso.pubFun4prepare4save() == false )
+					{
+						return false;
+					}
+				}																							
+				if( this.comForecastModelMPropertiesTLa != null )
+				{
+					if( this.comForecastModelMPropertiesTLa.pubFun4prepare4save() == false )
+					{
+						return false;
+					}
+				}
+				
+				if( this.comForecastModelMPropertiesSLMa != null )
+				{
+					if( this.comForecastModelMPropertiesSLMa.pubFun4prepare4save() == false )
+					{
+						return false;
+					}
+				}	
+				if( this.comForecastModelMPropertiesSLWma != null )
+				{
+					if( this.comForecastModelMPropertiesSLWma.pubFun4prepare4save() == false )
+					{
+						return false;
+					}
+				}	
+				if( this.comForecastModelMPropertiesSLEs != null )
+				{
+					if( this.comForecastModelMPropertiesSLEs.pubFun4prepare4save() == false )
+					{
+						return false;
+					}
+				}
+				if( this.comForecastModelMPropertiesSLEso != null )
+				{
+					if( this.comForecastModelMPropertiesSLEso.pubFun4prepare4save() == false )
+					{
+						return false;
+					}
+				}					
+				
+				if( this.comForecastModelMPropertiesSTPly != null )
+				{
+					if( this.comForecastModelMPropertiesSTPly.pubFun4prepare4save() == false )
+					{
+						return false;
+					}
+				}	
+				if( this.comForecastModelMPropertiesSTCply != null )
+				{
+					if( this.comForecastModelMPropertiesSTCply.pubFun4prepare4save() == false )
+					{
+						return false;
+					}
+				}																
+				if( this.comForecastModelMPropertiesSTEsa != null )
+				{
+					if( this.comForecastModelMPropertiesSTEsa.pubFun4prepare4save() == false )
+					{
+						return false;
+					}
+				}
+				if( this.comForecastModelMPropertiesSTEsao != null )
+				{
+					if( this.comForecastModelMPropertiesSTEsao.pubFun4prepare4save() == false )
+					{
+						return false;
+					}
+				}				
+				if( this.comForecastModelMPropertiesSTEsm != null )
+				{
+					if( this.comForecastModelMPropertiesSTEsm.pubFun4prepare4save() == false )
+					{
+						return false;
+					}
+				}
+				if( this.comForecastModelMPropertiesSTEsmo != null )
+				{
+					if( this.comForecastModelMPropertiesSTEsmo.pubFun4prepare4save() == false )
+					{
+						return false;
+					}
+				}				
+				if( this.comForecastModelMPropertiesSTLa != null )
+				{
+					if( this.comForecastModelMPropertiesSTLa.pubFun4prepare4save() == false )
+					{
+						return false;
+					}
+				}								
+				
+				
+				if( this.comForecastModelMPropertiesAAnalog != null )
+				{
+					if( this.comForecastModelMPropertiesAAnalog.pubFun4prepare4save() == false )
+					{
+						return false;
+					}
+				}				
+				
+				
+				return true;												
+			}				
+			//	3	公共方法    end		
+			
+			//	4	初始化方法    begin	
+			protected function creationCompleteHandler(event:FlexEvent):void
+			{
+				this.x = 100;
+				this.y = 50;
+				
+			}			
+			//	4	初始化方法    end				
+			
+			//	5	事件响应方法    begin
+			/**
+			 * 这个组件没有set方法，通过定义不可见按钮执行响应参数变化时需要执行的动作
+			 */  
+			private function onChange4paramIo4forecastModelM( _paramIo4forecastModelM:BForecastModelM ):Boolean
+			{
+				this.group.removeAllElements();
+				this.clearForecastModelMProperties();
+				
+				if( this.paramIo4forecastModelM == null )
+				{
+					return false;
+				}
+				
+				if( this.paramIn4blShowBaseInfo == true )
+				{
+					this.group.addElement( this.comForecastModelMPropertiesBaseInfo );	
+				}
+				
+				this.group.addElement( this.comForecastModelMPropertiesCommonPara );
+				
+				
+				if( this.paramIo4forecastModelM.indicator == BizConst.FORECASTMODELM_INDICATOR_LMA )
+				{
+					if( this.comForecastModelMPropertiesLMa == null )
+					{
+						this.comForecastModelMPropertiesLMa = new Com_Forecast_ForecastModelM_Properties_LMa();
+						this.comForecastModelMPropertiesLMa.paramIn4editable = this.paramIn4editable;
+						// 下面这句不能用Bind，否则的话会造成传入的paramIo4forecastModelM变化时类型转换错误
+						this.comForecastModelMPropertiesLMa.paramIo4forecastModelMLMa = BForecastModelMLMa( this.paramIo4forecastModelM );
+						
+						//	模型所需历史期间数绑定给CommonPara组件以便其能够与 容差分析期间加起来一起显示
+						BindingUtils.bindProperty( this.comForecastModelMPropertiesCommonPara, "paramIn4historyDependPeriodNum4model", this.comForecastModelMPropertiesLMa, ["paramOut4historyDependPeriodNum"] );						
+					}
+					
+					this.group.addElement( this.comForecastModelMPropertiesLMa );
+					
+				}	
+				else if( this.paramIo4forecastModelM.indicator == BizConst.FORECASTMODELM_INDICATOR_LWMA )
+				{
+					if( this.comForecastModelMPropertiesLWma == null )
+					{
+						this.comForecastModelMPropertiesLWma = new Com_Forecast_ForecastModelM_Properties_LWma();
+						this.comForecastModelMPropertiesLWma.paramIn4editable = this.paramIn4editable;
+						// 下面这句不能用Bind，否则的话会造成传入的paramIo4forecastModelM变化时类型转换错误
+						this.comForecastModelMPropertiesLWma.paramIo4forecastModelMLWma = BForecastModelMLWma( this.paramIo4forecastModelM ) ;
+						
+						//	模型所需历史期间数绑定给CommonPara组件以便其能够与 容差分析期间加起来一起显示
+						BindingUtils.bindProperty( this.comForecastModelMPropertiesCommonPara, "paramIn4historyDependPeriodNum4model", this.comForecastModelMPropertiesLWma, ["paramOut4historyDependPeriodNum"] );												
+					}
+					
+					this.group.addElement( this.comForecastModelMPropertiesLWma );	
+				}	
+				else if( this.paramIo4forecastModelM.indicator == BizConst.FORECASTMODELM_INDICATOR_LES )
+				{
+					if( this.comForecastModelMPropertiesLEs == null )
+					{
+						this.comForecastModelMPropertiesLEs = new Com_Forecast_ForecastModelM_Properties_LEs();
+						this.comForecastModelMPropertiesLEs.paramIn4editable = this.paramIn4editable;
+						// 下面这句不能用Bind，否则的话会造成传入的paramIo4forecastModelM变化时类型转换错误
+						this.comForecastModelMPropertiesLEs.paramIo4forecastModelMLEs = BForecastModelMLEs( this.paramIo4forecastModelM );
+						
+						//	模型所需历史期间数绑定给CommonPara组件以便其能够与 容差分析期间加起来一起显示
+						BindingUtils.bindProperty( this.comForecastModelMPropertiesCommonPara, "paramIn4historyDependPeriodNum4model", this.comForecastModelMPropertiesLEs, ["paramOut4historyDependPeriodNum"] );
+					}
+					
+					this.group.addElement( this.comForecastModelMPropertiesLEs );
+				}					
+				else if( this.paramIo4forecastModelM.indicator == BizConst.FORECASTMODELM_INDICATOR_LESO )
+				{
+					if( this.comForecastModelMPropertiesLEso == null )
+					{
+						this.comForecastModelMPropertiesLEso = new Com_Forecast_ForecastModelM_Properties_LEso();
+						this.comForecastModelMPropertiesLEso.paramIn4editable = this.paramIn4editable;
+						// 下面这句不能用Bind，否则的话会造成传入的paramIo4forecastModelM变化时类型转换错误
+						this.comForecastModelMPropertiesLEso.paramIo4forecastModelMLEso = BForecastModelMLEso( this.paramIo4forecastModelM );
+						
+						//	模型所需历史期间数绑定给CommonPara组件以便其能够与 容差分析期间加起来一起显示
+						BindingUtils.bindProperty( this.comForecastModelMPropertiesCommonPara, "paramIn4historyDependPeriodNum4model", this.comForecastModelMPropertiesLEso, ["paramOut4historyDependPeriodNum"] );						
+					}
+					
+					this.group.addElement( this.comForecastModelMPropertiesLEso );
+				}														
+					
+				else if( this.paramIo4forecastModelM.indicator == BizConst.FORECASTMODELM_INDICATOR_TPLY )
+				{
+					if( this.comForecastModelMPropertiesTPly == null )
+					{
+						this.comForecastModelMPropertiesTPly = new Com_Forecast_ForecastModelM_Properties_TPly();
+						this.comForecastModelMPropertiesTPly.paramIn4editable = this.paramIn4editable;
+						// 下面这句不能用Bind，否则的话会造成传入的paramIo4forecastModelM变化时类型转换错误
+						this.comForecastModelMPropertiesTPly.paramIo4forecastModelMTPly = BForecastModelMTPly( this.paramIo4forecastModelM );
+						
+						//	模型所需历史期间数绑定给CommonPara组件以便其能够与 容差分析期间加起来一起显示
+						BindingUtils.bindProperty( this.comForecastModelMPropertiesCommonPara, "paramIn4historyDependPeriodNum4model", this.comForecastModelMPropertiesTPly, ["paramOut4historyDependPeriodNum"] );												
+					}
+					
+					this.group.addElement( this.comForecastModelMPropertiesTPly );
+				}		
+				else if( this.paramIo4forecastModelM.indicator == BizConst.FORECASTMODELM_INDICATOR_TCPLY )
+				{
+					if( this.comForecastModelMPropertiesTCply == null )
+					{
+						this.comForecastModelMPropertiesTCply = new Com_Forecast_ForecastModelM_Properties_TCply();
+						this.comForecastModelMPropertiesTCply.paramIn4editable = this.paramIn4editable;
+						// 下面这句不能用Bind，否则的话会造成传入的paramIo4forecastModelM变化时类型转换错误
+						this.comForecastModelMPropertiesTCply.paramIo4forecastModelMTCply = BForecastModelMTCply( this.paramIo4forecastModelM );
+						
+						//	模型所需历史期间数绑定给CommonPara组件以便其能够与 容差分析期间加起来一起显示
+						BindingUtils.bindProperty( this.comForecastModelMPropertiesCommonPara, "paramIn4historyDependPeriodNum4model", this.comForecastModelMPropertiesTCply, ["paramOut4historyDependPeriodNum"] );																		
+					}
+					
+					this.group.addElement( this.comForecastModelMPropertiesTCply );
+				}		
+				else if( this.paramIo4forecastModelM.indicator == BizConst.FORECASTMODELM_INDICATOR_TES )
+				{
+					if( this.comForecastModelMPropertiesTEs == null )
+					{
+						this.comForecastModelMPropertiesTEs = new Com_Forecast_ForecastModelM_Properties_TEs();
+						this.comForecastModelMPropertiesTEs.paramIn4editable = this.paramIn4editable;
+						// 下面这句不能用Bind，否则的话会造成传入的paramIo4forecastModelM变化时类型转换错误
+						this.comForecastModelMPropertiesTEs.paramIo4forecastModelMTEs = BForecastModelMTEs( this.paramIo4forecastModelM );
+						
+						//	模型所需历史期间数绑定给CommonPara组件以便其能够与 容差分析期间加起来一起显示
+						BindingUtils.bindProperty( this.comForecastModelMPropertiesCommonPara, "paramIn4historyDependPeriodNum4model", this.comForecastModelMPropertiesTEs, ["paramOut4historyDependPeriodNum"] );						
+					}
+					
+					this.group.addElement( this.comForecastModelMPropertiesTEs );	
+				}
+				else if( this.paramIo4forecastModelM.indicator == BizConst.FORECASTMODELM_INDICATOR_TESO )
+				{
+					if( this.comForecastModelMPropertiesTEso == null )
+					{
+						this.comForecastModelMPropertiesTEso = new Com_Forecast_ForecastModelM_Properties_TEso();
+						this.comForecastModelMPropertiesTEso.paramIn4editable = this.paramIn4editable;
+						// 下面这句不能用Bind，否则的话会造成传入的paramIo4forecastModelM变化时类型转换错误
+						this.comForecastModelMPropertiesTEso.paramIo4forecastModelMTEso = BForecastModelMTEso( this.paramIo4forecastModelM );
+						
+						//	模型所需历史期间数绑定给CommonPara组件以便其能够与 容差分析期间加起来一起显示
+						BindingUtils.bindProperty( this.comForecastModelMPropertiesCommonPara, "paramIn4historyDependPeriodNum4model", this.comForecastModelMPropertiesTEso, ["paramOut4historyDependPeriodNum"] );												
+					}
+					
+					this.group.addElement( this.comForecastModelMPropertiesTEso );	
+				}												
+				else if( this.paramIo4forecastModelM.indicator == BizConst.FORECASTMODELM_INDICATOR_TLA)
+				{
+					if( this.comForecastModelMPropertiesTLa == null )
+					{
+						this.comForecastModelMPropertiesTLa = new Com_Forecast_ForecastModelM_Properties_TLa();
+						this.comForecastModelMPropertiesTLa.paramIn4editable = this.paramIn4editable;
+						// 下面这句不能用Bind，否则的话会造成传入的paramIo4forecastModelM变化时类型转换错误
+						this.comForecastModelMPropertiesTLa.paramIo4forecastModelMTLa = BForecastModelMTLa( this.paramIo4forecastModelM );
+						
+						//	模型所需历史期间数绑定给CommonPara组件以便其能够与 容差分析期间加起来一起显示
+						BindingUtils.bindProperty( this.comForecastModelMPropertiesCommonPara, "paramIn4historyDependPeriodNum4model", this.comForecastModelMPropertiesTLa, ["paramOut4historyDependPeriodNum"] );																		
+					}
+					
+					this.group.addElement( this.comForecastModelMPropertiesTLa );
+				}	
+					
+				else if( this.paramIo4forecastModelM.indicator == BizConst.FORECASTMODELM_INDICATOR_SLMA )
+				{
+					if( this.comForecastModelMPropertiesSLMa == null )
+					{
+						this.comForecastModelMPropertiesSLMa = new Com_Forecast_ForecastModelM_Properties_SLMa();
+						this.comForecastModelMPropertiesSLMa.paramIn4editable = this.paramIn4editable;
+						// 下面这句不能用Bind，否则的话会造成传入的paramIo4forecastModelM变化时类型转换错误
+						this.comForecastModelMPropertiesSLMa.paramIo4forecastModelMSLMa = BForecastModelMSLMa( this.paramIo4forecastModelM );
+						
+						//	模型所需历史期间数绑定给CommonPara组件以便其能够与 容差分析期间加起来一起显示
+						BindingUtils.bindProperty( this.comForecastModelMPropertiesCommonPara, "paramIn4historyDependPeriodNum4model", this.comForecastModelMPropertiesSLMa, ["paramOut4historyDependPeriodNum"] );
+						
+					}
+					this.group.addElement( this.comForecastModelMPropertiesSLMa );
+				}	
+				else if( this.paramIo4forecastModelM.indicator == BizConst.FORECASTMODELM_INDICATOR_SLWMA )
+				{
+					if( this.comForecastModelMPropertiesSLWma == null )
+					{
+						this.comForecastModelMPropertiesSLWma = new Com_Forecast_ForecastModelM_Properties_SLWma();
+						this.comForecastModelMPropertiesSLWma.paramIn4editable = this.paramIn4editable;
+						// 下面这句不能用Bind，否则的话会造成传入的paramIo4forecastModelM变化时类型转换错误
+						this.comForecastModelMPropertiesSLWma.paramIo4forecastModelMSLWma = BForecastModelMSLWma( this.paramIo4forecastModelM );
+						
+						//	模型所需历史期间数绑定给CommonPara组件以便其能够与 容差分析期间加起来一起显示
+						BindingUtils.bindProperty( this.comForecastModelMPropertiesCommonPara, "paramIn4historyDependPeriodNum4model", this.comForecastModelMPropertiesSLWma, ["paramOut4historyDependPeriodNum"] );						
+					}
+					
+					this.group.addElement( this.comForecastModelMPropertiesSLWma );	
+				}		
+				else if( this.paramIo4forecastModelM.indicator == BizConst.FORECASTMODELM_INDICATOR_SLES )
+				{
+					if( this.comForecastModelMPropertiesSLEs == null )
+					{
+						this.comForecastModelMPropertiesSLEs = new Com_Forecast_ForecastModelM_Properties_SLEs();
+						this.comForecastModelMPropertiesSLEs.paramIn4editable = this.paramIn4editable;
+						// 下面这句不能用Bind，否则的话会造成传入的paramIo4forecastModelM变化时类型转换错误
+						this.comForecastModelMPropertiesSLEs.paramIo4forecastModelMSLEs = BForecastModelMSLEs( this.paramIo4forecastModelM );
+						
+						//	模型所需历史期间数绑定给CommonPara组件以便其能够与 容差分析期间加起来一起显示
+						BindingUtils.bindProperty( this.comForecastModelMPropertiesCommonPara, "paramIn4historyDependPeriodNum4model", this.comForecastModelMPropertiesSLEs, ["paramOut4historyDependPeriodNum"] );												
+					}
+					
+					this.group.addElement( this.comForecastModelMPropertiesSLEs );
+				}	
+				else if( this.paramIo4forecastModelM.indicator == BizConst.FORECASTMODELM_INDICATOR_SLESO )
+				{
+					if( this.comForecastModelMPropertiesSLEso == null )
+					{
+						this.comForecastModelMPropertiesSLEso = new Com_Forecast_ForecastModelM_Properties_SLEso();
+						this.comForecastModelMPropertiesSLEso.paramIn4editable = this.paramIn4editable;
+						// 下面这句不能用Bind，否则的话会造成传入的paramIo4forecastModelM变化时类型转换错误
+						this.comForecastModelMPropertiesSLEso.paramIo4forecastModelMSLEso = BForecastModelMSLEso( this.paramIo4forecastModelM );
+						
+						//	模型所需历史期间数绑定给CommonPara组件以便其能够与 容差分析期间加起来一起显示
+						BindingUtils.bindProperty( this.comForecastModelMPropertiesCommonPara, "paramIn4historyDependPeriodNum4model", this.comForecastModelMPropertiesSLEso, ["paramOut4historyDependPeriodNum"] );						
+					}
+					
+					this.group.addElement( this.comForecastModelMPropertiesSLEso );
+				}					
+					
+				else if( this.paramIo4forecastModelM.indicator == BizConst.FORECASTMODELM_INDICATOR_STPLY )
+				{
+					if( this.comForecastModelMPropertiesSTPly == null )
+					{
+						this.comForecastModelMPropertiesSTPly = new Com_Forecast_ForecastModelM_Properties_STPly();
+						this.comForecastModelMPropertiesSTPly.paramIn4editable = this.paramIn4editable;
+						// 下面这句不能用Bind，否则的话会造成传入的paramIo4forecastModelM变化时类型转换错误
+						this.comForecastModelMPropertiesSTPly.paramIo4forecastModelMSTPly = BForecastModelMSTPly( this.paramIo4forecastModelM );
+						
+						//	模型所需历史期间数绑定给CommonPara组件以便其能够与 容差分析期间加起来一起显示
+						BindingUtils.bindProperty( this.comForecastModelMPropertiesCommonPara, "paramIn4historyDependPeriodNum4model", this.comForecastModelMPropertiesSTPly, ["paramOut4historyDependPeriodNum"] );												
+					}
+					
+					this.group.addElement( this.comForecastModelMPropertiesSTPly );
+				}	
+				else if( this.paramIo4forecastModelM.indicator == BizConst.FORECASTMODELM_INDICATOR_STCPLY )
+				{
+					if( this.comForecastModelMPropertiesSTCply == null )
+					{
+						this.comForecastModelMPropertiesSTCply = new Com_Forecast_ForecastModelM_Properties_STCply();
+						this.comForecastModelMPropertiesSTCply.paramIn4editable = this.paramIn4editable;
+						// 下面这句不能用Bind，否则的话会造成传入的paramIo4forecastModelM变化时类型转换错误
+						this.comForecastModelMPropertiesSTCply.paramIo4forecastModelMSTCply = BForecastModelMSTCply( this.paramIo4forecastModelM );
+						
+						//	模型所需历史期间数绑定给CommonPara组件以便其能够与 容差分析期间加起来一起显示
+						BindingUtils.bindProperty( this.comForecastModelMPropertiesCommonPara, "paramIn4historyDependPeriodNum4model", this.comForecastModelMPropertiesSTCply, ["paramOut4historyDependPeriodNum"] );					
+					}
+					
+					this.group.addElement( this.comForecastModelMPropertiesSTCply );
+				}																																							
+				else if( this.paramIo4forecastModelM.indicator == BizConst.FORECASTMODELM_INDICATOR_STESA )
+				{
+					if( this.comForecastModelMPropertiesSTEsa == null )
+					{
+						this.comForecastModelMPropertiesSTEsa = new Com_Forecast_ForecastModelM_Properties_STEsa();
+						this.comForecastModelMPropertiesSTEsa.paramIn4editable = this.paramIn4editable;
+						// 下面这句不能用Bind，否则的话会造成传入的paramIo4forecastModelM变化时类型转换错误
+						this.comForecastModelMPropertiesSTEsa.paramIo4forecastModelMSTEsa = BForecastModelMSTEsa(this.paramIo4forecastModelM);
+						
+						//	模型所需历史期间数绑定给CommonPara组件以便其能够与 容差分析期间加起来一起显示
+						BindingUtils.bindProperty( this.comForecastModelMPropertiesCommonPara, "paramIn4historyDependPeriodNum4model", this.comForecastModelMPropertiesSTEsa, ["paramOut4historyDependPeriodNum"] );											
+					}
+					
+					this.group.addElement( this.comForecastModelMPropertiesSTEsa );
+				}
+				else if( this.paramIo4forecastModelM.indicator == BizConst.FORECASTMODELM_INDICATOR_STESAO )
+				{
+					if( this.comForecastModelMPropertiesSTEsao == null )
+					{
+						this.comForecastModelMPropertiesSTEsao = new Com_Forecast_ForecastModelM_Properties_STEsao();
+						this.comForecastModelMPropertiesSTEsao.paramIn4editable = this.paramIn4editable;
+						// 下面这句不能用Bind，否则的话会造成传入的paramIo4forecastModelM变化时类型转换错误
+						this.comForecastModelMPropertiesSTEsao.paramIo4forecastModelMSTEsao = BForecastModelMSTEsao(this.paramIo4forecastModelM);
+						
+						//	模型所需历史期间数绑定给CommonPara组件以便其能够与 容差分析期间加起来一起显示
+						BindingUtils.bindProperty( this.comForecastModelMPropertiesCommonPara, "paramIn4historyDependPeriodNum4model", this.comForecastModelMPropertiesSTEsao, ["paramOut4historyDependPeriodNum"] );						
+					}
+					
+					this.group.addElement( this.comForecastModelMPropertiesSTEsao );
+				}				
+				else if( this.paramIo4forecastModelM.indicator == BizConst.FORECASTMODELM_INDICATOR_STESM )
+				{
+					if( this.comForecastModelMPropertiesSTEsm == null )
+					{
+						this.comForecastModelMPropertiesSTEsm = new Com_Forecast_ForecastModelM_Properties_STEsm();
+						this.comForecastModelMPropertiesSTEsm.paramIn4editable = this.paramIn4editable;
+						// 下面这句不能用Bind，否则的话会造成传入的paramIo4forecastModelM变化时类型转换错误
+						this.comForecastModelMPropertiesSTEsm.paramIo4forecastModelMSTEsm = BForecastModelMSTEsm( this.paramIo4forecastModelM );
+						
+						//	模型所需历史期间数绑定给CommonPara组件以便其能够与 容差分析期间加起来一起显示
+						BindingUtils.bindProperty( this.comForecastModelMPropertiesCommonPara, "paramIn4historyDependPeriodNum4model", this.comForecastModelMPropertiesSTEsm, ["paramOut4historyDependPeriodNum"] );												
+					}
+					
+					this.group.addElement( this.comForecastModelMPropertiesSTEsm );
+				}	
+				else if( this.paramIo4forecastModelM.indicator == BizConst.FORECASTMODELM_INDICATOR_STESMO )
+				{
+					if( this.comForecastModelMPropertiesSTEsmo == null )
+					{
+						this.comForecastModelMPropertiesSTEsmo = new Com_Forecast_ForecastModelM_Properties_STEsmo();
+						this.comForecastModelMPropertiesSTEsmo.paramIn4editable = this.paramIn4editable;
+						// 下面这句不能用Bind，否则的话会造成传入的paramIo4forecastModelM变化时类型转换错误
+						this.comForecastModelMPropertiesSTEsmo.paramIo4forecastModelMSTEsmo = BForecastModelMSTEsmo( this.paramIo4forecastModelM );
+						
+						//	模型所需历史期间数绑定给CommonPara组件以便其能够与 容差分析期间加起来一起显示
+						BindingUtils.bindProperty( this.comForecastModelMPropertiesCommonPara, "paramIn4historyDependPeriodNum4model", this.comForecastModelMPropertiesSTEsmo, ["paramOut4historyDependPeriodNum"] );																		
+					}
+					
+					this.group.addElement( this.comForecastModelMPropertiesSTEsmo );
+				}				
+				else if( this.paramIo4forecastModelM.indicator == BizConst.FORECASTMODELM_INDICATOR_STLA)
+				{
+					if( this.comForecastModelMPropertiesSTLa == null )
+					{
+						this.comForecastModelMPropertiesSTLa = new Com_Forecast_ForecastModelM_Properties_STLa();
+						this.comForecastModelMPropertiesSTLa.paramIn4editable = this.paramIn4editable;
+						// 下面这句不能用Bind，否则的话会造成传入的paramIo4forecastModelM变化时类型转换错误
+						this.comForecastModelMPropertiesSTLa.paramIo4forecastModelMSTLa = BForecastModelMSTLa( this.paramIo4forecastModelM );
+						
+						//	模型所需历史期间数绑定给CommonPara组件以便其能够与 容差分析期间加起来一起显示
+						BindingUtils.bindProperty( this.comForecastModelMPropertiesCommonPara, "paramIn4historyDependPeriodNum4model", this.comForecastModelMPropertiesSTLa, ["paramOut4historyDependPeriodNum"] );																								
+					}
+					
+					this.group.addElement( this.comForecastModelMPropertiesSTLa );
+				}								
+					
+				else if( this.paramIo4forecastModelM.indicator == BizConst.FORECASTMODELM_INDICATOR_AANALOG)
+				{
+					if( this.comForecastModelMPropertiesAAnalog == null )
+					{
+						this.comForecastModelMPropertiesAAnalog = new Com_Forecast_ForecastModelM_Properties_AAnalog();
+						this.comForecastModelMPropertiesAAnalog.paramIn4editable = this.paramIn4editable;
+						// 下面这句不能用Bind，否则的话会造成传入的paramIo4forecastModelM变化时类型转换错误
+						this.comForecastModelMPropertiesAAnalog.paramIo4forecastModelMAAnalog = BForecastModelMAAnalog( this.paramIo4forecastModelM );
+						
+						//	模型所需历史期间数绑定给CommonPara组件以便其能够与 容差分析期间加起来一起显示
+						BindingUtils.bindProperty( this.comForecastModelMPropertiesCommonPara, "paramIn4historyDependPeriodNum4model", this.comForecastModelMPropertiesAAnalog, ["paramOut4historyDependPeriodNum"] );																								
+					}
+					
+					this.group.addElement( this.comForecastModelMPropertiesAAnalog );
+				}								
+					
+				else
+				{
+					// to do
+				}
+				
+				return false;
+			}
+			//	5	事件响应方法    end
+			
+			//	6	本地方法    begin	
+			private function clearForecastModelMProperties():void
+			{
+				this.comForecastModelMPropertiesLMa = null;
+				this.comForecastModelMPropertiesLWma = null;
+				this.comForecastModelMPropertiesLEs = null;
+				this.comForecastModelMPropertiesLEso = null;
+				
+				this.comForecastModelMPropertiesTPly = null;
+				this.comForecastModelMPropertiesTCply = null;
+				this.comForecastModelMPropertiesTEs = null;
+				this.comForecastModelMPropertiesTEso = null;
+				this.comForecastModelMPropertiesTLa = null;
+				
+				this.comForecastModelMPropertiesSLMa = null;
+				this.comForecastModelMPropertiesSLWma = null;
+				this.comForecastModelMPropertiesSLEs = null;
+				this.comForecastModelMPropertiesSLEso = null;
+				
+				this.comForecastModelMPropertiesSTPly = null;	
+				this.comForecastModelMPropertiesSTCply = null;			
+				this.comForecastModelMPropertiesSTEsa = null;
+				this.comForecastModelMPropertiesSTEsao = null;
+				this.comForecastModelMPropertiesSTEsm = null;
+				this.comForecastModelMPropertiesSTEsmo = null;
+				this.comForecastModelMPropertiesSTLa = null;
+				
+				this.comForecastModelMPropertiesAAnalog = null;
+			}			
+			
+			private function onOk():void
+			{
+				this.pubFun4prepare4save();
+				this.paramOut4winCloseWay = UtilUi.WINDOW_CLOSEWAY_OK;
+				this.prvFun4close();
+			}
+			
+			private function onCancel():void
+			{	
+				this.paramOut4winCloseWay = UtilUi.WINDOW_CLOSEWAY_CANCEL;
+				this.prvFun4close();
+			}
+			
+			//	6	本地方法   end				
+			
+			
+			
+		]]>
+	</fx:Script>
+	<s:Scroller width="100%" height="100%">
+		<s:VGroup width="100%" height="100%">
+			<s:Group width="100%" height="100%" id="group">
+				<s:layout>
+					<s:VerticalLayout paddingLeft="10" paddingRight="10" paddingTop="10" paddingBottom="10"/>
+				</s:layout>
+				<forecast:Com_Forecast_ForecastModelM_Properties_BaseInfo id="comForecastModelMPropertiesBaseInfo" paramIo4forecastModelM="{this.paramIo4forecastModelM}" paramIn4editable="{this.paramIn4editable}" width="100%">
+				</forecast:Com_Forecast_ForecastModelM_Properties_BaseInfo>
+				<forecast:Com_Forecast_ForecastModelM_Properties_CommonPara id="comForecastModelMPropertiesCommonPara" paramIo4forecastModelM="{this.paramIo4forecastModelM}" paramIn4editable="{this.paramIn4editable}" width="100%">
+				</forecast:Com_Forecast_ForecastModelM_Properties_CommonPara>
+				<s:Button width="0" height="0" visible="false" enabled="{this.onChange4paramIo4forecastModelM(this.paramIo4forecastModelM)}"/>					
+			</s:Group>
+		</s:VGroup>
+	</s:Scroller>
+	<s:HGroup width="100%" horizontalAlign="center">
+		<buttons:ButtonOk click="onOk()"/>
+		<buttons:ButtonCancel click="onCancel()" />
+	</s:HGroup>
+</s:TitleWindow>

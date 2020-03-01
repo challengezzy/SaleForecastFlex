@@ -1,0 +1,349 @@
+<?xml version="1.0" encoding="utf-8"?>
+<controls:AksRowColorDataGrid xmlns:fx="http://ns.adobe.com/mxml/2009" 
+					 xmlns:s="library://ns.adobe.com/flex/spark" 
+					 xmlns:mx="library://ns.adobe.com/flex/mx"
+					 xmlns:controls="aks.aksas.controls.*"
+					 creationComplete="creationCompleteHandler(event)" wordWrap="true"
+					 styleName="dg1" horizontalScrollPolicy="on" xmlns:datagrid="com.cool.components.datagrid.*">
+	
+	<fx:Metadata>
+	</fx:Metadata>
+	<fx:Script>
+		<![CDATA[
+			import aks.aksas.collections.HashMap;
+			
+			import com.siloon.plugin.rightClick.RightClickManager;
+			
+			import dmdd.dmddas.common.constant.BizConst;
+			import dmdd.dmddas.common.constant.SysConst;
+			import dmdd.dmddas.common.system.ClientEnvironment;
+			import dmdd.dmddas.common.system.UiConfigVo;
+			import dmdd.dmddas.common.utils.UtilDataGridColumnLabelFunction;
+			import dmdd.dmddas.common.utils.UtilPeriod;
+			import dmdd.dmddas.dataaccess.aidobject.ABUiRowData;
+			import dmdd.dmddas.dataaccess.bizobject.BBreakDownRuleDefItem;
+			
+			import mx.collections.ArrayCollection;
+			import mx.collections.Sort;
+			import mx.collections.SortField;
+			import mx.controls.Menu;
+			import mx.controls.listClasses.IListItemRenderer;
+			import mx.events.FlexEvent;
+			import mx.managers.PopUpManager;
+			import mx.resources.ResourceManager;
+			
+			//	描述    begin
+			
+			private var periodBegin:int = SysConst.PERIOD_NULL;
+			private var periodEnd:int = SysConst.PERIOD_NULL;
+			
+			
+			//	1	输出参数    begin
+			private var arrHisDataCols:ArrayCollection = new ArrayCollection();
+			private var arrFcDataCols:ArrayCollection = new ArrayCollection();
+			
+			private var arrDataColOrgChars:ArrayCollection = new ArrayCollection();
+			//	1	输出参数    end
+			
+			//	2	本地变量    begin
+			[Bindable]
+			private var uiconfig:UiConfigVo = ClientEnvironment.uiConfig;
+			
+			/** 列显示设置窗口 */
+			private var columnSetWindow:Com_UiRowData_ColumnSet;
+			
+			private var refAdg:Com_UiRowData_UiRowData_AdvancedDataGrid;
+			//	2	本地变量    end		
+			
+			public function setFcPeriodBeginEnd( _periodBegin:int, _periodEnd:int, _editable:Boolean=false ):void
+			{
+				periodBegin = _periodBegin;
+				periodEnd = _periodEnd;
+				
+				// 执行两次，强制界面刷新 
+				var periodDiff:Number = UtilPeriod.getPeriodDifference( periodBegin, periodEnd );
+				if( periodDiff == SysConst.PERIOD_DIFF_NULL ){
+					for(var i:int=0; i<arrFcDataCols.length; i=i+1)
+					{
+						DataGridColumn( arrFcDataCols.getItemAt(i) ).visible = false;
+					}
+					return;
+				}
+				
+				var k:int;
+				var dgclm:DataGridColumn = null;
+				for(k=0; k<=periodDiff && k<arrFcDataCols.length; k=k+1)
+				{
+					dgclm = DataGridColumn( arrFcDataCols.getItemAt(k) );
+					dgclm.visible = true;
+					dgclm.headerText = UtilPeriod.getHeaderTextPeriod( periodBegin, k ); 
+					dgclm.editable = _editable;
+				}
+				
+				for(; k<arrFcDataCols.length; k=k+1)
+				{
+					DataGridColumn( arrFcDataCols.getItemAt(k) ).visible = false; 					
+				}						
+				
+				validateSize( true );
+				validateNow();				
+			}
+			
+			public function setHisPeriodBeginEnd( _periodBegin:int, _periodEnd:int, _editable:Boolean=false ):void
+			{
+				periodBegin = _periodBegin;
+				periodEnd = _periodEnd;
+				
+				var periodDiff:Number = UtilPeriod.getPeriodDifference( periodBegin, periodEnd );
+				if( periodDiff == SysConst.PERIOD_DIFF_NULL ){
+					for(var i:int=0; i<arrHisDataCols.length; i=i+1)
+					{
+						DataGridColumn( arrHisDataCols.getItemAt(i) ).visible = false;
+					}
+					return;
+				}
+				
+				var k:int = arrHisDataCols.length -1;
+				var dgclm:DataGridColumn = null;
+				i = 0;
+				for( ; i<=periodDiff && k>-1; k-- )
+				{
+					dgclm = DataGridColumn( arrHisDataCols.getItemAt(k) );
+					dgclm.visible = true;
+					dgclm.headerText = UtilPeriod.getHeaderTextPeriod( periodEnd, -i ); 
+					dgclm.editable = _editable;
+					i++;
+				}
+				
+				for(; k>-1; k-- )
+				{
+					DataGridColumn( arrHisDataCols.getItemAt(k) ).visible = false; 					
+				}						
+				
+				validateSize( true );
+				validateNow();			
+			}
+			
+			//	4	初始化方法    begin	
+			protected function creationCompleteHandler(event:FlexEvent):void
+			{
+				arrHisDataCols = new ArrayCollection();
+				arrHisDataCols.addItem( dgcHis00 );
+				arrHisDataCols.addItem( dgcHis01 );
+				arrHisDataCols.addItem( dgcHis02 );
+				arrHisDataCols.addItem( dgcHis03 );
+				arrHisDataCols.addItem( dgcHis04 );
+				arrHisDataCols.addItem( dgcHis05 );
+				arrHisDataCols.addItem( dgcHis06 );
+				arrHisDataCols.addItem( dgcHis07 );
+				arrHisDataCols.addItem( dgcHis08 );
+				arrHisDataCols.addItem( dgcHis09 );
+				arrHisDataCols.addItem( dgcHis10 );
+				arrHisDataCols.addItem( dgcHis11 );
+				arrHisDataCols.addItem( dgcHis12 );
+				arrHisDataCols.addItem( dgcHis13 );
+				arrHisDataCols.addItem( dgcHis14 );
+				arrHisDataCols.addItem( dgcHis15 );
+				arrHisDataCols.addItem( dgcHis16 );			
+				arrHisDataCols.addItem( dgcHis17 );
+				arrHisDataCols.addItem( dgcHis18 );
+				arrHisDataCols.addItem( dgcHis19 );
+				arrHisDataCols.addItem( dgcHis20 );
+				arrHisDataCols.addItem( dgcHis21 );
+				arrHisDataCols.addItem( dgcHis22 );
+				arrHisDataCols.addItem( dgcHis23 );
+				arrHisDataCols.addItem( dgcHis24 );
+				arrHisDataCols.addItem( dgcHis25 );
+				arrHisDataCols.addItem( dgcHis26 );			
+				arrHisDataCols.addItem( dgcHis27 );
+				arrHisDataCols.addItem( dgcHis28 );
+				arrHisDataCols.addItem( dgcHis29 );		
+				arrHisDataCols.addItem( dgcHis30 );
+				arrHisDataCols.addItem( dgcHis31 );
+				arrHisDataCols.addItem( dgcHis32 );
+				arrHisDataCols.addItem( dgcHis33 );
+				arrHisDataCols.addItem( dgcHis34 );
+				arrHisDataCols.addItem( dgcHis35 );
+				
+				//预测类数据
+				arrFcDataCols = new ArrayCollection();
+				arrFcDataCols.addItem( dgcFc00 );
+				arrFcDataCols.addItem( dgcFc01 );
+				arrFcDataCols.addItem( dgcFc02 );
+				arrFcDataCols.addItem( dgcFc03 );
+				arrFcDataCols.addItem( dgcFc04 );
+				arrFcDataCols.addItem( dgcFc05 );
+				arrFcDataCols.addItem( dgcFc06 );
+				arrFcDataCols.addItem( dgcFc07 );
+				arrFcDataCols.addItem( dgcFc08 );
+				arrFcDataCols.addItem( dgcFc09 );
+				arrFcDataCols.addItem( dgcFc10 );
+				arrFcDataCols.addItem( dgcFc11 );
+				arrFcDataCols.addItem( dgcFc12 );
+				arrFcDataCols.addItem( dgcFc13 );
+				arrFcDataCols.addItem( dgcFc14 );
+				arrFcDataCols.addItem( dgcFc15 );
+				arrFcDataCols.addItem( dgcFc16 );			
+				arrFcDataCols.addItem( dgcFc17 );
+				arrFcDataCols.addItem( dgcFc18 );
+				arrFcDataCols.addItem( dgcFc19 );
+				arrFcDataCols.addItem( dgcFc20 );
+				arrFcDataCols.addItem( dgcFc21 );
+				arrFcDataCols.addItem( dgcFc22 );
+				arrFcDataCols.addItem( dgcFc23 );
+				arrFcDataCols.addItem( dgcFc24 );
+				arrFcDataCols.addItem( dgcFc25 );
+				arrFcDataCols.addItem( dgcFc26 );			
+				arrFcDataCols.addItem( dgcFc27 );
+				arrFcDataCols.addItem( dgcFc28 );
+				arrFcDataCols.addItem( dgcFc29 );		
+				arrFcDataCols.addItem( dgcFc30 );
+				arrFcDataCols.addItem( dgcFc31 );
+				arrFcDataCols.addItem( dgcFc32 );
+				arrFcDataCols.addItem( dgcFc33 );
+				arrFcDataCols.addItem( dgcFc34 );
+				arrFcDataCols.addItem( dgcFc35 );
+								
+			}			
+			//	4	初始化方法  				
+			
+			//	5	事件响应方法  
+			
+			
+			//	6	本地方法  	
+			
+			/** 
+			 * 对表格中的比率进行格式化 
+			 */ 
+			private function formatDataGrid(item:Object,column:DataGridColumn):String 
+			{ 
+				var datafield:String = column.dataField;
+				var tempData:Number;
+				var data:String;
+				if(item["showPercent"] == "1"){
+					tempData = item[datafield]*100; 
+					data = dataFormatter.format(tempData); 
+					return data+"%"; 
+				}else{
+					tempData = item[datafield]; 
+					data = dataFormatter.format(tempData); 
+					return data;
+				}
+				
+			}
+
+		]]>
+	</fx:Script>
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+		<s:NumberFormatter id="dataFormatter" fractionalDigits="2" useGrouping="false" trailingZeros="false" />
+	</fx:Declarations>
+	<controls:columns>
+		<!--
+		<datagrid:CheckBoxColumn id="columnIsChecked" visible="false"
+								 itemRenderer="com.cool.components.datagrid.CheckBoxItemRenderer" 
+								 headerRenderer="com.cool.components.datagrid.CheckBoxHeaderRenderer" editable="true"
+								 width="25" dataField="isChecked" rendererIsEditor="true"  editorDataField="selected" />
+		<mx:DataGridColumn id="columnBizData" headerText="{ResourceManager.getInstance().getString('label','busData')}"
+		width="{uiconfig.bizdataWidth}" dataField="bizData" 	editable="false" visible="false"/>
+		-->
+		
+		<mx:DataGridColumn headerText="{ResourceManager.getInstance().getString('label','proCode')}" 				
+						   dataField="proCode" width="90" />
+		
+		<mx:DataGridColumn headerText="{ResourceManager.getInstance().getString('label','proName')}"	
+						   dataField="proName"  width="170" />
+		
+		<mx:DataGridColumn id="dgcHis00" headerText="" dataField="hisValue00" visible="false" width="70"/>
+		<mx:DataGridColumn id="dgcHis01" headerText="" dataField="hisValue01" visible="false" width="70"/>
+		<mx:DataGridColumn id="dgcHis02" headerText="" dataField="hisValue02" visible="false" width="70"/>
+		<mx:DataGridColumn id="dgcHis03" headerText="" dataField="hisValue03" visible="false" width="70"/>
+		<mx:DataGridColumn id="dgcHis04" headerText="" dataField="hisValue04" visible="false" width="70"/>
+		<mx:DataGridColumn id="dgcHis05" headerText="" dataField="hisValue05" visible="false" width="70"/>
+		<mx:DataGridColumn id="dgcHis06" headerText="" dataField="hisValue06" visible="false" width="70"/>
+		<mx:DataGridColumn id="dgcHis07" headerText="" dataField="hisValue07" visible="false" width="70"/>
+		<mx:DataGridColumn id="dgcHis08" headerText="" dataField="hisValue08" visible="false" width="70"/>
+		<mx:DataGridColumn id="dgcHis09" headerText="" dataField="hisValue09" visible="false" width="70"/>
+		<mx:DataGridColumn id="dgcHis10" headerText="" dataField="hisValue10" visible="false" width="70"/>
+		<mx:DataGridColumn id="dgcHis11" headerText="" dataField="hisValue11" visible="false" width="70"/>
+		<mx:DataGridColumn id="dgcHis12" headerText="" dataField="hisValue12" visible="false" width="70"/>
+		<mx:DataGridColumn id="dgcHis13" headerText="" dataField="hisValue13" visible="false" width="70"/>
+		<mx:DataGridColumn id="dgcHis14" headerText="" dataField="hisValue14" visible="false" width="70"/>
+		<mx:DataGridColumn id="dgcHis15" headerText="" dataField="hisValue15" visible="false" width="70"/>
+		<mx:DataGridColumn id="dgcHis16" headerText="" dataField="hisValue16" visible="false" width="70"/>
+		<mx:DataGridColumn id="dgcHis17" headerText="" dataField="hisValue17" visible="false" width="70"/>
+		<mx:DataGridColumn id="dgcHis18" headerText="" dataField="hisValue18" visible="false" width="70"/>
+		<mx:DataGridColumn id="dgcHis19" headerText="" dataField="hisValue19" visible="false" width="70"/>
+		<mx:DataGridColumn id="dgcHis20" headerText="" dataField="hisValue20" visible="false" width="70"/>		
+		<mx:DataGridColumn id="dgcHis21" headerText="" dataField="hisValue21" visible="false" width="70"/>
+		<mx:DataGridColumn id="dgcHis22" headerText="" dataField="hisValue22" visible="false" width="70"/>
+		<mx:DataGridColumn id="dgcHis23" headerText="" dataField="hisValue23" visible="false" width="70"/>
+		<mx:DataGridColumn id="dgcHis24" headerText="" dataField="hisValue24" visible="false" width="70"/>
+		<mx:DataGridColumn id="dgcHis25" headerText="" dataField="hisValue25" visible="false" width="70"/>
+		<mx:DataGridColumn id="dgcHis26" headerText="" dataField="hisValue26" visible="false" width="70"/>
+		<mx:DataGridColumn id="dgcHis27" headerText="" dataField="hisValue27" visible="false" width="70"/>
+		<mx:DataGridColumn id="dgcHis28" headerText="" dataField="hisValue28" visible="false" width="70"/>
+		<mx:DataGridColumn id="dgcHis29" headerText="" dataField="hisValue29" visible="false" width="70"/>
+		<mx:DataGridColumn id="dgcHis30" headerText="" dataField="hisValue30" visible="false" width="70"/>		
+		<mx:DataGridColumn id="dgcHis31" headerText="" dataField="hisValue31" visible="false" width="70"/>
+		<mx:DataGridColumn id="dgcHis32" headerText="" dataField="hisValue32" visible="false" width="70"/>
+		<mx:DataGridColumn id="dgcHis33" headerText="" dataField="hisValue33" visible="false" width="70"/>
+		<mx:DataGridColumn id="dgcHis34" headerText="" dataField="hisValue34" visible="false" width="70"/>
+		<mx:DataGridColumn id="dgcHis35" headerText="" dataField="hisValue35" visible="false" width="70"/>
+	
+		<mx:DataGridColumn id="dgcFc00" headerText="" dataField="fcValue00" visible="false" width="70"/>
+		<mx:DataGridColumn id="dgcFc01" headerText="" dataField="fcValue01" visible="false" width="70"/>
+		<mx:DataGridColumn id="dgcFc02" headerText="" dataField="fcValue02" visible="false" width="70"/>
+		<mx:DataGridColumn id="dgcFc03" headerText="" dataField="fcValue03" visible="false" width="70"/>
+		<mx:DataGridColumn id="dgcFc04" headerText="" dataField="fcValue04" visible="false" width="70"/>
+		<mx:DataGridColumn id="dgcFc05" headerText="" dataField="fcValue05" visible="false" width="70"/>
+		<mx:DataGridColumn id="dgcFc06" headerText="" dataField="fcValue06" visible="false" width="70"/>
+		<mx:DataGridColumn id="dgcFc07" headerText="" dataField="fcValue07" visible="false" width="70"/>
+		<mx:DataGridColumn id="dgcFc08" headerText="" dataField="fcValue08" visible="false" width="70"/>
+		<mx:DataGridColumn id="dgcFc09" headerText="" dataField="fcValue09" visible="false" width="70"/>
+		<mx:DataGridColumn id="dgcFc10" headerText="" dataField="fcValue10" visible="false" width="70"/>
+		<mx:DataGridColumn id="dgcFc11" headerText="" dataField="fcValue11" visible="false" width="70"/>
+		<mx:DataGridColumn id="dgcFc12" headerText="" dataField="fcValue12" visible="false" width="70"/>
+		<mx:DataGridColumn id="dgcFc13" headerText="" dataField="fcValue13" visible="false" width="70"/>
+		<mx:DataGridColumn id="dgcFc14" headerText="" dataField="fcValue14" visible="false" width="70"/>
+		<mx:DataGridColumn id="dgcFc15" headerText="" dataField="fcValue15" visible="false" width="70"/>
+		<mx:DataGridColumn id="dgcFc16" headerText="" dataField="fcValue16" visible="false" width="70"/>
+		<mx:DataGridColumn id="dgcFc17" headerText="" dataField="fcValue17" visible="false" width="70"/>
+		<mx:DataGridColumn id="dgcFc18" headerText="" dataField="fcValue18" visible="false" width="70"/>
+		<mx:DataGridColumn id="dgcFc19" headerText="" dataField="fcValue19" visible="false" width="70"/>
+		<mx:DataGridColumn id="dgcFc20" headerText="" dataField="fcValue20" visible="false" width="70"/>		
+		<mx:DataGridColumn id="dgcFc21" headerText="" dataField="fcValue21" visible="false" width="70"/>
+		<mx:DataGridColumn id="dgcFc22" headerText="" dataField="fcValue22" visible="false" width="70"/>
+		<mx:DataGridColumn id="dgcFc23" headerText="" dataField="fcValue23" visible="false" width="70"/>
+		<mx:DataGridColumn id="dgcFc24" headerText="" dataField="fcValue24" visible="false" width="70"/>
+		<mx:DataGridColumn id="dgcFc25" headerText="" dataField="fcValue25" visible="false" width="70"/>
+		<mx:DataGridColumn id="dgcFc26" headerText="" dataField="fcValue26" visible="false" width="70"/>
+		<mx:DataGridColumn id="dgcFc27" headerText="" dataField="fcValue27" visible="false" width="70"/>
+		<mx:DataGridColumn id="dgcFc28" headerText="" dataField="fcValue28" visible="false" width="70"/>
+		<mx:DataGridColumn id="dgcFc29" headerText="" dataField="fcValue29" visible="false" width="70"/>
+		<mx:DataGridColumn id="dgcFc30" headerText="" dataField="fcValue30" visible="false" width="70"/>		
+		<mx:DataGridColumn id="dgcFc31" headerText="" dataField="fcValue31" visible="false" width="70"/>
+		<mx:DataGridColumn id="dgcFc32" headerText="" dataField="fcValue32" visible="false" width="70"/>
+		<mx:DataGridColumn id="dgcFc33" headerText="" dataField="fcValue33" visible="false" width="70"/>
+		<mx:DataGridColumn id="dgcFc34" headerText="" dataField="fcValue34" visible="false" width="70"/>
+		<mx:DataGridColumn id="dgcFc35" headerText="" dataField="fcValue35" visible="false" width="70"/>
+		
+		<mx:DataGridColumn headerText="{ResourceManager.getInstance().getString('label','hisAvg12')}" dataField="hisAvg12" width="80" />
+		<mx:DataGridColumn headerText="{ResourceManager.getInstance().getString('label','hisAvg9')}" dataField="hisAvg9" width="80" />
+		<mx:DataGridColumn headerText="{ResourceManager.getInstance().getString('label','hisAvg6')}" dataField="hisAvg6" width="80" />
+		<mx:DataGridColumn headerText="{ResourceManager.getInstance().getString('label','hisAvg3')}" dataField="hisAvg3" width="80" />
+		
+		<mx:DataGridColumn headerText="{ResourceManager.getInstance().getString('label','curStockValid')}" dataField="curStockValid" width="80" headerWordWrap="" />
+		<mx:DataGridColumn headerText="{ResourceManager.getInstance().getString('label','curStockDaysCycle')}" dataField="curStockDaysCycle" width="100" />
+		<mx:DataGridColumn headerText="{ResourceManager.getInstance().getString('label','periodPoTotal')}" dataField="periodPoTotal" width="80" />
+		<mx:DataGridColumn headerText="{ResourceManager.getInstance().getString('label','curStockAndPo')}" dataField="curStockAndPo" width="80" />
+		<mx:DataGridColumn headerText="{ResourceManager.getInstance().getString('label','curStockPoDaysCycle')}" dataField="curStockPoDaysCycle" width="100" />
+		<mx:DataGridColumn headerText="{ResourceManager.getInstance().getString('label','overStockTotal')}" dataField="overStockTotal" width="80" />
+		<mx:DataGridColumn headerText="{ResourceManager.getInstance().getString('label','lastOffPeriod')}" dataField="lastOffPeriod" width="80" />
+		<mx:DataGridColumn headerText="{ResourceManager.getInstance().getString('label','curStockValidTo')}" dataField="curStockValidTo" width="80" />
+		<mx:DataGridColumn headerText="{ResourceManager.getInstance().getString('label','curStockPoValidTo')}" dataField="curStockPoValidTo" width="80" />
+		<mx:DataGridColumn headerText="{ResourceManager.getInstance().getString('label','custLeftMaxPeriod')}" dataField="custLeftMaxPeriod" width="80" />
+		<mx:DataGridColumn headerText="{ResourceManager.getInstance().getString('label','overStockDaysCycle')}" dataField="overStockDaysCycle" width="110" />
+		<mx:DataGridColumn headerText="{ResourceManager.getInstance().getString('label','overStockTotalMoney')}" dataField="overStockTotalMoney" width="100" />
+	</controls:columns>	
+</controls:AksRowColorDataGrid>

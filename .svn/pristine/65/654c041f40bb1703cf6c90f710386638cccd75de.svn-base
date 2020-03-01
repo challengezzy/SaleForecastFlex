@@ -1,0 +1,437 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:TitleWindow xmlns:fx="http://ns.adobe.com/mxml/2009" 
+			   xmlns:s="library://ns.adobe.com/flex/spark" 
+			   xmlns:mx="library://ns.adobe.com/flex/mx" width="800" height="240" close="onCancel()"
+			   creationComplete="creationCompleteHandler(event)">
+	<s:layout>
+		<s:VerticalLayout paddingLeft="10" paddingRight="10" paddingTop="10" paddingBottom="10"/>
+	</s:layout>
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+		<s:RemoteObject endpoint="{ClientEnvironment.endpoint}" id="srvOrganization" destination="OrganizationService">
+			<s:method name="newOrganizationCharacter" result="resultHandler4saveOrganizationCharacter(event)" fault="faultHandler4saveOrganizationCharacter(event)">
+			</s:method>	
+			<s:method name="updOrganizationCharacter" result="resultHandler4saveOrganizationCharacter(event)" fault="faultHandler4saveOrganizationCharacter(event)">
+			</s:method>
+		</s:RemoteObject>		
+	</fx:Declarations>
+	
+	<fx:Metadata>
+		[ResourceBundle("com_organization_organizationcharacter_au")]
+	</fx:Metadata>
+	
+	<fx:Script>
+		<![CDATA[
+			import aks.aksas.collections.HashMap;
+			import aks.aksas.utils.UtilUi;
+			
+			import com.cool.assets.CoolAssetsFile;
+			
+			import dmdd.dmddas.common.constant.BizConst;
+			import dmdd.dmddas.common.system.ClientEnvironment;
+			import dmdd.dmddas.common.utils.UtilExceptionLocale;
+			import dmdd.dmddas.common.utils.UtilOrganizationCharacter;
+			import dmdd.dmddas.dataaccess.bizobject.BOrganizationCharacter;
+			import dmdd.dmddas.dataaccess.bizobject.BOrganizationCharacterLayer;
+			import dmdd.dmddas.dataaccess.bizobject.BSysDictionaryItem;
+			
+			import mx.collections.ArrayCollection;
+			import mx.controls.Alert;
+			import mx.events.FlexEvent;
+			import mx.managers.PopUpManager;
+			import mx.rpc.events.FaultEvent;
+			import mx.rpc.events.ResultEvent;
+			import mx.utils.StringUtil;
+			//	描述		begin
+			//	描述		end
+			
+			//	0	输入参数    begin		
+			private var paramIn4closeCallback4thisObject:Object = null;
+			private var paramIn4closeCallback4function:Function = null;
+			
+			private var paramIo4winUse:int = UtilUi.AUWINDOW_USE_NEW;
+			
+			[Bindable]
+			private var paramIo4organizationCharacter:BOrganizationCharacter = null;							
+			//	0	输入参数    end
+			
+			//	1	输出参数    begin
+			private var paramOut4winCloseWay:int = UtilUi.WINDOW_CLOSEWAY_CANCEL;
+			
+			//	1	输出参数    end
+			
+			//	2	本地变量    begin
+			[Bindable]
+			private var prvVar4arrDictGlobalYesNo:ArrayCollection = ClientEnvironment.getSysDictionaryItems("GLOBAL", "YESNO", false);	
+			
+			private var prvVar4chooserWindow:Com_Organization_OrganizationCharacter_Chooser = null;
+			//	2	本地变量    end			
+			
+			//	3	公共方法    begin	
+			//	构造函数
+			public function pubFun4constructor( _paramIo4organizationCharacter:BOrganizationCharacter, _paramIo4winUse:int, _paramIn4closeCallback4thisObject:Object, _paramIn4closeCallback4function:Function ):void
+			{
+				this.pubFun4setParamIo4organizationCharacter( _paramIo4organizationCharacter, _paramIo4winUse );
+				this.pubFun4setParamIn4closeCallback( _paramIn4closeCallback4thisObject, _paramIn4closeCallback4function );
+			}	
+			
+			//	关闭回调函数参数													
+			public function pubFun4setParamIn4closeCallback( _thisObject:Object, _function:Function ):void
+			{
+				this.paramIn4closeCallback4thisObject = _thisObject;
+				this.paramIn4closeCallback4function = _function;	
+			}
+			//	关闭方式参数
+			public function pubFun4getParamOut4winCloseWay():int
+			{
+				return this.paramOut4winCloseWay;
+			}
+			//	关闭窗口
+			private function prvFun4close():void
+			{
+				PopUpManager.removePopUp( this );						
+				this.paramIn4closeCallback4function.call( this.paramIn4closeCallback4thisObject );				
+			}				
+			
+			//	界面用途参数
+			public function pubFun4getParamIo4winUse():int
+			{
+				return this.paramIo4winUse;
+			}			
+			
+			
+			//	处理对象参数
+			/**
+			 * _paramIo4organizationCharacter:BOrganizationCharacter	处理对象
+			 * _paramIo4winUse:int	处理动作
+			 */ 			
+			public function pubFun4setParamIo4organizationCharacter( _paramIo4organizationCharacter:BOrganizationCharacter, _paramIo4winUse:int ):void
+			{
+				this.paramIo4organizationCharacter = _paramIo4organizationCharacter;
+				this.paramIo4winUse = _paramIo4winUse;
+				
+				this.comboBoxIsCatalog.selectedIndex = ClientEnvironment.getSysDictionaryItemIndexByValue( this.prvVar4arrDictGlobalYesNo, this.paramIo4organizationCharacter.isCatalog );
+				
+				if( this.paramIo4winUse == UtilUi.AUWINDOW_USE_NEW )
+				{
+					this.comboBoxIsCatalog.enabled = true;
+					this.btnParentOrganizationCharacterChooser.enabled = false;
+					
+					if( this.paramIo4organizationCharacter.organizationCharacterLayer.value == 1 )
+					{
+						//	新建的是第一层结点
+						this.txtType.enabled = true;
+					}
+					else
+					{
+						//	新建的是二层以上结点
+						this.txtType.enabled = false;
+					}
+
+				}
+				else if( this.paramIo4winUse == UtilUi.AUWINDOW_USE_UPD )
+				{
+					this.comboBoxIsCatalog.enabled = false;
+					this.btnParentOrganizationCharacterChooser.enabled = true;
+					
+					if( this.paramIo4organizationCharacter.organizationCharacterLayer.value == 1 )
+					{
+						//	只有第一层结点的类型可以更改
+						this.txtType.enabled = true;
+					}
+					else
+					{
+						//	只有第一层结点的类型可以更改
+						this.txtType.enabled = false;
+					}					
+				}
+			}
+			public function pubFun4getParamIo4organizationCharacter():BOrganizationCharacter
+			{
+				return this.paramIo4organizationCharacter;
+			}				
+			//	3	公共方法    end		
+			 
+			//	4	初始化方法    begin			
+			private function creationCompleteHandler(event:FlexEvent):void
+			{
+				this.x = 100;
+				this.y = 50;
+			}						
+			//	4	初始化方法    end				
+			
+			//	5	事件响应方法    begin	
+			private function onChooseParentOrganizationCharacter():void
+			{
+				if( this.prvVar4chooserWindow ==  null )
+				{
+					this.prvVar4chooserWindow = Com_Organization_OrganizationCharacter_Chooser(PopUpManager.createPopUp(this, Com_Organization_OrganizationCharacter_Chooser, true));
+					this.prvVar4chooserWindow.pubFun4setParamIn4closeCallback( this, callbackFunction4ChooserWinClose );
+				}
+				else
+				{
+					PopUpManager.addPopUp( this.prvVar4chooserWindow, this, true );
+				}	 		
+			}	
+			
+			private function callbackFunction4ChooserWinClose():void
+			{
+				var alert_title_hint:String = resourceManager.getString('alert','alert_title_hint');
+				var alert_msg:String = "";	
+				
+				if( this.prvVar4chooserWindow.pubFun4getParamOut4winCloseWay() == UtilUi.WINDOW_CLOSEWAY_OK )
+				{
+					var selectedOrganizationCharacter:BOrganizationCharacter = this.prvVar4chooserWindow.pubFun4getParamOut4selectedOrganizationCharacter();
+					if( selectedOrganizationCharacter == null )
+					{
+						return;
+					}
+					if( selectedOrganizationCharacter.isCatalog == BizConst.GLOBAL_YESNO_NO )
+					{
+						alert_msg =	resourceManager.getString('alert','alert_msg_parentisnotcatalog3');
+						Alert.show( alert_msg, alert_title_hint );
+						return;						
+					}
+					
+					if( selectedOrganizationCharacter.id == this.paramIo4organizationCharacter.id )
+					{
+						alert_msg =	resourceManager.getString('alert','alert_msg_parentisself3');
+						Alert.show( alert_msg, alert_title_hint );
+						return;		
+					}
+					
+ 					if( UtilOrganizationCharacter.isAncestorOf(this.paramIo4organizationCharacter, selectedOrganizationCharacter) == true )
+					{
+						alert_msg =	resourceManager.getString('alert','alert_msg_parentisdescendent3');
+						Alert.show( alert_msg, alert_title_hint );
+						return;							
+					}
+					
+					var organizationCharacterLayer_new:BOrganizationCharacterLayer = ClientEnvironment.getOrganizationCharacterLayerByValue( selectedOrganizationCharacter.organizationCharacterLayer.value + 1 );
+					if( organizationCharacterLayer_new == null )
+					{
+						alert_msg = resourceManager.getString('alert','alert_msg_maxlayer3');					
+						Alert.show( alert_msg, alert_title_hint );
+						return;					
+					}
+					
+					if( selectedOrganizationCharacter.organizationCharacterLayer.value > 0 )
+					{
+						this.paramIo4organizationCharacter.parentOrganizationCharacter = selectedOrganizationCharacter;
+						this.paramIo4organizationCharacter.organizationCharacterLayer = organizationCharacterLayer_new;
+						this.paramIo4organizationCharacter.type = selectedOrganizationCharacter.type;							
+					}
+					else
+					{
+						//	选择的是根目录,需要检查所有的1层特征的类型不重复
+						var i:int;
+						var organizationCharacter:BOrganizationCharacter = null;
+						for( i=0; i<selectedOrganizationCharacter.subOrganizationCharacters.length; i=i+1 )
+						{
+							organizationCharacter = BOrganizationCharacter(selectedOrganizationCharacter.subOrganizationCharacters.getItemAt(i));
+							if( organizationCharacter.type == this.paramIo4organizationCharacter.type &&
+								organizationCharacter.id != this.paramIo4organizationCharacter.id )
+							{
+								alert_msg = resourceManager.getString('alert','alert_msg_typeisnotunique3');					
+								Alert.show( alert_msg, alert_title_hint );
+								return;	
+							}
+						}
+						this.paramIo4organizationCharacter.parentOrganizationCharacter = selectedOrganizationCharacter;
+						this.paramIo4organizationCharacter.organizationCharacterLayer = organizationCharacterLayer_new;
+						//	type 不变						
+					}
+				}														
+			}		
+			
+			
+			
+			private function onSave():void
+			{				
+				if( this.prvFun4prepare4save() == true )
+				{
+					UtilUi.pubFun4PopWaitWindow( this );
+					if( this.paramIo4winUse == UtilUi.AUWINDOW_USE_NEW )
+					{
+						this.srvOrganization.newOrganizationCharacter( this.paramIo4organizationCharacter );
+					}
+					else if( this.paramIo4winUse == UtilUi.AUWINDOW_USE_UPD )
+					{
+						this.srvOrganization.updOrganizationCharacter( this.paramIo4organizationCharacter );
+					}
+					else
+					{
+						Alert.show( '意外情形，请联系技术支持人员', '提示' );	
+					}
+				}
+			}			
+			
+			private function faultHandler4saveOrganizationCharacter(event:FaultEvent):void
+			{
+				UtilUi.pubFun4RemoveWaitWindow();
+				Alert.show( UtilExceptionLocale.getExceptionMessageLocaleByFaultEvent( event ), resourceManager.getString('alert','alt_title_warn') );
+			}	
+			
+			private function resultHandler4saveOrganizationCharacter(event:ResultEvent):void 
+			{
+				this.paramIo4organizationCharacter = BOrganizationCharacter(event.result);	
+				UtilUi.pubFun4RemoveWaitWindow();
+				
+				this.paramOut4winCloseWay = UtilUi.WINDOW_CLOSEWAY_OK;
+				this.prvFun4close();
+			}				
+			
+			private function onCancel():void
+			{
+				this.paramOut4winCloseWay = UtilUi.WINDOW_CLOSEWAY_CANCEL;
+				this.prvFun4close();
+			}	
+			
+			//	5	事件响应方法    end
+			
+			//	6	本地方法    begin
+			private function prvFun4prepare4save():Boolean
+			{
+				this.paramIo4organizationCharacter.code = StringUtil.trim(this.txtCode.text);
+				this.paramIo4organizationCharacter.name = StringUtil.trim(this.txtName.text);
+				this.paramIo4organizationCharacter.type = StringUtil.trim(this.txtType.text);
+				this.paramIo4organizationCharacter.isCatalog = BSysDictionaryItem(this.comboBoxIsCatalog.selectedItem).value;
+				this.paramIo4organizationCharacter.description = StringUtil.trim(this.txtDescription.text);
+				this.paramIo4organizationCharacter.comments = StringUtil.trim(this.txtComments.text);
+				
+				// parentOrganizationCharacter是实时处理的
+				// organizationCharacterLayer 是初始化好的
+				
+				var alert_title_hint:String = resourceManager.getString('alert','alert_title_hint');
+				var alert_msg:String = "";				
+				if( this.paramIo4organizationCharacter.code == null || this.paramIo4organizationCharacter.code == "" )
+				{
+					alert_msg = resourceManager.getString('alert','alert_msg_codeisnull');
+					Alert.show( alert_msg, alert_title_hint );
+					return false;						
+				}
+				if( this.paramIo4organizationCharacter.name == null || this.paramIo4organizationCharacter.name == "" )
+				{
+					alert_msg = resourceManager.getString('alert','alert_msg_nameisnull');
+					Alert.show( alert_msg, alert_title_hint );
+					return false;						
+				}		
+				if( (this.paramIo4organizationCharacter.type == null || this.paramIo4organizationCharacter.type == "")&& !(this.paramIo4organizationCharacter.parentOrganizationCharacter==null))
+				{
+					alert_msg = resourceManager.getString('alert','alert_msg_typeisnull');
+					Alert.show( alert_msg, alert_title_hint );
+					return false;						
+				}		
+				
+				if( this.paramIo4organizationCharacter.organizationCharacterLayer.value == 1 )
+				{
+					//	第一层特征,需要检查所有的1层特征的类型不重复
+					var i:int;
+					var organizationCharacter:BOrganizationCharacter = null;
+					var organizationCharacterTreeRoot:BOrganizationCharacter = ClientEnvironment.getOrganizationCharacterTreeRoot();
+					for( i=0; i<organizationCharacterTreeRoot.subOrganizationCharacters.length; i=i+1 )
+					{
+						organizationCharacter = BOrganizationCharacter(organizationCharacterTreeRoot.subOrganizationCharacters.getItemAt(i));
+						if( organizationCharacter.type == this.paramIo4organizationCharacter.type &&
+							organizationCharacter.id != this.paramIo4organizationCharacter.id )
+						{
+							alert_msg = resourceManager.getString('alert','alert_msg_typeisnotunique3');					
+							Alert.show( alert_msg, alert_title_hint );
+							return false;	
+						}
+					}						
+				}
+				
+				
+				return true;		
+			}				
+			//	6	本地方法   end						
+		]]>
+	</fx:Script>
+	<!--
+	<s:controlBarLayout>
+		<s:HorizontalLayout horizontalAlign="center">
+		</s:HorizontalLayout>
+	</s:controlBarLayout>	
+	<s:controlBarContent>
+		<s:Button label="{resourceManager.getString('com_organization_organizationcharacter_au','btn_save')}" click="onSave()"/>
+		<s:Button label="{resourceManager.getString('com_organization_organizationcharacter_au','btn_cancel')}" click="onCancel()"/>		
+	</s:controlBarContent>
+-->
+	<mx:Grid width="100%">
+		<mx:GridRow width="100%" height="100%" verticalAlign="middle">
+			<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+				<s:Label text="{resourceManager.getString('note','charCode')}"/>
+			</mx:GridItem>
+			<mx:GridItem width="100%" height="100%" verticalAlign="middle">
+				<mx:TextInput width="100%" maxChars="255" id="txtCode" text="{this.paramIo4organizationCharacter.code}"/>
+			</mx:GridItem>
+			<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+			</mx:GridItem>
+			<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+				<s:Label text="{resourceManager.getString('note','charName')}"/>
+			</mx:GridItem>
+			<mx:GridItem width="100%" height="100%" verticalAlign="middle">
+				<mx:TextInput width="100%" maxChars="255" id="txtName" text="{this.paramIo4organizationCharacter.name}"/>
+			</mx:GridItem>
+		</mx:GridRow>
+		<mx:GridRow width="100%" height="100%" verticalAlign="middle">
+			<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+				<s:Label text="{resourceManager.getString('note','parentChar')}"/>
+			</mx:GridItem>
+			<mx:GridItem width="100%" height="100%" verticalAlign="middle">
+				<mx:TextInput width="100%" enabled="false" text="{this.paramIo4organizationCharacter.parentOrganizationCharacter.toString()}"/>
+				<s:Button icon="{CoolAssetsFile.findIcon}" width="30" id="btnParentOrganizationCharacterChooser" click="onChooseParentOrganizationCharacter()"/>				
+			</mx:GridItem>
+			<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+			</mx:GridItem>
+			<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+				<s:Label text="{resourceManager.getString('note','charType')}"/>
+			</mx:GridItem>
+			<mx:GridItem width="100%" height="100%" verticalAlign="middle">
+				<mx:TextInput width="100%" maxChars="30" id="txtType" text="{this.paramIo4organizationCharacter.type}"/>
+			</mx:GridItem>
+		</mx:GridRow>
+		<mx:GridRow width="100%" height="100%" verticalAlign="middle">
+			<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+				<s:Label text="{resourceManager.getString('note','isCatagory')}"/>
+			</mx:GridItem>
+			<mx:GridItem width="100%" height="100%" verticalAlign="middle">
+				<s:ComboBox width="100%" id="comboBoxIsCatalog" dataProvider="{this.prvVar4arrDictGlobalYesNo}">
+				</s:ComboBox>
+			</mx:GridItem>
+			<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+			</mx:GridItem>
+			<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+				<s:Label text="{resourceManager.getString('note','level')}"/>
+			</mx:GridItem>
+			<mx:GridItem width="100%" height="100%" verticalAlign="middle">
+				<mx:TextInput width="100%" maxChars="255" text="{this.paramIo4organizationCharacter.organizationCharacterLayer.toString()}" enabled="false"/>
+			</mx:GridItem>
+		</mx:GridRow>
+		<mx:GridRow width="100%" height="100%" verticalAlign="middle">
+			<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+				<s:Label text="{resourceManager.getString('note','longDesc')}"/>
+			</mx:GridItem>
+			<mx:GridItem width="100%" height="100%" verticalAlign="middle" colSpan="4">
+				<mx:TextInput width="100%" maxChars="255" id="txtDescription" text="{this.paramIo4organizationCharacter.description}"/>
+			</mx:GridItem>
+		</mx:GridRow>		
+		<mx:GridRow width="100%" height="100%" verticalAlign="middle">
+			<mx:GridItem width="25%" height="100%" verticalAlign="middle">
+				<s:Label text="{resourceManager.getString('note','remark')}"/>
+			</mx:GridItem>
+			<mx:GridItem width="100%" height="100%" verticalAlign="middle" colSpan="4">
+				<mx:TextInput width="100%" maxChars="255" id="txtComments" text="{this.paramIo4organizationCharacter.comments}"/>
+			</mx:GridItem>
+		</mx:GridRow>		
+	</mx:Grid>		
+	<s:BorderContainer width="100%" height="25" borderColor="#E4ECF7">
+		<s:layout>
+			<s:HorizontalLayout horizontalAlign="center"/>
+		</s:layout>
+		<s:Button label="{resourceManager.getString('button','save')}" click="onSave()"/>
+		<s:Button label="{resourceManager.getString('button','cancel')}" click="onCancel()"/>
+	</s:BorderContainer>
+
+</s:TitleWindow>
